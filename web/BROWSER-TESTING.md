@@ -54,6 +54,7 @@ its output or curl the port before assuming it is up. Kill stale servers with
 /                      landing
 /#/characters          character list
 /#/character/new       creation
+/#/character/:id       loadouts and per-class levels
 /#/set/:id             gear set editor (also /exaltations, /weights)
 /#/items               item browser
 /#/share/<payload>     shared read-only set
@@ -65,3 +66,8 @@ its output or curl the port before assuming it is up. Kill stale servers with
 - Zero console errors and zero page errors.
 - Every interactive control reachable and operable by keyboard; visible focus ring.
 - No horizontal page scroll at 1280, 1024 and 768 px wide.
+- Seed a **v1** library into `localStorage` under `eqlups.state.v1`
+  (`{version:1, characters:[{id, name, level, classes, race}], sets:[...]}`),
+  reload, and confirm the header still reads `<level> <PRI>/<SEC>/<SEC>`, the
+  set is intact, and the stored payload comes back as `version: 2`. Losing a
+  saved library is the most expensive bug this app can ship.
