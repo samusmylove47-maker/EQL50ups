@@ -6,6 +6,7 @@
  * browser re-rank live; there is no apply button on purpose.
  */
 
+import { useState } from 'react';
 import { PRESET_PROFILES, WEIGHTABLE_KEYS, type WeightProfile } from '../engine/ep';
 import { finite } from '../lib/format';
 
@@ -39,6 +40,18 @@ export function matchingPreset(weights: WeightProfile): string {
 export function WeightsEditor({ weights, onChange, readOnly = false }: WeightsEditorProps) {
   const preset = matchingPreset(weights);
   const active = PRESET_PROFILES.find((p) => p.id === preset);
+
+  /*
+   * Rendering `String(finite(weights[key]))` straight back into the input made
+   * a negative weight untypeable: a lone "-" is not a valid number, the browser
+   * reports it as "", the value round-tripped to "0", and React overwrote the
+   * minus sign the reader had just typed. Echoing the field's own raw text back
+   * while it is focused leaves those intermediate states alone. One field at a
+   * time is enough — only the focused one can be mid-edit.
+   */
+  const [draft, setDraft] = useState<{ key: string; text: string } | null>(null);
+  const shown = (key: string) =>
+    draft?.key === key ? draft.text : String(finite(weights[key]));
 
   return (
     <div className="stack">
@@ -92,14 +105,20 @@ export function WeightsEditor({ weights, onChange, readOnly = false }: WeightsEd
                   step="0.1"
                   inputMode="decimal"
                   disabled={readOnly}
-                  value={String(finite(weights[entry.key]))}
+                  value={shown(entry.key)}
                   onChange={(e) => {
-                    const value = Number(e.target.value);
+                    const text = e.target.value;
+                    setDraft({ key: entry.key, text });
+                    const value = Number(text);
                     const next = { ...weights };
-                    if (!Number.isFinite(value) || value === 0) delete next[entry.key];
-                    else next[entry.key] = value;
+                    if (!text.trim() || !Number.isFinite(value) || value === 0) {
+                      delete next[entry.key];
+                    } else {
+                      next[entry.key] = value;
+                    }
                     onChange(next);
                   }}
+                  onBlur={() => setDraft((d) => (d?.key === entry.key ? null : d))}
                 />
               </div>
             ))}

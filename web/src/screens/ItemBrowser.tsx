@@ -14,8 +14,17 @@ import { statVector } from '../selectors/gear';
 import { useApp } from '../state/store';
 
 type SortKey = 'ep' | 'name' | 'era' | 'slot';
+type SortDir = 'asc' | 'desc';
 
 const ROW_LIMIT = 250;
+
+/** How each column sorts on its first click: scores high-first, text A-first. */
+const NATURAL_DIRECTION: Record<SortKey, SortDir> = {
+  ep: 'desc',
+  name: 'asc',
+  era: 'asc',
+  slot: 'asc',
+};
 
 export function ItemBrowser() {
   const catalog = useCatalog();
@@ -30,6 +39,17 @@ export function ItemBrowser() {
   const [upgrade, setUpgrade] = useState<UpgradeState>(BASE_STATE);
   const [liveOnly, setLiveOnly] = useState(true);
   const [sort, setSort] = useState<SortKey>('ep');
+  const [dir, setDir] = useState<SortDir>('desc');
+
+  // Clicking the column you are already sorted by reverses it; clicking another
+  // starts it in whichever direction that column reads best.
+  const sortBy = (key: SortKey) => {
+    if (key === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else {
+      setSort(key);
+      setDir(NATURAL_DIRECTION[key]);
+    }
+  };
 
   const deferredQuery = useDeferredValue(query);
 
@@ -62,27 +82,38 @@ export function ItemBrowser() {
       if (pseudoCharacter && !canUse({ classes: item.cl, races: item.ra }, pseudoCharacter)) continue;
       scored.push({ item, score: scoreItem(item, upgrade, weights).total });
     }
-    const compare: Record<SortKey, (a: { item: Item; score: number }, b: { item: Item; score: number }) => number> = {
-      ep: (a, b) => b.score - a.score || a.item.n.localeCompare(b.item.n),
+    type Row = { item: Item; score: number };
+    const eraIndex = (row: Row) =>
+      ERA_ORDER.indexOf((row.item.era ?? '') as (typeof ERA_ORDER)[number]);
+    // Ascending comparators only; direction is applied once, and the name
+    // tiebreaker stays ascending in both so the order is stable and readable.
+    const compare: Record<SortKey, (a: Row, b: Row) => number> = {
+      ep: (a, b) => a.score - b.score,
       name: (a, b) => a.item.n.localeCompare(b.item.n),
-      era: (a, b) =>
-        ERA_ORDER.indexOf((a.item.era ?? '') as (typeof ERA_ORDER)[number]) -
-          ERA_ORDER.indexOf((b.item.era ?? '') as (typeof ERA_ORDER)[number]) ||
-        a.item.n.localeCompare(b.item.n),
-      slot: (a, b) => (a.item.sl[0] ?? '').localeCompare(b.item.sl[0] ?? '') || a.item.n.localeCompare(b.item.n),
+      era: (a, b) => eraIndex(a) - eraIndex(b),
+      slot: (a, b) => (a.item.sl[0] ?? '').localeCompare(b.item.sl[0] ?? ''),
     };
-    scored.sort(compare[sort]);
+    const sign = dir === 'asc' ? 1 : -1;
+    const primary = compare[sort];
+    scored.sort((a, b) => sign * primary(a, b) || a.item.n.localeCompare(b.item.n));
     return { rows: scored.slice(0, ROW_LIMIT), total: scored.length };
-  }, [catalog.items, matches, slot, era, liveOnly, pseudoCharacter, weights, upgrade, sort]);
+  }, [catalog.items, matches, slot, era, liveOnly, pseudoCharacter, weights, upgrade, sort, dir]);
 
-  const header = (key: SortKey, label: string, className?: string) => (
-    <th className={className} aria-sort={sort === key ? 'descending' : 'none'}>
-      <button type="button" onClick={() => setSort(key)}>
-        {label}
-        {sort === key ? ' ▾' : ''}
-      </button>
-    </th>
-  );
+  const header = (key: SortKey, label: string, className?: string) => {
+    const activeSort = sort === key;
+    return (
+      <th className={className} aria-sort={activeSort ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+        <button
+          type="button"
+          onClick={() => sortBy(key)}
+          title={activeSort ? 'Reverse this column' : `Sort by ${label}`}
+        >
+          {label}
+          {activeSort ? (dir === 'asc' ? ' ▴' : ' ▾') : ''}
+        </button>
+      </th>
+    );
+  };
 
   return (
     <div>
