@@ -164,6 +164,28 @@ test('a browser with no storage at all says so once and stays usable', async ({ 
   await expectCleanText(page);
 });
 
+test('every tab stop on the characters screen is visible', async ({ page }) => {
+  // Regression: the clipped file input behind "Import JSON" was focusable, so
+  // keyboard users hit an invisible, unnamed control.
+  await createCharacter(page, { name: 'Tabbable' });
+  await page.goto('/#/characters');
+  await page.locator('body').click({ position: { x: 2, y: 300 } });
+
+  for (let i = 0; i < 14; i++) {
+    await page.keyboard.press('Tab');
+    const stop = await page.evaluate(() => {
+      const el = document.activeElement as HTMLElement;
+      const rect = el.getBoundingClientRect();
+      return {
+        tag: el.tagName,
+        visible: rect.width > 2 && rect.height > 2 && getComputedStyle(el).visibility !== 'hidden',
+      };
+    });
+    if (stop.tag === 'BODY') break;
+    expect(stop.visible, `invisible tab stop: ${stop.tag}`).toBe(true);
+  }
+});
+
 test('JSON export downloads, and a foreign file is refused politely', async ({ page }) => {
   await createCharacter(page, { name: 'Exporter' });
   await page.goto('/#/characters');

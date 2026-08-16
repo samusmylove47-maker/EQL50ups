@@ -66,11 +66,18 @@ export function Characters() {
           <button type="button" className="btn btn-sm" onClick={() => fileRef.current?.click()}>
             Import JSON
           </button>
+          {/*
+            The visible button opens this, so the input itself must not be a
+            tab stop: it is clipped to a pixel, and a keyboard user landing on
+            it got an invisible, unnamed control between two buttons.
+          */}
           <input
             ref={fileRef}
             type="file"
             accept="application/json,.json"
             className="sr-only"
+            tabIndex={-1}
+            aria-hidden="true"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) void onImport(file);
