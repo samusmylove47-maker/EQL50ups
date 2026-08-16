@@ -93,6 +93,15 @@ function ceilToOneDecimal(x: number): number {
  * The `base <= 10` branch is what older community models misread as a flat
  * "+1 minimum" rule layered on a percentage. It is a branch, not a floor.
  * Penalties shrink toward zero rather than deepening.
+ *
+ * The percentage branch **truncates**; it does not round half away from zero.
+ * The third-party model this project started from specified `excelRound` here,
+ * and fourteen Tier 0 data points across three client screenshots contain
+ * exactly one case that can tell the two apart: Cloak of Flames carries
+ * `SV Fire 15`, and at +7 that is `15 + 10.5`. Half-away-from-zero predicts 26;
+ * the client prints **25**. Every other observed value agrees under either
+ * rule. This is the same third-party source that was also wrong about weight
+ * rounding, so its arithmetic is not trusted where the client can speak.
  */
 export function scalePrimary(base: number, state: UpgradeState): number {
   if (!Number.isFinite(base) || base === 0) return 0;
@@ -100,7 +109,7 @@ export function scalePrimary(base: number, state: UpgradeState): number {
   if (base < 0) return Math.min(0, base + full);
   if (base <= 10) return base + full;
   const eff = effectiveLevel(state);
-  return Math.floor(base + excelRound((base * eff) / 10));
+  return base + Math.floor((base * eff) / 10);
 }
 
 /**

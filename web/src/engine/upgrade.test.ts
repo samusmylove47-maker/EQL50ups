@@ -84,8 +84,17 @@ describe('primary stat scaling', () => {
   });
 
   it('switches to the percentage branch above ten', () => {
-    // 25 + excelRound(25 * 4 / 10) = 25 + 10 = 35
+    // 25 + floor(25 * 4 / 10) = 25 + 10 = 35
     expect(scalePrimary(25, tier(4))).toBe(35);
+  });
+
+  /*
+   * Tier 0, and the single case that discriminates truncation from
+   * half-away-from-zero rounding. Cloak of Flames carries SV Fire 15; at +7
+   * that is 15 + 10.5. excelRound predicts 26, the client prints 25.
+   */
+  it('truncates the percentage branch rather than rounding it', () => {
+    expect(scalePrimary(15, tier(7))).toBe(25);
   });
 
   it('shrinks penalties toward zero rather than deepening them', () => {
@@ -96,6 +105,48 @@ describe('primary stat scaling', () => {
 
   it('ignores banked fraction on the base<=10 branch', () => {
     expect(scalePrimary(6, { full: 3, fraction: 7 })).toBe(9);
+  });
+});
+
+describe('Tier 0: Cloak of Flames +7 (client screenshot)', () => {
+  const t7 = tier(7);
+
+  it('lifts AC 10 to 17 on the base<=10 branch', () => {
+    expect(scalePrimary(10, t7)).toBe(17);
+  });
+
+  it('lifts HP 50 to 85 on the percentage branch', () => {
+    expect(scalePrimary(50, t7)).toBe(85);
+  });
+
+  it('lifts Agility and Dexterity 9 to 16', () => {
+    expect(scalePrimary(9, t7)).toBe(16);
+  });
+
+  it('lifts SV Fire 15 to 25, truncating the half', () => {
+    expect(scalePrimary(15, t7)).toBe(25);
+  });
+
+  it('lifts worn Haste 36 to 43 on the flat rule', () => {
+    expect(scaleFlat(36, t7)).toBe(43);
+  });
+
+  it('grants SV Void 7 from Agility, Dexterity and Fire', () => {
+    expect(voidBonus(['AGI', 'DEX', 'SV_FIRE'], t7)).toBe(7);
+  });
+});
+
+describe('Tier 0: Bone-Clasped Girdle +4 and Bladestopper +6', () => {
+  it('Girdle: AC 4 to 8, HP and Mana 75 to 105, attributes 7 to 11', () => {
+    expect(scalePrimary(4, tier(4))).toBe(8);
+    expect(scalePrimary(75, tier(4))).toBe(105);
+    expect(scalePrimary(7, tier(4))).toBe(11);
+  });
+
+  it('Bladestopper: AC 25 to 40, HP 50 to 80, Stamina 15 to 24', () => {
+    expect(scalePrimary(25, tier(6))).toBe(40);
+    expect(scalePrimary(50, tier(6))).toBe(80);
+    expect(scalePrimary(15, tier(6))).toBe(24);
   });
 });
 

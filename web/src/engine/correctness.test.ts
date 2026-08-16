@@ -298,8 +298,12 @@ describe('resolution survives whatever the catalog omits', () => {
     const banked = { full: 3, fraction: 4 };
     const item = mk({ st: { STR: 25, AC: 100 }, wp: { dmg: 37, dly: 70 } });
     const resolved = resolveItem(item, banked);
-    expect(resolved.attributes.STR).toBe(34); // 25 + round(25*3.5/10)
-    expect(resolved.ac).toBe(135); // 100 + round(100*3.5/10)
+    // Truncated, not rounded. This expectation previously read 34, following
+    // the third-party model's `excelRound`; Cloak of Flames settles it against
+    // the client (SV Fire 15 at +7 prints 25, not 26), so the percentage
+    // branch floors like weapon damage does.
+    expect(resolved.attributes.STR).toBe(33); // 25 + floor(25*3.5/10)
+    expect(resolved.ac).toBe(135); // 100 + floor(100*3.5/10)
     expect(resolved.weapon?.damage).toBe(49); // 37 + floor(37*3.5/10)
   });
 
