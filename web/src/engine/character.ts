@@ -54,7 +54,11 @@ export function canUseClass(item: Pick<ItemRestrictions, 'classes'>, character: 
 
 export function canUseRace(item: Pick<ItemRestrictions, 'races'>, character: Character): boolean {
   if (isUnrestricted(item.races)) return true;
-  if (!character.race) return true; // race unset: don't filter on it
+  // `NONE` excludes every race, so it refuses whether or not we know theirs.
+  // Skipping that check when the race is unset made the same item appear or
+  // vanish depending on a field the restriction does not depend on.
+  if (item.races.includes('NONE')) return false;
+  if (!character.race) return true; // race unset: don't narrow on it
   return matchesList(item.races, [character.race]);
 }
 
