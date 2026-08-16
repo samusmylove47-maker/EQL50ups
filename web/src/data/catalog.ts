@@ -12,10 +12,18 @@
  */
 
 import { create } from 'zustand';
-import { SLOT_TYPES } from '../engine/constants';
+import { ATTRIBUTION, SLOT_TYPES } from '../engine/constants';
 import type { CatalogMeta, Item } from '../engine/types';
+import { finite } from '../lib/format';
 import { FIXTURE_ITEMS } from './fixture';
 import { normalizeCatalog, type SlotCode } from './normalize';
+
+/**
+ * Shards the pipeline emits that are not paper-doll slot types. `OTHER`
+ * carries everything with no wearable slot (potions, components, tradeskill
+ * items) and is only needed by the global browser.
+ */
+const EXTRA_SHARDS = ['OTHER'];
 
 export type CatalogStatus = 'idle' | 'loading' | 'ready' | 'missing' | 'error';
 export type ShardStatus = 'loading' | 'ready' | 'missing';
@@ -52,6 +60,28 @@ async function fetchJson(path: string): Promise<unknown | null> {
   // A dev server with SPA fallback answers 200 with index.html for missing files.
   if (!trimmed || trimmed.startsWith('<')) return null;
   return JSON.parse(trimmed) as unknown;
+}
+
+/** The pipeline's meta file uses its own field names; accept either spelling. */
+function normalizeMeta(raw: unknown): CatalogMeta | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const record = raw as Record<string, unknown>;
+  const counts =
+    typeof record.counts === 'object' && record.counts !== null
+      ? (record.counts as Record<string, number>)
+      : {};
+  return {
+    version: finite(record.version ?? record.v, 1),
+    generated:
+      typeof record.generated === 'string'
+        ? record.generated
+        : typeof record.builtAt === 'string'
+          ? record.builtAt
+          : '',
+    counts,
+    attribution: typeof record.attribution === 'string' ? record.attribution : ATTRIBUTION,
+    sources: record.sources,
+  };
 }
 
 function indexItems(items: Item[]): {
@@ -128,7 +158,7 @@ export const useCatalog = create<CatalogState>((set, get) => ({
       if (!items.length) {
         set({
           status: 'missing',
-          meta: (metaRaw as CatalogMeta | null) ?? null,
+          meta: normalizeMeta(metaRaw),
           items: [],
           byName: new Map(),
           bySlot: new Map(),
@@ -139,7 +169,7 @@ export const useCatalog = create<CatalogState>((set, get) => ({
 
       set({
         status: 'ready',
-        meta: (metaRaw as CatalogMeta | null) ?? null,
+        meta: normalizeMeta(metaRaw),
         items,
         ...indexItems(items),
         revision: get().revision + 1,
@@ -185,7 +215,8 @@ export const useCatalog = create<CatalogState>((set, get) => ({
   async ensureAll() {
     const state = get();
     if (state.usingFixture) return;
-    await Promise.all(SLOT_TYPES.filter((s) => !state.shards[s]).map((s) => get().ensureSlot(s)));
+    const wanted = [...SLOT_TYPES, ...EXTRA_SHARDS] as SlotCode[];
+    await Promise.all(wanted.filter((s) => !state.shards[s]).map((s) => get().ensureSlot(s)));
   },
 
   loadFixture() {

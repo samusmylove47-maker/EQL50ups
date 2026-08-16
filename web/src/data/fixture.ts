@@ -18,7 +18,6 @@ function fixture(item: Partial<Item> & Pick<Item, 'n' | 'sl'>): Item {
     ra: ['ALL'],
     st: {},
     sv: {},
-    fl: ['FIXTURE'],
     av: true,
     era: 'Classic',
     ...item,
