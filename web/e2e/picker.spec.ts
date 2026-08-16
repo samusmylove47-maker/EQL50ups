@@ -53,10 +53,12 @@ test('keyboard navigation moves, jumps and equips', async ({ page }) => {
   await expect(active).toHaveAttribute('id', `picker-option-${count - 1}`);
   await page.keyboard.press('Home');
 
-  const name = await page.locator('.results .result').first().locator('.result-name').innerText();
+  const name = (
+    await page.locator('.results .result').first().locator('.result-name').innerText()
+  ).split('\n')[1];
   await page.keyboard.press('Enter');
   await expect(page.locator('.modal')).toHaveCount(0);
-  await expect(page.locator('.slot-wrap').first()).toContainText(name.split('\n').pop() ?? '');
+  await expect(page.locator('.slot-wrap').first().locator('.slot-item')).toHaveText(name ?? '');
 });
 
 test('every exit path closes the picker', async ({ page }) => {
