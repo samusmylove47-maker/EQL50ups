@@ -4,8 +4,9 @@
  * Speed is the brand, so the work is split in two: an expensive pass that
  * scores and sorts every legal candidate for the slot (memoised on catalog
  * revision, class trio, weights, preview tier and cap context), and a cheap
- * pass that filters that already-sorted array through a prefix search index
- * and stops once the render budget is full. Typing therefore never rescores.
+ * pass that filters that already-sorted array through the trigram search
+ * index, stopping once the render budget is full. Typing therefore never
+ * rescores — it only re-filters an array that is already in EP order.
  *
  * Keyboard: ↑/↓ move, PgUp/PgDn jump, Home/End, Enter equips, Escape closes
  * (handled by the modal shell).

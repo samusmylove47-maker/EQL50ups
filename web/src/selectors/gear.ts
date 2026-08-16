@@ -49,8 +49,21 @@ const DEFAULT_IMPORTANCE: Record<string, number> = {
   REGEN: 5, MANA_REGEN: 5, END_REGEN: 3, DMG: 0.5,
 };
 
+/** Compact labels for the one-line summaries, using EQ's own shorthand. */
+export const SHORT_LABELS: Record<string, string> = {
+  AC: 'AC', HP: 'HP', MANA: 'MANA', ENDUR: 'END', HASTE: 'HASTE',
+  REGEN: 'REGEN', MANA_REGEN: 'MREGEN', END_REGEN: 'EREGEN', DMG: 'DMG',
+  STR: 'STR', STA: 'STA', AGI: 'AGI', DEX: 'DEX', WIS: 'WIS', INT: 'INT', CHA: 'CHA',
+  SV_MAGIC: 'MR', SV_FIRE: 'FR', SV_COLD: 'CR', SV_DISEASE: 'DR', SV_POISON: 'PR',
+  SV_VOID: 'VR',
+};
+
 export function statLabel(key: string): string {
   return STAT_LABELS[key] ?? key.replace(/_/g, ' ');
+}
+
+export function shortStatLabel(key: string): string {
+  return SHORT_LABELS[key] ?? statLabel(key).slice(0, 4).toUpperCase();
 }
 
 /** One item's resolved contribution, flattened into ordered stat entries. */
@@ -106,7 +119,7 @@ export function summarizeItem(
   for (const entry of ranked) {
     if (parts.length >= limit) break;
     if (entry.key === 'DMG' && weapon) continue;
-    parts.push(`${entry.label === 'AC' ? 'AC' : entry.label.slice(0, 3).toUpperCase()} ${signed(entry.value)}`);
+    parts.push(`${shortStatLabel(entry.key)} ${signed(entry.value)}`);
   }
   return parts.join(' · ');
 }
