@@ -1,0 +1,156 @@
+/** The global item browser: search, filters, and every sort column both ways. */
+
+import { expect, expectCleanText, expectNoHorizontalScroll, test } from './helpers';
+
+/**
+ * Open the browser and wait for the shards to stop arriving — the match count
+ * climbs while `ensureAll` streams in per-slot detail, and a test that reads it
+ * mid-flight measures the load, not the filter.
+ */
+async function open(page: import('@playwright/test').Page) {
+  await page.goto('/#/items');
+  await page.locator('table.data tbody tr').first().waitFor({ timeout: 30_000 });
+  const hint = page.locator('.page-head .hint');
+  let previous = '';
+  for (let i = 0; i < 60; i++) {
+    const current = await hint.innerText();
+    if (current === previous) return;
+    previous = current;
+    await page.waitForTimeout(500);
+  }
+  throw new Error('item catalog never settled');
+}
+
+const names = (page: import('@playwright/test').Page) =>
+  page.locator('table.data tbody tr td:first-child span').first().innerText();
+
+const column = async (page: import('@playwright/test').Page, index: number, take = 8) =>
+  (await page.locator(`table.data tbody tr td:nth-child(${index})`).allInnerTexts())
+    .slice(0, take)
+    .map((t) => t.split('\n')[0]?.trim() ?? '');
+
+test('every sort column reverses on a second click and says so', async ({ page }) => {
+  // Regression: clicking the active header did nothing, and aria-sort read
+  // "descending" even while names were sorted A-Z.
+  await open(page);
+
+  for (const [label, columnIndex, natural] of [
+    ['Item', 1, 'asc'],
+    ['Slot', 2, 'asc'],
+    ['Era', 5, 'asc'],
+    ['EP', 6, 'desc'],
+  ] as const) {
+    const header = page.getByRole('button', { name: new RegExp(`^${label}`) });
+    await header.click();
+    await page.waitForTimeout(400);
+    const th = page.locator('th', { has: header });
+    await expect(th).toHaveAttribute('aria-sort', natural === 'asc' ? 'ascending' : 'descending');
+    const first = await column(page, columnIndex);
+
+    await header.click();
+    await page.waitForTimeout(400);
+    await expect(th).toHaveAttribute('aria-sort', natural === 'asc' ? 'descending' : 'ascending');
+    const second = await column(page, columnIndex);
+
+    expect(second, `${label} did not reverse`).not.toEqual(first);
+    await expectCleanText(page);
+  }
+});
+
+test('name sorting really is alphabetical in both directions', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: /^Item/ }).click();
+  await page.waitForTimeout(400);
+  const ascending = await column(page, 1);
+  expect(ascending).toEqual([...ascending].sort((a, b) => a.localeCompare(b)));
+
+  await page.getByRole('button', { name: /^Item/ }).click();
+  await page.waitForTimeout(400);
+  const descending = await column(page, 1);
+  expect(descending).toEqual([...descending].sort((a, b) => b.localeCompare(a)));
+});
+
+test('EP sorting is monotonic and stable across repeat renders', async ({ page }) => {
+  await open(page);
+  const scores = async () =>
+    (await page.locator('table.data tbody tr td.num').allInnerTexts())
+      .slice(0, 20)
+      .map((t) => Number(t.replace(/,/g, '')));
+
+  const first = await scores();
+  for (let i = 1; i < first.length; i++) {
+    expect(first[i - 1]).toBeGreaterThanOrEqual(first[i] as number);
+  }
+
+  const before = await column(page, 1, 20);
+  await page.getByRole('button', { name: /^Item/ }).click();
+  await page.waitForTimeout(300);
+  await page.getByRole('button', { name: /^EP/ }).click();
+  await page.waitForTimeout(300);
+  expect(await column(page, 1, 20), 'sort order is not stable').toEqual(before);
+});
+
+test('search and filters narrow the catalog and can be undone', async ({ page }) => {
+  await open(page);
+  const countText = () => page.locator('.page-head .hint').innerText();
+  const parse = (text: string) => Number((text.match(/[\d,]+/)?.[0] ?? '0').replace(/,/g, ''));
+  const all = parse(await countText());
+  expect(all).toBeGreaterThan(1000);
+
+  const search = page.locator('input[aria-label="Search items"]');
+  await search.fill("Hotof's"); // apostrophes are everywhere in EQ item names
+  await page.waitForTimeout(500);
+  expect(parse(await countText())).toBeGreaterThan(0);
+  expect(await names(page)).toContain("Hotof's");
+
+  await search.fill('[');
+  await page.waitForTimeout(500);
+  await expect(page.locator('.empty-state h2')).toHaveText(/nothing matches/i);
+  await search.fill('');
+  await page.waitForTimeout(500);
+  expect(parse(await countText())).toBe(all);
+
+  await page.locator('select[aria-label="Filter by slot"]').selectOption('HEAD');
+  await page.waitForTimeout(400);
+  const heads = parse(await countText());
+  expect(heads).toBeLessThan(all);
+  for (const slot of await column(page, 2)) expect(slot).toContain('HEAD');
+
+  await page.locator('select[aria-label="Filter by class"]').selectOption({ index: 2 });
+  await page.waitForTimeout(400);
+  expect(parse(await countText())).toBeLessThanOrEqual(heads);
+
+  await page.locator('select[aria-label="Filter by slot"]').selectOption('any');
+  await page.locator('select[aria-label="Filter by class"]').selectOption('any');
+  await page.waitForTimeout(400);
+  expect(parse(await countText())).toBe(all);
+
+  // Unreleased content is hidden by default and can be revealed.
+  await page.locator('.checkline input').uncheck();
+  await page.waitForTimeout(600);
+  expect(parse(await countText())).toBeGreaterThan(all);
+  await page.locator('.checkline input').check();
+  await page.waitForTimeout(600);
+  expect(parse(await countText())).toBe(all);
+  await expectNoHorizontalScroll(page);
+});
+
+test('the scoring profile and the +N preview change the numbers', async ({ page }) => {
+  await open(page);
+  const top = await names(page);
+
+  await page.locator('select[aria-label="Scoring profile"]').selectOption({ index: 1 });
+  await page.waitForTimeout(600);
+  expect(await names(page)).not.toBe(top);
+
+  const stepper = page.locator('.rowline .stepper').first();
+  const before = await page.locator('table.data tbody tr td.num').first().innerText();
+  for (let i = 0; i < 3; i++) await stepper.locator('button').last().click();
+  await expect(stepper.locator('.value')).toHaveText('+3');
+  await page.waitForTimeout(600);
+  expect(await page.locator('table.data tbody tr td.num').first().innerText()).not.toBe(before);
+
+  await page.getByRole('button', { name: /^reset$/i }).click();
+  await expect(stepper.locator('.value')).toHaveText('+0');
+  await expectCleanText(page);
+});
