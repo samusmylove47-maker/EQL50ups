@@ -552,12 +552,21 @@ select {
   font-weight: 600;
 }
 
-.tabrow {
+/* The rule and the spacing belong to the bar; the tablist inside it holds
+   nothing but tabs, so screen readers are told the truth. */
+.tabbar {
   display: flex;
   align-items: center;
   gap: 4px;
   border-bottom: 1px solid var(--line);
   margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.tabrow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-wrap: wrap;
 }
 

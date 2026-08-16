@@ -82,6 +82,41 @@ test('tabs move through the URL and survive back and forward', async ({ page }) 
   );
 });
 
+test('the tab row answers to the arrow keys and holds one tab stop', async ({ page }) => {
+  await createCharacter(page);
+  const gear = page.getByRole('tab', { name: 'Gear' });
+  await gear.focus();
+
+  // Roving tabindex: the selected tab is the group's only tab stop.
+  expect(await page.locator('.tab').evaluateAll((tabs) => tabs.map((t) => t.tabIndex))).toEqual([
+    0, -1, -1,
+  ]);
+
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'Exaltations' })).toBeFocused();
+  await expect(page).toHaveURL(/\/exaltations$/);
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight'); // wraps
+  await expect(gear).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(page.getByRole('tab', { name: 'Weights' })).toBeFocused();
+  await page.keyboard.press('Home');
+  await expect(gear).toBeFocused();
+  await page.keyboard.press('ArrowLeft'); // wraps backwards
+  await expect(page.getByRole('tab', { name: 'Weights' })).toBeFocused();
+
+  // The tablist contains tabs and nothing else.
+  expect(
+    await page.locator('[role=tablist]').evaluate((el) =>
+      [...el.children].every((child) => child.getAttribute('role') === 'tab'),
+    ),
+  ).toBe(true);
+
+  // One more Tab leaves the group entirely.
+  await page.keyboard.press('Tab');
+  expect(await page.evaluate(() => document.activeElement?.getAttribute('role'))).not.toBe('tab');
+});
+
 test('Edit renames, saves notes, and refuses to blank the name', async ({ page }) => {
   await createCharacter(page);
   await page.getByRole('button', { name: /edit/i }).click();

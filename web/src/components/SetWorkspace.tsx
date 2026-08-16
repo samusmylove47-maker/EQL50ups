@@ -94,21 +94,41 @@ export function SetWorkspace({
 
       {gearSet.notes ? <p className="hint set-notes">{gearSet.notes}</p> : null}
 
-      <div className="tabrow" role="tablist" aria-label="Set sections">
-        {SET_TABS.map((name) => (
-          <button
-            key={name}
-            type="button"
-            role="tab"
-            id={`tab-${name}`}
-            className="tab"
-            aria-selected={tab === name}
-            aria-controls={`panel-${name}`}
-            onClick={() => onTabChange(name)}
-          >
-            {TAB_LABELS[name]}
-          </button>
-        ))}
+      <div className="tabbar">
+        {/*
+         * A tablist owns only tabs, and it answers to arrow keys: one tab stop
+         * for the whole group, then ←/→ (and Home/End) to move within it. The
+         * quiet set actions sit beside it rather than inside it.
+         */}
+        <div className="tabrow" role="tablist" aria-label="Set sections">
+          {SET_TABS.map((name, index) => (
+            <button
+              key={name}
+              type="button"
+              role="tab"
+              id={`tab-${name}`}
+              className="tab"
+              aria-selected={tab === name}
+              aria-controls={`panel-${name}`}
+              tabIndex={tab === name ? 0 : -1}
+              onClick={() => onTabChange(name)}
+              onKeyDown={(event) => {
+                const step =
+                  event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+                let target: SetTab | undefined;
+                if (step) target = SET_TABS[(index + step + SET_TABS.length) % SET_TABS.length];
+                else if (event.key === 'Home') target = SET_TABS[0];
+                else if (event.key === 'End') target = SET_TABS[SET_TABS.length - 1];
+                if (!target) return;
+                event.preventDefault();
+                onTabChange(target);
+                document.getElementById(`tab-${target}`)?.focus();
+              }}
+            >
+              {TAB_LABELS[name]}
+            </button>
+          ))}
+        </div>
         <div className="tab-actions">{actions}</div>
       </div>
 
