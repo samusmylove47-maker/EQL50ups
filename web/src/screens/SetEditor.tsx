@@ -270,8 +270,11 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
         <Modal title="Share this set" onClose={() => setDialog(null)} width={720}>
           <div className="modal-body stack">
             <p className="hint">
-              The whole plan travels in the link — every item, every +N, exaltation donors and the
-              full weight profile. No account, no server, nothing to expire.
+              The whole plan travels in the link — every item, every +N, exaltation donors, your
+              per-class levels and every loadout. No account, no server, nothing to expire.
+              {dictionary
+                ? ' Item names are interned against this build of the item catalog, which is what keeps it short.'
+                : ' Item data has not loaded, so names travel in full and the link is longer than it needs to be.'}
             </p>
             <div className="copy-field">
               <input type="text" readOnly value={link} aria-label="Share link" onFocus={(e) => e.target.select()} />
@@ -279,7 +282,12 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
                 {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
-            <p className="hint">{link.length} characters.</p>
+            {link.length > 900 ? (
+              <p className="hint">
+                {link.length} characters — long enough that some chat clients will wrap or truncate
+                it. Paste it as a link, not as text.
+              </p>
+            ) : null}
           </div>
         </Modal>
       ) : null}

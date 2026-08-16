@@ -11,7 +11,7 @@
  * and no fill beyond a couple of solid accents.
  */
 
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 
 export type GlyphKey =
   | 'EAR' | 'HEAD' | 'FACE' | 'NECK' | 'SHOULDERS' | 'ARMS' | 'BACK' | 'WRIST'
@@ -19,7 +19,7 @@ export type GlyphKey =
   | 'FEET' | 'WAIST' | 'AMMO' | 'ANY';
 
 /** Path data per slot, drawn on a 0 0 24 24 grid. */
-const PATHS: Record<GlyphKey, JSX.Element> = {
+const PATHS: Record<GlyphKey, ReactElement> = {
   // A curled ear with a dangling stone.
   EAR: (
     <>

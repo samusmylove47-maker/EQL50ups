@@ -1824,3 +1824,18 @@ table.data tr.rowlink:focus-visible {
     text-align: left;
   }
 }
+
+/*
+ * All four socket labels on one line. At 130px "FOCUS EXALTATION" wrapped and
+ * "PROC EXALTATION" did not, so rows alternated 54px and 48px inside a single
+ * card — the inconsistency CRITIQUE-01 #9 measured.
+ *
+ * Guarded by min-width so it cannot out-specify the 720px rule that stacks the
+ * socket into one column; a fixed 152px track there pushed the page 33px wider
+ * than the phone it was on.
+ */
+@media (min-width: 721px) {
+  .exalt-row .socket {
+    grid-template-columns: 152px 1fr auto;
+  }
+}

@@ -50,6 +50,8 @@ export type SaveStatus = 'ok' | 'unavailable' | 'quota' | 'error';
 export interface LoadResult {
   status: LoadStatus;
   state: PersistedState;
+  /** True when the stored payload was written by an older schema version. */
+  migrated?: boolean;
 }
 
 export function emptyState(): PersistedState {
@@ -300,7 +302,9 @@ export function loadState(storage: StorageLike | null = defaultStorage()): LoadR
     quarantine(storage, text);
     return { status: 'corrupt', state: emptyState() };
   }
-  return { status: 'ok', state };
+  const storedVersion =
+    isRecord(parsed) && typeof parsed.version === 'number' ? parsed.version : 0;
+  return { status: 'ok', state, migrated: storedVersion !== STATE_VERSION };
 }
 
 /** Park an unreadable payload aside so a bug report can still recover it. */

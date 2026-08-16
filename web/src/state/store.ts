@@ -124,12 +124,17 @@ export const useApp = create<AppState>((set, get) => {
 
     hydrate() {
       if (get().hydrated) return;
-      const { status, state } = loadState();
+      const { status, state, migrated } = loadState();
       set({
         ...state,
         hydrated: true,
         storageStatus: status === 'ok' || status === 'empty' ? 'ok' : status,
       });
+      // A library written by an older schema is migrated on read. Write it
+      // back straight away rather than leaving the old shape sitting there to
+      // be re-migrated on every load — and so an export taken before the first
+      // edit carries the new shape too.
+      if (migrated) persist();
     },
 
     createCharacter(input) {

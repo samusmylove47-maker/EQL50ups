@@ -156,6 +156,43 @@ export function ItemBrowser() {
     ).map((position) => ({ positionId: position.id, label: position.label }));
   }, [detail, targetSet]);
 
+  const pageNav = (position: 'top' | 'bottom') =>
+    pageCount > 1 ? (
+      <nav className="page-nav" aria-label={`Item pages (${position})`}>
+        <button
+          type="button"
+          className="btn btn-sm"
+          onClick={() => goTo(safePage - 1)}
+          disabled={safePage === 0}
+        >
+          ← Previous
+        </button>
+        <span>
+          Page {safePage + 1} of {count(pageCount)}
+        </span>
+        <button
+          type="button"
+          className="btn btn-sm"
+          onClick={() => goTo(safePage + 1)}
+          disabled={safePage >= pageCount - 1}
+        >
+          Next →
+        </button>
+        <label className="checkline">
+          Jump to page
+          <input
+            type="number"
+            min={1}
+            max={pageCount}
+            value={safePage + 1}
+            aria-label={`Jump to page (${position})`}
+            style={{ width: 76 }}
+            onChange={(e) => goTo(Number(e.target.value) - 1)}
+          />
+        </label>
+      </nav>
+    ) : null;
+
   const header = (key: SortKey, label: string, className?: string) => {
     const activeSort = sort === key;
     return (
@@ -266,6 +303,8 @@ export function ItemBrowser() {
         </div>
       ) : null}
 
+      {pageNav('top')}
+
       {rows.length ? (
         <div className="table-wrap" ref={tableRef}>
           <table className="data">
@@ -324,41 +363,7 @@ export function ItemBrowser() {
         </div>
       ) : null}
 
-      {pageCount > 1 ? (
-        <nav className="page-nav" aria-label="Item pages">
-          <button
-            type="button"
-            className="btn btn-sm"
-            onClick={() => goTo(safePage - 1)}
-            disabled={safePage === 0}
-          >
-            ← Previous
-          </button>
-          <span>
-            Page {safePage + 1} of {count(pageCount)}
-          </span>
-          <button
-            type="button"
-            className="btn btn-sm"
-            onClick={() => goTo(safePage + 1)}
-            disabled={safePage >= pageCount - 1}
-          >
-            Next →
-          </button>
-          <label className="checkline">
-            Jump to page
-            <input
-              type="number"
-              min={1}
-              max={pageCount}
-              value={safePage + 1}
-              aria-label="Jump to page"
-              style={{ width: 76 }}
-              onChange={(e) => goTo(Number(e.target.value) - 1)}
-            />
-          </label>
-        </nav>
-      ) : null}
+      {pageNav('bottom')}
 
       {detail ? (
         <ItemDetail
