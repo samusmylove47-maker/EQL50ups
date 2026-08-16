@@ -1,0 +1,2817 @@
+[
+  {
+    "name": "Affliction Efficiency I",
+    "url": "https://eqlwiki.com/Affliction_Efficiency_I",
+    "description": "Reduces the mana cost of long term detrimental spells by up to 25%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 23%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Duration: 30s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Diamondine Earring",
+      "Impskin Gloves",
+      "Polished Bone Bracelet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Affliction Efficiency II",
+    "url": "https://eqlwiki.com/Affliction_Efficiency_II",
+    "description": "Reduces the mana cost of long term detrimental spells by up to 25%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 23%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Duration: 30s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Chipped Bone Bracelet",
+      "Squallsurge Shawl",
+      "White Gold Necklace"
+    ],
+    "era": null
+  },
+  {
+    "name": "Affliction Haste I",
+    "url": "https://eqlwiki.com/Affliction_Haste_I",
+    "description": "Reduces the cast time of long term detrimental spells by 33%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 33%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Min Duration: 30s"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 1s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Granite Bracer",
+      "Ring of Goblin Lords"
+    ],
+    "era": null
+  },
+  {
+    "name": "Affliction Haste II",
+    "url": "https://eqlwiki.com/Affliction_Haste_II",
+    "description": "Reduces the cast time of long term detrimental spells by 33%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 33%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Min Duration: 30s"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 2s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Chrysoberyl Talisman",
+      "Green Silken Drape"
+    ],
+    "era": null
+  },
+  {
+    "name": "Brass Resonance 14",
+    "url": "https://eqlwiki.com/Brass_Resonance_14",
+    "description": "Increases the power of brass instrument based bard songs by up to 140%.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increases the power of brass instrument based bard songs by up to 140%"
+      }
+    ],
+    "duration": "2:15:00",
+    "target_type": "Self",
+    "spell_type": null,
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": null,
+    "icon": "C",
+    "eligible_classes": "BRD",
+    "items_listed_on_page": [
+      "McVaxius` Horn of War"
+    ],
+    "era": null
+  },
+  {
+    "name": "Burning Affliction I",
+    "url": "https://eqlwiki.com/Burning_Affliction_I",
+    "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Allize Volew Medicine Bag",
+      "Aviak Charm",
+      "Burrowing Goggles",
+      "Golden Ear Stud",
+      "Hollowed Bone Bracers",
+      "Summoned: Rallican's Wooden Bracelet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Burning Affliction II",
+    "url": "https://eqlwiki.com/Burning_Affliction_II",
+    "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Black Tome with Silver Runes",
+      "Kobold-Hide Boots",
+      "Reed Belt",
+      "Serpentine Bracer",
+      "Siryn Hair Hood",
+      "Summoned: Rallican's Stone Bracelet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Burning Affliction III",
+    "url": "https://eqlwiki.com/Burning_Affliction_III",
+    "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Bone-Clasped Girdle",
+      "Cryosilk Cap",
+      "Summoned: Rallican's Iron Bracelet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Burning Affliction IV",
+    "url": "https://eqlwiki.com/Burning_Affliction_IV",
+    "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 65.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 65 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Rallican's Steel Bracelet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Enhancement Haste I",
+    "url": "https://eqlwiki.com/Enhancement_Haste_I",
+    "description": "Reduces the cast time of long term beneficial spells by 30%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 30%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Min Duration: 72s"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 1s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Braided Ivy Cords",
+      "Cape of Midnight Mist",
+      "Cat Skull Cap",
+      "Etched Iron Helm",
+      "Gatorscale Sleeves"
+    ],
+    "era": null
+  },
+  {
+    "name": "Enhancement Haste II",
+    "url": "https://eqlwiki.com/Enhancement_Haste_II",
+    "description": "Reduces the cast time of long term beneficial spells by 30%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 30%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Min Duration: 72s"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 2s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Golden Efreeti Boots",
+      "Platinum Tiara"
+    ],
+    "era": null
+  },
+  {
+    "name": "Extended Enhancement I",
+    "url": "https://eqlwiki.com/Extended_Enhancement_I",
+    "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Duration by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Exclude Donals Heal"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Exclude Invulnerability"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Effect: Exclude Assist Radius"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Bear-hide Boots",
+      "Damask Robe",
+      "Lockjaw Hide Vest",
+      "Shazda Turban"
+    ],
+    "era": null
+  },
+  {
+    "name": "Extended Enhancement II",
+    "url": "https://eqlwiki.com/Extended_Enhancement_II",
+    "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Duration by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Exclude Donals Heal"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Exclude Invulnerability"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Effect: Exclude Assist Radius"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Batfang Headband",
+      "Chestplate of the Constant",
+      "Clawed Knuckle-Ring",
+      "Drakescale Belt",
+      "Totemic Breastplate"
+    ],
+    "era": null
+  },
+  {
+    "name": "Extended Enhancement III",
+    "url": "https://eqlwiki.com/Extended_Enhancement_III",
+    "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over lvl 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Duration by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Exclude Donals Heal"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Exclude Invulnerability"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Effect: Exclude Assist Radius"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Rokyls Channelling Crystal"
+    ],
+    "era": null
+  },
+  {
+    "name": "Extended Range I",
+    "url": "https://eqlwiki.com/Extended_Range_I",
+    "description": "Increases the range of spells by 15%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Range by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "An Elven Charm Necklace",
+      "Drake-hide Sleeves",
+      "Glowing Bone Collar"
+    ],
+    "era": null
+  },
+  {
+    "name": "Extended Range II",
+    "url": "https://eqlwiki.com/Extended_Range_II",
+    "description": "Increases the range of spells by 15%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Range by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Moonstone Ring"
+    ],
+    "era": null
+  },
+  {
+    "name": "Extended Range III",
+    "url": "https://eqlwiki.com/Extended_Range_III",
+    "description": "Increases the range of spells by 15%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Range by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Cryosilk Sash"
+    ],
+    "era": null
+  },
+  {
+    "name": "Gallenite's Chaos",
+    "url": "https://eqlwiki.com/Gallenite's_Chaos",
+    "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 65.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 65 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Target: Exclude Caster AE"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Target: Exclude Caster PB"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Target: Exclude Target AE"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Target: Exclude Old Giants"
+      },
+      {
+        "slot": 10,
+        "effect": "Limit Target: Exclude Old Dragons"
+      },
+      {
+        "slot": 11,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Gallenite's Sapphire Bracelet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Gallenite's Destruction",
+    "url": "https://eqlwiki.com/Gallenite's_Destruction",
+    "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 52.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 52 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Target: Exclude Caster AE"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Target: Exclude Caster PB"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Target: Exclude Target AE"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Target: Exclude Old Giants"
+      },
+      {
+        "slot": 10,
+        "effect": "Limit Target: Exclude Old Dragons"
+      },
+      {
+        "slot": 11,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Gallenite's Opal Bracelet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Gallenite's Major Destruction",
+    "url": "https://eqlwiki.com/Gallenite's_Major_Destruction",
+    "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Target: Exclude Caster AE"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Target: Exclude Caster PB"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Target: Exclude Target AE"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Target: Exclude Old Giants"
+      },
+      {
+        "slot": 10,
+        "effect": "Limit Target: Exclude Old Dragons"
+      },
+      {
+        "slot": 11,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Gallenite's Ruby Bracelet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Gallenite's Minor Destruction",
+    "url": "https://eqlwiki.com/Gallenite's_Minor_Destruction",
+    "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 34.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 34 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Target: Exclude Caster AE"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Target: Exclude Caster PB"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Target: Exclude Target AE"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Target: Exclude Old Giants"
+      },
+      {
+        "slot": 10,
+        "effect": "Limit Target: Exclude Old Dragons"
+      },
+      {
+        "slot": 11,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Gallenite's Jade Bracelet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Improved Damage I",
+    "url": "https://eqlwiki.com/Improved_Damage_I",
+    "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Target: Exclude Caster AE"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Target: Exclude Caster PB"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Target: Exclude Target AE"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Target: Exclude Old Giants"
+      },
+      {
+        "slot": 10,
+        "effect": "Limit Target: Exclude Old Dragons"
+      },
+      {
+        "slot": 11,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Azure Sleeves",
+      "Lupine Claw Gauntlets",
+      "Mammoth Hide Cloak",
+      "Robe of the Oracle",
+      "Spiked Buckler"
+    ],
+    "era": null
+  },
+  {
+    "name": "Improved Damage II",
+    "url": "https://eqlwiki.com/Improved_Damage_II",
+    "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Target: Exclude Caster AE"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Target: Exclude Caster PB"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Target: Exclude Target AE"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Target: Exclude Old Giants"
+      },
+      {
+        "slot": 10,
+        "effect": "Limit Target: Exclude Old Dragons"
+      },
+      {
+        "slot": 11,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Polished Mithril Mask"
+    ],
+    "era": null
+  },
+  {
+    "name": "Improved Damage III",
+    "url": "https://eqlwiki.com/Improved_Damage_III",
+    "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Target: Exclude Caster AE"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Target: Exclude Caster PB"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Target: Exclude Target AE"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Target: Exclude Old Giants"
+      },
+      {
+        "slot": 10,
+        "effect": "Limit Target: Exclude Old Dragons"
+      },
+      {
+        "slot": 11,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "White Dragonscale Cloak"
+    ],
+    "era": null
+  },
+  {
+    "name": "Improved Healing I",
+    "url": "https://eqlwiki.com/Improved_Healing_I",
+    "description": "Increases the potency of healing spells by up to 20%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Healing by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Spell: Exclude Complete Heal"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Effect: Exclude Current HP Percent"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Emissary Mask",
+      "Turtleshell Helm",
+      "Zaharn's Coronet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Improved Healing II",
+    "url": "https://eqlwiki.com/Improved_Healing_II",
+    "description": "Increases the potency of healing spells by up to 20%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Healing by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Spell: Exclude Complete Heal"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Effect: Exclude Current HP Percent"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [],
+    "era": null
+  },
+  {
+    "name": "Improved Healing III",
+    "url": "https://eqlwiki.com/Improved_Healing_III",
+    "description": "Increases the potency of healing spells by up to 20%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Healing by 1% to 20%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Spell: Exclude Complete Heal"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Effect: Exclude Current HP Percent"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Idol of the Underking"
+    ],
+    "era": null
+  },
+  {
+    "name": "Jedah's Conservation",
+    "url": "https://eqlwiki.com/Jedah's_Conservation",
+    "description": "Reduces the number of reagents consumed by spells by providing a 15% chance for the spell not to consume the reagent when cast. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Chance of Using Reagent by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Exclude Summon Item"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "195min",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Jedah's Silver Choker"
+    ],
+    "era": null
+  },
+  {
+    "name": "Jedah's Greater Conservation",
+    "url": "https://eqlwiki.com/Jedah's_Greater_Conservation",
+    "description": "Reduces the number of reagents consumed by spells by providing a 15% chance for the spell not to consume the reagent when cast. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Chance of Using Reagent by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Exclude Summon Item"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "195min",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Jedah's Golden Choker"
+    ],
+    "era": null
+  },
+  {
+    "name": "Jedah's Lesser Conservation",
+    "url": "https://eqlwiki.com/Jedah's_Lesser_Conservation",
+    "description": "Reduces the number of reagents consumed by spells by providing a 15% chance for the spell not to consume the reagent when cast. This bonus will decay on spells over level 12.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Chance of Using Reagent by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 12 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Exclude Summon Item"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "195min",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Jedah's Brass Choker"
+    ],
+    "era": null
+  },
+  {
+    "name": "Jedah's Superior Conservation",
+    "url": "https://eqlwiki.com/Jedah's_Superior_Conservation",
+    "description": "Reduces the number of reagents consumed by spells by providing a 15% chance for the spell not to consume the reagent when cast. This bonus will decay on spells over level 65.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Chance of Using Reagent by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 65 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Exclude Summon Item"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "195min",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Jedah's Platinum Choker"
+    ],
+    "era": null
+  },
+  {
+    "name": "Jolum's Abatement",
+    "url": "https://eqlwiki.com/Jolum's_Abatement",
+    "description": "Reduces the mana cost of direct damage spells by up to 15%. This bonus will decay on spells over level 50.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 50 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Jolum's Shiny Bauble"
+    ],
+    "era": null
+  },
+  {
+    "name": "Jolum's Major Abatement",
+    "url": "https://eqlwiki.com/Jolum's_Major_Abatement",
+    "description": "Reduces the mana cost of direct damage spells by up to 15%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Jolum's Brilliant Bauble"
+    ],
+    "era": null
+  },
+  {
+    "name": "Jolum's Minor Abatement",
+    "url": "https://eqlwiki.com/Jolum's_Minor_Abatement",
+    "description": "Reduces the mana cost of direct damage spells by up to 15%. This bonus will decay on spells over level 24.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 24 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Jolum's Tarnished Bauble"
+    ],
+    "era": null
+  },
+  {
+    "name": "Jolum's Superior Abatement",
+    "url": "https://eqlwiki.com/Jolum's_Superior_Abatement",
+    "description": "Reduces the mana cost of direct damage spells by up to 15%. This bonus will decay on spells over level 65.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 65 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Jolum's Glowing Bauble"
+    ],
+    "era": null
+  },
+  {
+    "name": "Mana Preservation I",
+    "url": "https://eqlwiki.com/Mana_Preservation_I",
+    "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 10%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Platinum Armband",
+      "Polished Bone Hoop",
+      "Testament of Vanear",
+      "Vagrant's Tunic",
+      "Wicked Sallet"
+    ],
+    "era": null
+  },
+  {
+    "name": "Mana Preservation II",
+    "url": "https://eqlwiki.com/Mana_Preservation_II",
+    "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 10%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Black Alloy Medallion",
+      "Mane Attraction",
+      "Nisch Mas Ilkvel"
+    ],
+    "era": null
+  },
+  {
+    "name": "Minor Improved Damage I",
+    "url": "https://eqlwiki.com/Minor_Improved_Damage_I",
+    "description": "Increases the damage of spells by up to 10%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Damage by 1% to 10%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Current HP"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Max Duration: 0s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Detrimental"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Target: Exclude Caster AE"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Target: Exclude Caster PB"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Target: Exclude Target AE"
+      },
+      {
+        "slot": 9,
+        "effect": "Limit Target: Exclude Old Giants"
+      },
+      {
+        "slot": 10,
+        "effect": "Limit Target: Exclude Old Dragons"
+      },
+      {
+        "slot": 11,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Smoldering Robe"
+    ],
+    "era": null
+  },
+  {
+    "name": "Naki's Charm of Pernicity",
+    "url": "https://eqlwiki.com/Naki's_Charm_of_Pernicity",
+    "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 51.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 51 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 2s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Naki's Twisted Ring"
+    ],
+    "era": null
+  },
+  {
+    "name": "Naki's Greater Pernicity",
+    "url": "https://eqlwiki.com/Naki's_Greater_Pernicity",
+    "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 2s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Naki's Studded Ring"
+    ],
+    "era": null
+  },
+  {
+    "name": "Naki's Lesser Pernicity",
+    "url": "https://eqlwiki.com/Naki's_Lesser_Pernicity",
+    "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 29.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 29 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 2s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Naki's Tiny Ring"
+    ],
+    "era": null
+  },
+  {
+    "name": "Naki's Superior Pernicity",
+    "url": "https://eqlwiki.com/Naki's_Superior_Pernicity",
+    "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 65.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 51 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 2s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Naki's Spiked Ring"
+    ],
+    "era": null
+  },
+  {
+    "name": "Percussion Resonance 11",
+    "url": "https://eqlwiki.com/Percussion_Resonance_11",
+    "description": "Increases the power of percussion instrument based bard songs by up to 110%.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increases the power of percussion instrument based bard songs by up to 110%"
+      }
+    ],
+    "duration": "1:57:00",
+    "target_type": "Self",
+    "spell_type": null,
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": null,
+    "icon": "C",
+    "eligible_classes": "BRD",
+    "items_listed_on_page": [
+      "Mistmoore Battle Drums"
+    ],
+    "era": null
+  },
+  {
+    "name": "Percussion Resonance 14",
+    "url": "https://eqlwiki.com/Percussion_Resonance_14",
+    "description": "Increases the power of percussion instrument based bard songs by up to 140%.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increases the power of percussion instrument based bard songs by up to 140%"
+      }
+    ],
+    "duration": "2:12:00",
+    "target_type": "Self",
+    "spell_type": null,
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": null,
+    "icon": "C",
+    "eligible_classes": "BRD",
+    "items_listed_on_page": [
+      "Selo`s Drums of the March"
+    ],
+    "era": null
+  },
+  {
+    "name": "Percussion Resonance 16",
+    "url": "https://eqlwiki.com/Percussion_Resonance_16",
+    "description": "Increases the power of percussion instrument based bard songs by up to 160%.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increases the power of percussion instrument based bard songs by up to 160%"
+      }
+    ],
+    "duration": "2:12:00",
+    "target_type": "Self",
+    "spell_type": null,
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": null,
+    "icon": "C",
+    "eligible_classes": "BRD",
+    "items_listed_on_page": [
+      "Drums of the Beast"
+    ],
+    "era": null
+  },
+  {
+    "name": "Reagent Conservation I",
+    "url": "https://eqlwiki.com/Reagent_Conservation_I",
+    "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Chance of Using Reagent by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Exclude Summon Item"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Batskull Earring",
+      "Drake-hide Leggings",
+      "Happy Love Bracers"
+    ],
+    "era": null
+  },
+  {
+    "name": "Reagent Conservation II",
+    "url": "https://eqlwiki.com/Reagent_Conservation_II",
+    "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Chance of Using Reagent by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Exclude Summon Item"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Amethyst Bracelet",
+      "Crown of Leaves",
+      "Fine Silk Turban",
+      "Savant's Cap"
+    ],
+    "era": null
+  },
+  {
+    "name": "Reagent Conservation III",
+    "url": "https://eqlwiki.com/Reagent_Conservation_III",
+    "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Chance of Using Reagent by 1% to 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Exclude Summon Item"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Robe of the Kedge",
+      "Runed Mithril Bracer"
+    ],
+    "era": null
+  },
+  {
+    "name": "Reanimation Efficiency I",
+    "url": "https://eqlwiki.com/Reanimation_Efficiency_I",
+    "description": "Reduces the mana cost of summon undead spells by up to 25%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 25%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Skeleton Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Dark Circlet",
+      "Flowing Black Robe",
+      "Ill-Fitting Robes",
+      "Lizardskin Tribal Mask"
+    ],
+    "era": null
+  },
+  {
+    "name": "Reanimation Efficiency II",
+    "url": "https://eqlwiki.com/Reanimation_Efficiency_II",
+    "description": "Reduces the mana cost of summon undead spells by up to 25%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 25%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Skeleton Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Platinum Skull Ring",
+      "Runed Cowl"
+    ],
+    "era": null
+  },
+  {
+    "name": "Reanimation Haste I",
+    "url": "https://eqlwiki.com/Reanimation_Haste_I",
+    "description": "Reduces the cast time of summon undead spells by 30%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 30%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Skeleton Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Carved Ivory Mask",
+      "Ivory Bracelet",
+      "Nightshade Wreath"
+    ],
+    "era": null
+  },
+  {
+    "name": "Reanimation Haste II",
+    "url": "https://eqlwiki.com/Reanimation_Haste_II",
+    "description": "Reduces the cast time of summon undead spells by 30%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 30%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Skeleton Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Robe of Enshroudment"
+    ],
+    "era": null
+  },
+  {
+    "name": "Reanimation Haste III",
+    "url": "https://eqlwiki.com/Reanimation_Haste_III",
+    "description": "Reduces the cast time of summon undead spells by 30%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 30%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Skeleton Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Grotesque Girdle"
+    ],
+    "era": null
+  },
+  {
+    "name": "Spell Haste I",
+    "url": "https://eqlwiki.com/Spell_Haste_I",
+    "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 1s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Beaded Slime Necklace",
+      "Bracelet of Woven Grass",
+      "Gilded Cloth",
+      "Wolf Fur Slippers"
+    ],
+    "era": null
+  },
+  {
+    "name": "Spell Haste II",
+    "url": "https://eqlwiki.com/Spell_Haste_II",
+    "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Spell: Exclude Promised Renewal"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Min Casting Time: 2s"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Djarns Amethyst Ring",
+      "Mithril-Runed Tunic",
+      "Shining Metallic Robes",
+      "Shiny Robe of the Underfoot"
+    ],
+    "era": null
+  },
+  {
+    "name": "String Resonance 11",
+    "url": "https://eqlwiki.com/String_Resonance_11",
+    "description": "Increases the power of stringed instrument based bard songs by up to 110%.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increases the power of stringed instrument based bard songs by up to 110%"
+      }
+    ],
+    "duration": "1:57:00",
+    "target_type": "Self",
+    "spell_type": null,
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": null,
+    "icon": "C",
+    "eligible_classes": "BRD",
+    "items_listed_on_page": [
+      "Gypsy Lute"
+    ],
+    "era": null
+  },
+  {
+    "name": "Summoning Efficiency I",
+    "url": "https://eqlwiki.com/Summoning_Efficiency_I",
+    "description": "Reduces the mana cost of summon creature spells by up to 25%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 25%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Band of Flesh",
+      "Dusty Bloodstained Gloves",
+      "Gossamer Robe"
+    ],
+    "era": null
+  },
+  {
+    "name": "Summoning Efficiency II",
+    "url": "https://eqlwiki.com/Summoning_Efficiency_II",
+    "description": "Reduces the mana cost of summon creature spells by up to 25%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Decrease Spell Mana Cost by 1% to 25%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Embroidered Black Sleeves",
+      "Robe of the Ishva"
+    ],
+    "era": null
+  },
+  {
+    "name": "Summoning Haste I",
+    "url": "https://eqlwiki.com/Summoning_Haste_I",
+    "description": "Reduces the cast time of summon creature spells by 30%. This bonus will decay on spells over level 20.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 30%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 20 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "A Shimmering Orb",
+      "Adamantite Band"
+    ],
+    "era": null
+  },
+  {
+    "name": "Summoning Haste II",
+    "url": "https://eqlwiki.com/Summoning_Haste_II",
+    "description": "Reduces the cast time of summon creature spells by 30%. This bonus will decay on spells over level 44.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 30%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 44 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Incandescent Mask",
+      "Robe of the Elements"
+    ],
+    "era": null
+  },
+  {
+    "name": "Summoning Haste III",
+    "url": "https://eqlwiki.com/Summoning_Haste_III",
+    "description": "Reduces the cast time of summon creature spells by 30%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Haste by 30%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Effect: Summon Pet"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "C",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Brell's Girdle"
+    ],
+    "era": null
+  },
+  {
+    "name": "Tavee's Charm of Diuturnity",
+    "url": "https://eqlwiki.com/Tavee's_Charm_of_Diuturnity",
+    "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 49.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Duration by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 49 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Exclude Donals Heal"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Exclude Invulnerability"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Effect: Exclude Assist Radius"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Tavee's Leather Mantle"
+    ],
+    "era": null
+  },
+  {
+    "name": "Tavee's Greater Diuturnity",
+    "url": "https://eqlwiki.com/Tavee's_Greater_Diuturnity",
+    "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 60.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Duration by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 60 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Exclude Donals Heal"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Exclude Invulnerability"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Effect: Exclude Assist Radius"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Tavee's Silken Mantle"
+    ],
+    "era": null
+  },
+  {
+    "name": "Tavee's Lesser Diuturnity",
+    "url": "https://eqlwiki.com/Tavee's_Lesser_Diuturnity",
+    "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 16.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Duration by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 16 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Exclude Donals Heal"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Exclude Invulnerability"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Effect: Exclude Assist Radius"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Tavee's Linen Mantle"
+    ],
+    "era": null
+  },
+  {
+    "name": "Tavee's Superior Diuturnity",
+    "url": "https://eqlwiki.com/Tavee's_Superior_Diuturnity",
+    "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 65.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increase Spell Duration by 15%"
+      },
+      {
+        "slot": 2,
+        "effect": "Limit Max Level: 65 (lose 5% per level after)"
+      },
+      {
+        "slot": 3,
+        "effect": "Limit Type: Beneficial"
+      },
+      {
+        "slot": 4,
+        "effect": "Limit Effect: Exclude Donals Heal"
+      },
+      {
+        "slot": 5,
+        "effect": "Limit Effect: Exclude Invulnerability"
+      },
+      {
+        "slot": 6,
+        "effect": "Limit Min Duration: 24s"
+      },
+      {
+        "slot": 7,
+        "effect": "Limit Effect: Exclude Assist Radius"
+      },
+      {
+        "slot": 8,
+        "effect": "Limit Type: Exclude Combat Skills"
+      }
+    ],
+    "duration": "2:24:00 (3:36:00)",
+    "target_type": "Self",
+    "spell_type": "Beneficial",
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": "Unresistable",
+    "icon": "161",
+    "eligible_classes": null,
+    "items_listed_on_page": [
+      "Summoned: Tavee's Runed Mantle"
+    ],
+    "era": null
+  },
+  {
+    "name": "Wind Resonance 10",
+    "url": "https://eqlwiki.com/Wind_Resonance_10",
+    "description": "Increases the power of wind instrument based bard songs by up to 100%.",
+    "effects": [
+      {
+        "slot": 1,
+        "effect": "Increases the power of wind instrument based bard songs by up to 100%"
+      }
+    ],
+    "duration": "1:54:00",
+    "target_type": "Self",
+    "spell_type": null,
+    "range": "100",
+    "casting_time": "Instant",
+    "resist": null,
+    "icon": "C",
+    "eligible_classes": "BRD",
+    "items_listed_on_page": [
+      "Minotaur Horn"
+    ],
+    "era": null
+  }
+]

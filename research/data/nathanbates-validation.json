@@ -1,0 +1,277 @@
+{
+  "counts": {
+    "focus_items": 176,
+    "focus_effects": 66,
+    "slots_covered": 17,
+    "item_slot_rows": 188,
+    "items_whose_effect_has_a_wiki_page": 139
+  },
+  "sources": {
+    "item_discovery": "all_items",
+    "in_focus_items_category": 103,
+    "discovered_via_effect_pages_only": [
+      "Agilmente's Flute of Flight",
+      "Alluring Horn",
+      "Brahhms Horn",
+      "Broken Minotaur Lord's Horn",
+      "Broom of Trilon",
+      "Conch Shell Horn",
+      "Crude Wooden Flute",
+      "Denon's Horn of Disaster",
+      "Drums of the Beast",
+      "Efreeti War Horn",
+      "Elven Charm Necklace",
+      "Encyclopedia Necrotheurgia",
+      "Ervaj's Flute of Flight",
+      "Faun Flute",
+      "Flute of the Sacred Glade",
+      "Grotesque Girdle",
+      "Hand Drum",
+      "Horn",
+      "Ill-Fitting Robes",
+      "Immaculate Shell Horn",
+      "Ishva Mas Leggings",
+      "Kelin`s Seven Stringed Lute",
+      "Lianna's Flute",
+      "Lute",
+      "Lute of the Gypsy Princess",
+      "Lute of the Howler",
+      "Lyendlln's Lute",
+      "Lyran's Mystical Lute",
+      "Lyssa`s Darkwood Piccolo",
+      "Mahlin's Mystical Bongos",
+      "Mandolin",
+      "Mystical Lute",
+      "Nisch Mas Ilkvel",
+      "Nostrolo Tambourine",
+      "Scorpion Pincer",
+      "Sharkskin Drum",
+      "Shovel of Ponz",
+      "Smoldering Robe",
+      "Staff of Elemental Mastery: Air",
+      "Staff of Elemental Mastery: Earth",
+      "Staff of Elemental Mastery: Fire",
+      "Staff of Elemental Mastery: Water",
+      "Stein of Ulissa",
+      "Summoned: Gallenite's Jade Bracelet",
+      "Summoned: Gallenite's Opal Bracelet",
+      "Summoned: Gallenite's Ruby Bracelet",
+      "Summoned: Gallenite's Sapphire Bracelet",
+      "Summoned: Jedah's Brass Choker",
+      "Summoned: Jedah's Golden Choker",
+      "Summoned: Jedah's Platinum Choker",
+      "Summoned: Jedah's Silver Choker",
+      "Summoned: Jolum's Brilliant Bauble",
+      "Summoned: Jolum's Glowing Bauble",
+      "Summoned: Jolum's Shiny Bauble",
+      "Summoned: Jolum's Tarnished Bauble",
+      "Summoned: Naki's Spiked Ring",
+      "Summoned: Naki's Studded Ring",
+      "Summoned: Naki's Tiny Ring",
+      "Summoned: Naki's Twisted Ring",
+      "Summoned: Rallican's Iron Bracelet",
+      "Summoned: Rallican's Steel Bracelet",
+      "Summoned: Rallican's Stone Bracelet",
+      "Summoned: Rallican's Wooden Bracelet",
+      "Summoned: Tavee's Leather Mantle",
+      "Summoned: Tavee's Linen Mantle",
+      "Summoned: Tavee's Runed Mantle",
+      "Summoned: Tavee's Silken Mantle",
+      "The Artist's Brush",
+      "Torch of Alna",
+      "Unicorn Horn",
+      "Verlekarnorm's Horn of Disaster",
+      "Walrus Skin Drum",
+      "Wooden Flute"
+    ],
+    "title_aliases_resolved": {
+      "Kobold-hide Boots": "Kobold-Hide Boots",
+      "McVaxius' Horn of War": "McVaxius` Horn of War",
+      "Selo's Drums of the March": "Selo`s Drums of the March"
+    },
+    "unresolved_citations": []
+  },
+  "focus_effect_provenance": {
+    "item_template_param": 134,
+    "item_statsblock": 42
+  },
+  "conflicting_focus_effect": [
+    {
+      "item": "Robe of the Ishva",
+      "url": "https://eqlwiki.com/Robe_of_the_Ishva",
+      "declared_on_item_page": "Reanimation Efficiency III",
+      "listed_on_effect_pages": [
+        "Summoning Efficiency II"
+      ],
+      "declared_effect_page_exists": false
+    }
+  ],
+  "items_without_focus_effect": [],
+  "items_referencing_unknown_effect": [
+    "Brass Resonance 10",
+    "Brass Resonance 11",
+    "Brass Resonance 12",
+    "Brass Resonance 15",
+    "Brass Resonance 8",
+    "Minion of Air",
+    "Minion of Earth",
+    "Minion of Fire",
+    "Minion of Hate",
+    "Minion of Water",
+    "Percussion Resonance 12",
+    "Percussion Resonance 13",
+    "Percussion Resonance 8",
+    "Reanimation Efficiency III",
+    "Servant of Air",
+    "Servant of Earth",
+    "Servant of Fire",
+    "Servant of Water",
+    "String Resonance 10",
+    "String Resonance 12",
+    "String Resonance 14",
+    "String Resonance 15",
+    "Wind Resonance 0",
+    "Wind Resonance 11",
+    "Wind Resonance 12",
+    "Wind Resonance 14",
+    "Wind Resonance 15",
+    "Wind Resonance 8"
+  ],
+  "effects_with_no_items": [
+    "Improved Healing II"
+  ],
+  "multi_slot_items": [
+    {
+      "name": "Encyclopedia Necrotheurgia",
+      "slots": [
+        "Primary",
+        "Secondary"
+      ]
+    },
+    {
+      "name": "Gypsy Lute",
+      "slots": [
+        "Primary",
+        "Secondary"
+      ]
+    },
+    {
+      "name": "Idol of the Underking",
+      "slots": [
+        "Range",
+        "Primary",
+        "Secondary"
+      ]
+    },
+    {
+      "name": "Lute of the Gypsy Princess",
+      "slots": [
+        "Primary",
+        "Secondary"
+      ]
+    },
+    {
+      "name": "Lyran's Mystical Lute",
+      "slots": [
+        "Primary",
+        "Secondary"
+      ]
+    },
+    {
+      "name": "McVaxius` Horn of War",
+      "slots": [
+        "Primary",
+        "Secondary"
+      ]
+    },
+    {
+      "name": "Minotaur Horn",
+      "slots": [
+        "Primary",
+        "Secondary"
+      ]
+    },
+    {
+      "name": "Mistmoore Battle Drums",
+      "slots": [
+        "Primary",
+        "Secondary"
+      ]
+    },
+    {
+      "name": "Selo`s Drums of the March",
+      "slots": [
+        "Primary",
+        "Secondary"
+      ]
+    },
+    {
+      "name": "The Artist's Brush",
+      "slots": [
+        "Range",
+        "Primary",
+        "Secondary"
+      ]
+    }
+  ],
+  "listing_mismatches": [
+    {
+      "focus_effect": "Brass Resonance 14",
+      "listed_on_effect_page_only": [],
+      "tagged_on_item_only": [
+        "Immaculate Shell Horn"
+      ]
+    },
+    {
+      "focus_effect": "Extended Range I",
+      "listed_on_effect_page_only": [],
+      "tagged_on_item_only": [
+        "Elven Charm Necklace"
+      ]
+    },
+    {
+      "focus_effect": "Percussion Resonance 11",
+      "listed_on_effect_page_only": [],
+      "tagged_on_item_only": [
+        "Mahlin's Mystical Bongos"
+      ]
+    },
+    {
+      "focus_effect": "Reagent Conservation I",
+      "listed_on_effect_page_only": [],
+      "tagged_on_item_only": [
+        "The Artist's Brush"
+      ]
+    },
+    {
+      "focus_effect": "Reanimation Haste II",
+      "listed_on_effect_page_only": [],
+      "tagged_on_item_only": [
+        "Ishva Mas Leggings"
+      ]
+    },
+    {
+      "focus_effect": "String Resonance 11",
+      "listed_on_effect_page_only": [],
+      "tagged_on_item_only": [
+        "Lute of the Gypsy Princess",
+        "Mystical Lute"
+      ]
+    },
+    {
+      "focus_effect": "Summoning Efficiency II",
+      "listed_on_effect_page_only": [
+        "Robe of the Ishva"
+      ],
+      "tagged_on_item_only": []
+    },
+    {
+      "focus_effect": "Wind Resonance 10",
+      "listed_on_effect_page_only": [],
+      "tagged_on_item_only": [
+        "Scorpion Pincer"
+      ]
+    }
+  ],
+  "effect_page_items_not_in_category": []
+}

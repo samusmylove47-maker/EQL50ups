@@ -1,0 +1,901 @@
+[
+ {
+  "version": "1.88.0",
+  "date": "2026-08-15",
+  "highlights": [
+   "THE QUEST TRACKER HAS ONE WAY IN NOW. Type what you actually know - the REWARD you want (\"Wakizashi of the Frozen Skies\"), an item in your bags, the quest's name, the NPC who gives it, or a zone - and the quest comes back, with 📌 to keep tracking it. That search already worked, but it sat under a \"+ I have this\" item-and-quantity row that won the eye completely; David missed the search entirely for weeks. The row is gone and the box now says what it takes.",
+   "AND A ⧉ SCAN BAGS BUTTON replaces what that row was for. Rather than typing in items you owned before EQBuddy could see them - spelling and all - copy /outputfile inventory, paste it in the game's chat, and EQBuddy reads your bags AND your bank exactly. The held tab then shows every quest you could hand in right now. Same one-click ⧉ contract as the Gear Locker and the Raids card.",
+   "FIXED - THE EQBUDDY MOBILE QR CODE COULD POINT AT AN ADDRESS YOUR PHONE CAN'T REACH. If your PC has Tailscale, Hyper-V, VirtualBox or WSL, those adapters have addresses that look exactly as private as your real Wi-Fi, and whichever one Windows happened to list first won the QR - so the scan just timed out, which looks like a firewall problem and isn't. EQBuddy now prefers the adapter that actually has a route to the internet, which is the one your tablet is on. If pairing has been failing for you, this is why.",
+   "SEARCHING THE QUEST TRACKER NO LONGER FREEZES IT. Typing rebuilt the whole list on every single keystroke, and with the full 1,172-quest catalog in view that meant nine rebuilds for a word like \"Wakizashi\" - the window appeared to hang. It now waits for you to stop typing, and shows the first 60 matches with a \"+N more\" line rather than laying out hundreds of cards you'd never scroll to.",
+   "ONE QUESTS CARD ON THE WIDGET, IN PLACE OF \"Sky Quest\" AND \"Epics\". Both of those cards carried a full tabbed checklist on the widget itself - fourteen class tabs, a search box, state filters - which is a lot of screen for something you read between pulls rather than during one. They are now a single \"Quests\" card that opens the Quest Tracker window, where all three tabs already live. The card still shows both scores at a glance (\"Epic 1/12 · Sky 3/40\"), your checklists still tick themselves as you loot with nothing open at all, and \"Quest tracker…\" has left the ⚙ menu because the card is the way in. If you had hidden both old cards, the new one starts hidden too; if you had either one showing, it shows. The Epic tab's \"classic-doable only\" filter moved into the Quest Tracker with it.",
+   "EQBUDDY MOBILE GETS THE WHOLE QUEST TRACKER. One \"Quests\" screen on your tablet or mobile device now carries the same three tabs as the PC window - Quests, Epic 1.0, Plane of Sky - with the same search box (rewards, items, quest names, NPCs, zones), the class chips and the full class picker on every tab, and the same cards: progress per turn-in item, ✔ ready, the wiki link. Tap 📌 to track a quest, tap Epic and Sky rows to tick them - every tap lands in the same place a desktop click does, so both screens always agree. Search runs ON the device: the PC sends the whole quest catalog once, so typing costs no round trips and answers as fast as the desktop does. The separate Epic-checklist and Sky-checklist screens folded into this one; a device that was showing them keeps its pick under the new name automatically.",
+   "FIXED, FOURTH TIME LUCKY (discussion #135, thanks bjstrange, who has now sent five logs) - CHARM STILL DIDN'T ALWAYS REPORT HOW LONG IT HELD. His latest log shows a 5-minute charm that announced its fade with no duration, and the cause is one nobody had considered: the creature had cast a damage-over-time spell (Choking) on him BEFORE he charmed it, and that spell kept ticking afterwards. EQBuddy read each tick as \"my pet just turned on me\", threw the clock away six seconds into the charm, and the real fade five minutes later had no landing left to measure. A tick is not a decision to attack - it is the tail of a spell cast before the charm existed - so ticks no longer break a charm. Genuine swings still do. This is why the previous three fixes missed it: all of them key on a real attack, and this charm ended with no attack at all. The mez tracker had already learned this exact lesson back in issue #32; charm never got the same guard.",
+   "FIXED ON LINUX AND macOS (discussion #169, thanks joma65) - YOUR WINDOWS CAME BACK AT THE TOP-LEFT CORNER every launch: the main widget, the spawns window and both chip stacks, all at 0,0 however carefully you had parked them. When a window closes, X11 and Wayland can report its position as 0,0 while it is being torn down - and EQBuddy wrote that number down as though you had dragged the window there. The two chip stacks already defended against this; the other windows did not, and the same trap catches a window OPENING too, because the desktop applies a move a moment after it is asked for. EQBuddy now records only a position it saw while the window was genuinely on screen, and if it never saw one it leaves your saved spot alone. Windows was never affected. If your positions were already flattened, they are yours to set once more - this stops them being lost again.",
+   "STILL OPEN in the same report: the two \"hide the widget while the game isn't focused / isn't running\" tick-boxes also came back off, and that has a different cause which we have not found yet. Nothing in the code turns them off, so we would rather say so than ship a guess. If this is happening to you, your ~/.config/EQBuddy/error.log is the thing that will crack it.",
+   "EQBuddy is a BETA - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.87.0",
+  "date": "2026-08-15",
+  "highlights": [
+   "FIXED AGAIN (discussion #135, thanks bjstrange for a fourth log) - CHARM STILL LOST ITS HELD TIME when two creatures share a name. His log says it outright: \"A greater ice bones slashes a greater ice bones.\" Your charmed one was fighting the uncharmed one, and the UNCHARMED one was hitting you - EQ's log identifies creatures only by name, so EQBuddy could not tell them apart and read it as your pet turning on you. The claim was dropped six seconds into a 32-second charm, so the fade had nothing left to measure. A pet that is demonstrably busy hitting something else no longer loses its claim to a same-named attacker; the wear-off line settles it instead. This is a different cause from the in-flight-swing fix in 1.85.0, which is why that one did not cover it.",
+   "FIXED (discussion #120, thanks Frankthetankk - who found this AND fixed it at the source) - SYMBOL OF PINZARN ALWAYS READ AS MISSING, however many times you cast it. EQBuddy watches for the exact text a buff prints when it lands, and the wiki had the wrong text on file for this one - so it was waiting for a line your log never contains. He corrected the wiki page; EQBuddy now has the real message and a 45-minute timer to go with it. Endure Magic, Poison, Disease, Cold and Fire also became trackable in 1.86.0, if you had been unable to add those.",
+   "FIXED (discussion #172, thanks bjstrange) - UNCHECKING A SKY QUEST ITEM LEFT THE QUEST LOOKING READY. Ticking the last item marks a quest ready to turn in; unticking it again updated the counters but not the list itself, so the ready label stayed put until something else forced a redraw. The list now refreshes exactly when a quest's readiness changes - and not on every tick, so checking off a long quest no longer loses your scroll position.",
+   "FORAGED ITEMS COUNT NOW (discussion #163, thanks wizen). The game announces a forage as \"You have scrounged up ...\" rather than a normal loot line, and EQBuddy was ignoring it entirely. Forages now appear on the Loot card and in the new recent-drops view with \"Forage\" as their source, which also means a foraged item can tick a quest or gear row like any other. A failed forage is still ignored - a miss is not a drop.",
+   "EQBuddy is a BETA - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.86.0",
+  "date": "2026-08-15",
+  "highlights": [
+   "BUFF TIMERS NAME THE SPELL LINE INSTEAD OF QUOTING THE GAME (discussion #162, thanks DeusSilvam). A tracked buff used to be labelled with whatever the game printed - \"You feel much faster\" - while other lines already showed a proper name. 37 of the 163 tracked lines were like that; they now read \"Haste line\", \"Cleric AC line\", \"Thorns damage shield\", \"Levitation\" and so on. Nothing you have configured moves: these are display names only.",
+   "42 MORE BUFFS CAN BE TIMED (discussion #162, thanks DeusSilvam, who noticed his shaman spells were missing). Talisman of Altuna, Strength, Agility, Dexterity, Stamina and Spirit of the Puma are now tracked, along with 36 others - the Endure/Resist lines, Charisma, Health, Nimble, Feet like Cat and more. They were absent because the wiki leaves the \"beneficial\" field blank on some pages and EQBuddy read silence as \"not a buff\"; a blank now qualifies when the spell targets a friend or yourself AND the page calls it a buff, which keeps debuffs out.",
+   "A WAY BACK IF AN UPDATE GOES WRONG (discussion #158, thanks n3cr0nk1tt3n for the idea and twidget76 for the report that prompted it). EQBuddy's updater lives inside the widget, so a build that won't start takes the route to its own fix with it - which is exactly what happened with 1.84.0. From now on the installer keeps the build it replaces, and adds a Start-menu shortcut \"EQBuddy (previous version)\". If an update ever leaves you with a widget that won't open, start that one instead and update from inside it. It appears only once there is a previous build to go back to, and uninstalling removes it.",
+   "THE LOOT CARD CAN SHOW EVERY DROP AS IT HAPPENED (discussion #160, thanks wizen). The sort row on the Loot card gains a third option, \"recent\": your session's raw loot in arrival order, newest first, instead of totals. It exists for long farms - when you have looted 200 HQ Lion Skins, a rare pelt appearing is a count going from 0 to 1, which looks exactly like the skin count going from 200 to 201. In arrival order it is simply the row that is not a Lion Skin. Runs of the same item collapse into one line with a count, so a streak cannot push the interesting drop off the end.",
+   "BUFF LOSSES CAN NAME A DEBUFF AS THE CAUSE (discussion #120, thanks Frankthetankk). The lost-buff history could already say \"lost as X landed\" when a nuke or a slow displaced one of your set buffs - but a PURE debuff deals no damage and is not a slow, so it landed in total silence and the buff it displaced was recorded as merely \"faded\". 615 detrimental spells now have their cast-on-you lines catalogued, so his documented case reads \"lost as Malaise landed\" instead. The window is deliberately tight and a shared line names every candidate rather than guessing one - a wrong cause in a bug report to the game devs is worse than no cause.",
+   "EQBuddy is a BETA - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.85.0",
+  "date": "2026-08-15",
+  "highlights": [
+   "FIXED, AND THE REASON TO UPDATE (discussion #158, thanks twidget76) - EQBUDDY 1.84.0 WOULD NOT START if you had the Epic card's \"classic-doable only\" filter ticked. It appeared in Task Manager using no CPU, never reached the taskbar, and never opened a window - and because the failed launch left a process behind, a second double-click did nothing either. Restoring that checkbox at startup called into a part of the app that had not been built yet, which was a mistake introduced by 1.84.0's internal reorganisation of the quest checklists. If this hit you, nothing was damaged: your settings, history and logs were untouched the whole time. An automated launch test now runs with that filter ON, because the reason this reached anyone is that the old test only covered it OFF.",
+   "FIXED (discussion #135, thanks bjstrange, whose log finally cracked it) - CHARM SOMETIMES DIDN'T REPORT HOW LONG IT HELD. If the creature was mid-swing at the instant your charm landed, the game resolved that attack round anyway - and EQBuddy read your brand-new pet hitting you as the charm breaking, throwing away the clock one second after starting it. Minutes later the real fade had nothing left to measure, so the \"held M:SS\" went missing while the fade message itself printed as normal. That is why it looked random and moved between mobs: it depended entirely on the creature's swing timer. A hit within 3 seconds of the landing is now the tail of that round rather than a break.",
+   "FIXED (discussion #156, thanks bjstrange) - UPGRADED DROPS NOW TICK SKY ROWS. \"Azure Ring +1\" is an Azure Ring, but the Sky checklist compared the name exactly while the Epic and Gear checkers both folded the \"+N\" away - so one loot line ticked a gear wish and an epic step and silently skipped the Sky row that wanted the same item. Note this only applies to loot as it arrives; tick anything you already have by hand once.",
+   "FIXED (discussion #120, thanks Frankthetankk) - A BUFF ADDED UNDER A CLASS YOU AREN'T PLAYING VANISHED. Picking, say, Paladin in the buff-set class picker and clicking a searched buff appeared to do nothing - and then the buff disappeared from later searches, so you couldn't even retry. It was being added correctly every time; the breakout just never showed buckets outside your active classes, so the pick was stored, hidden and unremovable. Those picks were never lost and now appear as a parked section. Options and the breakout share one answer about this now.",
+   "YOUR LOGS SAY WHEN THEY'RE ARCHIVED (discussion #159, thanks Frankthetankk, who lost a session to the old cleanup and had no way to check archiving was working). Every archive now announces itself with a banner naming the file, and writes a line to error.log so you can answer \"did it archive that session last Tuesday\" later. The ↻ Reset button also stops underselling itself: its tooltip now says that it MOVES your log to Logs\\archive and starts a fresh one, and it asks before doing it. Nothing is deleted, and with archiving switched off ↻ leaves your log completely alone and skips the dialog.",
+   "MACOS SHIPS AS A REAL APP (discussion #157, thanks pmcginn, who hit this as a new Mac user and worked out the fix himself). Releases now attach EQBuddy-osx-arm64.zip and EQBuddy-osx-x64.zip, each unzipping to EQBuddy.app - drag it to Applications and open it like anything else, instead of hunting through loose files for something openable. Still unsigned, so the first launch needs right-click → Open.",
+   "EQBUDDY MOBILE KEEPS UP NOW. Your phone was waiting for the desktop's once-a-second redraw before it heard about anything, even though EQBuddy reads the log every 150ms. Mobile has its own cadence from this release, so a mez breaking or a spawn coming up reaches the second screen as soon as it's known rather than up to a second later. It costs nothing when nothing is happening, or when no device is paired.",
+   "The Sky quest tabs now show what their D/R/P counters are out of (discussion #136, bjstrange) - they never summed to the total because an untouched quest sits in no bucket, which read as a bug rather than a design.",
+   "EQBuddy is a BETA - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.84.0",
+  "date": "2026-08-15",
+  "highlights": [
+   "LINUX AND MACOS CATCH UP (huge thanks to quasarj, who did the work). Everything Windows gained across 1.74-1.81 is now in the cross-platform build too: the EPICS checklist card with its per-class tabs and undoable \"Epic complete\" master check; BUFF SETS in full, including the breakout window, the \"lost this session\" history and the Options editor; VOICE CONTROL's voice picker, rate, volume and per-rule spoken phrases; LEVEL-UP UNLOCKS on the Progress card; the Gear card's farm-zone grouping and self-ticking wishes; Sky Quest turn-in NPCs with per-tab counts and the cross-class Ready tab; right-click spawn-point curation on the zone map; copy buttons on every in-game command EQBuddy asks you to run; the tray icon; global hotkeys; and per-window Ctrl+wheel zoom. EQBuddy Mobile stays Windows-only for now.",
+   "FIXED - MEZ AND SPAWN CHIPS CREPT UP THE SCREEN ON LINUX AND MACOS, one chip's height per reopen, if you use \"grow upwards\". This is the same pair of bugs Windows fixed in 1.82.0 (discussions #122 and #152, thanks Snagglefern) - the cross-platform build had been written against the older code and inherited both. Both builds now share one piece of anchoring logic, so a fix in either place can only ever land in both.",
+   "THE GEAR LOCKER NOW TELLS YOU WHAT TO SWAP IN (discussion #145, thanks skwayb). It already flagged which of your items were ⬇ outclassed by others you own; what it never said was which one is actually on your character. Now it does - ★ marks what you're wearing in each slot, and anything in your bags that beats it on every stat both items carry is marked ⬆ upgrade over worn X. Two deliberate refusals: an item class-locked away from you is never suggested, and a plain item never claims to beat a worn \"+N\", because the wiki lists base stats and an upgraded item reads lower here than it really is - being told to unequip your best piece would be worse than being told nothing. As always this reads your bags against your own character and nobody else's.",
+   "YOUR LOGS ARE KEPT NOW, NOT EMPTIED (discussion #146, thanks wizen). EQBuddy tidies up finished session logs so they don't grow without bound - but until now the out-of-the-box behaviour was to empty the file and keep nothing, which is a decision nobody asked it to make. Archiving is ON by default from this release, and it is switched on for existing installs too: each finished session is saved to Logs\\archive as eqlog_name_server_YYYYMMDDHHMMSS.txt, and Reset session splits the log there rather than letting it run on. They're text files, as wizen pointed out - the space is worth less than the history. If you would rather have it back, one untick in ⚙ Options → \"Keep a timestamped copy before emptying\" returns the old behaviour, and it stays off once you set it. EQBuddy never deletes anything in Logs\\archive.",
+   "SPAWN TIMER - A NISCH MAS MENDER in Splitpaw Lair now has a respawn timer of 7m51s (thanks to the shared-knowledge pack in discussion #147). This fills a blank rather than replacing a published figure: the wiki has no number for it. It rests on a single sample, so if you camp that Mender, Map → Share zone knowledge and post it on #147 - a second independent set is what turns this from a good guess into a fact.",
+   "EQBuddy is a BETA - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.83.0",
+  "date": "2026-08-14",
+  "highlights": [
+   "FIXED (issue #150, thanks knaackville - and thanks again to n3cr0nk1tt3n, whose earlier report was made in good faith) - THE BARD SKY QUESTS Mask of Song and Mantle of the Songweaver now match the community wiki again: Mask of Song takes the Light Woolen MASK (Isle 3, Gorgalosk) and Mantle of the Songweaver the Light Woolen MANTLE (Isle 4, Keeper of Souls). We had crossed these two in v1.79.0 on a first-hand hand-in report, deliberately going against the wiki; a second player has since reported them wrong that way. With no decisive turn-in either direction, EQBuddy's rule from now on is to match the wiki when a conflict can't be settled - being wrong the same way as everyone's shared reference is fixable, being uniquely wrong is not. If you have actually handed one of these in and know which way it goes, please say so on issue #150 and we'll follow the evidence.",
+   "Your ticks are safe either way: the correction updates the row in place and keeps whatever you had already checked off."
+  ]
+ },
+ {
+  "version": "1.82.0",
+  "date": "2026-08-14",
+  "highlights": [
+   "FIXED (discussion #152, thanks Snagglefern) - MEZ AND SPAWN CHIPS CREPT UP THE SCREEN, one chip's height every time the stack emptied and came back, if you use \"grow upwards\". A grow-up stack has to remember its BOTTOM edge, since its top moves with the chip count - but that was being measured as the window closed, when its height already reads as zero, so what got saved was really the TOP edge. Next time it opened it subtracted a chip from that and landed one row higher. Fixed at the source, and the spawn stack had the identical bug waiting.",
+   "FIXED (discussion #120, thanks Frankthetankk) - THE BUFF SET CLASS PICKER only offered the class EQBuddy had guessed for you, so a character read as one class could only ever build that class's set - which is exactly the per-class assembly the feature exists for. Your detected classes still come first; every other class is now selectable behind them.",
+   "FIXED (discussion #65, thanks Frankthetankk, who caught two of these twice) - THREE WIKI CONTRIBUTION PACK BUGS. A new-page template took the zone you were STANDING in rather than the zone the creature died in, so an Innoruuk killed in Plane of Hate was filed under Nagafen's Lair while the rest of the same entry said Hate. Creature names lost their leading article again (\"The Spiroc Lord\" became \"Spiroc Lord\" in headers, edit links and page links) - the lookup was resolving correctly but recording the name it ASKED for instead of the page it LANDED on. And a god named with an epithet (\"Innoruuk, the Prince of Hate\") no longer offers to create a duplicate page when the wiki already documents it under its plain name. All three now have tests holding them down.",
+   "EQBuddy is a BETA - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.81.0",
+  "date": "2026-08-14",
+  "highlights": [
+   "FIXED (discussion #144, thanks n3cr0nk1tt3n) - THE BOTTOM CARD COULD BE CUT OFF with no way to scroll to the rest of it, and whether it happened depended on your widget size slider - the Epics card showed it first, being the longest. The card list lives under the size transform, so the limit it gets is measured in different units than the screen figure it was being handed; the two only agreed at 100%. Away from that, the list's idea of its own room drifted from what the window could show, and once it thought it had more room than existed the last card was simply clipped. Now converted properly, and re-derived whenever you move the slider. Spotting that it changed WITH the scaling is what made this findable.",
+   "NEW - EQBUDDY NOW RENDERS UNDER WINE (PR #148, contributed by liminalwarmth - this one is entirely their work): players running the Windows build through Wine on Linux or CrossOver on macOS got empty boxes instead of every icon. Wine prefixes ship no Segoe fonts, and Wine's text engine only ever looks at the app's PRIMARY font - so EQBuddy now bundles one font containing everything it draws, text and icons alike, and switches to it only when it detects Wine. On real Windows nothing changes at all. They also added a test that fails the build if anyone adds an icon the bundled font doesn't cover, so it can't quietly rot.",
+   "EQBuddy is a BETA - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.80.1",
+  "date": "2026-08-14",
+  "highlights": [
+   "FIXED - EQBUDDY MOBILE on a small screen, showing a single window, wasted about half the display: the map sat in a fixed-height box with an empty screen underneath it. One chosen screen now fills the device, the same way it already did on a tablet - the map went from roughly half the screen to about 80% of it. The map's zoom buttons also wrap now instead of crowding the edge on a narrow device.",
+   "The README has EQBuddy Mobile screenshots at last - a real zone map on both a tablet and a handset, both captured from genuine Splitpaw data."
+  ]
+ },
+ {
+  "version": "1.80.0",
+  "date": "2026-08-14",
+  "highlights": [
+   "NEW - EQBUDDY MOBILE (BETA) IS OUT OF PREVIEW: put EQBuddy on the phone or tablet already sitting beside your keyboard. Click the 📱 button in the title bar, scan the code with the device's camera, and its browser becomes a second screen - a live zone map, spawn timers, mez chips, buffs, combat breakdowns, session stats, loot, XP, and your Epic/Sky/Gear checklists. Each device picks WHICH of those it shows and in what order, so the tablet propped up beside you and the phone in your pocket can show completely different things. Nothing to install on the device, and it updates with EQBuddy itself.",
+   "It is OFF until you turn it on, and it stays on your own Wi-Fi. No account, no cloud, no telemetry: the pages are served by EQBuddy.exe straight to your device, and nothing leaves your network. You decide what may be sent at all (Options → Behavior → EQBuddy Mobile), and \"New code\" instantly locks out every device you have paired.",
+   "Worth knowing up front: Windows will ask to allow EQBuddy through the firewall the first time you switch it on - if you dismiss that prompt, devices simply can't connect and nothing will say why, so switch it off and on again to get the prompt back. Guest/public Wi-Fi that isolates devices from each other will also block it. And browsers won't hold a screen awake over plain HTTP, so bump your device's screen timeout if you're camping.",
+   "NEW - THE MOBILE MAP NOW MATCHES THE PC'S: your /loc breadcrumb trail (the comet tail that fades over the last minute of movement), camp pins for every named you're waiting on - marked \"~\" when the location came from the wiki rather than your own kill - and the full Named list beside the map with countdowns and elapsed bars. On a tablet you can also CURATE spawn points by touch: tap a point to confirm, un-confirm or remove it, or use ⋯ to reset a zone. Every edit answers back in words, and it shows up on the PC's map immediately.",
+   "FIXED - map labels in EQBuddy Mobile grew with the picture as you zoomed in, until a single name filled the screen; they now hold their size at any zoom. The map also refits when the view changes shape - rotating a tablet or going fullscreen used to leave it drawn at the size of a window that no longer existed. (Both were there since the mobile map first appeared.)",
+   "IMPROVED - fullscreen on a tablet now spends its height on the map instead of on furniture: the header shrinks, the footer tip steps aside, and a single chosen screen fills the display. (Reported by David from a tablet in Splitpaw - the map was using 94% of its panel's height but only a third of its width, so the Named list moved into the space the map couldn't use.)",
+   "EQBuddy is a BETA and EQBuddy Mobile is the newest part of it - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.79.1",
+  "date": "2026-08-14",
+  "highlights": [
+   "FIXED (discussion #93, thanks pmcginn) - ALERT SOUNDS ON macOS were silent, and it was our bug rather than anyone's setup: the built-in sounds were only ever looked for in the Linux desktop sound theme, which a Mac doesn't have, so the alert died before it reached a speaker - and even if it had, the list of players to try had no afplay in it. Both halves fixed: the seven built-in sounds now map onto the clips every Mac already ships (Ding→Ping, Notify→Glass, Chimes→Blow, Chord→Pop, Tada→Hero, Exclamation→Sosumi, Alarm→Submarine) and play at your chosen volume. Nothing to install. Custom sound files keep working as before - on a Mac, pick .aiff/.wav/.mp3/.m4a rather than .ogg.",
+   "Windows and Linux alert sounds are untouched by this - same clips, same behavior."
+  ]
+ },
+ {
+  "version": "1.79.0",
+  "date": "2026-08-14",
+  "highlights": [
+   "NEW - BUFF SETS, THE WHOLE SPEC (discussion #120, thanks Frankthetankk - stages 2 and 3, hours after stage 1): sets now live PER CLASS and assemble to your active class combination - swap Warrior for Rogue and the other classes' picks survive, exactly as you designed. A new Buffs breakout window shows every set buff's live state with in-place editing (⭐ on the Buffs card opens it). When you level into a NEW buff line, a quiet suggestion row offers it for your set (rank-ups need nothing - the set already covers them). And the breakout's \"lost this session\" fold answers WHY a buff dropped: expired, faded, lost on death, or \"lost as Plague landed (a swamp rat)\" - the dev-report evidence you wanted, with a ⧉ copy button.",
+   "FIXED (discussion #139, thanks n3cr0nk1tt3n - first-hand hand-in beats the wiki): the bard Sky tests had Mask of Song and Mantle of the Songweaver's required items SWAPPED - the community wiki carries the same swap, so your report corrected both. Sky checklist corrections now reach existing installs automatically.",
+   "FIXED (discussion #140, thanks AkevoTheBard): raid bosses whose kill lines carry a title (\"Innoruuk, Prince of Hate\") now land in the Raids section - and kills recorded in the past under mismatched name forms get recovered on update.",
+   "FIXED - a RELIABILITY BATCH from a full audit of the app's oldest seams: the ↻ reset button no longer quietly corrupts the finished session's history row; a family member's raid kills survive character switching; re-reviewing archives can't double-count spawn-point kills; REVIEWING AN ARCHIVE IS NOW TRULY READ-ONLY (no more phantom characters in the ledgers); and rapid log switching can't fire alert storms for hours-old lines.",
+   "FASTER ON RAID NIGHTS - a performance pass aimed at exactly the moments the widget works hardest: the Watch card's rule scanning now folds new events in instead of rescanning the whole fight history every second, windows share one snapshot per tick instead of building their own, and every optimization is proven output-identical by new tests. Quieter CPU, same numbers.",
+   "The repo also grew its engineering armor today: a SECURITY.md documenting every network destination and the zero-telemetry doctrine (verified from code), supply-chain-hardened CI, and a true end-to-end test harness that launches the real app against a live-growing log. Boring, invisible, and exactly why the pace here stays safe.",
+   "EQBuddy is a BETA - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.78.0",
+  "date": "2026-08-14",
+  "highlights": [
+   "NEW - BUFF SETS (discussion #120, thanks Frankthetankk - you wrote half the design, and #64's skulldugger planted the seed): tell EQBuddy which buffs you never want to camp without (Options → Alerts & chips → a search over every buff it knows), and the ⏳ Buffs card grows a line that exists ONLY when something's wrong - \"⚠ missing: Temperance · expiring: Haste · not seen: Aegolism\". The honesty state is the point: \"not seen\" means no landing line this session - it may be up from before the log was watched; the app says what it can't know instead of guessing. Stage 1 of your spec; class-combination sets and the breakout window are the committed next stages.",
+   "NEW - LEVEL-UP UNLOCKS: ding, and the Progress card answers \"what did I just get?\" - new spells AND AA abilities at your level, for your classes, with a fold showing what's coming at the next milestone. Powered by a new embedded catalog of 1,427 spells with per-class levels, refreshed weekly from the community wiki like everything else.",
+   "NEW - the game tells us what BLOCKS your buffs, and EQBuddy finally listens: \"Your X spell did not take hold. (Blocked by Y.)\" now counts per spell on the Combat card and spells breakdowns (\"· 2 blocked\", tooltip names the blocker), never starts a false buff countdown, and quietly builds a per-character stacking ledger for the buff features ahead. Also closes a subtle charm bug: a blocked charm cast can no longer let a bystander's pet blink claim a pet that was never yours.",
+   "NEW - the GEAR SHOPPING LIST works itself: wishes tick automatically from your loot, your merges, and your inventory dump - tier-aware, so looting a base item never silently satisfies a +5 wish, but owning a +7 satisfies both. Re-importing a list no longer wipes the boxes you ticked in the app.",
+   "NEW - \"Group by farm zone\" on the Gear card: the same wishes pivoted to WHERE TO GO, nearest zone first, with items listed under every zone that drops them - one tick clears them everywhere. Quest-reward and crafted-only items get their own honest buckets.",
+   "NEW - COPY FIGHT AS TEXT, everywhere (discussion #89, thanks jeremycranfill): the Discord-ready fight block now carries incoming damage, heals, and deaths - and the ⧉ button reached Session History's encounter rows on both Windows and Linux. Your numbers and your pet's only, as always.",
+   "NEW - VOICE CONTROL: pick the voice EQBuddy speaks with, set its rate and volume, and give any watch rule a custom spoken phrase (\"Cast now\") - all in Options, applied instantly, with a ▶ test button. Shared rules carry phrases to friends who have them; older versions simply ignore them.",
+   "FIXED - ZONE MAPS: some zones showed nothing (David hit it in Qeynos Hills) - the map only ever looked in your custom pack folder, and packs skip connector zones the game itself ships maps for. It now falls back to the game's own maps folder, 33 zone-name aliases were corrected (several resolved to the WRONG map - Neriak Commons, the Qeynos Aqueducts, Old Paineel), a blank map now names the exact file it looked for, and a permanent test asserts every zone EQBuddy knows resolves to its real map.",
+   "IMPROVED - every place EQBuddy reads a game command's output now has a ⧉ copy button: the Gear Locker, the Raids card (/outputfile achievements), the zone map's /loc social recipe (both lines, ready for the social editor), and a Data & imports menu fallback for fresh characters. Click, paste in game, done.",
+   "EQBuddy is a BETA - if something reads wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.77.0",
+  "date": "2026-08-14",
+  "highlights": [
+   "NEW - the EPIC CHECKLIST CHECKS ITSELF: the second half promised in discussion #121 (thanks tvongaza for the ask, dandrews2930 for the prototype it builds on). Steps now auto-tick from your own loot lines, the same machinery the Sky checklist uses - 392 of the 486 steps name a lootable item and are now hands-free; hail/kill/dialogue steps stay manual checkboxes. An item wanted by several classes parks one tick with a * so you decide who it was for.",
+   "NEW (discussion #138, thanks aodgizmo): \"Epic complete\" now asks before bulk-checking a class (\"Mark all N remaining steps complete?\"), and unchecking it RESTORES the exact per-step state from before - an accidental click is two clicks to undo instead of a manual re-tour of the list.",
+   "NEW (discussion #131, thanks TropicMike): the Loot drill-down window grows a per-item \"Created by merging\" section - every crafted item with its count, same bars, same wiki hover and quest badges as loot rows. The card header's \"+N made\" finally has a breakdown behind it.",
+   "FIXED (discussion #135, thanks bjstrange - the bug behind the bug): re-charming quickly after a break could silently wipe the NEW charm's clock when the old charm's fade line printed late, so the next break announced no \"held M:SS\". A fade arriving within seconds of an already-recorded break is now recognized as the echo it is.",
+   "FIXED (discussion #137, thanks bjstrange): a watch rule catching several DIFFERENT items in the same instant (\"Wind Rune\" when two runes drop together) announced the last name twice (\"Wind Rune Meda ×2\"). The alert now names each new item; ×N is reserved for real multiples of the same one.",
+   "IMPROVED - the SKY TESTS quest catalog is now complete: the community wiki restructured its Plane of Sky pages this week (which would have silently emptied them from the quest tracker), and the harvester now follows the reorganization - every class's Sky tests carry their full item lists (wind runes AND boss drops, which even the old pages never had), with Bard, Beastlord, and Berserker entering the catalog for the first time. Weekly wiki refresh included: 247 changed pages, 10,956 items, plus a corrected Monk Improved Mend AA (3/6/9, 10/20/30%).",
+   "EQBuddy is a BETA - if a checkbox ticks itself wrongly, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.76.0",
+  "date": "2026-08-13",
+  "highlights": [
+   "FIXED - the OTHER half of the Selo's false slow alert (#116's group-member case, diagnosed live in a two-bard group): other players' songs never log at all, so your only witnesses are the song's own pulse landing on you (\"Your feet move faster.\", every 12-18s while a bard twists) and the cluster of first-person fades when the twist lapses. A \"You slow down.\" within a minute of a pulse - or within seconds of other song fades - is now read as the haste ending, in both directions: no chip raised, and a chip that already appeared takes itself back. Every one of the 29 false alerts in the diagnosing log is covered.",
+   "NEW - slow chips are DISMISSIBLE: right-click one and it's gone. For the stragglers no heuristic can catch - you know whether you're actually slowed.",
+   "NEW - Gear checklist imports now carry SOCKETED EXALTATIONS (contributed by theFlammHammer, closing the honest limit stated when the importer first shipped): grouped under their own heading, each with its effect in small text beside the item name, older gear-only exports untouched.",
+   "FIXED (discussion #132, thanks bjstrange): the shaman Torpor-family HoTs (Stoicism/Nonchalance/Impassivity) no longer trigger the slow alert - their wiki pages leave the beneficial field blank, so the old exclusion missed them. New rule: a slow that also HEALS its target is a buff, whatever the field says.",
+   "FIXED (discussion #133, thanks bjstrange): a damage-shield hit (\"YOU are pierced by The Spiroc Lord's thorns...\") no longer invents a phantom mob named after the whole phrase - the real creature is extracted from the possessive, so the Loot card's target pool and your damage-taken numbers now name The Spiroc Lord itself.",
+   "FIXED (discussion #135, thanks bjstrange - third catch of the night): the charm-break announcement now carries its \"held M:SS\" time even when the pet turning on you is what broke the charm and the fade line printed a few seconds later.",
+   "EQBuddy is a BETA - if a chip lies to you, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.75.0",
+  "date": "2026-08-13",
+  "highlights": [
+   "NEW (discussion #130, thanks bjstrange): CHARM HOLD TIMER - the pet breakout header shows a running clock from the moment your charm lands (\"Pet damage - Gnoll · charmed 4:32\"), and when the charm breaks, the CC-broke alert announces how long it held (\"Befriend Animal (Puma) - held 0:56\"). Summoned pets stay clock-free - a summon doesn't break.",
+   "NEW (discussion #129, thanks bjstrange): the Sky Quest card grows a \"★ Ready\" tab ahead of the class tabs whenever ANY class has a quest ready to turn in - one line per finished quest across all fourteen classes, with its turn-in NPC, so you stop touring tabs to find what's done.",
+   "NEW - EPIC 1.0 CHECKLIST (contributed by dandrews2930, hours after the idea landed in discussion #121 - thanks tvongaza for the ask): a per-class card of every epic quest step from the community wiki, 486 steps across all 14 classes, with manual checkboxes and a \"Classic-doable only\" toggle so you can pre-farm what already drops before the epics go live. A prototype by its author's own framing - auto-checking from your loot comes later.",
+   "IMPROVED - Sky Quest tabs (contributed by dandrews2930, from suggestions by Fedarov #125 and wizen #126): each class tab now shows its turn-in NPC up top, and tab headers count QUESTS by state - D done / R ready / P partial, color-coded - instead of raw item counts.",
+   "FIXED (discussion #124, thanks wizen): typing a decimal WITH a unit into a spawn timer (\"8.5m\") now works - it used to be silently rejected, the override cleared, and the catalog's own clock took over, which looked like 8.5m producing a 16.5-minute timer.",
+   "NEW - right-click empty space on the zone map for a full RESET of that zone's spawn points: every archived point (confirmed ones included) clears after a are-you-sure that shows the real count, and the zone starts learning fresh from your next kills. The reset is durable - nothing already archived comes back on its own.",
+   "EQBuddy is a BETA - if something looks wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.74.0",
+  "date": "2026-08-13",
+  "highlights": [
+   "NEW - right-click a spawn-point circle on the zone map to REMOVE it. The removal sticks across restarts (replayed history can't resurrect it), but new kills near that spot honestly re-learn the point - the log always outranks an edit. For the dot that's wrong, stale, or just in your way.",
+   "NEW - right-click a circle to CONFIRM its location too: the dot stops drifting toward new kills and holds exactly where you attested it (kills and timers keep counting), it wears a small center dot so you can see it's vouched for, and confirmations travel in share strings like everything else you set.",
+   "EQBuddy is a BETA - if something looks wrong, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.73.0",
+  "date": "2026-08-13",
+  "highlights": [
+   "FIXED (discussion #122, thanks Snagglefern - your Plane of Hate log was the whole diagnosis): mez chips in messy AE fights. The game writes an explicit \"X has been awakened by Y.\" line that EQBuddy never read - it does now, and it's the authoritative break signal. And when a same-named add RESISTS your AE mez, that resist now marks it awake, so its attacks stop eating the chip of the sibling you actually mezzed.",
+   "FIXED (same report): chip stacks set to grow upward no longer wander across fights or snap back to old spots - a grow-up stack now remembers the BOTTOM edge you parked it at, which is the edge that actually stays put.",
+   "EQBuddy is a BETA - if a chip still lies to you, tell us: ⚙ → Help → Send feedback, ideally with a log slice like the one that fixed this."
+  ]
+ },
+ {
+  "version": "1.72.0",
+  "date": "2026-08-13",
+  "highlights": [
+   "NEW — 🧰 Gear Locker (⚙ menu, discussion #104, thanks Techsteps): every wearable you OWN, grouped by the slot it goes in and compared against the rest of your bags — an item beaten on every stat by something else you hold gets flagged \"⬇ outclassed\", a dump candidate by arithmetic, not taste. Class-locked items never outclass gear for classes you don't play. Stats come from the wiki with an explicit, politely-paced fetch button; comparisons use base values (a +N raises stats in-game by an amount the wiki doesn't state, so upgrades are shown, never folded in). Never \"BiS\" — the Locker ranks your bags, not the game.",
+   "NEW — the 🐉 Raids card knows difficulty tiers: kills your log witnesses now record the instance tier they happened at (the zone-enter line is where the game says it), and each boss wears its highest PROVEN tier as a D0–D4 badge. Kills from before this update carry no tier and no badge — we don't guess. Achievements imports stay tierless for the same reason.",
+   "POLISHED — every graph got the new chart treatment: the fight timeline's DPS graph and the Combat card sparkline now draw smooth curves (a shaping that mathematically cannot exaggerate — the curve never leaves the range of the real numbers), with a soft fill under your line, a ringed dot on the peak, labeled gridlines, and a proper legend. Chart colors are new too, and colorblind-checked: your damage is deep brass, your pet green, and damage you took moved from red to BLUE — red now always means something is actually wrong.",
+   "NEW — stance and invocation changes appear on the fight timeline as thin dotted markers with labels — see exactly when you swapped modes mid-pull and what it did to the graph.",
+   "NEW — Sky quest tabs sort by closest-to-done, and every quest header shows its score (\"· 2/3\", \"· ready\") — which quest is actually in reach, at a glance.",
+   "NEW — EQBuddy now ships with a built-in catalog of 10,955 items from eqlwiki (all of Category:Items, refreshed weekly): item stats on hover work instantly and OFFLINE, the Gear Locker fills in without fetching, and \"what is this item for\" (quests, recipes, drop zones) answers everywhere. A freshly-fetched wiki page still outranks the catalog, and the item window says which one you're looking at.",
+   "NEW — 🗺️ the zone map draws SPAWN-POINT CIRCLES: every kill that lands near a fresh /loc becomes an observation, observations cluster into points, and each zone builds a per-zone archive that only gets better the more you play. Named spawn points wear your theme's accent, ordinary camps sit dim; hover a circle for the mobs seen there, kill counts, the last kill, and the projected respawn — and a circle PULSES when a respawn is due within ten seconds. Multi-spawn named show every point they've actually died at. (Map features are Windows-only for now; the archives your log builds are ready for the Linux map when it lands.)",
+   "NEW — Share zone knowledge (map window): export a zone's spawn points and timers (learned ones and ones you typed alike) as one paste-safe EQBZ string for a friend, import theirs with a FULL PREVIEW first — every change listed, and a timer far off the zone's known clock arrives flagged, applying only if you explicitly say so. \"Submit to EQBuddy\" opens a prefilled GitHub Discussion for community review — good data ships in a future release, credited. Zero telemetry, always contribution: nothing leaves your machine unless you paste it somewhere yourself.",
+   "FIXED — charm claiming got per-spell arm windows: a \"has been charmed.\" (or blink, or moan) now claims your pet only within THAT spell's cast time plus a moment's slack, instead of a flat 30 seconds. A bystander's charm landing long after your own cast completed can no longer steal the claim — and 167 CC spells now carry their wiki cast times to make it work. Spells without a known cast time behave exactly as before.",
+   "EQBuddy is a BETA — if a number looks wrong, a chart confuses you, or the Gear Locker flags the wrong dump candidate, tell us: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.71.0",
+  "date": "2026-08-13",
+  "highlights": [
+   "FIXED (discussion #109 round two, thanks Frankthetankk): spawn timers now understand raid INSTANCES. The zone-enter line is where the game states instance-ness (\"Nagafen's Lair - Group 3 (Fused)\"), so kills inside an instanced raid zone start no countdown at all — King Tranix and the mini-bosses included, not just the achievements-listed bosses. Ordinary dungeons keep their timers even in tier instances: mobs really respawn there, and our measured zone clocks prove it. Your own typed respawn times still win everywhere.",
+   "FIXED (issue #116, thanks Fennec-Halas): bards no longer get a false 🐌 slow alert when Selo's Accelerando fades — \"You slow down.\" is both a real slow's landing line AND how Selo's haste wears off, and EQBuddy now reads the \"You forget…\" line to tell them apart. Honest tradeoff: a real slow landing within 45 seconds of dropping Selo's goes unannounced once.",
+   "FIXED (discussion #117, thanks Snagglefern): windows no longer teleport on multi-monitor rigs. If EQBuddy relaunched while a display was asleep, a parked window fell back to a default corner and the fallback OVERWROTE your saved spot — permanently. A fallback is never saved now; only your own drags are. Your windows wait where you left them.",
+   "FIXED (discussion #119, Snagglefern again): portable-zip users no longer \"revert\" after updating. The banner used to run the installer, which updated a DIFFERENT copy in Program Files while your portable folder stayed old. EQBuddy now knows it's running portable and sends you to the release page for the new portable zip instead. (Settings and history live in %AppData% — replacing the folder never touches them.)",
+   "NEW: a system tray icon, always present while EQBuddy runs (#114 follow-up, thanks Frankthetankk) — when the widget hides itself, the tray icon is how you see it's alive and click it back. Windows tucks new tray icons behind the ^ chevron; drag it out if you want it always visible.",
+   "NEW (discussion #94, Frankthetankk's field report): 🐌 chips now show counter type and count on their face — \"Slowed 40% · disease 12\" — and the chip stack can be parked BEFORE you're ever slowed: open Options and an empty stack shows a draggable \"drag me\" placeholder.",
+   "NEW (discussion #106, bjstrange's rule, built as spoken): a Sky item that several classes want but none of your filtered classes claim now ticks the first owning class with a * marker — hover it to see who else wants the item, and move the tick if the guess was wrong. Touching the checkbox clears the *.",
+   "EQBuddy is a BETA and every item above came from a player report filed within a day of the last release. Keep them coming: ⚙ → Help → Send feedback."
+  ]
+ },
+ {
+  "version": "1.70.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "NEW — Gear checklist (first outside code contribution to a card, thanks dandrews2930!): build a shopping list on eqlegendstools.com's character sheet, Export Shopping List, then Options → Cards & windows → \"Import gear list…\" — the 🛡 Gear card shows every slot's target item with sources and a checkbox. Manual ticks persist; re-importing replaces the list. Honest limit: socketed Exaltations aren't imported yet, just the fourteen gear slots.",
+   "FIXED (discussion #109, thanks Frankthetankk): raid-instance bosses no longer show made-up respawn countdowns. Maestro of Rancor at \"8:13:38\" was a classic open-world number for a boss that lives in instances now — the 21 bosses the game's own achievements name show \"instance\" in the Spawns window instead (the real clocks are in the game's Instance Maintenance screen), and any stale countdowns clear themselves on update. Type a respawn time on such a row and it still counts down — your edit outranks us, as always. Bonus: the dump's \"Cazic-Thule\" vs the log's \"Cazic Thule\" spelling no longer costs him his ledger entries.",
+   "NEW (discussion #114, thanks Frankthetankk): Options → Behavior → \"Hide the widget while the game isn't running at all\" — the overlay exists only while you play. Distinct from hide-when-unfocused (which keeps the widget up between sessions); they compose. Need it back without the game? Launch EQBuddy again — the running copy surfaces while you use it.",
+   "EQBuddy is a BETA and two of these three exist because somebody asked — if a number looks wrong or you wish it did something else, tell us in GitHub Discussions (⚙ → Help → Send feedback)."
+  ]
+ },
+ {
+  "version": "1.69.2",
+  "date": "2026-08-12",
+  "highlights": [
+   "FIXED (issues #110, #111, #115 — thanks Frankthetankk and bjstrange, and Frankthetankk again for tying the duplicate reports together): the ⚙ menu's \"Data & imports\" and \"Help\" shelves wouldn't open since 1.67.1, which locked away Check for updates, the achievements import, log-folder tools, the tutorial, and Send feedback. The menu's styling predated the shelves and simply had no place to show a submenu — now it does, with a ▸ marker so shelves are visibly shelves. Verified by actually clicking every nested item this time, not by looking at a screenshot.",
+   "EQBuddy is a BETA — if something looks wrong or you wish it did something else, tell us in GitHub Discussions (⚙ → Help → Send feedback, reachable again as of this update)."
+  ]
+ },
+ {
+  "version": "1.69.1",
+  "date": "2026-08-12",
+  "highlights": [
+   "NEW (discussion #112, thanks Frankthetankk): Options → Behavior → \"Show EQBuddy's own CPU & memory in the title bar\" — a small dim readout (\"0.3% · 84 MB\", refreshed every few seconds, CPU as a share of ALL cores) so you can hold the widget accountable. Off by default; diagnostics aren't furniture.",
+   "Under the hood, a tuning pass to keep that number honest: the fight timeline no longer rebuilds its data every second when nothing happened, the chip stack stopped assembling itself twice a second just to learn it was empty, and the Buffs card updates its clocks in place instead of rebuilding rows every tick. Ingest benchmarks now guard the pipeline: ~88,000 log lines/second — a full day's raid log replays in about two.",
+   "FIXED (David's field report): expanding a card could sit empty for seconds — sections only redrew on new log events or a 10-second heartbeat, so a click during a quiet moment waited for one. Expanding now renders immediately. The Combat card also stops building every ability row ever seen this session on first open: card lists cap at 30 rows with an honest \"…N more\" line (sorting still surfaces anything; breakout windows and History stay uncapped)."
+  ]
+ },
+ {
+  "version": "1.69.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "NEW: Sky Quest search (discussion #108, thanks bjstrange — his third shipped ask this week): type an item or reward name in the box next to the state filter and every class's matching rows appear at once, live checkboxes included — no more touring fourteen tabs to find who wants your drop. Search crosses all classes and ignores the state lens, same rule as the quest tracker: filters shape tabs, never search. Clear the box and the tabs return."
+  ]
+ },
+ {
+  "version": "1.68.2",
+  "date": "2026-08-12",
+  "highlights": [
+   "The fight timeline earns its space (David's pass on a real fight): the window now OPENS fitted to the fight — a five-skill skirmish opens compact, a raid brawl opens tall — and stays fully resizable; lanes stretch to fill whatever size you choose instead of huddling at the top. Lane totals say what they are (\"619 dmg\", \"217 taken\"), a legend line explains the marks, the DPS graph grew a scale and a series key, and miss/resist outlines went neutral gray — orange now means exactly one thing: critical."
+  ]
+ },
+ {
+  "version": "1.68.1",
+  "date": "2026-08-12",
+  "highlights": [
+   "FIXED (discussion #106, thanks bjstrange — five days after his #98 shaped the original rule): a Sky item that only ONE class's tests want now checks off for that class no matter which tab or class filter is active — a Berserker-only staff looted on the Druid tab is still Berserker progress. Shared items (the runes several classes need) keep respecting your class filter, because one physical rune can't honestly tick five class plans."
+  ]
+ },
+ {
+  "version": "1.68.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "THE BIG ONE — everything since 1.60 lands together: the ⧗ fight timeline, the 🐌 slow alert with cures attached, ⏳ buff timers that learn your real durations, 🐉 raid-target tracking, level & AA progress charts, per-skill miss rates and hit ranges, both DPS models labeled, rules from recent log lines, watch sorting, a minimize hotkey, tabbed Options, and a reorganized ⚙ menu. Scroll back through the entries below for each one's story.",
+   "EQBuddy is a BETA and this update is enormous — if a number looks wrong, a timer runs long, a card confuses you, or you simply wish it did something else: tell us in GitHub Discussions (⚙ → Help → Send feedback). Nearly everything in this update exists because somebody did exactly that."
+  ]
+ },
+ {
+  "version": "1.67.1",
+  "date": "2026-08-12",
+  "highlights": [
+   "The ⚙ gear menu got the same treatment as Options: your windows up top (map, travel, quests, spawns, inventory, history, drops), the two in-play actions (camp marker, click-through), and everything else shelved under Data & imports and Help. Set-and-forget toggles — track spawns, grid overlay, cursor ring — now live in Options tabs where settings belong (cursor ring: Look tab)."
+  ]
+ },
+ {
+  "version": "1.67.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "Options grew tabs — Look · Alerts & chips · Watch rules · Cards & windows · Behavior — instead of one long wall (David: “it needs serious reorganization”; he was right). Opens to the tab you last used.",
+   "Buff timers got smarter: your own casts now include your Spell Casting Reinforcement rank (+5/15/30/50%) straight from your AA ledger, and a new display mode (Alerts & chips tab) keeps the card quiet until a buff is within a warning window you choose — tell me when it matters.",
+   "The voice no longer arrives late to its own alert: the speech engine warms up at launch, so the first spoken alert of a session speaks on time."
+  ]
+ },
+ {
+  "version": "1.66.3",
+  "date": "2026-08-12",
+  "highlights": [
+   "Cards you haven’t hidden now ALWAYS show — what you select in Options is what the widget displays, automatically. A card with nothing yet (Buffs before a buff lands, Raids before a kill, Watch before your first rule) shows one honest line saying what will fill it, instead of hiding and reading as a missing feature. The widget grows on its own as cards fill; the bottom grip is only for choosing a SHORTER widget (double-click returns to automatic)."
+  ]
+ },
+ {
+  "version": "1.66.2",
+  "date": "2026-08-12",
+  "highlights": [
+   "The widget's bottom-edge grip now says what a drag can do right now — with every card already visible there is nothing more to reveal (cards marked · auto appear when they have content), and a control that silently no-ops reads as broken.",
+   "Polish from the first field test (thanks, David): new cards now slot into the MIDDLE of your card order instead of hiding below the fold; self-hiding cards (Watch, Buffs, Raids) say \"· auto\" in Options with a tooltip explaining when they appear; the bottom-edge height grip is twice as grabbable and glows when you find it; the hotkey recorder now TELLS you a bare key needs Ctrl/Alt/Shift instead of silently ignoring it (and ✕ unbinds); and the recent-lines rule picker grew a \"hide chat\" filter for when General channel drowns your combat lines."
+  ]
+ },
+ {
+  "version": "1.66.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "NEW: 🐉 Raids card — every raid target from the game's own achievements list, per zone, with YOUR record: kills your log witnessed (with dates — a kill counts because you were there, whoever landed the blow), plus clears from before EQBuddy via the achievements import. No difficulty-tier badges yet, deliberately: neither the log nor the dump names the instance tier, and we won't decorate what the data can't back — if you know a log line that reveals the tier, tell us!",
+   "A reminder as these features pour in: EQBuddy is a BETA. Every card, timer and number in it got better because someone spoke up — keep the feedback and suggestions coming in GitHub Discussions, rough edges and wild ideas alike."
+  ]
+ },
+ {
+  "version": "1.65.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "NEW: buff timers — a ⏳ Buffs card counts down every buff on you, soonest-fading first. Timers start from your own casts OR someone else's cast landing on you, run on wiki durations labeled \"est\", and LEARN your real durations from natural fades (ranks and AAs lengthen buffs — after one full cycle the est drops and the number is yours). Buffs survive zoning, clear on death, and the card hides itself when you have none. 263 buffs built in.",
+   "NEW: character progress charts in Session History — pick a character and see Level over time (every ding, exact times, a staircase not a slope) and AA earned over time (cumulative), mined from the sessions you already have."
+  ]
+ },
+ {
+  "version": "1.64.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "NEW: \"+ From a recent log line…\" in Options → watch rules — pick any line that just happened in your log and it becomes a Text rule instantly, match prefilled, ready to trim. Nobody should have to remember a log line to watch for it.",
+   "The Tracked card learned to sort (discussion #105, thanks wizen): manual / a–z / total / recent links on the card, and ▲▼ arrows in Options arrange the manual order.",
+   "New hotkey action (discussion #100, thanks jlcrisp): minimize / restore the dashboard — bind it under Options → Global hotkeys."
+  ]
+ },
+ {
+  "version": "1.63.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "Breakdown rows learned their misses: melee rows now show an inline miss % (\"14% miss\", out of attempts — hover for the raw count), and every row's tooltip carries the hit range (\"hits 88–412\"). Works on the Combat card, the breakout windows, and per-fight views alike.",
+   "The Combat card now states BOTH session DPS models, labeled: \"Session dps: 412 in combat · 267 wall-clock\" — in-combat is the honest camp number (medding doesn't dilute it), wall-clock is what the whole session actually produced. Pick the one that matches your question."
+  ]
+ },
+ {
+  "version": "1.62.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "NEW: the fight timeline — click ⧗ on the Combat card (or the floating Damage window) and see the whole pull on one canvas: a lane per skill, every hit as a bar (taller = harder, orange = critical), every miss and resist as a hollow outline with the log's own words on hover (\"a gnoll pup ripostes\"), your pet and the incoming damage in their own lanes, and a DPS-over-time graph on top with the peak flagged. Scroll to zoom around your cursor, drag to pan, Fit snaps back to the whole fight — and a live fight keeps drawing itself onto the canvas as you play.",
+   "Miss lines now carry their attack skill through the parser, so the timeline (and everything after it) knows a missed backstab from a missed kick."
+  ]
+ },
+ {
+  "version": "1.61.0",
+  "date": "2026-08-12",
+  "highlights": [
+   "NEW: slow alert (discussion #94, thanks Frankthetankk) — when an attack-speed debuff lands on you, a 🐌 chip appears with the slow's % and counter count (\"Slowed 40% · 12 disease counters\"), an optional voice announces it once, and the chip clears when the debuff fades or runs out. Hover the chip for the cure line, strongest first (\"Abolish Disease removes 36/cast\"). Built in for all 34 known slows — no per-spell setup. When several slows share a landing line, the chip shows the honest range (\"Slowed 23–75%\") instead of guessing. Options has the off-switch, the voice toggle, and a raids-only mode (detected from raid-channel chat)."
+  ]
+ },
+ {
+  "version": "1.60.0",
+  "date": "2026-08-11",
+  "highlights": [
+   "macOS players, this one's yours — contributed by quasarj (PR #103): EQBuddy's windows now stay ABOVE the game when EQ Legends runs fullscreen under CrossOver/Wine, instead of vanishing behind it. The raise only kicks in while the game is frontmost, so EQBuddy doesn't float over your other apps.",
+   "The Options window can finally be resized on macOS and Linux: drag either side edge, same invisible grips as on Windows, and the width you pick is remembered (also quasarj, PR #103)."
+  ]
+ },
+ {
+  "version": "1.59.1",
+  "date": "2026-08-11",
+  "highlights": [
+   "FIXED: clicking the ⚡ (or 🐾) glyph next to its star in the Combat header collapsed the section instead of toggling the mini-dashboard chip — the glyph now toggles the star it belongs to (David's live catch, minutes after 1.59.0)."
+  ]
+ },
+ {
+  "version": "1.59.0",
+  "date": "2026-08-11",
+  "highlights": [
+   "The minimized DPS card learned two asks from discussion #102 (thanks jeremycranfill): a ⧉ button on its header copies the last fight as Discord-ready text without leaving the minimized view, and session-scope spell rows now show a resist % — \"do I need to switch to overchannel?\" answered where you're already looking. The % is your own casts vs. resists this session (hover for the raw counts); the main Combat card's session rows carry it too.",
+   "New ⚡ star in the Combat section header: an optional proc-rate chip (procs per combat-minute, same honest denominator as the Procs card) for the mini dashboard."
+  ]
+ },
+ {
+  "version": "1.58.0",
+  "date": "2026-08-11",
+  "highlights": [
+   "The big chains are now real quests, step by step: Coldain Ring #1–#9 (the 10th already had its own page), all seven Prayer Shawls, the deity Symbol chains, and every class armor set (Kael, Skyshrine, Thurgadin, Darkforge, Dreadscale, Trooper Scale, Ivy Etched, Lambent, Totemic, and more) — 250 per-step quests split out of the wiki's chain pages. Each step tracks its own turn-ins, computes real progress, enters the \"held\" tab when your bags cover it, and hands you to the next step (turning in the Copper ring is part of the Silver step, exactly like in game). The chain overview pages stay searchable as before; the 917-page wiki verification now covers all 1,167 entries with zero item mismatches.",
+   "The Inventory window grew the same one-click command as the quest tracker: ⧉ copy /outputfile inventory, paste in the game's chat, click ⟳ — no typing."
+  ]
+ },
+ {
+  "version": "1.57.6",
+  "date": "2026-08-11",
+  "highlights": [
+   "Your loot outranks the class lens: the \"mine\" and \"held\" tabs no longer HIDE quests just because they belong to another class — loot a Blue Orc Head as a monk and The Falchion (Paladin) now appears under a new \"For other classes — you hold pieces anyway\" section instead of vanishing (the class filter still leads with your own classes; era still gates what the world actually offers). Both tabs update live as you loot, same as the Sky checklist. Farming for a friend is a use, not a mistake — now the tracker agrees everywhere."
+  ]
+ },
+ {
+  "version": "1.57.5",
+  "date": "2026-08-11",
+  "highlights": [
+   "The quest tracker's \"held\" tab now shows everything your inventory is GOOD FOR, not just what's finished: \"Ready from your bags\" leads, then \"Your bags contribute\" — every quest your items partly cover, sorted by how close you are. And the /outputfile inventory reminder became a button: click ⧉ copy, paste into the game's chat, done — the game writes the file, EQBuddy reads it, and everything you loot afterward counts on top automatically."
+  ]
+ },
+ {
+  "version": "1.57.4",
+  "date": "2026-08-11",
+  "highlights": [
+   "FIXED: clicking a quest item's 🗺 badge could say \"nothing matches\" when the quest belonged to a class outside your class filter — Blue Orc Head leads to The Falchion (Paladin), and a BRD/MNK/WAR filter silently erased it (David's live catch in Crushbone). Search now ALWAYS answers with the whole catalog — class, era, and state filters shape the browse tabs, never the search — and each result card states whose quest it is. A new permanent test walks every turn-in item in the catalog through the real search to prove the badge's promise can't break again. The Quest Tracker also widened so the search box can't be squeezed invisible by the filter row."
+  ]
+ },
+ {
+  "version": "1.57.3",
+  "date": "2026-08-11",
+  "highlights": [
+   "FIXED: the achievements import could mark Sky rewards turned-in that were never obtained (#101, Frankthetankk's catch): your PRIMARY class unlock is auto-granted at character creation, and the game's dump marks its reward criteria complete without the items ever existing. Auto-granted unlocks are now detected and their rewards SKIPPED — listed in the preview under \"auto-granted, not earned\" so you can see exactly what was excluded and why. If you imported before this fix and your primary class got false checkmarks: untick those reward checkboxes on the Sky card and they stay honest."
+  ]
+ },
+ {
+  "version": "1.57.2",
+  "date": "2026-08-11",
+  "highlights": [
+   "Two Reddit asks, same day: mez countdown chips can now be turned OFF (⚙ Options — untick and the stack never appears; a class that never mezzes never wanted it), and the Progress card stops reciting your entire AA history — \"AA learned this session\" shows what's new, and the full ledger folds behind an \"▸ All AA abilities\" click, exactly like Pet abilities."
+  ]
+ },
+ {
+  "version": "1.57.1",
+  "date": "2026-08-11",
+  "highlights": [
+   "The wiki contribution pack takes its round-four polish (Frankthetankk's continued QA, #65): the suggested edit summary is now summary-field-sized (\"EQBuddy-observed drops (3 items, 12 kills)\") with the full itemized breakdown moved to the log reference — which now carries DATES (sessions span midnight) under a single day header, separated by a blank line so the block scans. Section headlines and item-page links now use the RESOLVED wiki title, so \"a decaying skeleton\" is no longer suggested as \"Decaying skeleton\" — and new-page instructions say to keep the a/an/the the log reader strips."
+  ]
+ },
+ {
+  "version": "1.57.0",
+  "date": "2026-08-11",
+  "highlights": [
+   "🗺 Sky quests tell the truth now (wizen's diagnosis, #99 — exactly right): the wiki documents each class's Sky tests on one big page, and the tracker was treating each page as ONE quest demanding every class item at once. Each now splits into real per-test quests — \"Wizard Sky Test: Nargon's Staff\" with just that test's items and NPC — class-scoped, era-tagged, and finally in agreement with the Sky checklist card. The held/ready/done filters mean something per test now.",
+   "📚 The same audit ran across all 900+ quests: pure index pages (\"Popular Quests by Level\" was polluting every reward search with 347 entries) are gone, and 80+ collection pages — per-class armor sets, the Coldain Ring chain, deity Symbol chains — now say \"set of quests\" instead of pretending a union of six quests is one you can finish. The epics keep their honest 40-item lists; they really are one quest.",
+   "✅ THE ACCURACY CONTRACT: our quest data mirrors eqlwiki.com, and we verified it — every one of 917 quests' turn-in items checked item-for-item against the live wiki (zero mismatches), with sanity gates now running on every weekly catalog refresh so bad data can't slip in. Every quest card carries a ⚑ to report anything that still looks wrong: if EQBuddy misread the page we fix it fast, and if the PAGE is wrong, editing the wiki fixes every install on the next refresh. Your discoveries flow the other way through the red ✦ Copy for wiki.",
+   "⌨ Hotkeys are back — on your terms only (jlcrisp's ask, #100): ⚙ Options → Global hotkeys. NOTHING is bound by default; click a box, press your combo, ✕ unbinds. Bind show/hide-everything, the zone map, quest tracker, spawn timers, or click-through. A bound key is claimed system-wide while EQBuddy runs — the UI says so — which is why the old default binds are never coming back."
+  ]
+ },
+ {
+  "version": "1.56.0",
+  "date": "2026-08-11",
+  "highlights": [
+   "✨ THE WHOLE APP GOT SHARPER. Same Parchment & Brass soul, a real visual system underneath: every number in the app is now tabular (countdowns and dps figures line up), section headings became quiet small-caps labels, cards wear rounded hairline edges instead of solid boxes, and the stat bars moved UNDER the text — crisp names, instant comparison, no more reading through a bar.",
+   "📊 The widget opens with a KPI strip — dps · kills · loot · xp/hr, always visible — and the Combat card finally DRAWS the damage timeline it's been recording all along: a damage-per-minute sparkline for your last half hour, hottest minute marked, quiet minutes honestly flat.",
+   "⏱ Countdowns you can read from across the room: spawn chips fill a thin gauge along their bottom edge as the respawn approaches (DUE fills solid red), mez chips DRAIN theirs like a buff bar, and the zone map's named panel became cards with the same gauges. The minimized dashboard tightened up too — cleaner type, hairline dividers, and a counting-down watch rule announces itself by color.",
+   "Every window came along: the breakouts, Quest Tracker, Sky checklist (compact class chips), Inventory, Spawns, Options. All seven themes — and your Custom colors — inherit the entire system automatically, with the same contrast guarantees as before. Incoming damage now wears a cool blue in every theme, so it can never be misread as yours. Windows-side first; the Linux/macOS build follows on its own track as always.",
+   "Not one feature moved. If your hands know EQBuddy, they still do — it just stopped dressing like a spreadsheet."
+  ]
+ },
+ {
+  "version": "1.55.3",
+  "date": "2026-08-11",
+  "highlights": [
+   "Sky loot auto-check goes multiclass (#98): looting a quest piece now ticks the box on EVERY class you've selected in the quest tracker's class filter — Legends characters run up to three classes, and only the active Sky tab was getting credit. No classes selected keeps the old one-tab behavior. One looted rune ticks one slot per class; the boxes stay hand-editable when your plan differs."
+  ]
+ },
+ {
+  "version": "1.55.2",
+  "date": "2026-08-11",
+  "highlights": [
+   "The Sky checklist gets the same state lens as the quest tracker: any · open · ready · done, above the class tabs. \"Ready\" is the Sky-specific prize — every piece collected, the turn-in still to make: filter to it before your next Sky run and carry up exactly what the island wants. Pairs with the inventory import, which can mark pieces you banked long ago."
+  ]
+ },
+ {
+  "version": "1.55.1",
+  "date": "2026-08-11",
+  "highlights": [
+   "Two Reddit asks from release morning, shipped by lunch: the quest tracker grew a STATE filter — any state · open · ready · done — that cuts across every tab and search (browse a zone's open quests, list everything ready to turn in, or admire the done pile). And the Plane of Sky checklist now floats your UNFINISHED quests to the top of each class tab, with each quest's still-missing items listed first — down to 1-2 left per class, the things you keep forgetting are now the first things you see. Completed quests sink to the bottom as trophies."
+  ]
+ },
+ {
+  "version": "1.55.0",
+  "date": "2026-08-11",
+  "highlights": [
+   "🎒 YOUR BAGS, IN THE WIDGET: type /outputfile inventory in game and EQBuddy reads the file the game writes — right-click → Inventory… shows your worn gear by slot and what's in every bag, and the quest tracker grows a \"held\" tab: quests whose ENTIRE turn-in list your bags already cover. Better still, the log keeps it current — loot something and the counts update live, with a \"Looted since this dump\" section so the view stays honest about what the dump knows versus what the log saw. Plane of Sky planning just got a lot shorter.",
+   "✓ Check off your history: every quest card now carries a ✓ — did a quest before EQBuddy existed? Mark it done (consumes nothing; click again to undo) and it moves to the new \"done\" tab. Between held, done, and the achievements import below, a returning player can catch the tracker up to years of play in minutes.",
+   "🏆 Import achievements (typical-usual-chaos's ask, #88): right-click → Import achievements… reads the game's /outputfile achievements dump and pre-marks Sky rewards you completed before EQBuddy — preview first, nothing applies until you confirm, adds only, never unticks. Drift-tolerant matching (\"Spear of Harmony\" = \"Harmonic Spear\"), and anything unrecognized is listed openly, never silently dropped.",
+   "⚡ Procs per minute (Kerdude's ask, #85): the Combat card's new Procs block counts every spell that dealt damage without a cast — weapon procs, poisons, item effects — with damage and procs per combat-minute (DPS's denominator, so downtime doesn't flatter your weapon). When the game names the vehicle (\"Your Polished Mithril Mask feels alive with power.\"), the row says which item fired. Built on Kerdude's live spellblade log.",
+   "⧉ Share a parse (jeremycranfill's ask, #89): the Combat card's Last fight line grows a copy button — one click puts the fight on your clipboard as a Discord-ready monospace block, abilities aligned with percentages, pet rows labeled in. The official Discord blocks images; text travels. Share-only by design: no uploads, no leaderboards, only your own numbers.",
+   "🎭 EQBuddy infers your class from your most-used class-unique skills (Backstab, Harm Touch, the monk kicks, bard songs…) and pre-filters the quest tracker with it when you haven't picked classes — always labeled \"(inferred)\", never persisted, and one pick in the class filter overrides it. Clickies lose the vote by volume.",
+   "📐 Windows behave (badly-developed's asks, #95/#96): chip stacks can GROW UPWARD (Options — anchored at their bottom edge, so boss timers sit above mez timers with each growing away from the other), and breakout windows now follow the main widget's background see-through. Plus \"Keep EQBuddy above fullscreen overlays\" is now a checkbox (flclfool's Lossless Scaling saga, #91) — default on, off for screen-capture setups.",
+   "The wiki contribution pack folds upgrade tiers into one entry (Frankthetankk's catch, #65) — no more identical duplicate lines when base and +1 both dropped."
+  ]
+ },
+ {
+  "version": "1.54.0",
+  "date": "2026-08-10",
+  "highlights": [
+   "🐾 Claim your pet without swinging it (quasarj's second contribution this week, PR #92): the pet's answer to /pet leader — \"My leader is Yourname.\" — now claims it, so macro the command into your summon and the pet is credited before its first attack. Safe by design: the response rides a channel everyone hears, so it only counts when it names YOUR character, and it never starts a combat window while you're camped.",
+   "🧊 Mez chips stop believing their own chains (a Reddit field report, same evening it was posted): re-mezzing an already-mezzed target writes no new landing line, so the eventual natural fade measured the WHOLE chain — an AoE mez re-cast on cooldown could \"learn\" a one-minute duration and keep it. Your own re-casts are the tell: a fade with a same-spell cast after the landing no longer teaches. Chips show the true clock again on the first clean mez.",
+   "📌 The widget stops vanishing under Lossless Scaling (flclfool, #91): LS creates its upscale surface after EQBuddy's windows, which put it above them in Windows' always-on-top pile. Every EQBuddy window now quietly re-lifts itself every few seconds — no focus stolen, nothing moves, the widget just stays visible over the upscaled game.",
+   "🍎 macOS builds you can download (brucealeg's ask, #93): releases now attach osx-arm64 (Apple Silicon) and osx-x64 (Intel) tarballs next to the Linux one, standing on quasarj's macOS support from #90. Unsigned, so first launch is right-click → Open. The README's credits also caught up with everyone who built pieces of this app: Don Thompson's Linux build, quasarj's macOS side, dandrews2930's spoken alerts, ahaselden's themes."
+  ]
+ },
+ {
+  "version": "1.53.2",
+  "date": "2026-08-10",
+  "highlights": [
+   "The wiki gap wears RED now: in Drops by Creature, a drop the wiki doesn't know about gets a red ✦ — and its hover is a three-step recipe for handing that knowledge in (click the ✦ and the paste-ready edit is already on your clipboard). You're often the first person to see a drop; a minute of pasting makes every EQBuddy user's tracker smarter.",
+   "Quest items the wiki half-remembers count anyway (wizen's Phosphorous Powder, #75): some item pages say QUEST ITEM right in the stats block but miss the category tag the tracker reads. The page's own flag counts now — look an item up once and its 🗺 badge appears, category or no category. Race unlocks shouldn't hinge on a wiki editor's bookkeeping."
+  ]
+ },
+ {
+  "version": "1.53.1",
+  "date": "2026-08-10",
+  "highlights": [
+   "Getting maps is one click now: the map window grew a \"Get maps…\" button that opens Brewall's EverQuest Maps (eqmaps.info) — a quarter century of cartography, and the reason the Zone map has something beautiful to draw. Download the pack, unzip it into the game's \"maps\" folder next to Logs, done. We link rather than bundle on purpose: the maps are Brewall's to distribute, and the credit is Brewall's to keep.",
+   "\"Follow me\" explains itself now (a fair question, hours into release day): picking a map from the dropdown pauses following so you can plan ahead — your marker, trail, and camp pins hide, since your /loc means nothing on someone else's map — and Follow me snaps back to the zone you're actually standing in."
+  ]
+ },
+ {
+  "version": "1.53.0",
+  "date": "2026-08-10",
+  "highlights": [
+   "🗺️ ZONE MAPS ARE HERE — and they change what EQBuddy is. Right-click → Zone map: drop a classic map pack (Brewall's) into the game's maps folder and EQBuddy draws your zone, follows you through it, and puts YOUR position on it the moment you type /loc. Tap a /loc hotbutton as you move and a comet-tail breadcrumb trail shows your last minute of movement, fading as it lands. And the side panel is the one nobody else has: every running spawn timer in your zone, counting down, PINNED to its camp on the map — EQBuddy learns the camp from your own /loc at kill time (the wiki's location as fallback), so the map answers \"where do I stand and when does it pop\" at a glance. ShowEQ's greatest hits, rebuilt from nothing but your log and public wiki pages: no memory reading, no injection, nothing a server could even see.",
+   "The trick that makes the map feel live: make an in-game social — /loc on line 1, /doability 1 on line 2 — and bind it to a movement key you TAP a lot. The turn keys (A and D) are the sweet spot: every course adjustment drops a breadcrumb and the trail draws itself. Held keys don't repeat, so W only fires when you start moving — bind the taps, not the holds. Hover the map's status line any time for the full recipe.",
+   "🧭 Travel route (right-click → Travel route…): pick any zone and get hop-by-hop directions from where you're standing, from client-mined atlas data plus the wiki's boat and port connections — the same distance graph that already sorts your quests by \"close to me\".",
+   "🔎 Quest search went catalog-wide: search all 900+ wiki quests by name, reward, needed item, or NPC — not just the ones your zone offers. Found a weird drop? Type it in and see who wants it.",
+   "🍎 EQBuddy runs on macOS now — thank quasarj (PR #90) for building the Mac side of the Avalonia app. Faction lines read right at both ends of the scale too: a faction at rock bottom now says so instead of claiming \"maxed\" (elderbit's sharp catch, #86). Plus the storage engine moved to SQLitePCLRaw 3, and the whole widget got another idle-cost pass on top of 1.52's.",
+   "This release was shaped in the field: thanks to Bigmatt500, Kerdude, KentCarmine, and dandrews2930 for the asks, testing, and patches that steered the week — and to everyone dropping reports in Discussions. Keep them coming; most of what's on this page started there."
+  ]
+ },
+ {
+  "version": "1.52.0",
+  "date": "2026-08-10",
+  "highlights": [
+   "A week of features earned a day of tuning: EQBuddy now does close to NOTHING while nothing happens. Expanded cards used to rebuild themselves every second even when idle — they now repaint only when the log actually produced an event (a 10-second heartbeat keeps per-hour rates honest during AFKs). Item tooltips stopped re-reading their wiki cache from disk every second. Quest-ledger saves batch instead of writing the whole file at every loot. And with \"hide while the game is unfocused\" on, a hidden widget now truly rests. Net effect: less CPU, less garbage-collection, fewer chances for a Defender scan to hitch your loot moment — same widget, lighter footprint.",
+   "The README grew up with the app: fresh screenshots of the Sky checklist, Drops by Creature with its ✦ wiki flags, the Quest Tracker mid-\"ready\", the session picker, and the cursor ring — plus documentation for everything the last week added. If you've been describing EQBuddy to a guildmate from memory, the page finally does it justice."
+  ]
+ },
+ {
+  "version": "1.51.0",
+  "date": "2026-08-10",
+  "highlights": [
+   "Linux: FIXED a crash-on-every-launch loop (issue #82, caught on Bazzite): closing EQBuddy while minimized to the dashboard saved a state the next launch couldn't survive — the breakout tiles tried to appear before the main window existed, and the failure killed the app before it drew anything. Breakouts now wait their turn, and no breakout problem can take the widget down again. (If you're currently stuck: update, or set \"Minimized\": false in ~/.config/EQBuddy/settings.json.)",
+   ".* Watch rules speak regex now (KentCarmine's ask, #83): a new toggle beside the Match box treats it as a .NET regular expression — \"CH (-->|on) Tank\" catches both spellings of the raid call in one rule. Case-insensitive like everything else; an invalid pattern matches nothing and explains itself in the Match box's tooltip; runaway patterns are cut off at 100 ms so the log pipeline never stalls. Regex mode travels in rule share strings.",
+   "⭕ Cursor ring (Bigmatt500's ask, #81 — \"I often lose my tiny cursor\"): right-click → Cursor ring drapes an accent-colored halo around your pointer, click-through and focus-proof like the grid overlay. Dark under-stroke so it reads on snow and shadow alike; survives restarts until you toggle it off.",
+   "Sold items grew up (Snagglefern's follow-up, #74): the Money card's auto-sold list is now clickable for item info and carries the same quest badges and wiki tooltips as the Loot card — \"if an item is unknown on the wiki I definitely sold it\" was a fair cop. Sold drops were already feeding Drops by Creature and the ✦ pack; now the Money card admits they're items, not just coins.",
+   "This week's wiki catch-up landed via the first scheduled knowledge refresh (PR #84): 2 new quests, the Kobold Molars pages' community edits folded in, and the quest catalog stays current without anyone remembering to run anything."
+  ]
+ },
+ {
+  "version": "1.50.1",
+  "date": "2026-08-10",
+  "highlights": [
+   "FIXED: stacked corpse loot counted as zero (#80, Snagglefern's bone-chip census — 100 chips, 25 counted). \"--You have looted 2 Bone Chips--\" never matched the loot parser, which only knew \"a/an\"; every multi-pickup vanished entirely rather than counting as one. Stacks now count in the Loot card, Drops by Creature, drop rates, and the ✦ wiki pack. If your favorite farm suddenly looks twice as generous — it always was."
+  ]
+ },
+ {
+  "version": "1.50.0",
+  "date": "2026-08-10",
+  "highlights": [
+   "Archive review grew a SESSION PICKER (Snagglefern's follow-up, #74): reviewing a log that holds several sessions — the pre-splitter giants — now asks which one, newest first, with dates and durations. The chosen session replays alone: its drops, its zone, its wiki pack, nothing bleeding in from the sessions around it. Files made by the log splitter are one session each and skip the question entirely. A 10 MB archive is finally days of reviewable evenings instead of whichever session happened to be last."
+  ]
+ },
+ {
+  "version": "1.49.0",
+  "date": "2026-08-09",
+  "highlights": [
+   "⏪ Review any archived log (Snagglefern's ask, #74 — they kept every log precisely to mine drops for the wiki): right-click → \"Review an archived log…\", pick a file, and EQBuddy replays it read-only. The title bar turns amber while you're in the past; one click on it returns to the live log. Drops by Creature and ✦ Copy for wiki work against the reviewed session, nothing double-writes to Session History, and your live character is re-followed the moment you're back. (A multi-session file shows its LAST session — archives made by the splitter are one session each, which is the point of the splitter.)",
+   "Linux: click-through works again — it lost its only trigger when the global hotkeys were removed (issue #7). Now it's in the right-click menu, with the same amber 🔒 unlock chip as Windows parked beside the widget: a window that ignores clicks can't be clicked back to life, so the chip is the one solid thing left. Engages only when X11 actually grants it — Wayland gets an honest log line instead of a lying checkbox. The version line in the Linux menu also opens the GitHub page now."
+  ]
+ },
+ {
+  "version": "1.48.0",
+  "date": "2026-08-09",
+  "highlights": [
+   "↕ Drag the widget's BOTTOM EDGE to make it taller or shorter — text size stays put (that's still the corner grip's job). A Reddit ask from a player who scaled up for readability and got a scrollbar for their trouble: now you choose how much room the widget takes. Double-click the edge to go back to fit-the-screen, and your choice survives restarts and scale changes.",
+   "The Sky Quest card scrolls (dandrews2930's third same-day PR, #78 — fixing hstahl76's report #77 within the hour): each class tab caps its height and scrolls, so 16 quests no longer shove the card past your screen.",
+   "Kobold Molars count now (#79 — Frankthetankk's diagnosis was right): the quest parser only understood \"give/hand/turn in\" grammar, but repeatable turn-in loops say \"each [[Kobold Molar]] that is TURNED IN\" or \"a chance to DROP a\" — both Molars quests now track their molar and flag ready when you hold one. The wider grammar enriched 123 quests' turn-in lists, every addition still vouched for by the wiki's own Quest Items category.",
+   "Your /consider lines now feed the wiki pack (#65): each con names a level — the only place the log ever does — so the observed stat block and page skeleton carry a per-creature level range. Con a spawn once to seed it; con the ones that feel different to widen the honest range.",
+   "Click the version line in the right-click menu to open EQBuddy's page (TropicMike's ask, #76) — the share-with-a-guildmate link is finally one click away."
+  ]
+ },
+ {
+  "version": "1.47.0",
+  "date": "2026-08-09",
+  "highlights": [
+   "🔊 Alerts can SPEAK now, contributed by dandrews2930 (PR #71): each watch rule gets an S toggle that reads the alert aloud with the Windows voice — \"Spirit of the Puma faded off you\" — with duplicate lines suppressed so a chain of fades doesn't chant at you. Speech travels in rule share strings too. (Windows only for now; the toggle is honest about it on Linux.)",
+   "Also from PR #71: a Buff filter for Spell Fade rules — one rule that hears ANY cataloged beneficial buff fade (stat buffs, protections, haste, clarity, movement…) — and a searchable buff picker for By-name rules: start typing and pick from the 903-spell fade catalog instead of spelling Ervaj from memory.",
+   "Sky Quest rewards get their own checkbox (chrstahl's ask, #73, filed hours after 1.46 shipped): the reward line now marks \"I turned this in\" — completing it checks off its items and dims them, unchecking reopens the quest. Manual on purpose: the log shows nothing reliable at the NPC hand-over, so the player is the source of truth, including for quests done before the card existed.",
+   "The wiki catch-up is now automatic: a weekly knowledge refresh re-harvests eqlwiki-derived catalogs (incremental — only pages that actually changed) and opens a review PR with the delta. Its first pass already landed here: 2 new quests, 8 updated Plane of Sky Tests pages, and the Wind Runes joining the don't-vendor list — the community updated the wiki to match the Sky checklist the same day it shipped. Curated data (spawn timers, AAs, mez/CC lists) is never auto-written; a human reviews the flags."
+  ]
+ },
+ {
+  "version": "1.46.0",
+  "date": "2026-08-09",
+  "highlights": [
+   "☁ Sky Quest checklist, contributed by dandrews2930 (PR #70): a new overlay card tracks all 222 Plane of Sky quest turn-in items — a tab per class, reward-grouped checkboxes, each item's isle and source under its name. Loot ticks boxes by itself: win a quest item and it checks off, scoped to the class tab you actually use (five classes each need a Wind Rune Azia; yours is the one that gets it). Progress persists across sessions, restarts, and log splits.",
+   "The ↻ button finishes joeymavity's log-splitting ask (#52): with \"Keep a timestamped copy\" on, Reset session stats now splits the live log on the spot — everything so far moves to Logs\\archive under the exact eqlog_name_server_STAMP.txt naming and a fresh log begins immediately, mid-play, no waiting for the session to go stale. 1.38 shipped the janitor half of the original request; this was the half still owed. (Tools that tail the log with their own byte offset — GINA and kin — will want a restart after a split, same as after any cleanup.)",
+   "Linux: the Avalonia janitor now honors the archive checkbox — it was truncating stale logs without keeping the copy the option promised."
+  ]
+ },
+ {
+  "version": "1.45.0",
+  "date": "2026-08-09",
+  "highlights": [
+   "Watch rules travel now: the ⤴ on any rule row copies it as a compact EQB1 share string sized for guild chat or Discord, and the import box under the rule list turns one back into a rule — with a preview of exactly what it does BEFORE you accept it. Imports are rebuilt field by field (fresh identity, custom sound paths never leave the sharer's machine), so a share string can never do anything the rule editor couldn't. Your raid's CH-chain cues are one paste away from the whole channel.",
+   "▦ Grid overlay (garr's guild-mate energy, discussion #34): right-click → Grid overlay drapes a faint click-through grid over your whole desk for lining up game UI elements — stronger lines every fourth square, spacing slider in Options (live while it's up), and it never eats a click or steals focus. Toggle off in the same menu when everything's finally straight.",
+   "Divine Invocation's proc heals now carry its name in the HPS tracker: the invocation heals your party's lowest-health member for the mana of whatever you cast, and that heal line names no spell — it used to pile up under \"Unknown\". While the divine invocation is being recited, unattributed heals are attributed where they belong.",
+   "The wiki contribution pack gained an OBSERVED STAT BLOCK per creature (Frankthetankk's field list, round two): zone at kill time (not wherever you're standing at export), money per kill in the wiki's own low–high range format — one sample honestly labeled as one sample — and faction hits with counts against your kill count, including \"no hits observed across N kills\", because a confirmed absence saves the next tester the experiment. Everything framed for reconciliation: compare, don't overwrite.",
+   "The multiSpawn doctrine went global: every zone's multi-location names (EC griffons, Lesser Fay brownie guards, Permafrost elite guards, Skyfire shadow drakes, the West Karana ogre shrine, Crushbone's warden) now carry the flag, so sibling kills and sightings can't poison their clocks anywhere. And spawn cycles with several placeholders finally work: Queen Dracnia's webmaster/lurker/purifier rotation restarts her clock from any of the three.",
+   "Spawn timers grew a doctrine, forged in a live Crushbone session: for ACTUAL nameds, an observation beats a lock — a named acting in the final stretch of its countdown out-measures even a \"trusted\" catalog clock (only your own typed values rank higher). For mobs that spawn in several places (Royal Guard, the trainers, the taskmasters — now flagged multiSpawn), the opposite: sightings and re-kill gaps prove nothing when siblings roam, so their clocks are kill-driven only, and any noise they'd already learned heals itself on your next kill. Also fixed: \"orc trainee\" no longer restarts the Orc Trainer clock — fuzzy name matching now knows wiki typos live at the front of names while sibling ranks inflect the end. The Crushbone trio runs its measured 8:00 (Adaptive tier), verified at the camps."
+  ]
+ },
+ {
+  "version": "1.44.0",
+  "date": "2026-08-09",
+  "highlights": [
+   "Mez durations, third time honest (rahvynn's report): 1.43's sanity ceiling clipped genuine mote-upgraded durations — a 44s Mesmerization shrank to its 24s base. The truth is simpler than any cap: a Legends mez holds a FIXED duration unless damage breaks it, and broken mezzes never reach the learner — so the tracker now trusts the latest clean fade in BOTH directions. Chain-mez artifacts and stale values alike heal on the very next honest observation, and long upgraded durations stick.",
+   "FIXED: the default \"CC broke\" rule pinged when a mob stunned YOU (rahvynn again — \"You are no longer stunned.\" joined the fade catalog in 1.42 and the CC filters heard it). Self-recovery lines no longer satisfy CC filters, which mean \"MY control of a mob ended\"; By-name and Any-spell rules still hear your own buffs fade, as designed.",
+   "✦ wiki flagging, first field report applied (Frankthetankk): apostrophes now fold when comparing against wiki loot lists ({{:Packmasters Lash}} vs \"Packmaster's Lash\" was a false ✦), the contribution pack adds a paste line + edit link for each ITEM page's own Drops-from list, and drops carry their last-seen log time so you can find the moment in your own log again.",
+   "Spawn timers learn from SIGHTINGS: a named acting in your log before its chip says DUE proves the respawn already happened — the countdown completes on the spot (chip flips DUE, alert fires) and the observed cycle becomes the learned timer. Re-kill learning could never catch a slightly-long timer, because kill-to-kill gaps include the time you take to notice and kill the spawn. Twin protection: only the final fifth of a countdown accepts sightings, so same-named camps (looking at you, Crushbone taskmasters) can't finish each other's clocks. Your own typed timer values are never overwritten — but the chip still flips DUE when the mob is provably up."
+  ]
+ },
+ {
+  "version": "1.43.0",
+  "date": "2026-08-08",
+  "highlights": [
+   "FIXED: mez chips showing impossible durations (Taendar's report — Mesmerization V wearing a 1:10 timer on a 24-second mez). Chain-mez artifacts from an old version could write inflated durations into the learned file, and \"only ever learn longer\" meant they never healed. Learned durations now have a sanity ceiling (double the spell's base — real rank upgrades like 24s→36s still learn fine), and your install quarantines any old poison automatically on update.",
+   "Dismissing a breakout window with its ✕ now announces itself on the alert banner with the re-enable path (⚙ Options → Breakout windows) — the ✕ is a small target floating over a game screen, and a stray click could silently hide a window forever (ask David where his DPS breakout went).",
+   "FIXED: dismissing the last spawn-timer chip left a ghost chip painted until the stack closed — a bug Don Thompson caught while porting the chips to Linux, fixed on both sides.",
+   "Linux/Avalonia: Don Thompson's parity work through 1.32 is merged — breakout windows (damage/healing/pet), the full encounter review in Session History, mez chips, target drops on the Loot card, item info popups, Send feedback, alert volume with proper per-backend handling, and per-rule banner colors. The Linux build is catching up fast."
+  ]
+ },
+ {
+  "version": "1.42.0",
+  "date": "2026-08-08",
+  "highlights": [
+   "Drops by Creature now knows what EQLWIKI doesn't: an amber ✦ marks every drop that's missing from the creature's wiki page — including pages with empty loot lists and creatures with no page at all (headers say which). A new ✦ Copy for wiki button builds a paste-ready contribution pack: each creature gets its direct edit link and a block in the wiki's own house style, with rarity labels suggested only when your kill count can honestly carry them (10+ kills, using the wiki's published bands). Nothing publishes automatically — you review and save on the wiki (Frankthetankk's ask, #65; auto-publish waits on the wiki admins' blessing).",
+   "Watch rules now hear YOUR OWN buffs fade: the wear-off catalog grew from 61 hand-fed lines to 386 straight from the wiki — 903 spells covered. When a buff fades off YOU the log prints flavor text (\"The spirit of the puma departs.\"), never the spell's name; now a By-name Spell Fade rule on Spirit of the Puma just works, soloing included (skulldugger's ask, #64).",
+   "Linux: the update banner now sends you straight to EQBuddy-linux-x64.tar.gz instead of a release page whose biggest button is a Windows installer (promised when #56 closed). Falls back to the release page if CI hasn't attached the tarball yet."
+  ]
+ },
+ {
+  "version": "1.41.0",
+  "date": "2026-08-07",
+  "highlights": [
+   "Quest loot marking, round two (an evening of live Crushbone testing): loot lines stay NORMAL text — a small 🗺 next to the name is the quest marker now, and it's on EVERY loot surface: the Loot card, target drops, the minimized 🎒 Loot breakout, and Drops by Creature. Click the 🗺 → its quests in the Quest Tracker; if only the wiki's Quest Items category vouches for it, the item's own wiki page opens instead. Item names still click through to item info.",
+   "Quest coverage jumped: pages that list requirements as bullet points (The Falchion style) now parse — 531 quests with turn-in items (was 458), 2,109 items known (was 1,188). And the badge covers the wiki's whole Quest Items category, so pieces like Blue Orc Head and Sealed Note mark properly. Watch for the 🗺 BEFORE your loot window auto-sells something a quest wants.",
+   "Creature pages that exist but list no drops now say so — \"the wiki page lists no drops yet\" beats \"nothing known\", and points at Drops by Creature… as the way to teach the wiki. Pages that fill common_loot instead of known_loot parse too.",
+   "Berserker rune tracking (ahaselden, PR #54) and Don Thompson's Avalonia parity work continue in the background — Linux players, your build is catching up fast."
+  ]
+ },
+ {
+  "version": "1.40.0",
+  "date": "2026-08-07",
+  "highlights": [
+   "Quest Tracker counts got honest: items the log sees LEAVE now subtract — merchant sales, destroys, and merges (two belts becoming one is minus one; looting a belt straight into a merge is zero, not plus one). \"Ready ×17\" when you own one super-belt is history. Counters rebuilt once from your log under the new rules; your manual counts, pins, hides, and completions were untouched.",
+   "The minimized 📈 XP chip now shows XP/HOUR (with the level ETA) instead of total percent — minimized is farming mode, and the rate is the number you actually watch (MorrolanTV's ask, filed an hour before this shipped).",
+   "Items acquired before EQBuddy could see your log still need one \"+ I have this\" — the log can't reach into the past. Everything after that stays true on its own."
+  ]
+ },
+ {
+  "version": "1.39.0",
+  "date": "2026-08-07",
+  "highlights": [
+   "Quest Tracker: the class filter is now MULTI-SELECT — Legends characters can run up to three classes, so pick yours from the checkbox list (the button shows \"PAL · NEC\" style) and quests any of them can do stay visible. Remembered per character, so your alts each keep their own set.",
+   "FIXED: upgraded loot now counts for quests — \"Crushbone Shoulderpads +2\" folds to the base item everywhere quests look, so tiered drops show green in the Loot list, the 🗺 jumps to the right quests, and the tracker counts them (caught live, mid-fight, same-day).",
+   "FIXED: common creatures with zone-split wiki pages (\"Orc Legionnaire (Crushbone)\" vs \"(Deathfist)\") resolve again — a broken wiki redirect could dead-end the Target-drops lookup at \"nothing known.\" The lookup now reads through zone suffixes and prefers the page matching the zone you're standing in (also caught live, mid-fight)."
+  ]
+ },
+ {
+  "version": "1.38.0",
+  "date": "2026-08-07",
+  "highlights": [
+   "ZOOM ANYTHING: Ctrl + mouse wheel over any EQBuddy window scales it — breakouts, Quest Tracker, Drops, Spawns, History, Options, item popups — up to 250%, remembered per window (garr71's 4K report). The same gesture on the main widget drives the widget-size setting, and on spawn/mez chips drives the chips slider. One habit for the whole app.",
+   "READABLE EVERYWHERE: every text button (Copy CSV, + Add watch rule, Next ▶ …) got real high-contrast styling — fill, border, and ink that adapt to your theme. On light themes like Solarized they were nearly invisible ghosts; not anymore.",
+   "NEW: Drops by creature… (right-click menu) — every creature you've looted this session with observed drop rates (kill counts always shown), filterable, and exportable as text or CSV. Built for LeBigNasty's plan to feed corrected drop tables back to eqlwiki for revamped zones — if you camp PoSky/Hate/Fear, your observations can make everyone's Target-drops smarter.",
+   "Quest Tracker: an ERA dropdown hides quests from beyond the world's current era (≤ Kunark hides Velious; unmarked quests always show) — twidget76's idea. Berserker joined the class filter (also twidget76 — Legends' fifteenth class was missing). ",
+   "Log cleanup can now ARCHIVE first: Options → \"Keep a timestamped copy before emptying\" saves each finished session as eqlog_name_server_YYYYMMDDHHMMSS.txt in Logs\\archive — joeymavity's ask, for people who want raw history kept.",
+   "Also merged today from contributors: Don Thompson's two Avalonia/Linux parity PRs (spawn windows, What's-new, options fixes) and ahaselden's rune absorption tracking (rune gains count as self-healing; blocked-hit streaks show in the Healing card)."
+  ]
+ },
+ {
+  "version": "1.37.0",
+  "date": "2026-08-07",
+  "highlights": [
+   "Two big EXPANDED BETA features below — built in one day from your reports, and shaped by what you send next. Tell us what's confusing, wrong, or missing via the ✉ Send feedback button; that loop built everything you see here.",
+   "NEW (beta): 🗺 QUEST TRACKER — right-click menu or the 🗺 in the Loot header. 914 wiki quests matched against what you loot (plus a \"+ I have this\" box for pre-EQBuddy inventory). Three views: MINE (your items and 📌-pinned quests), ZONE (everything workable where you're standing — including dialogue chains with no items), ALL (browse). Each card: rewards up top (hover for wiki stats, click to open the page), turn-in progress with the same hover, giver/level/class, how many zones away the turn-in is (hover for the route — zone connections courtesy of eqltools.com), a 📌 to track, ✕ to dismiss. Filter by class. Click ✔ ready when you hand in — it consumes the items from your counts and marks it done (repeatables show \"ready ×3\" style counts instead of disappearing).",
+   "NEW (beta): quest loot shows GREEN in the Loot lists with a small 🗺 — green means a real quest wants that item, so think before you vendor it. Click the 🗺 to see exactly which quests, and pin the ones you care about. Dismissing a quest (✕) un-greens items only it wanted.",
+   "NEW: 🔮 MOTES gets its own card — every Mote of … Potential tier with counts and motes/hour, sorted by the ladder, counting both looted and stored-as-currency motes (flipwon's idea, filed through Send feedback). Star it for the mini pill.",
+   "Honest limits worth knowing: the game never logs hand-ins (that's what the ✔ click is for), the ledger starts counting from this update forward, and \"zones away\" counts a boat ride as one hop."
+  ]
+ },
+ {
+  "version": "1.36.0",
+  "date": "2026-08-07",
+  "highlights": [
+   "New Options slider: Chips & alerts size — scales the spawn timer chips, mez chips, and the alert banner together, up to 200%, separately from the widget (jlewisnj's 4K report through Send feedback). Drag it with Options open and watch the ★ alert tile resize live."
+  ]
+ },
+ {
+  "version": "1.35.0",
+  "date": "2026-08-06",
+  "highlights": [
+   "Breakout windows now resize from ANY side or corner, like a normal window — grab an edge and go (the corner grip stays as the visible hint; double-click it to auto-size again).",
+   "\"Open wiki page\" in the Item info popup works again — the window's drag handler was quietly stealing the click (thanks twidget76, filed through Send feedback). Same fix applied to clickable item names everywhere.",
+   "Named mobs with \"The\" names show their drops — The Prophet in Crushbone was coming up empty because the wiki page keeps its \"The\" and EQBuddy's lookup didn't. And when no exact name matches at all, a fuzzy wiki search now backstops the lookup (typos and punctuation drift resolve; a wrong creature never sneaks in)."
+  ]
+ },
+ {
+  "version": "1.34.0",
+  "date": "2026-08-06",
+  "highlights": [
+   "FIXED: EQBuddy was silently swallowing Ctrl+Shift+T (reopen browser tab) and a few other shortcuts from EVERY app on your PC — the global hotkeys registered system-wide. They're gone entirely (thanks to the sharp-eyed Reddit report). Everything they did is on the widget itself: – for mini mode, right-click for camp markers and click-through.",
+   "Click-through moved to the right-click menu, with a small 🔒 chip beside the widget while it's on — click the chip to interact again (a click-through window can't be clicked to unlock itself).",
+   "✕ on a breakout window now hides it for good — its ⭐ chip stays on the mini pill, and Options → Breakout windows has checkboxes to bring any window back (thanks Frankthetankk, reported through Send feedback within an hour of 1.33.0)."
+  ]
+ },
+ {
+  "version": "1.33.0",
+  "date": "2026-08-06",
+  "highlights": [
+   "The beta features grew up fast — one afternoon of live testing and your feedback produced everything below. Keep it coming via the new GREEN ✉ button, now right in the title bar.",
+   "NEW (beta): Loot breakout — star 🎒 and minimize: while you fight, the window shows what the creature can drop (your counts and % first, wiki drops behind, duplicates like \"+2\" tiers folded together). /consider something and it targets that instead — and multi-creature pulls show the whole group's possible loot merged, since the log can't know which one you've targeted. Hover any item for its wiki info (fetched on the spot); click to open its eqlwiki page. A Target | Session toggle flips to what you've looted.",
+   "NEW (beta): Watch breakout — pin 📌 any watch rule and minimize: a floating window shows every pinned rule with counts and per-hour rates (CrispyPigeon131's mote-window idea).",
+   "Breakout windows now RESIZE: drag the ⋰ grip and the list scrolls inside whatever size you set (double-click the grip to auto-size again). The damage/healing/pet windows also gained sort links — total · hits · avg · dps.",
+   "Regen songs finally show as healing: Hymn of Restoration ticks carry no amounts in the log, so EQBuddy now ESTIMATES — and since instruments and ranks raise the real number, you can type your true hp/tick into Options and your number wins (read it off the heal text over your head).",
+   "Sort the Loot list by name or count (Klona11), and a new Options toggle hides the widget while the game is running but not focused — alt-tab friendly (sicliffe-cloud).",
+   "A second EQBuddy launch can no longer crash on startup — fix contributed by ahaselden. Also patched a security advisory in the bundled SQLite library."
+  ]
+ },
+ {
+  "version": "1.32.0",
+  "date": "2026-08-06",
+  "highlights": [
+   "This release's new features are BETA — they work, but they're young. Try them and tell us what's confusing, broken, or missing via the new Send feedback… tool below. Your reports shape what they become.",
+   "NEW (beta): Breakout windows — star ⚔ dps, ✚ hps, or the new 🐾 pet star (top of the Combat card) and minimize: small floating bar charts show your damage, your healing, and your pet's damage by ability, each switchable between the current fight and the whole session. Drag them anywhere; ✕ hides one until you next minimize.",
+   "NEW (beta): Target drops — while you fight, the Loot card lists what the creature can drop (eqlwiki) with your own counts this session and honest drop percentages. Hover an item for its stats, click for full info. Toggle in Options.",
+   "NEW: Send feedback… in the right-click menu — writes up a feature request or bug report and opens it on GitHub Discussions for you to review and post. Nothing is ever sent by the app itself; you post it, under your account, after reading every word.",
+   "Every crowd-control spell in the game now counts for \"Any crowd control\" watch rules — the game has 87 stun spells and EQBuddy knew 6, so enchanter stuns like Color Flux never fired alerts (thanks chaosrah). Also from chaosrah: pick a color per alert rule (the ● dot in Options) so a mez break and a heal fade look different at a glance.",
+   "Alerts stopped talking over each other: several alerts in the same moment now play ONE sound, complete, instead of clips cutting each other off — and an alert for one creature no longer silences the same alert for a different creature seconds later.",
+   "NEW (beta): AA tracking — the Progress card lists every ability you own with what it does (from eqlwiki, all 144 abilities). Remembered per character, even after log cleanup."
+  ]
+ },
+ {
+  "version": "1.31.0",
+  "date": "2026-08-05",
+  "highlights": [
+   "NEW: Item info — click any item in the Loot section (or search in the popup) to see its stats, vendor value, who drops it, who sells it, and what quests want it, straight from eqlwiki. Cached for a week; works offline from cache.",
+   "Loot the game auto-stores now counts: motes routed to currency and pelts sent to the tradeskill depot write a special log line EQBuddy didn't know — mote watch rules were missing every stored mote (thanks joeymavity + shururuun for the exact lines).",
+   "Alerts were playing at HALF volume this whole time — a player-found bug (thanks gl_tchd). Now full volume, with an Alert volume slider in Options.",
+   "Right-click any spawn chip to dismiss it, even mid-countdown (thanks anyhow188).",
+   "The Watch rules guide was rewritten with clearer wording contributed by chaosrah, and the spell-class dropdown finally explains itself. A Nisch Mas Mender joins the Splitpaw catalog (chaosrah again)."
+  ]
+ },
+ {
+  "version": "1.30.0",
+  "date": "2026-08-04",
+  "highlights": [
+   "AA potions count correctly: the potion's doubled gains use a different log line EQBuddy didn't know, and gains were counted as events rather than points — potioned sessions logged zero or half. Both fixed (thanks twill713 for the exact line).",
+   "Spawn timers understand renamed mobs: Legends gives classic named new proper names ('the ghoul lord' is Hoptor Thaggelum) — the catalog now carries aliases, starting with Hoptor (thanks chrstahl, again).",
+   "Measured spawn clocks now outrank kill-learning: mobs that spawn in several places at once (Orc Taskmaster, Royal Guard…) tricked the self-tightening timers with fast re-kills. Where a zone's clock has been measured (Crushbone's 12:18), learning stands down and old bad learned values clean themselves up. Your typed edits still beat everything.",
+   "Mez timers stopped lying in both directions: a broken mez can no longer teach its break-length as the spell's 'duration' (the 7-second Mesmerize incident), and learned durations now snap to the game's 6-second server tick so timers don't run past the real wake-up (verified against 1,000+ logged tick intervals).",
+   "On a portrait monitor, the widget can finally use the full screen height — it was sizing against your primary monitor even when living on a different one."
+  ]
+ },
+ {
+  "version": "1.29.3",
+  "date": "2026-08-04",
+  "highlights": [
+   "Upper Guk spawn timers actually fixed: Legends renamed the zone to \"The City of Guk\" — a name no classic source predicted — so EQBuddy didn't recognize it and started no timers there. Confirmed from chrstahl's log lines (thanks for testing and reporting from the field!); those exact lines are now the automated test."
+  ]
+ },
+ {
+  "version": "1.29.2",
+  "date": "2026-08-04",
+  "highlights": [
+   "Guk spawn timers fixed: Legends renamed Lower Guk ('The Ruins of ANCIENT Guk' — classic said 'Old'), and the unrecognized zone name silently disabled every timer there. EQBuddy now knows the Legends zone names, and zones can carry aliases so future renames are one-line fixes.",
+   "Guk catalog audit: the froglok shin knight added to Lower Guk (it roams both Guks), and the froglok warden + ancient croc got their 16:30 timers. If a timer runs long, your kills still tighten it automatically.",
+   "Mez chips, round two (thanks again Vellum670): a mezzed mob's chip no longer disappears when its same-named twin wakes up and fights — the woken one's combat is recognized as its own, kills are attributed to it, and re-mezzing it adds a fresh chip without touching the sleeper's."
+  ]
+ },
+ {
+  "version": "1.29.1",
+  "date": "2026-08-04",
+  "highlights": [
+   "Mez chips, day-one fixes (thanks Vellum670 for same-day field testing): re-mezzing now REFRESHES the countdown — chain-mezzing works as you'd expect, and bard pulse songs keep their chip alive.",
+   "Same-named mobs caught by an AoE mez get separate, numbered chips ('orc pawn (2)'), and a break clears one of them, not all.",
+   "Chips no longer vanish mid-mez: damage-over-time ticks from a spell cast before the mez don't count as 'the mob woke up', and a chip whose base timer runs out holds at 0:00 briefly instead of disappearing — spell ranks lengthen mezzes, and your own casts teach EQBuddy the real duration (any rank, remembered permanently)."
+  ]
+ },
+ {
+  "version": "1.29.0",
+  "date": "2026-08-04",
+  "highlights": [
+   "NEW: Mez chips — a small stack (💤) appears while anything is mesmerized, counting down to wake-up, and clears the moment something breaks it. It works from ANY group member's EQBuddy, not just the mez'er — the log tells everyone. Durations come from the wiki; your own casts teach it exact rank-corrected times. Drag it anywhere; it remembers.",
+   "Charmed pets now appear instantly for EVERY class. Charm landing lines turn out to differ by class — enchanter targets are 'charmed', druid/shaman animals 'blink', necro undead 'moan', and bard song targets' 'eyes glaze over' — and EQBuddy only knew two of the four. Thanks to Vellum670 for the complete charm list that cracked this.",
+   "Bard fix: song lines ('You begin to sing …') were never recognized, so bard charms and mezzes couldn't track at all. They do now.",
+   "Charm spells EQBuddy learns from your play are now remembered permanently instead of forgotten at restart.",
+   "Linux: the build now reports its real version (it claimed 1.26.0 forever and nagged itself to update — thanks to sahaq for the precise diagnosis), and update banners point at the Linux download instead of a Windows installer."
+  ]
+ },
+ {
+  "version": "1.28.0",
+  "date": "2026-08-04",
+  "highlights": [
+   "The Combat card's fight panel now shows the whole PULL — adds included. Multi-mob fights get a per-creature damage split, \"Your damage\" (your pet's rows finally included), and \"Damage you took\" with each hit or spell named by the creature that did it.",
+   "History gains a full \"Encounters\" review: every fight of the session as a collapsible row — who was fought, when, damage each way — expanding to the same full breakdown the live card shows. Recorded from this version forward.",
+   "An encounter is a pull, not a single creature: fights separated by less than 10 quiet seconds group together, in both the live card and History."
+  ]
+ },
+ {
+  "version": "1.27.0",
+  "date": "2026-08-03",
+  "highlights": [
+   "New High Contrast theme for tired eyes: solid background, pure white text — the see-through panels are what made other themes wash out over a bright game scene.",
+   "Or build your own: pick \"Custom colors…\" in Options and choose background, text, and accent (swatches or hex). EQBuddy fills in the rest and quietly fixes your text color if the combo would be unreadable.",
+   "The History window now graphs your DPS over time for each session (recorded from this version forward).",
+   "The DPS section shows damage by stance AND by invocation — invocations turned out to write a log line only when you change one, which is why this took until now.",
+   "Lost the widget after unplugging a monitor? Fixed: every window now checks its saved spot still exists on screen and comes back to a visible position if not.",
+   "Crushbone named run a measured 12:18 clock (was 9:00 — chips fired over 3 minutes early). Marrowbane, Chokehold, and Bloodgurgler were timed live to the second."
+  ]
+ },
+ {
+  "version": "1.26.0",
+  "date": "2026-08-03",
+  "highlights": [
+   "Pet damage tidies up: the Combat card's per-ability pet breakdown now collapses to one line — your pet's overall damage stays as its own row, and clicking \"Pet abilities (N)\" expands the split.",
+   "Charmed pets count from the very first hit: EQBuddy now claims your charm the instant the log says \"X has been charmed.\" instead of waiting up to 9 seconds for the pet's first \"Attacking… Master\" tell. (Only YOUR charms — other players' charms nearby are correctly ignored.)"
+  ]
+ },
+ {
+  "version": "1.25.1",
+  "date": "2026-08-03",
+  "highlights": [
+   "Spawn timers re-synced with the EQ Legends wiki, which is being actively corrected: Lower Guk now runs an 11-minute clock (was 28), Nektulos 6:00, Upper Guk 8:00, and Hadden is a 6-8 minute spawn, not 6 hours.",
+   "Named that were missing real timers got them: Equestrielle the Corrupted (60m, mist wolf placeholder), the Underbrush treants (~90s), Orc Chief (5m), Seahorse Matriarch (15m), Drelzna (18.5m).",
+   "22 more zones (mostly Kunark and the Planes) gained default respawn clocks — 109 of 119 zones now have one.",
+   "Remember: your own kills tighten any timer automatically, and anything you type in yourself always wins."
+  ]
+ },
+ {
+  "version": "1.25.0",
+  "date": "2026-08-03",
+  "highlights": [
+   "This popup! After each update, EQBuddy shows you what changed — once, and only the versions you actually skipped.",
+   "Weapon procs were already tracked (look for your proc's name, like Ignite, in Combat → Damage by attack) — now it's documented."
+  ]
+ },
+ {
+  "version": "1.24.0",
+  "date": "2026-08-02",
+  "highlights": [
+   "Buff and HoT fade alerts finally fire: EQBuddy now knows the wear-off flavor lines ('Your speed returns to normal.' is your haste dropping) even though the log never names the spell.",
+   "Spawn timers tighten themselves: re-kill a named sooner than its timer claimed and EQBuddy adopts the real gap. Your own typed values always win.",
+   "The Watch card leads with what just happened — 'last: Mesmerize (Gnoll elite) · 5m ago' — with the full list behind 'all N kinds'."
+  ]
+ },
+ {
+  "version": "1.23.1",
+  "date": "2026-08-02",
+  "highlights": [
+   "Plays nice with GINA and GamParse: log cleanup now stands down while they're running. If you use them regularly, also untick 'Auto-empty finished-session logs' in Options."
+  ]
+ },
+ {
+  "version": "1.23.0",
+  "date": "2026-08-02",
+  "highlights": [
+   "Every named can have its own respawn-due sound — Default is Alarm; pick per-row sounds to tell camps apart by ear (🔔 opts a camp in).",
+   "DUE chicklets tidy themselves away after a minute; click to dismiss sooner."
+  ]
+ },
+ {
+  "version": "1.22.0",
+  "date": "2026-08-02",
+  "highlights": [
+   "Spawn countdowns became chicklets: small movable chips, one per running timer, any zone. Double-click one for the full zone list.",
+   "Kill a named — or its placeholder — and the countdown starts from your log. 1,412 named across 119 zones ship built-in, and every duration is editable (your edits survive updates)."
+  ]
+ },
+ {
+  "version": "1.21.0",
+  "date": "2026-08-02",
+  "highlights": [
+   "Spawn tracking follows you zone to zone, EQ Legends difficulty tiers ('Befallen 4 (Refined)') included.",
+   "Befallen's timers were rebuilt from real play data — most named there respawn in about four and a half minutes."
+  ]
+ }
+]

@@ -1,0 +1,6163 @@
+[
+  {
+    "slot": "Ear",
+    "focus_effect_count": 8,
+    "item_count": 8,
+    "focus_effects": [
+      {
+        "focus_effect": "Affliction Efficiency I",
+        "description": "Reduces the mana cost of long term detrimental spells by up to 25%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Affliction_Efficiency_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Diamondine Earring",
+            "url": "https://eqlwiki.com/Diamondine_Earring",
+            "slot_raw": "EAR",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 2,
+            "stats": {
+              "STR": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Burning Affliction I",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Burning_Affliction_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Golden Ear Stud",
+            "url": "https://eqlwiki.com/Golden_Ear_Stud",
+            "slot_raw": "EAR",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 3
+            },
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Jolum's Abatement",
+        "description": "Reduces the mana cost of direct damage spells by up to 15%. This bonus will decay on spells over level 50.",
+        "url": "https://eqlwiki.com/Jolum's_Abatement",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Jolum's Shiny Bauble",
+            "url": "https://eqlwiki.com/Summoned:_Jolum's_Shiny_Bauble",
+            "slot_raw": "EAR",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 4,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Jolum's Major Abatement",
+        "description": "Reduces the mana cost of direct damage spells by up to 15%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Jolum's_Major_Abatement",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Jolum's Brilliant Bauble",
+            "url": "https://eqlwiki.com/Summoned:_Jolum's_Brilliant_Bauble",
+            "slot_raw": "EAR",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 6,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Jolum's Minor Abatement",
+        "description": "Reduces the mana cost of direct damage spells by up to 15%. This bonus will decay on spells over level 24.",
+        "url": "https://eqlwiki.com/Jolum's_Minor_Abatement",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Jolum's Tarnished Bauble",
+            "url": "https://eqlwiki.com/Summoned:_Jolum's_Tarnished_Bauble",
+            "slot_raw": "EAR",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 2,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Jolum's Superior Abatement",
+        "description": "Reduces the mana cost of direct damage spells by up to 15%. This bonus will decay on spells over level 65.",
+        "url": "https://eqlwiki.com/Jolum's_Superior_Abatement",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Jolum's Glowing Bauble",
+            "url": "https://eqlwiki.com/Summoned:_Jolum's_Glowing_Bauble",
+            "slot_raw": "EAR",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 6,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Mana Preservation I",
+        "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Mana_Preservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Polished Bone Hoop",
+            "url": "https://eqlwiki.com/Polished_Bone_Hoop",
+            "slot_raw": "EAR",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reagent Conservation I",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Batskull Earring",
+            "url": "https://eqlwiki.com/Batskull_Earring",
+            "slot_raw": "EAR",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Head",
+    "focus_effect_count": 13,
+    "item_count": 17,
+    "focus_effects": [
+      {
+        "focus_effect": "Burning Affliction II",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Burning_Affliction_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Siryn Hair Hood",
+            "url": "https://eqlwiki.com/Siryn_Hair_Hood",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "CHA": 13
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Burning Affliction III",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Burning_Affliction_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Cryosilk Cap",
+            "url": "https://eqlwiki.com/Cryosilk_Cap",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 5,
+            "stats": {
+              "CHA": 13,
+              "WIS": 9,
+              "INT": 7
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Enhancement Haste I",
+        "description": "Reduces the cast time of long term beneficial spells by 30%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Enhancement_Haste_I",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Cat Skull Cap",
+            "url": "https://eqlwiki.com/Cat_Skull_Cap",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 4,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          },
+          {
+            "name": "Etched Iron Helm",
+            "url": "https://eqlwiki.com/Etched_Iron_Helm",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Shadow Knight",
+              "Bard"
+            ],
+            "ac": 11,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Enhancement Haste II",
+        "description": "Reduces the cast time of long term beneficial spells by 30%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Enhancement_Haste_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Platinum Tiara",
+            "url": "https://eqlwiki.com/Platinum_Tiara",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Bard",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 3,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Enhancement I",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Extended_Enhancement_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Shazda Turban",
+            "url": "https://eqlwiki.com/Shazda_Turban",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "DEX": 4,
+              "AGI": 4
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Enhancement II",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Extended_Enhancement_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Batfang Headband",
+            "url": "https://eqlwiki.com/Batfang_Headband",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 2,
+            "stats": {
+              "WIS": 3,
+              "INT": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Healing I",
+        "description": "Increases the potency of healing spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Improved_Healing_I",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Turtleshell Helm",
+            "url": "https://eqlwiki.com/Turtleshell_Helm",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "STR": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          },
+          {
+            "name": "Zaharn's Coronet",
+            "url": "https://eqlwiki.com/Zaharn's_Coronet",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Shaman"
+            ],
+            "ac": 5,
+            "stats": {
+              "STR": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Mana Preservation I",
+        "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Mana_Preservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Wicked Sallet",
+            "url": "https://eqlwiki.com/Wicked_Sallet",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Shadow Knight"
+            ],
+            "ac": 10,
+            "stats": {
+              "STR": 3,
+              "STA": 3,
+              "INT": 2
+            },
+            "era": "Classic Era",
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Mana Preservation II",
+        "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Mana_Preservation_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Mane Attraction",
+            "url": "https://eqlwiki.com/Mane_Attraction",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 4,
+            "stats": {
+              "CHA": 10
+            },
+            "era": null,
+            "flags": [
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reagent Conservation II",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_II",
+        "known_effect_page": true,
+        "item_count": 3,
+        "items": [
+          {
+            "name": "Crown of Leaves",
+            "url": "https://eqlwiki.com/Crown_of_Leaves",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 1,
+            "stats": {
+              "WIS": 5
+            },
+            "era": null,
+            "flags": []
+          },
+          {
+            "name": "Fine Silk Turban",
+            "url": "https://eqlwiki.com/Fine_Silk_Turban",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 10,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          },
+          {
+            "name": "Savant's Cap",
+            "url": "https://eqlwiki.com/Savant's_Cap",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 2,
+            "stats": {
+              "WIS": 3,
+              "INT": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Efficiency I",
+        "description": "Reduces the mana cost of summon undead spells by up to 25%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reanimation_Efficiency_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Dark Circlet",
+            "url": "https://eqlwiki.com/Dark_Circlet",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Necromancer"
+            ],
+            "ac": 4,
+            "stats": {
+              "CHA": -2,
+              "INT": 4
+            },
+            "era": "Classic Era",
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Efficiency II",
+        "description": "Reduces the mana cost of summon undead spells by up to 25%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Reanimation_Efficiency_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Runed Cowl",
+            "url": "https://eqlwiki.com/Runed_Cowl",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Bard",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 2,
+            "stats": {
+              "WIS": 5,
+              "INT": 9
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Haste I",
+        "description": "Reduces the cast time of summon undead spells by 30%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reanimation_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Nightshade Wreath",
+            "url": "https://eqlwiki.com/Nightshade_Wreath",
+            "slot_raw": "HEAD",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Bard",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 1,
+            "stats": {
+              "WIS": 5,
+              "INT": 5
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Face",
+    "focus_effect_count": 6,
+    "item_count": 6,
+    "focus_effects": [
+      {
+        "focus_effect": "Burning Affliction I",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Burning_Affliction_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Burrowing Goggles",
+            "url": "https://eqlwiki.com/Burrowing_Goggles",
+            "slot_raw": "FACE",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 5,
+            "stats": {
+              "INT": 5
+            },
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Damage II",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Improved_Damage_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Polished Mithril Mask",
+            "url": "https://eqlwiki.com/Polished_Mithril_Mask",
+            "slot_raw": "FACE",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "WIS": 7,
+              "INT": 7
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Healing I",
+        "description": "Increases the potency of healing spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Improved_Healing_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Emissary Mask",
+            "url": "https://eqlwiki.com/Emissary_Mask",
+            "slot_raw": "FACE",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Shadow Knight",
+              "Bard"
+            ],
+            "ac": 4,
+            "stats": {
+              "WIS": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "ATTUNABLE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Efficiency I",
+        "description": "Reduces the mana cost of summon undead spells by up to 25%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reanimation_Efficiency_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Lizardskin Tribal Mask",
+            "url": "https://eqlwiki.com/Lizardskin_Tribal_Mask",
+            "slot_raw": "FACE",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 3,
+            "stats": {
+              "AGI": 5
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Haste I",
+        "description": "Reduces the cast time of summon undead spells by 30%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reanimation_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Carved Ivory Mask",
+            "url": "https://eqlwiki.com/Carved_Ivory_Mask",
+            "slot_raw": "FACE",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 2,
+            "stats": {
+              "AGI": 4
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Summoning Haste II",
+        "description": "Reduces the cast time of summon creature spells by 30%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Summoning_Haste_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Incandescent Mask",
+            "url": "https://eqlwiki.com/Incandescent_Mask",
+            "slot_raw": "FACE",
+            "classes": [
+              "Monk",
+              "Enchanter"
+            ],
+            "ac": 3,
+            "stats": {
+              "CHA": 7,
+              "INT": 5
+            },
+            "era": "Temple Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Neck",
+    "focus_effect_count": 11,
+    "item_count": 14,
+    "focus_effects": [
+      {
+        "focus_effect": "Affliction Efficiency II",
+        "description": "Reduces the mana cost of long term detrimental spells by up to 25%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Affliction_Efficiency_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "White Gold Necklace",
+            "url": "https://eqlwiki.com/White_Gold_Necklace",
+            "slot_raw": "NECK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "CHA": 5
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Affliction Haste II",
+        "description": "Reduces the cast time of long term detrimental spells by 33%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Affliction_Haste_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Chrysoberyl Talisman",
+            "url": "https://eqlwiki.com/Chrysoberyl_Talisman",
+            "slot_raw": "NECK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "WIS": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Burning Affliction I",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Burning_Affliction_I",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Allize Volew Medicine Bag",
+            "url": "https://eqlwiki.com/Allize_Volew_Medicine_Bag",
+            "slot_raw": "NECK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          },
+          {
+            "name": "Aviak Charm",
+            "url": "https://eqlwiki.com/Aviak_Charm",
+            "slot_raw": "NECK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "DEX": 2,
+              "WIS": 1
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Enhancement Haste I",
+        "description": "Reduces the cast time of long term beneficial spells by 30%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Enhancement_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Cape of Midnight Mist",
+            "url": "https://eqlwiki.com/Cape_of_Midnight_Mist",
+            "slot_raw": "NECK",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Bard",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 2,
+            "stats": {
+              "STR": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Range I",
+        "description": "Increases the range of spells by 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Extended_Range_I",
+        "known_effect_page": true,
+        "item_count": 3,
+        "items": [
+          {
+            "name": "An Elven Charm Necklace",
+            "url": "https://eqlwiki.com/An_Elven_Charm_Necklace",
+            "slot_raw": "NECK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "CHA": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "LORE ITEM"
+            ]
+          },
+          {
+            "name": "Elven Charm Necklace",
+            "url": "https://eqlwiki.com/Elven_Charm_Necklace",
+            "slot_raw": "NECK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 3,
+              "WIS": 3,
+              "CHA": 3
+            },
+            "era": "Classic Era",
+            "flags": []
+          },
+          {
+            "name": "Glowing Bone Collar",
+            "url": "https://eqlwiki.com/Glowing_Bone_Collar",
+            "slot_raw": "NECK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Jedah's Conservation",
+        "description": "Reduces the number of reagents consumed by spells by providing a 15% chance for the spell not to consume the reagent when cast. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Jedah's_Conservation",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Jedah's Silver Choker",
+            "url": "https://eqlwiki.com/Summoned:_Jedah's_Silver_Choker",
+            "slot_raw": "NECK",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 5,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Jedah's Greater Conservation",
+        "description": "Reduces the number of reagents consumed by spells by providing a 15% chance for the spell not to consume the reagent when cast. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Jedah's_Greater_Conservation",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Jedah's Golden Choker",
+            "url": "https://eqlwiki.com/Summoned:_Jedah's_Golden_Choker",
+            "slot_raw": "NECK",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 8,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Jedah's Lesser Conservation",
+        "description": "Reduces the number of reagents consumed by spells by providing a 15% chance for the spell not to consume the reagent when cast. This bonus will decay on spells over level 12.",
+        "url": "https://eqlwiki.com/Jedah's_Lesser_Conservation",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Jedah's Brass Choker",
+            "url": "https://eqlwiki.com/Summoned:_Jedah's_Brass_Choker",
+            "slot_raw": "NECK",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 2,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Jedah's Superior Conservation",
+        "description": "Reduces the number of reagents consumed by spells by providing a 15% chance for the spell not to consume the reagent when cast. This bonus will decay on spells over level 65.",
+        "url": "https://eqlwiki.com/Jedah's_Superior_Conservation",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Jedah's Platinum Choker",
+            "url": "https://eqlwiki.com/Summoned:_Jedah's_Platinum_Choker",
+            "slot_raw": "NECK",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 8,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Mana Preservation II",
+        "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Mana_Preservation_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Black Alloy Medallion",
+            "url": "https://eqlwiki.com/Black_Alloy_Medallion",
+            "slot_raw": "NECK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 6,
+            "stats": {
+              "WIS": 5,
+              "INT": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Spell Haste I",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Spell_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Beaded Slime Necklace",
+            "url": "https://eqlwiki.com/Beaded_Slime_Necklace",
+            "slot_raw": "NECK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 5
+            },
+            "era": null,
+            "flags": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Shoulders",
+    "focus_effect_count": 7,
+    "item_count": 7,
+    "focus_effects": [
+      {
+        "focus_effect": "Affliction Efficiency II",
+        "description": "Reduces the mana cost of long term detrimental spells by up to 25%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Affliction_Efficiency_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Squallsurge Shawl",
+            "url": "https://eqlwiki.com/Squallsurge_Shawl",
+            "slot_raw": "SHOULDERS",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 5,
+            "stats": {
+              "STA": 5
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Enhancement Haste I",
+        "description": "Reduces the cast time of long term beneficial spells by 30%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Enhancement_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Braided Ivy Cords",
+            "url": "https://eqlwiki.com/Braided_Ivy_Cords",
+            "slot_raw": "SHOULDERS",
+            "classes": [
+              "Druid",
+              "Bard",
+              "Enchanter"
+            ],
+            "ac": 4,
+            "stats": {
+              "WIS": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Spell Haste I",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Spell_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Gilded Cloth",
+            "url": "https://eqlwiki.com/Gilded_Cloth",
+            "slot_raw": "SHOULDERS",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Bard",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 3,
+            "stats": {
+              "STR": 5,
+              "AGI": 9
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Tavee's Charm of Diuturnity",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 49.",
+        "url": "https://eqlwiki.com/Tavee's_Charm_of_Diuturnity",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Tavee's Leather Mantle",
+            "url": "https://eqlwiki.com/Summoned:_Tavee's_Leather_Mantle",
+            "slot_raw": "SHOULDER",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 6,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Tavee's Greater Diuturnity",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Tavee's_Greater_Diuturnity",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Tavee's Silken Mantle",
+            "url": "https://eqlwiki.com/Summoned:_Tavee's_Silken_Mantle",
+            "slot_raw": "SHOULDER",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 9,
+            "stats": {},
+            "era": "Kunark Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Tavee's Lesser Diuturnity",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 16.",
+        "url": "https://eqlwiki.com/Tavee's_Lesser_Diuturnity",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Tavee's Linen Mantle",
+            "url": "https://eqlwiki.com/Summoned:_Tavee's_Linen_Mantle",
+            "slot_raw": "SHOULDER",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 3,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Tavee's Superior Diuturnity",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 65.",
+        "url": "https://eqlwiki.com/Tavee's_Superior_Diuturnity",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Tavee's Runed Mantle",
+            "url": "https://eqlwiki.com/Summoned:_Tavee's_Runed_Mantle",
+            "slot_raw": "SHOULDER",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 9,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Arms",
+    "focus_effect_count": 6,
+    "item_count": 6,
+    "focus_effects": [
+      {
+        "focus_effect": "Burning Affliction I",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Burning_Affliction_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Hollowed Bone Bracers",
+            "url": "https://eqlwiki.com/Hollowed_Bone_Bracers",
+            "slot_raw": "ARMS",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Bard",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 6,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Enhancement Haste I",
+        "description": "Reduces the cast time of long term beneficial spells by 30%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Enhancement_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Gatorscale Sleeves",
+            "url": "https://eqlwiki.com/Gatorscale_Sleeves",
+            "slot_raw": "ARMS",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 6,
+            "stats": {
+              "INT": 4
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Range I",
+        "description": "Increases the range of spells by 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Extended_Range_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Drake-hide Sleeves",
+            "url": "https://eqlwiki.com/Drake-hide_Sleeves",
+            "slot_raw": "ARMS",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 4,
+            "stats": {
+              "STA": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Damage I",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Improved_Damage_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Azure Sleeves",
+            "url": "https://eqlwiki.com/Azure_Sleeves",
+            "slot_raw": "ARMS",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 12,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Mana Preservation I",
+        "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Mana_Preservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Platinum Armband",
+            "url": "https://eqlwiki.com/Platinum_Armband",
+            "slot_raw": "ARMS",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 3,
+              "WIS": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Summoning Efficiency II",
+        "description": "Reduces the mana cost of summon creature spells by up to 25%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Summoning_Efficiency_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Embroidered Black Sleeves",
+            "url": "https://eqlwiki.com/Embroidered_Black_Sleeves",
+            "slot_raw": "ARMS",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Bard",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 4,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Back",
+    "focus_effect_count": 2,
+    "item_count": 2,
+    "focus_effects": [
+      {
+        "focus_effect": "Improved Damage I",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Improved_Damage_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Mammoth Hide Cloak",
+            "url": "https://eqlwiki.com/Mammoth_Hide_Cloak",
+            "slot_raw": "BACK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 7,
+            "stats": {
+              "WIS": 4
+            },
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Damage III",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Improved_Damage_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "White Dragonscale Cloak",
+            "url": "https://eqlwiki.com/White_Dragonscale_Cloak",
+            "slot_raw": "BACK",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 10,
+            "stats": {
+              "WIS": 9,
+              "INT": 9
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Wrist",
+    "focus_effect_count": 16,
+    "item_count": 17,
+    "focus_effects": [
+      {
+        "focus_effect": "Affliction Efficiency I",
+        "description": "Reduces the mana cost of long term detrimental spells by up to 25%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Affliction_Efficiency_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Polished Bone Bracelet",
+            "url": "https://eqlwiki.com/Polished_Bone_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 2,
+            "stats": {
+              "WIS": 3,
+              "INT": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Affliction Efficiency II",
+        "description": "Reduces the mana cost of long term detrimental spells by up to 25%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Affliction_Efficiency_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Chipped Bone Bracelet",
+            "url": "https://eqlwiki.com/Chipped_Bone_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 4,
+            "stats": {
+              "WIS": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Affliction Haste I",
+        "description": "Reduces the cast time of long term detrimental spells by 33%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Affliction_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Granite Bracer",
+            "url": "https://eqlwiki.com/Granite_Bracer",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "STR": 4,
+              "STA": 7
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Burning Affliction I",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Burning_Affliction_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Rallican's Wooden Bracelet",
+            "url": "https://eqlwiki.com/Summoned:_Rallican's_Wooden_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 4,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Burning Affliction II",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Burning_Affliction_II",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Serpentine Bracer",
+            "url": "https://eqlwiki.com/Serpentine_Bracer",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 1,
+            "stats": {
+              "DEX": 3,
+              "AGI": 9
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          },
+          {
+            "name": "Summoned: Rallican's Stone Bracelet",
+            "url": "https://eqlwiki.com/Summoned:_Rallican's_Stone_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 6,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Burning Affliction III",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Burning_Affliction_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Rallican's Iron Bracelet",
+            "url": "https://eqlwiki.com/Summoned:_Rallican's_Iron_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 8,
+            "stats": {},
+            "era": "Kunark Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Burning Affliction IV",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 65.",
+        "url": "https://eqlwiki.com/Burning_Affliction_IV",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Rallican's Steel Bracelet",
+            "url": "https://eqlwiki.com/Summoned:_Rallican's_Steel_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 8,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Gallenite's Chaos",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 65.",
+        "url": "https://eqlwiki.com/Gallenite's_Chaos",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Gallenite's Sapphire Bracelet",
+            "url": "https://eqlwiki.com/Summoned:_Gallenite's_Sapphire_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 8,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Gallenite's Destruction",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 52.",
+        "url": "https://eqlwiki.com/Gallenite's_Destruction",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Gallenite's Opal Bracelet",
+            "url": "https://eqlwiki.com/Summoned:_Gallenite's_Opal_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 6,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Gallenite's Major Destruction",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Gallenite's_Major_Destruction",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Gallenite's Ruby Bracelet",
+            "url": "https://eqlwiki.com/Summoned:_Gallenite's_Ruby_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 8,
+            "stats": {},
+            "era": "Kunark Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Gallenite's Minor Destruction",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 34.",
+        "url": "https://eqlwiki.com/Gallenite's_Minor_Destruction",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Gallenite's Jade Bracelet",
+            "url": "https://eqlwiki.com/Summoned:_Gallenite's_Jade_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 4,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reagent Conservation I",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Happy Love Bracers",
+            "url": "https://eqlwiki.com/Happy_Love_Bracers",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 1,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reagent Conservation II",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Amethyst Bracelet",
+            "url": "https://eqlwiki.com/Amethyst_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "WIS": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reagent Conservation III",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Runed Mithril Bracer",
+            "url": "https://eqlwiki.com/Runed_Mithril_Bracer",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 4,
+            "stats": {
+              "STR": 3,
+              "WIS": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Haste I",
+        "description": "Reduces the cast time of summon undead spells by 30%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reanimation_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Ivory Bracelet",
+            "url": "https://eqlwiki.com/Ivory_Bracelet",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "AGI": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Spell Haste I",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Spell_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Bracelet of Woven Grass",
+            "url": "https://eqlwiki.com/Bracelet_of_Woven_Grass",
+            "slot_raw": "WRIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 1,
+            "stats": {
+              "INT": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Range",
+    "focus_effect_count": 2,
+    "item_count": 2,
+    "focus_effects": [
+      {
+        "focus_effect": "Improved Healing III",
+        "description": "Increases the potency of healing spells by up to 20%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Improved_Healing_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Idol of the Underking",
+            "url": "https://eqlwiki.com/Idol_of_the_Underking",
+            "slot_raw": "RANGE PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reagent Conservation I",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "The Artist's Brush",
+            "url": "https://eqlwiki.com/The_Artist's_Brush",
+            "slot_raw": "RANGE PRIMARY SECONDARY",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 3,
+              "DEX": 3
+            },
+            "era": null,
+            "flags": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Hands",
+    "focus_effect_count": 3,
+    "item_count": 3,
+    "focus_effects": [
+      {
+        "focus_effect": "Affliction Efficiency I",
+        "description": "Reduces the mana cost of long term detrimental spells by up to 25%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Affliction_Efficiency_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Impskin Gloves",
+            "url": "https://eqlwiki.com/Impskin_Gloves",
+            "slot_raw": "HANDS",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 2,
+            "stats": {
+              "INT": 5
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Damage I",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Improved_Damage_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Lupine Claw Gauntlets",
+            "url": "https://eqlwiki.com/Lupine_Claw_Gauntlets",
+            "slot_raw": "HANDS",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 4,
+            "stats": {
+              "DEX": 3,
+              "AGI": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Summoning Efficiency I",
+        "description": "Reduces the mana cost of summon creature spells by up to 25%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Summoning_Efficiency_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Dusty Bloodstained Gloves",
+            "url": "https://eqlwiki.com/Dusty_Bloodstained_Gloves",
+            "slot_raw": "HANDS",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 2,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Primary",
+    "focus_effect_count": 24,
+    "item_count": 27,
+    "focus_effects": [
+      {
+        "focus_effect": "Brass Resonance 12",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Efreeti War Horn",
+            "url": "https://eqlwiki.com/Efreeti_War_Horn",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Sky Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          },
+          {
+            "name": "Verlekarnorm's Horn of Disaster",
+            "url": "https://eqlwiki.com/Verlekarnorm's_Horn_of_Disaster",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": 50,
+            "stats": {
+              "STA": 25
+            },
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Brass Resonance 14",
+        "description": "Increases the power of brass instrument based bard songs by up to 140%.",
+        "url": "https://eqlwiki.com/Brass_Resonance_14",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "McVaxius` Horn of War",
+            "url": "https://eqlwiki.com/McVaxius`_Horn_of_War",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "DEX": 9,
+              "CHA": 15,
+              "INT": 9
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Brass Resonance 15",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Denon's Horn of Disaster",
+            "url": "https://eqlwiki.com/Denon's_Horn_of_Disaster",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 5,
+              "CHA": 10,
+              "INT": 5
+            },
+            "era": "Sky Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Burning Affliction II",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Burning_Affliction_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Black Tome with Silver Runes",
+            "url": "https://eqlwiki.com/Black_Tome_with_Silver_Runes",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 4
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Healing III",
+        "description": "Increases the potency of healing spells by up to 20%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Improved_Healing_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Idol of the Underking",
+            "url": "https://eqlwiki.com/Idol_of_the_Underking",
+            "slot_raw": "RANGE PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Minion of Air",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Broom of Trilon",
+            "url": "https://eqlwiki.com/Broom_of_Trilon",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Magician"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 2,
+              "AGI": 3
+            },
+            "era": "Temple Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Minion of Earth",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Shovel of Ponz",
+            "url": "https://eqlwiki.com/Shovel_of_Ponz",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Magician"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 3,
+              "INT": 2
+            },
+            "era": "Temple Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Minion of Fire",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Torch of Alna",
+            "url": "https://eqlwiki.com/Torch_of_Alna",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Magician"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 2
+            },
+            "era": "Temple Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Minion of Hate",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Encyclopedia Necrotheurgia",
+            "url": "https://eqlwiki.com/Encyclopedia_Necrotheurgia",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Necromancer"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Minion of Water",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Stein of Ulissa",
+            "url": "https://eqlwiki.com/Stein_of_Ulissa",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Magician"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 2
+            },
+            "era": "Temple Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Percussion Resonance 11",
+        "description": "Increases the power of percussion instrument based bard songs by up to 110%.",
+        "url": "https://eqlwiki.com/Percussion_Resonance_11",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Mistmoore Battle Drums",
+            "url": "https://eqlwiki.com/Mistmoore_Battle_Drums",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "ATTUNEABLE",
+              "PLACEABLE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Percussion Resonance 14",
+        "description": "Increases the power of percussion instrument based bard songs by up to 140%.",
+        "url": "https://eqlwiki.com/Percussion_Resonance_14",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Selo`s Drums of the March",
+            "url": "https://eqlwiki.com/Selo`s_Drums_of_the_March",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Percussion Resonance 16",
+        "description": "Increases the power of percussion instrument based bard songs by up to 160%.",
+        "url": "https://eqlwiki.com/Percussion_Resonance_16",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Drums of the Beast",
+            "url": "https://eqlwiki.com/Drums_of_the_Beast",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reagent Conservation I",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "The Artist's Brush",
+            "url": "https://eqlwiki.com/The_Artist's_Brush",
+            "slot_raw": "RANGE PRIMARY SECONDARY",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 3,
+              "DEX": 3
+            },
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Servant of Air",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Staff of Elemental Mastery: Air",
+            "url": "https://eqlwiki.com/Staff_of_Elemental_Mastery:_Air",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Magician"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Sky Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Servant of Earth",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Staff of Elemental Mastery: Earth",
+            "url": "https://eqlwiki.com/Staff_of_Elemental_Mastery:_Earth",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Magician"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Servant of Fire",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Staff of Elemental Mastery: Fire",
+            "url": "https://eqlwiki.com/Staff_of_Elemental_Mastery:_Fire",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Magician"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Servant of Water",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Staff of Elemental Mastery: Water",
+            "url": "https://eqlwiki.com/Staff_of_Elemental_Mastery:_Water",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Magician"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "String Resonance 11",
+        "description": "Increases the power of stringed instrument based bard songs by up to 110%.",
+        "url": "https://eqlwiki.com/String_Resonance_11",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Gypsy Lute",
+            "url": "https://eqlwiki.com/Gypsy_Lute",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": []
+          },
+          {
+            "name": "Lute of the Gypsy Princess",
+            "url": "https://eqlwiki.com/Lute_of_the_Gypsy_Princess",
+            "slot_raw": "Primary Secondary",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "ATTUNABLE",
+              "PLACEABLE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "String Resonance 12",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Lute of the Howler",
+            "url": "https://eqlwiki.com/Lute_of_the_Howler",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "String Resonance 15",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Lyran's Mystical Lute",
+            "url": "https://eqlwiki.com/Lyran's_Mystical_Lute",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 10,
+              "DEX": 10,
+              "CHA": 15,
+              "INT": 10
+            },
+            "era": "Kunark Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 0",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Crude Wooden Flute",
+            "url": "https://eqlwiki.com/Crude_Wooden_Flute",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Sky Era",
+            "flags": [
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 10",
+        "description": "Increases the power of wind instrument based bard songs by up to 100%.",
+        "url": "https://eqlwiki.com/Wind_Resonance_10",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Minotaur Horn",
+            "url": "https://eqlwiki.com/Minotaur_Horn",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 12",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Agilmente's Flute of Flight",
+            "url": "https://eqlwiki.com/Agilmente's_Flute_of_Flight",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 4,
+              "INT": 2
+            },
+            "era": "Sky Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          },
+          {
+            "name": "Ervaj's Flute of Flight",
+            "url": "https://eqlwiki.com/Ervaj's_Flute_of_Flight",
+            "slot_raw": "PRIMARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 8,
+              "STA": 10,
+              "CHA": 10,
+              "INT": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Secondary",
+    "focus_effect_count": 28,
+    "item_count": 38,
+    "focus_effects": [
+      {
+        "focus_effect": "Brass Resonance 10",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Horn",
+            "url": "https://eqlwiki.com/Horn",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Brass Resonance 11",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Conch Shell Horn",
+            "url": "https://eqlwiki.com/Conch_Shell_Horn",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Brass Resonance 14",
+        "description": "Increases the power of brass instrument based bard songs by up to 140%.",
+        "url": "https://eqlwiki.com/Brass_Resonance_14",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Immaculate Shell Horn",
+            "url": "https://eqlwiki.com/Immaculate_Shell_Horn",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": -8,
+              "CHA": 15
+            },
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          },
+          {
+            "name": "McVaxius` Horn of War",
+            "url": "https://eqlwiki.com/McVaxius`_Horn_of_War",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "DEX": 9,
+              "CHA": 15,
+              "INT": 9
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Brass Resonance 8",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Alluring Horn",
+            "url": "https://eqlwiki.com/Alluring_Horn",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "EpicQuests Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Enhancement III",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over lvl 60.",
+        "url": "https://eqlwiki.com/Extended_Enhancement_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Rokyls Channelling Crystal",
+            "url": "https://eqlwiki.com/Rokyls_Channelling_Crystal",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 10,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Damage I",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Improved_Damage_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Spiked Buckler",
+            "url": "https://eqlwiki.com/Spiked_Buckler",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Bard",
+              "Rogue",
+              "Shaman"
+            ],
+            "ac": 10,
+            "stats": {
+              "DEX": 2
+            },
+            "era": "Classic Era",
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Healing III",
+        "description": "Increases the potency of healing spells by up to 20%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Improved_Healing_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Idol of the Underking",
+            "url": "https://eqlwiki.com/Idol_of_the_Underking",
+            "slot_raw": "RANGE PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Mana Preservation I",
+        "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Mana_Preservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Testament of Vanear",
+            "url": "https://eqlwiki.com/Testament_of_Vanear",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "WIS": 10
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Mana Preservation II",
+        "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Mana_Preservation_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Nisch Mas Ilkvel",
+            "url": "https://eqlwiki.com/Nisch_Mas_Ilkvel",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Shaman"
+            ],
+            "ac": 10,
+            "stats": {
+              "STA": 6,
+              "WIS": 6
+            },
+            "era": "Classic Era",
+            "flags": [
+              "ATTUNABLE",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Minion of Hate",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Encyclopedia Necrotheurgia",
+            "url": "https://eqlwiki.com/Encyclopedia_Necrotheurgia",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Necromancer"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Percussion Resonance 11",
+        "description": "Increases the power of percussion instrument based bard songs by up to 110%.",
+        "url": "https://eqlwiki.com/Percussion_Resonance_11",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Mahlin's Mystical Bongos",
+            "url": "https://eqlwiki.com/Mahlin's_Mystical_Bongos",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "EpicQuests Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          },
+          {
+            "name": "Mistmoore Battle Drums",
+            "url": "https://eqlwiki.com/Mistmoore_Battle_Drums",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "ATTUNEABLE",
+              "PLACEABLE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Percussion Resonance 12",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Nostrolo Tambourine",
+            "url": "https://eqlwiki.com/Nostrolo_Tambourine",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 5
+            },
+            "era": "Kunark Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO TRADE"
+            ]
+          },
+          {
+            "name": "Sharkskin Drum",
+            "url": "https://eqlwiki.com/Sharkskin_Drum",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Percussion Resonance 13",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Walrus Skin Drum",
+            "url": "https://eqlwiki.com/Walrus_Skin_Drum",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Percussion Resonance 14",
+        "description": "Increases the power of percussion instrument based bard songs by up to 140%.",
+        "url": "https://eqlwiki.com/Percussion_Resonance_14",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Selo`s Drums of the March",
+            "url": "https://eqlwiki.com/Selo`s_Drums_of_the_March",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Percussion Resonance 8",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Hand Drum",
+            "url": "https://eqlwiki.com/Hand_Drum",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reagent Conservation I",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "The Artist's Brush",
+            "url": "https://eqlwiki.com/The_Artist's_Brush",
+            "slot_raw": "RANGE PRIMARY SECONDARY",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": null,
+            "stats": {
+              "INT": 3,
+              "DEX": 3
+            },
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "String Resonance 10",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Lute",
+            "url": "https://eqlwiki.com/Lute",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": []
+          },
+          {
+            "name": "Mandolin",
+            "url": "https://eqlwiki.com/Mandolin",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "String Resonance 11",
+        "description": "Increases the power of stringed instrument based bard songs by up to 110%.",
+        "url": "https://eqlwiki.com/String_Resonance_11",
+        "known_effect_page": true,
+        "item_count": 3,
+        "items": [
+          {
+            "name": "Gypsy Lute",
+            "url": "https://eqlwiki.com/Gypsy_Lute",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": []
+          },
+          {
+            "name": "Lute of the Gypsy Princess",
+            "url": "https://eqlwiki.com/Lute_of_the_Gypsy_Princess",
+            "slot_raw": "Primary Secondary",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "ATTUNABLE",
+              "PLACEABLE"
+            ]
+          },
+          {
+            "name": "Mystical Lute",
+            "url": "https://eqlwiki.com/Mystical_Lute",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "EpicQuests Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "String Resonance 14",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Kelin`s Seven Stringed Lute",
+            "url": "https://eqlwiki.com/Kelin`s_Seven_Stringed_Lute",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "DEX": 9,
+              "CHA": 15,
+              "AGI": 9
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          },
+          {
+            "name": "Lyendlln's Lute",
+            "url": "https://eqlwiki.com/Lyendlln's_Lute",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": 10,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "String Resonance 15",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Lyran's Mystical Lute",
+            "url": "https://eqlwiki.com/Lyran's_Mystical_Lute",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 10,
+              "DEX": 10,
+              "CHA": 15,
+              "INT": 10
+            },
+            "era": "Kunark Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Summoning Haste I",
+        "description": "Reduces the cast time of summon creature spells by 30%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Summoning_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "A Shimmering Orb",
+            "url": "https://eqlwiki.com/A_Shimmering_Orb",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 15,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 0",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Broken Minotaur Lord's Horn",
+            "url": "https://eqlwiki.com/Broken_Minotaur_Lord's_Horn",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          },
+          {
+            "name": "Lianna's Flute",
+            "url": "https://eqlwiki.com/Lianna's_Flute",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Temple Era",
+            "flags": [
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 10",
+        "description": "Increases the power of wind instrument based bard songs by up to 100%.",
+        "url": "https://eqlwiki.com/Wind_Resonance_10",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Minotaur Horn",
+            "url": "https://eqlwiki.com/Minotaur_Horn",
+            "slot_raw": "PRIMARY SECONDARY",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": []
+          },
+          {
+            "name": "Scorpion Pincer",
+            "url": "https://eqlwiki.com/Scorpion_Pincer",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "QUEST ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 11",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Brahhms Horn",
+            "url": "https://eqlwiki.com/Brahhms_Horn",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": []
+          },
+          {
+            "name": "Faun Flute",
+            "url": "https://eqlwiki.com/Faun_Flute",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "CHA": 6
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 12",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Unicorn Horn",
+            "url": "https://eqlwiki.com/Unicorn_Horn",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 14",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Lyssa`s Darkwood Piccolo",
+            "url": "https://eqlwiki.com/Lyssa`s_Darkwood_Piccolo",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 15",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Flute of the Sacred Glade",
+            "url": "https://eqlwiki.com/Flute_of_the_Sacred_Glade",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {
+              "CHA": 8,
+              "WIS": 4
+            },
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Wind Resonance 8",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Wooden Flute",
+            "url": "https://eqlwiki.com/Wooden_Flute",
+            "slot_raw": "SECONDARY",
+            "classes": [
+              "Bard"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Fingers",
+    "focus_effect_count": 11,
+    "item_count": 11,
+    "focus_effects": [
+      {
+        "focus_effect": "Affliction Haste I",
+        "description": "Reduces the cast time of long term detrimental spells by 33%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Affliction_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Ring of Goblin Lords",
+            "url": "https://eqlwiki.com/Ring_of_Goblin_Lords",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 4,
+            "stats": {
+              "STR": 3,
+              "INT": 3
+            },
+            "era": null,
+            "flags": [
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Enhancement II",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Extended_Enhancement_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Clawed Knuckle-Ring",
+            "url": "https://eqlwiki.com/Clawed_Knuckle-Ring",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "DEX": 2
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Range II",
+        "description": "Increases the range of spells by 15%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Extended_Range_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Moonstone Ring",
+            "url": "https://eqlwiki.com/Moonstone_Ring",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Naki's Charm of Pernicity",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 51.",
+        "url": "https://eqlwiki.com/Naki's_Charm_of_Pernicity",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Naki's Twisted Ring",
+            "url": "https://eqlwiki.com/Summoned:_Naki's_Twisted_Ring",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 4,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Naki's Greater Pernicity",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Naki's_Greater_Pernicity",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Naki's Studded Ring",
+            "url": "https://eqlwiki.com/Summoned:_Naki's_Studded_Ring",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 6,
+            "stats": {},
+            "era": "Kunark Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Naki's Lesser Pernicity",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 29.",
+        "url": "https://eqlwiki.com/Naki's_Lesser_Pernicity",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Naki's Tiny Ring",
+            "url": "https://eqlwiki.com/Summoned:_Naki's_Tiny_Ring",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 2,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Naki's Superior Pernicity",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 65.",
+        "url": "https://eqlwiki.com/Naki's_Superior_Pernicity",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Summoned: Naki's Spiked Ring",
+            "url": "https://eqlwiki.com/Summoned:_Naki's_Spiked_Ring",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Beastlord",
+              "Cleric",
+              "Druid",
+              "Enchanter",
+              "Magician",
+              "Necromancer",
+              "Paladin",
+              "Ranger",
+              "Shaman",
+              "Shadow Knight",
+              "Wizard"
+            ],
+            "ac": 6,
+            "stats": {},
+            "era": "Velious Era",
+            "flags": [
+              "MAGIC ITEM",
+              "TEMPORARY",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Efficiency II",
+        "description": "Reduces the mana cost of summon undead spells by up to 25%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Reanimation_Efficiency_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Platinum Skull Ring",
+            "url": "https://eqlwiki.com/Platinum_Skull_Ring",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "CHA": -5
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Spell Haste II",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Spell_Haste_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Djarns Amethyst Ring",
+            "url": "https://eqlwiki.com/Djarns_Amethyst_Ring",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "AGI": 9
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Summoning Efficiency I",
+        "description": "Reduces the mana cost of summon creature spells by up to 25%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Summoning_Efficiency_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Band of Flesh",
+            "url": "https://eqlwiki.com/Band_of_Flesh",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {
+              "STR": 2
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Summoning Haste I",
+        "description": "Reduces the cast time of summon creature spells by 30%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Summoning_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Adamantite Band",
+            "url": "https://eqlwiki.com/Adamantite_Band",
+            "slot_raw": "FINGER",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Chest",
+    "focus_effect_count": 13,
+    "item_count": 18,
+    "focus_effects": [
+      {
+        "focus_effect": "Affliction Haste II",
+        "description": "Reduces the cast time of long term detrimental spells by 33%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Affliction_Haste_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Green Silken Drape",
+            "url": "https://eqlwiki.com/Green_Silken_Drape",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 8,
+            "stats": {
+              "DEX": 9,
+              "STA": 9,
+              "INT": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Enhancement I",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Extended_Enhancement_I",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Damask Robe",
+            "url": "https://eqlwiki.com/Damask_Robe",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 6,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          },
+          {
+            "name": "Lockjaw Hide Vest",
+            "url": "https://eqlwiki.com/Lockjaw_Hide_Vest",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 12,
+            "stats": {
+              "STA": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Enhancement II",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Extended_Enhancement_II",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Chestplate of the Constant",
+            "url": "https://eqlwiki.com/Chestplate_of_the_Constant",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Cleric"
+            ],
+            "ac": 20,
+            "stats": {
+              "STA": 8
+            },
+            "era": "Temple Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          },
+          {
+            "name": "Totemic Breastplate",
+            "url": "https://eqlwiki.com/Totemic_Breastplate",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Shaman"
+            ],
+            "ac": 19,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Improved Damage I",
+        "description": "Increases the damage of spells by up to 20%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Improved_Damage_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Robe of the Oracle",
+            "url": "https://eqlwiki.com/Robe_of_the_Oracle",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Monk",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 9,
+            "stats": {
+              "WIS": 5,
+              "INT": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Mana Preservation I",
+        "description": "Reduces the mana cost of spells by up to 10%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Mana_Preservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Vagrant's Tunic",
+            "url": "https://eqlwiki.com/Vagrant's_Tunic",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 8,
+            "stats": {
+              "WIS": 4
+            },
+            "era": "Classic Era",
+            "flags": [
+              "ATTUNABLE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Minor Improved Damage I",
+        "description": "Increases the damage of spells by up to 10%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Minor_Improved_Damage_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Smoldering Robe",
+            "url": "https://eqlwiki.com/Smoldering_Robe",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 4,
+            "stats": {
+              "INT": 2
+            },
+            "era": "Classic Era",
+            "flags": [
+              "NO TRADE",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reagent Conservation III",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Robe of the Kedge",
+            "url": "https://eqlwiki.com/Robe_of_the_Kedge",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 8,
+            "stats": {
+              "STA": 10
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Efficiency I",
+        "description": "Reduces the mana cost of summon undead spells by up to 25%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reanimation_Efficiency_I",
+        "known_effect_page": true,
+        "item_count": 2,
+        "items": [
+          {
+            "name": "Flowing Black Robe",
+            "url": "https://eqlwiki.com/Flowing_Black_Robe",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 8,
+            "stats": {
+              "STA": 5,
+              "INT": 3
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          },
+          {
+            "name": "Ill-Fitting Robes",
+            "url": "https://eqlwiki.com/Ill-Fitting_Robes",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": null,
+            "stats": {},
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Efficiency III",
+        "description": null,
+        "url": null,
+        "known_effect_page": false,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Robe of the Ishva",
+            "url": "https://eqlwiki.com/Robe_of_the_Ishva",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 8,
+            "stats": {
+              "CHA": 5
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Haste II",
+        "description": "Reduces the cast time of summon undead spells by 30%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Reanimation_Haste_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Robe of Enshroudment",
+            "url": "https://eqlwiki.com/Robe_of_Enshroudment",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer"
+            ],
+            "ac": 9,
+            "stats": {
+              "INT": 4,
+              "AGI": 4
+            },
+            "era": "Temple Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Spell Haste II",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Spell_Haste_II",
+        "known_effect_page": true,
+        "item_count": 3,
+        "items": [
+          {
+            "name": "Mithril-Runed Tunic",
+            "url": "https://eqlwiki.com/Mithril-Runed_Tunic",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 10,
+            "stats": {
+              "STA": 3,
+              "WIS": 5
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          },
+          {
+            "name": "Shining Metallic Robes",
+            "url": "https://eqlwiki.com/Shining_Metallic_Robes",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 10,
+            "stats": {
+              "INT": 9
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          },
+          {
+            "name": "Shiny Robe of the Underfoot",
+            "url": "https://eqlwiki.com/Shiny_Robe_of_the_Underfoot",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 12,
+            "stats": {
+              "STR": 3,
+              "INT": 7
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Summoning Efficiency I",
+        "description": "Reduces the mana cost of summon creature spells by up to 25%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Summoning_Efficiency_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Gossamer Robe",
+            "url": "https://eqlwiki.com/Gossamer_Robe",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 8,
+            "stats": {},
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Summoning Haste II",
+        "description": "Reduces the cast time of summon creature spells by 30%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Summoning_Haste_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Robe of the Elements",
+            "url": "https://eqlwiki.com/Robe_of_the_Elements",
+            "slot_raw": "CHEST",
+            "classes": [
+              "Magician"
+            ],
+            "ac": 9,
+            "stats": {
+              "INT": 4
+            },
+            "era": "Temple Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Legs",
+    "focus_effect_count": 2,
+    "item_count": 2,
+    "focus_effects": [
+      {
+        "focus_effect": "Reagent Conservation I",
+        "description": "Reduces the chance that spell reagents will be consumed by up to 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Reagent_Conservation_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Drake-hide Leggings",
+            "url": "https://eqlwiki.com/Drake-hide_Leggings",
+            "slot_raw": "LEGS",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "DEX": 5,
+              "CHA": 5
+            },
+            "era": null,
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Haste II",
+        "description": "Reduces the cast time of summon undead spells by 30%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Reanimation_Haste_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Ishva Mas Leggings",
+            "url": "https://eqlwiki.com/Ishva_Mas_Leggings",
+            "slot_raw": "LEGS",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 5,
+            "stats": {
+              "INT": 5,
+              "CHA": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "ATTUNABLE",
+              "EQUIPPED",
+              "LORE"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Feet",
+    "focus_effect_count": 4,
+    "item_count": 4,
+    "focus_effects": [
+      {
+        "focus_effect": "Burning Affliction II",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Burning_Affliction_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Kobold-Hide Boots",
+            "url": "https://eqlwiki.com/Kobold-Hide_Boots",
+            "slot_raw": "FEET",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "AGI": 3
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Enhancement Haste II",
+        "description": "Reduces the cast time of long term beneficial spells by 30%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Enhancement_Haste_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Golden Efreeti Boots",
+            "url": "https://eqlwiki.com/Golden_Efreeti_Boots",
+            "slot_raw": "FEET",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "WIS": 9,
+              "INT": 9
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Enhancement I",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Extended_Enhancement_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Bear-hide Boots",
+            "url": "https://eqlwiki.com/Bear-hide_Boots",
+            "slot_raw": "FEET",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {},
+            "era": null,
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Spell Haste I",
+        "description": "Reduces the cast time of spells by 15%. This bonus will decay on spells over level 20.",
+        "url": "https://eqlwiki.com/Spell_Haste_I",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Wolf Fur Slippers",
+            "url": "https://eqlwiki.com/Wolf_Fur_Slippers",
+            "slot_raw": "FEET",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 2,
+            "stats": {
+              "AGI": 7
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slot": "Waist",
+    "focus_effect_count": 6,
+    "item_count": 6,
+    "focus_effects": [
+      {
+        "focus_effect": "Burning Affliction II",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Burning_Affliction_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Reed Belt",
+            "url": "https://eqlwiki.com/Reed_Belt",
+            "slot_raw": "WAIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 6,
+            "stats": {
+              "WIS": 5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Burning Affliction III",
+        "description": "Increases the damage of long term detrimental spells by up to 20%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Burning_Affliction_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Bone-Clasped Girdle",
+            "url": "https://eqlwiki.com/Bone-Clasped_Girdle",
+            "slot_raw": "WAIST",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Bard",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 4,
+            "stats": {
+              "STR": 7,
+              "DEX": 7,
+              "STA": 7
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Enhancement II",
+        "description": "Increases the duration of beneficial spells by 15%. This bonus will decay on spells over level 44.",
+        "url": "https://eqlwiki.com/Extended_Enhancement_II",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Drakescale Belt",
+            "url": "https://eqlwiki.com/Drakescale_Belt",
+            "slot_raw": "WAIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 5,
+            "stats": {
+              "DEX": 3
+            },
+            "era": "Classic Era",
+            "flags": []
+          }
+        ]
+      },
+      {
+        "focus_effect": "Extended Range III",
+        "description": "Increases the range of spells by 15%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Extended_Range_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Cryosilk Sash",
+            "url": "https://eqlwiki.com/Cryosilk_Sash",
+            "slot_raw": "WAIST",
+            "classes": [
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 4,
+            "stats": {
+              "STR": 2,
+              "INT": 1
+            },
+            "era": "Fear Era",
+            "flags": [
+              "MAGIC ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Reanimation Haste III",
+        "description": "Reduces the cast time of summon undead spells by 30%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Reanimation_Haste_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Grotesque Girdle",
+            "url": "https://eqlwiki.com/Grotesque_Girdle",
+            "slot_raw": "WAIST",
+            "classes": [
+              "Cleric",
+              "Druid",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter"
+            ],
+            "ac": 8,
+            "stats": {
+              "WIS": 10,
+              "INT": 10
+            },
+            "era": "FearHateRevamp Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM",
+              "NO DROP"
+            ]
+          }
+        ]
+      },
+      {
+        "focus_effect": "Summoning Haste III",
+        "description": "Reduces the cast time of summon creature spells by 30%. This bonus will decay on spells over level 60.",
+        "url": "https://eqlwiki.com/Summoning_Haste_III",
+        "known_effect_page": true,
+        "item_count": 1,
+        "items": [
+          {
+            "name": "Brell's Girdle",
+            "url": "https://eqlwiki.com/Brell's_Girdle",
+            "slot_raw": "WAIST",
+            "classes": [
+              "Warrior",
+              "Cleric",
+              "Paladin",
+              "Ranger",
+              "Shadow Knight",
+              "Druid",
+              "Monk",
+              "Bard",
+              "Rogue",
+              "Shaman",
+              "Necromancer",
+              "Wizard",
+              "Magician",
+              "Enchanter",
+              "Beastlord",
+              "Berserker"
+            ],
+            "ac": 10,
+            "stats": {
+              "STR": 10,
+              "DEX": -5,
+              "STA": 10,
+              "AGI": -5
+            },
+            "era": "Classic Era",
+            "flags": [
+              "MAGIC ITEM",
+              "LORE ITEM"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

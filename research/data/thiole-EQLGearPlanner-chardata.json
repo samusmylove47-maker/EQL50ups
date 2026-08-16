@@ -1,0 +1,100 @@
+{
+  "_README": [
+    "Race base attributes and per-class attribute adds for the EQ Legends gear planner.",
+    "",
+    "PROVENANCE — READ THIS.",
+    "eqlwiki.com does NOT publish these numbers. Its Character_Races page lists racials,",
+    "starting cities and class options only, and is flagged 'outdated' by its own editors.",
+    "There is nothing to scrape. So these values are CLASSIC EVERQUEST values, carried",
+    "over on the assumption that EQL reuses them. That assumption is UNVERIFIED.",
+    "",
+    "One thing here IS verified: every class adds exactly 30 points, so a trio is worth 90",
+    "to any race (eqltools.com/attributes, read from the game client). The planner asserts",
+    "that invariant on load and will shout if you break it while editing.",
+    "",
+    "TO FIX: make a character, open your stat window before equipping anything, and compare.",
+    "Correct the numbers here and set \"verified\": true — the planner reads this file, so",
+    "this is the only place you need to touch. Race base = your naked stats minus the three",
+    "class adds.",
+    "",
+    "EQL has no point allocation at creation, so race + 3 classes fully determines the",
+    "starting sheet. Players report a soft ceiling of 150 per attribute (unconfirmed);",
+    "the planner marks anything over it rather than clamping."
+  ],
+  "verified": false,
+  "attr_cap": 150,
+  "class_add_total": 30,
+
+  "races": {
+    "HUM": {"name": "Human",     "STR": 75,  "STA": 75,  "AGI": 75,  "DEX": 75, "WIS": 75, "INT": 75,  "CHA": 75},
+    "BAR": {"name": "Barbarian", "STR": 103, "STA": 95,  "AGI": 82,  "DEX": 70, "WIS": 70, "INT": 60,  "CHA": 55},
+    "ERU": {"name": "Erudite",   "STR": 60,  "STA": 70,  "AGI": 70,  "DEX": 70, "WIS": 83, "INT": 107, "CHA": 70},
+    "ELF": {"name": "Wood Elf",  "STR": 65,  "STA": 65,  "AGI": 95,  "DEX": 80, "WIS": 80, "INT": 75,  "CHA": 75},
+    "HIE": {"name": "High Elf",  "STR": 55,  "STA": 65,  "AGI": 85,  "DEX": 70, "WIS": 95, "INT": 92,  "CHA": 80},
+    "DEF": {"name": "Dark Elf",  "STR": 60,  "STA": 65,  "AGI": 90,  "DEX": 75, "WIS": 83, "INT": 99,  "CHA": 60},
+    "HEF": {"name": "Half Elf",  "STR": 70,  "STA": 70,  "AGI": 90,  "DEX": 85, "WIS": 60, "INT": 75,  "CHA": 75},
+    "DWF": {"name": "Dwarf",     "STR": 90,  "STA": 90,  "AGI": 70,  "DEX": 90, "WIS": 83, "INT": 60,  "CHA": 45},
+    "TRL": {"name": "Troll",     "STR": 108, "STA": 109, "AGI": 83,  "DEX": 75, "WIS": 60, "INT": 52,  "CHA": 40},
+    "OGR": {"name": "Ogre",      "STR": 130, "STA": 132, "AGI": 70,  "DEX": 70, "WIS": 67, "INT": 60,  "CHA": 37},
+    "HFL": {"name": "Halfling",  "STR": 70,  "STA": 75,  "AGI": 95,  "DEX": 90, "WIS": 80, "INT": 67,  "CHA": 50},
+    "GNM": {"name": "Gnome",     "STR": 60,  "STA": 70,  "AGI": 85,  "DEX": 85, "WIS": 67, "INT": 98,  "CHA": 60},
+    "IKS": {"name": "Iksar",     "STR": 70,  "STA": 70,  "AGI": 90,  "DEX": 85, "WIS": 80, "INT": 75,  "CHA": 55},
+    "VAH": {"name": "Kerran",    "STR": 90,  "STA": 75,  "AGI": 90,  "DEX": 70, "WIS": 70, "INT": 65,  "CHA": 65},
+    "FRG": {"name": "Froglok",   "STR": 70,  "STA": 80,  "AGI": 100, "DEX": 85, "WIS": 75, "INT": 75,  "CHA": 50}
+  },
+
+  "classes": {
+    "WAR": {"STR": 10, "STA": 10, "AGI": 5,  "DEX": 5},
+    "CLR": {"STR": 5,  "STA": 5,  "AGI": 5,  "WIS": 10, "CHA": 5},
+    "PAL": {"STR": 10, "STA": 5,  "WIS": 5,  "CHA": 10},
+    "RNG": {"STR": 5,  "STA": 10, "AGI": 10, "WIS": 5},
+    "SHD": {"STR": 10, "STA": 5,  "INT": 10, "CHA": 5},
+    "DRU": {"STA": 10, "AGI": 5,  "WIS": 10, "CHA": 5},
+    "MNK": {"STR": 5,  "STA": 5,  "AGI": 10, "DEX": 10},
+    "BRD": {"STR": 5,  "DEX": 10, "INT": 5,  "CHA": 10},
+    "ROG": {"STR": 5,  "STA": 5,  "AGI": 10, "DEX": 10},
+    "SHM": {"STA": 5,  "AGI": 5,  "DEX": 5,  "WIS": 10, "CHA": 5},
+    "NEC": {"STA": 5,  "AGI": 5,  "DEX": 10, "INT": 10},
+    "WIZ": {"STA": 10, "AGI": 5,  "DEX": 5,  "INT": 10},
+    "MAG": {"STA": 10, "AGI": 5,  "DEX": 5,  "INT": 10},
+    "ENC": {"STA": 5,  "DEX": 5,  "INT": 10, "CHA": 10},
+    "BST": {"STA": 10, "AGI": 5,  "DEX": 5,  "WIS": 10},
+    "BER": {"STR": 10, "STA": 10, "DEX": 10}
+  },
+
+  "_casting_stat_README": [
+    "VERIFIED (eqltools.com/attributes, client-mined): each class derives its mana pool",
+    "from its own casting stat, and your pool is the sum of your two highest classes —",
+    "the third is dropped. So a third caster adds no mana. The pool formula itself is",
+    "unpublished, which is why the planner shows the casting stat but no mana number."
+  ],
+  "casting_stat": {
+    "BRD": "INT", "SHD": "INT", "NEC": "INT", "WIZ": "INT", "MAG": "INT", "ENC": "INT",
+    "PAL": "WIS", "RNG": "WIS", "CLR": "WIS", "DRU": "WIS", "SHM": "WIS", "BST": "WIS",
+    "WAR": null, "MNK": null, "ROG": null, "BER": null
+  },
+
+  "_weights_README": [
+    "HEURISTIC, not game data. Used only to rank gear in the 'Best for class' sort.",
+    "The casting-stat half is grounded (see above); the melee weights are opinion.",
+    "Tune freely — they are relative multipliers, not absolutes."
+  ],
+  "stat_weights": {
+    "WAR": {"AC": 2.0, "HP": 1.0, "STA": 1.5, "STR": 1.2, "AGI": 0.8, "DEX": 0.6},
+    "CLR": {"WIS": 2.0, "MANA": 1.0, "AC": 1.0, "HP": 0.8, "STA": 0.8},
+    "PAL": {"STR": 1.2, "STA": 1.2, "AC": 1.5, "HP": 0.9, "WIS": 1.2, "MANA": 0.5},
+    "RNG": {"STR": 1.2, "DEX": 1.2, "STA": 1.0, "AC": 1.0, "WIS": 1.0, "MANA": 0.5},
+    "SHD": {"STR": 1.3, "STA": 1.2, "AC": 1.5, "HP": 0.9, "INT": 1.2, "MANA": 0.5},
+    "DRU": {"WIS": 2.0, "MANA": 1.0, "AC": 0.8, "HP": 0.6, "STA": 0.8},
+    "MNK": {"STR": 1.3, "AGI": 1.2, "DEX": 1.0, "STA": 1.0, "AC": 1.2},
+    "BRD": {"CHA": 1.2, "DEX": 1.2, "INT": 1.2, "MANA": 0.8, "STA": 0.8, "AC": 1.0},
+    "ROG": {"DEX": 1.5, "AGI": 1.2, "STR": 1.2, "STA": 0.8, "AC": 0.8},
+    "SHM": {"WIS": 2.0, "MANA": 1.0, "STA": 0.8, "AC": 0.8},
+    "NEC": {"INT": 2.0, "MANA": 1.0, "STA": 0.8, "AC": 0.6, "HP": 0.6},
+    "WIZ": {"INT": 2.0, "MANA": 1.0, "STA": 0.8, "AC": 0.6},
+    "MAG": {"INT": 2.0, "MANA": 1.0, "STA": 0.8, "AC": 0.6},
+    "ENC": {"INT": 2.0, "MANA": 1.0, "CHA": 0.8, "STA": 0.8, "AC": 0.6},
+    "BST": {"WIS": 1.5, "MANA": 0.8, "STR": 1.0, "STA": 1.0, "AGI": 0.8, "AC": 1.0},
+    "BER": {"STR": 1.5, "STA": 1.2, "DEX": 1.0, "AC": 1.0, "HP": 0.8}
+  }
+}
