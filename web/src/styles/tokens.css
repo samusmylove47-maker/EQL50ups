@@ -1,0 +1,127 @@
+/*
+ * Design tokens.
+ *
+ * Two rules govern this file:
+ *   1. Colour carries meaning. Nothing is tinted for decoration.
+ *   2. Where the game client makes a choice, copy the client.
+ */
+
+:root {
+  /* ---- Ground ---------------------------------------------------------- */
+  --bg-page: #0d0d0d;
+  --bg-panel: #161719;
+  --bg-panel-raised: #1c1e21;
+  --bg-inset: #101113;
+  --bg-hover: #22252a;
+  --bg-active: #2a2e34;
+
+  --line: #26292e;
+  --line-strong: #34383f;
+
+  /* ---- Type ------------------------------------------------------------ */
+  --text: #cfd4da;
+  --text-strong: #f0f3f6;
+  --text-dim: #8b939c;
+  --text-faint: #5e666e;
+
+  /* ---- Accent ---------------------------------------------------------- */
+  --accent: #3b9fe8;
+  --accent-hot: #56b0f2;
+  --accent-dim: #1d5f8f;
+  --accent-ghost: rgba(59, 159, 232, 0.14);
+
+  /*
+   * Item name colour follows the client, which tints by *usability* rather
+   * than by a rarity tier — EverQuest Legends has no rarity tier. Across the
+   * sampled client screenshots, an item the character can equip renders green
+   * and one they cannot renders red: Whitened Treant Fists (Monk-only, on a
+   * Bard/Warrior/Berserker) is red, while Earthshaker, Cloak of Flames and
+   * Bone-Clasped Girdle — each qualifying through at least one of the trio —
+   * are green.
+   *
+   * A third state exists that we have not pinned down: Bladestopper renders
+   * amber despite being usable. Until it is understood, `--item-caution` is
+   * reserved and unused rather than guessed at.
+   */
+  --item-usable: #4ec06a;
+  --item-blocked: #d5504a;
+  --item-caution: #d9a441;
+
+  /* ---- Eras ------------------------------------------------------------ */
+  --era-live: #b7bdc4;
+  --era-gated: #7a6a4a;
+  --era-unknown: #6b7076;
+
+  /* ---- Semantics ------------------------------------------------------- */
+  --gain: #4ec06a;
+  --loss: #d5504a;
+  --at-cap: #d9a441;
+  --warn: #d9a441;
+  --danger: #d5504a;
+
+  /* ---- Spacing scale (4px base) ---------------------------------------- */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+
+  --radius: 4px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* ---- Type scale ------------------------------------------------------ */
+  --fs-micro: 10px;
+  --fs-small: 11px;
+  --fs-body: 13px;
+  --fs-mid: 15px;
+  --fs-large: 20px;
+  --fs-title: 30px;
+  --fs-hero: 44px;
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-num: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+
+  /* Section labels: small, spaced, quiet. */
+  --label-spacing: 0.09em;
+
+  --shadow-modal: 0 18px 50px rgba(0, 0, 0, 0.62);
+  --focus-ring: 0 0 0 2px var(--accent);
+}
+
+/* Numeric columns line up only if the digits are tabular. */
+.num,
+.stat-value,
+.ep-score {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.slot-glyph .glyph-accent {
+  stroke: var(--glyph-accent, var(--accent));
+}
+
+.section-label {
+  font-size: var(--fs-small);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+:where(button, a, input, select, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

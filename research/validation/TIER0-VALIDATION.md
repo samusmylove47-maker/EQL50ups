@@ -149,8 +149,14 @@ This confirms **donors carry real effects onto the host**, and that a Bard
 instrument modifier (`String Resonance 11`) transfers — the user's stated
 requirement.
 
-**Unresolved:** the "N empty slots" counts do not fit the assumed five-socket
-ladder.
+**Resolved by the player (2026-08-16): do not model this.** Ornamentation is
+counted inconsistently by the client, and extraction thresholds vary in the same
+way — some exaltations lift out at +1, others need up to +4. This is an
+inconsistency in the game itself, not a rule to reverse-engineer. The planner
+derives sockets from tier, notes the inconsistency once in the UI, and makes no
+claim about exact per-item socket counts or extraction thresholds.
+
+The counts that prompted the question, kept for the record:
 
 | Item | Level | Filled | "empty slots" | Implied total |
 |---|---|---|---|---|
@@ -158,8 +164,5 @@ ladder.
 | Bladestopper | +6 | 2 | 3 | 5 |
 | Earthshaker | +10 | 0 | (lists 5 rows) | 5 |
 
-A +4 item showing four sockets and a +6 showing five means either an extra
-socket unlocks between +4 and +6, or Ornamentation is counted inconsistently,
-or shields differ. **Do not model socket counts beyond "derive from tier" until
-this is settled** — a screenshot of a +5 item, and of any +4 and +6 shield,
-would resolve it.
+The spread is explained by the inconsistent Ornamentation counting above, so no
+further screenshots are needed and no rule should be inferred from it.
