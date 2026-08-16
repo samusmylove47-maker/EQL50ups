@@ -1166,7 +1166,14 @@ const skillSuspects = records
 // Emit
 // ---------------------------------------------------------------------------
 
-const INDEX_FIELDS = ['id', 'n', 'ic', 'sl', 'cl', 'st', 'sv', 'wp', 'fl', 'era', 'av', 'eraUnknown', 'an'];
+// `wt` and `ra` belong in the index even though they cost payload: the app
+// restores saved sets from the index alone, so omitting weight made Equipped
+// Weight read 0 after every reload, and omitting races made race-restricted
+// items pass an eligibility check that had nothing to check against.
+const INDEX_FIELDS = [
+  'id', 'n', 'ic', 'sl', 'cl', 'ra', 'st', 'sv', 'wp', 'wt', 'fl',
+  'era', 'av', 'eraUnknown', 'an',
+];
 const DETAIL_OMIT = new Set(['key']);
 
 function indexRecord(r) {
