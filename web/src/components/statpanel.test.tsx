@@ -80,15 +80,15 @@ describe('the stat panel prints the Tier 0 numbers', () => {
     const totals = computeTotals([
       { position: 'PRIMARY', item: EARTHSHAKER, upgrade: tier(10) },
     ]);
-    expect(totals.weight).toBeCloseTo(1.7, 5);
+    expect(totals.weight).toBeCloseTo(1.6, 5);
     // Rounding the row to a whole number printed the same weight as 1.7 and 2.
     render(totals);
     const shown = [...container.querySelectorAll('.stat-row')]
       .filter((row) => row.textContent?.includes('Equipped Weight'))
       .map((row) => row.textContent);
     expect(shown).toHaveLength(1);
-    expect(shown[0]).toContain('1.7');
-    expect(shown[0]).not.toContain('Weight2');
+    expect(shown[0]).toContain("1.6");
+    expect(shown[0]).not.toContain("Weight2");
   });
 
   it('renders zeros rather than blanks on an empty set', () => {

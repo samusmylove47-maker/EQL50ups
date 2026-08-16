@@ -10,7 +10,7 @@
  * donor list is filtered through `canSocket` rather than offering everything.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { EXALTATION_LADDER, canSocket, EFFECT_KIND_TO_SOCKET } from '../engine/exaltation';
 import { normalizeState } from '../engine/upgrade';
 import type { Item } from '../engine/types';
@@ -160,7 +160,23 @@ function DonorPicker({
   onClose: () => void;
 }) {
   const items = useCatalog((s) => s.items);
+  const shards = useCatalog((s) => s.shards);
+  const status = useCatalog((s) => s.status);
+  const ensureAll = useCatalog((s) => s.ensureAll);
   const [query, setQuery] = useState('');
+
+  /*
+   * Effects (`fx`) ride in the per-slot detail shards, not in the index, and a
+   * donor may come from any slot — so without this the list was empty on any
+   * fresh load or share link and only filled in if the reader happened to have
+   * opened a picker first.
+   */
+  useEffect(() => {
+    void ensureAll();
+  }, [ensureAll]);
+
+  const loading =
+    status === 'loading' || Object.values(shards).some((state) => state === 'loading');
 
   const donors = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -192,7 +208,13 @@ function DonorPicker({
         />
       </div>
       <div className="results" role="listbox" aria-label="Donor items">
-        {donors.length === 0 ? (
+        {loading && donors.length === 0 ? (
+          <div className="empty-state" style={{ border: 0 }}>
+            <h2>Loading item data…</h2>
+            <p>Donor effects live in the per-slot detail files, which are still arriving.</p>
+          </div>
+        ) : null}
+        {!loading && donors.length === 0 ? (
           <div className="empty-state" style={{ border: 0 }}>
             <h2>No eligible donors</h2>
             <p>

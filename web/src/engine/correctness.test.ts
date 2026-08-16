@@ -173,6 +173,27 @@ describe('doubled positions contribute once each', () => {
     expect([two.attributes.STR, two.ac]).toEqual([20, 10]);
   });
 
+  it('sums weight in tenths, so the total does not depend on slot order', () => {
+    // Adding one-decimal weights as floats gave 36.10000000000001 in one order
+    // and 36.1 in the other, which made two identical sets compare unequal.
+    const entries = [16, 7.3, 0.2, 3, 0.1, 8, 2, 1.5].map((wt, i) => ({
+      position: `SLOT_${i}`,
+      item: mk({ n: `W${i}`, wt }),
+      upgrade: tier(i % 11),
+    }));
+    const forward = computeTotals(entries).weight;
+    const backward = computeTotals([...entries].reverse()).weight;
+    expect(backward).toBe(forward);
+    expect(Number.isInteger(Math.round(forward * 10))).toBe(true);
+    expect(forward).toBe(Math.round(forward * 10) / 10);
+  });
+
+  it('reads Earthshaker weight at +10 as the client prints it', () => {
+    const earthshaker = mk({ n: 'Earthshaker', wt: 16, st: { STR: 6, STA: 6 } });
+    expect(computeTotals([{ position: 'PRIMARY', item: earthshaker, upgrade: tier(10) }]).weight)
+      .toBe(1.6);
+  });
+
   it('treats an empty set as exactly zero everywhere', () => {
     const empty = computeTotals([]);
     expect(empty.attributes.STR).toBe(0);

@@ -73,9 +73,18 @@ export function excelRound(x: number): number {
   return x >= 0 ? Math.floor(x + 0.5) : Math.ceil(x - 0.5);
 }
 
-/** Ceiling to one decimal place. */
+/**
+ * Ceiling to one decimal place, deaf to floating-point residue.
+ *
+ * The tolerance is load-bearing, not defensive tidiness. `0.09` and `Math.log2`
+ * are both inexact, so a weight whose exact value sits precisely on a tenth
+ * lands a few ulps above it — Earthshaker at +10 computes 1.6000000000000014 —
+ * and a naive ceiling promotes it a whole step. That was wrong on 302 of the
+ * 4,400 base-weight/tier combinations under 20 lb, always by 0.1, always
+ * upward.
+ */
 function ceilToOneDecimal(x: number): number {
-  return Math.ceil(x * 10) / 10;
+  return Math.ceil(x * 10 - 1e-9) / 10;
 }
 
 /**
@@ -118,9 +127,11 @@ export function scaleFlat(base: number, state: UpgradeState): number {
 /**
  * Weight decreases along a log2 curve of total accumulated progression.
  *
- * The IEEE754 artifact at tier 10 is intentional and must not be "corrected":
- * 3.0 * (1 - 0.09 * 10) evaluates to 0.30000000000000027, whose one-decimal
- * ceiling is 0.4 — which is what the client displays.
+ * Confirmed against the client on Earthshaker: base 16 at +10 reads `Weight
+ * 1.6`, which is the exact arithmetic value. An earlier version of this module
+ * deliberately reproduced the IEEE754 residue instead, on the strength of a
+ * third-party fixture that claimed base 3.0 at +10 displays 0.4; the client
+ * contradicts that, so the residue is now tolerated rather than preserved.
  */
 export function scaleWeight(base: number, state: UpgradeState): number {
   if (!Number.isFinite(base) || base <= 0.1) return base;

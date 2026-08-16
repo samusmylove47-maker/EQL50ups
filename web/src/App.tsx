@@ -8,7 +8,7 @@ import { Landing } from './screens/Landing';
 import { NewCharacter } from './screens/NewCharacter';
 import { SetEditor } from './screens/SetEditor';
 import { SharedSet } from './screens/SharedSet';
-import { useApp } from './state/store';
+import { flushPersist, useApp } from './state/store';
 
 const NAV = [
   { href: href.landing, label: 'Home', match: ['landing'] },
@@ -43,6 +43,23 @@ export function App() {
     hydrate();
     void loadCatalog();
   }, [hydrate, loadCatalog]);
+
+  // Saves are debounced, so a reload or a closed tab within that window would
+  // otherwise drop the last edit. Flush whenever the page is going away.
+  useEffect(() => {
+    const flush = () => flushPersist();
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flushPersist();
+    };
+    window.addEventListener('pagehide', flush);
+    window.addEventListener('beforeunload', flush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      window.removeEventListener('beforeunload', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   // Native <details> menus stay open until told otherwise; close them when the
   // user clicks away, chooses an entry, or presses Escape.

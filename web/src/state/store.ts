@@ -63,15 +63,33 @@ export interface AppState extends PersistedState {
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+let pendingWrite: (() => void) | undefined;
 
 function schedulePersist(get: () => AppState, set: (partial: Partial<AppState>) => void): void {
   if (saveTimer !== undefined) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
+  const write = () => {
+    saveTimer = undefined;
+    pendingWrite = undefined;
     const { characters, sets, activeCharacterId, version } = get();
     const status = saveState({ version, characters, sets, activeCharacterId });
     if (status !== 'ok') set({ storageStatus: status });
     else if (get().storageStatus !== 'ok') set({ storageStatus: 'ok' });
-  }, 200);
+  };
+  pendingWrite = write;
+  saveTimer = setTimeout(write, 200);
+}
+
+/**
+ * Write a debounced change out immediately.
+ *
+ * The 200 ms debounce keeps a drag on the +N stepper from hammering storage,
+ * but it also meant an edit followed straight away by a reload or a closed tab
+ * was simply lost. Call this whenever the page is about to go away.
+ */
+export function flushPersist(): void {
+  if (saveTimer !== undefined) clearTimeout(saveTimer);
+  saveTimer = undefined;
+  pendingWrite?.();
 }
 
 export const useApp = create<AppState>((set, get) => {

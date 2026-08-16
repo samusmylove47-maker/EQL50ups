@@ -116,9 +116,30 @@ describe('weight', () => {
     expect(scaleWeight(3.0, tier(0))).toBeCloseTo(3.0, 5);
   });
 
-  it('reproduces the float artifact at max tier rather than correcting it', () => {
-    // 3.0 * (1 - 0.9) === 0.30000000000000027, whose 1dp ceiling is 0.4.
-    expect(scaleWeight(3.0, tier(10))).toBe(0.4);
+  /*
+   * This block previously asserted `scaleWeight(3.0, tier(10)) === 0.4`, on the
+   * grounds that the client reproduces an IEEE754 artifact. That fixture came
+   * from a third-party port relayed through a research report — it is not Tier
+   * 0 evidence, and the live client contradicts it. Earthshaker's catalog base
+   * weight is 16 and the client shows `Weight 1.6` at +10, which is the exact
+   * arithmetic value; only the floating-point residue in
+   * `16 * (1 - 0.09 * log2(1024))` = 1.6000000000000014 pushed a naive ceiling
+   * up to 1.7. Client evidence supersedes the fixture.
+   */
+  it('reads 1.6 for Earthshaker at +10, as the client prints it', () => {
+    expect(scaleWeight(16, tier(10))).toBe(1.6);
+  });
+
+  it('does not let floating-point residue promote an exact tenth a whole step', () => {
+    // Same shape at every base whose exact result lands on a tenth.
+    expect(scaleWeight(3.0, tier(10))).toBe(0.3);
+    expect(scaleWeight(10, tier(2))).toBe(8.2);
+    expect(scaleWeight(5, tier(8))).toBe(1.4);
+  });
+
+  it('still ceilings a genuine remainder up', () => {
+    // 3.0 at tier 2 with 3 banked: progression 7, exact value 2.2420…
+    expect(scaleWeight(3.0, { full: 2, fraction: 3 })).toBe(2.3);
   });
 
   it('treats very light items as an entry guard, leaving them alone', () => {

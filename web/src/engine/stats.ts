@@ -185,6 +185,7 @@ export function computeTotals(
   equipped: ReadonlyArray<{ position: string; item: Item; upgrade: EquippedItem['upgrade'] }>,
 ): StatTotals {
   const totals = emptyTotals();
+  let weightTenths = 0;
 
   for (const { position, item, upgrade } of equipped) {
     const r = resolveItem(item, upgrade);
@@ -199,7 +200,10 @@ export function computeTotals(
     totals.hp += r.hp;
     totals.mana += r.mana;
     totals.endurance += r.endurance;
-    totals.weight += r.weight;
+    // Every per-item weight is a one-decimal quantity, so the running total is
+    // kept in tenths. Adding the decimals directly accumulated float residue
+    // and made the sum depend on the order the positions happened to be in.
+    weightTenths += Math.round(r.weight * 10);
 
     totals.hpRegen += r.flat.REGEN ?? r.flat.HP_REGEN ?? 0;
     totals.manaRegen += r.flat['MANA REGEN'] ?? r.flat.MANA_REGEN ?? 0;
@@ -220,6 +224,7 @@ export function computeTotals(
     }
   }
 
+  totals.weight = weightTenths / 10;
   return totals;
 }
 
