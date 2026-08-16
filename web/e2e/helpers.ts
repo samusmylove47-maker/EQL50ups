@@ -34,7 +34,23 @@ export const test = base.extend<{ errors: string[] }>({
         errors.push(`console.error: ${text}`);
       });
       page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+
+      // A rejected promise nobody handled is neither a console error nor a page
+      // error, so record it from inside the page.
+      await page.addInitScript(() => {
+        const seen: string[] = [];
+        (window as unknown as { __rejections: string[] }).__rejections = seen;
+        window.addEventListener('unhandledrejection', (event) => {
+          seen.push(String(event.reason));
+        });
+      });
+
       await use(errors);
+
+      const rejections = await page
+        .evaluate(() => (window as unknown as { __rejections?: string[] }).__rejections ?? [])
+        .catch(() => []);
+      for (const reason of rejections) errors.push(`unhandledrejection: ${reason}`);
       expect(errors, 'console/page errors during test').toEqual([]);
     },
     { auto: true },
