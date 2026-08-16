@@ -136,7 +136,7 @@ describe('the slot picker', () => {
   it('offers wearable items to an Any Slot position', () => {
     click(slotButton('Any Slot 1'));
     const dialog = container.querySelector('[role="dialog"]');
-    expect(dialog?.textContent).toContain('Any Slot accepts any wearable item');
+    expect(dialog?.textContent).toContain('Any Slot takes any wearable item');
     expect(container.querySelectorAll('[role="option"]').length).toBeGreaterThan(1);
   });
 });
