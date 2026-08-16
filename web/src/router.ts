@@ -12,6 +12,7 @@ export type Route =
   | { name: 'landing' }
   | { name: 'characters' }
   | { name: 'new-character' }
+  | { name: 'character'; id: string }
   | { name: 'set'; id: string; tab: SetTab }
   | { name: 'items' }
   | { name: 'share'; payload: string }
@@ -32,6 +33,7 @@ export function parseHash(hash: string): Route {
   if (!head) return { name: 'landing' };
   if (head === 'characters') return { name: 'characters' };
   if (head === 'character' && second === 'new') return { name: 'new-character' };
+  if (head === 'character' && second) return { name: 'character', id: decodeURIComponent(second) };
   if (head === 'items') return { name: 'items' };
   if (head === 'set' && second) {
     return { name: 'set', id: decodeURIComponent(second), tab: isSetTab(third) ? third : 'gear' };
@@ -74,6 +76,7 @@ export const href = {
   landing: '#/',
   characters: '#/characters',
   newCharacter: '#/character/new',
+  character: (id: string) => `#/character/${encodeURIComponent(id)}`,
   items: '#/items',
   set: (id: string, tab: SetTab = 'gear') => (tab === 'gear' ? `#/set/${id}` : `#/set/${id}/${tab}`),
 };

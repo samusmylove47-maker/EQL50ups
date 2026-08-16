@@ -9,6 +9,8 @@ import { href, navigate, type SetTab } from '../router';
 import { planFrom, shareUrl } from '../share/codec';
 import { characterFor, setsForCharacter, useApp } from '../state/store';
 import { autoFill, slotViews } from '../selectors/gear';
+import { activeContext, activeLoadout, describeLoadout } from '../engine/character';
+import { shareDictionary } from '../data/shareDictionary';
 
 export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
   const state = useApp();
@@ -33,9 +35,12 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
     [state, gearSet?.characterId],
   );
 
+  // Interning item names against the loaded catalog is what keeps the link
+  // short; without a catalog it silently falls back to literal names.
+  const dictionary = shareDictionary(catalog);
   const link = useMemo(
-    () => (gearSet && character ? shareUrl(planFrom(character, gearSet)) : ''),
-    [gearSet, character],
+    () => (gearSet && character ? shareUrl(planFrom(character, gearSet), dictionary) : ''),
+    [gearSet, character, dictionary],
   );
 
   if (!gearSet) {
@@ -69,7 +74,7 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
       await ensureAll();
       const fresh = useCatalog.getState();
       const views = slotViews(gearSet, fresh);
-      const result = autoFill(fresh, views, character, gearSet.weights, {
+      const result = autoFill(fresh, views, character ? activeContext(character) : undefined, gearSet.weights, {
         includeUnreleased: false,
         keepFilled,
       });
@@ -147,6 +152,29 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
         }
         actions={
           <>
+            {character && character.loadouts.length ? (
+              <details className="menu">
+                <summary className="btn btn-quiet btn-sm" aria-label="Switch loadout">
+                  ⚔ {describeLoadout(character, activeLoadout(character) ?? character.loadouts[0]!)}
+                </summary>
+                <div className="menu-body right">
+                  {character.loadouts.map((loadout) => (
+                    <button
+                      type="button"
+                      key={loadout.id}
+                      className="menu-item"
+                      aria-current={loadout.id === character.activeLoadoutId}
+                      onClick={() => state.setActiveLoadout(character.id, loadout.id)}
+                    >
+                      {loadout.name} — {describeLoadout(character, loadout)}
+                    </button>
+                  ))}
+                  <a className="menu-item" href={href.character(character.id)}>
+                    Manage loadouts &amp; levels…
+                  </a>
+                </div>
+              </details>
+            ) : null}
             <button
               type="button"
               className="btn btn-quiet btn-sm"

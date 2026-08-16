@@ -11,7 +11,7 @@ import {
   ATTRIBUTES, ATTRIBUTE_NAMES, SAVES, SAVE_NAMES, SKILL_DAMAGE_MODS,
   SLOT_POSITIONS, type SlotPosition,
 } from '../engine/constants';
-import { canUse, type Character } from '../engine/character';
+import { canUse, type LoadoutContext } from '../engine/character';
 import { computeTotals, resolveItem, type StatTotals } from '../engine/stats';
 import { scoreItem, type ScoreContext, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
@@ -189,7 +189,8 @@ export interface ScoredItem {
 
 export interface RankOptions {
   slot: SlotCode;
-  character: Character | undefined;
+  /** The active loadout's classes, race and per-class levels. */
+  context: LoadoutContext | undefined;
   weights: WeightProfile;
   upgrade: UpgradeState;
   existing?: ScoreExisting;
@@ -223,12 +224,15 @@ const RANK_CACHE_LIMIT = 64;
  * already-sorted array.
  */
 export function rankSlotItems(catalog: CatalogState, options: RankOptions): ScoredItem[] {
-  const { slot, character, weights, upgrade, existing, includeUnreleased } = options;
+  const { slot, context, weights, upgrade, existing, includeUnreleased } = options;
   const key = [
     catalog.revision,
     slot,
-    character?.classes.join('/') ?? '-',
-    character?.race ?? '-',
+    context?.classes.join('/') ?? '-',
+    context?.race ?? '-',
+    // Per-class levels gate eligibility now, so switching loadout — or levelling
+    // a class — has to miss the cache rather than serve the old ranking.
+    context ? context.classes.map((c) => context.levels[c] ?? 0).join('.') : '-',
     weightSignature(weights),
     `${upgrade.full}.${upgrade.fraction}`,
     contextSignature(existing),
@@ -245,7 +249,9 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
   const scored: ScoredItem[] = [];
   for (const item of pool) {
     if (!includeUnreleased && !isLive(item)) continue;
-    if (character && !canUse({ classes: item.cl, races: item.ra }, character)) continue;
+    if (context && !canUse({ classes: item.cl, races: item.ra, ...(item.rl ? { rl: item.rl } : {}) }, context)) {
+      continue;
+    }
     const breakdown = scoreItem(item, upgrade, weights, { weaponCounts, ...(existing ? { existing } : {}) });
     scored.push({ item, score: finite(breakdown.total) });
   }
@@ -327,7 +333,7 @@ export interface AutoFillResult {
 export function autoFill(
   catalog: CatalogState,
   views: readonly SlotView[],
-  character: Character | undefined,
+  context: LoadoutContext | undefined,
   weights: WeightProfile,
   options: { includeUnreleased: boolean; keepFilled: boolean },
 ): AutoFillResult {
@@ -353,15 +359,15 @@ export function autoFill(
   let chosen = new Map(kept);
 
   for (let pass = 0; pass < 2; pass++) {
-    const context = scoreContextFrom(totalsOf(chosen));
+    const capContext = scoreContextFrom(totalsOf(chosen));
     const ranked = pending.map((view) => ({
       view,
       list: rankSlotItems(catalog, {
         slot: view.position.type as SlotCode,
-        character,
+        context,
         weights,
         upgrade: upgradeFor(view),
-        existing: context,
+        existing: capContext,
         includeUnreleased: options.includeUnreleased,
       }),
     }));

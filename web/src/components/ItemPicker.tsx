@@ -13,7 +13,7 @@
  */
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import type { Character } from '../engine/character';
+import type { LoadoutContext } from '../engine/character';
 import { ERA_ORDER, type SlotPosition } from '../engine/constants';
 import { scoreItem, type WeightProfile } from '../engine/ep';
 import type { StatTotals } from '../engine/stats';
@@ -40,7 +40,7 @@ type SourceFilter = 'any' | 'drop' | 'quest' | 'vendor' | 'crafted';
 
 export interface ItemPickerProps {
   position: SlotPosition;
-  character: Character | undefined;
+  context: LoadoutContext | undefined;
   weights: WeightProfile;
   currentItem: Item | undefined;
   currentName: string | undefined;
@@ -76,7 +76,7 @@ function zoneText(item: Item): string {
 
 export function ItemPicker({
   position,
-  character,
+  context,
   weights,
   currentItem,
   currentName,
@@ -117,13 +117,13 @@ export function ItemPicker({
     () =>
       rankSlotItems(catalog, {
         slot: position.type as SlotCode,
-        character,
+        context,
         weights,
         upgrade: preview,
         existing,
         includeUnreleased: !liveOnly,
       }),
-    [catalog, position.type, character, weights, preview, existing, liveOnly],
+    [catalog, position.type, context, weights, preview, existing, liveOnly],
   );
 
   const matches = useMemo(

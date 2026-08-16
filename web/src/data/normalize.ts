@@ -202,6 +202,11 @@ export function normalizeItem(raw: unknown, fallbackName?: string): Item | null 
   const weapon = normalizeWeapon(raw.wp ?? raw.weapon, stats);
   if (weapon) item.wp = weapon;
 
+  // Required level. Only a handful of corpus entries carry one, but where it
+  // exists the planner checks it against the level of the qualifying class.
+  const required = finite(raw.rl ?? nested?.requiredLevel ?? raw.requiredLevel ?? raw.reqLevel);
+  if (required > 0) item.rl = Math.trunc(required);
+
   const weight = finite(raw.wt ?? nested?.weight ?? raw.weight);
   if (weight) item.wt = weight;
 

@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { canUse, type Character } from '../engine/character';
-import { CLASSES, ERA_ORDER, SLOT_TYPES, type ClassCode } from '../engine/constants';
+import { canUse, makeContext, type LoadoutContext } from '../engine/character';
+import { CLASSES, ERA_ORDER, LEVEL_CAP, SLOT_TYPES, type ClassCode } from '../engine/constants';
 import { PRESET_PROFILES, scoreItem, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, tier, type UpgradeState } from '../engine/upgrade';
 import type { Item } from '../engine/types';
@@ -62,9 +62,11 @@ export function ItemBrowser() {
     [profileId],
   );
 
-  const pseudoCharacter: Character | undefined = useMemo(() => {
+  // A filter, not a character: one class at the level cap, so the browser shows
+  // everything that class can ever wear rather than what one saved character can.
+  const filterContext: LoadoutContext | undefined = useMemo(() => {
     if (classFilter === 'any') return undefined;
-    return { id: 'filter', name: 'filter', level: 50, classes: [classFilter], race: null };
+    return makeContext([classFilter], null, { [classFilter]: LEVEL_CAP });
   }, [classFilter]);
 
   const matches = useMemo(
@@ -79,7 +81,7 @@ export function ItemBrowser() {
       if (slot !== 'any' && !item.sl.includes(slot)) continue;
       if (era !== 'any' && item.era !== era) continue;
       if (liveOnly && !isLive(item)) continue;
-      if (pseudoCharacter && !canUse({ classes: item.cl, races: item.ra }, pseudoCharacter)) continue;
+      if (filterContext && !canUse({ classes: item.cl, races: item.ra }, filterContext)) continue;
       scored.push({ item, score: scoreItem(item, upgrade, weights).total });
     }
     type Row = { item: Item; score: number };
@@ -97,7 +99,7 @@ export function ItemBrowser() {
     const primary = compare[sort];
     scored.sort((a, b) => sign * primary(a, b) || a.item.n.localeCompare(b.item.n));
     return { rows: scored.slice(0, ROW_LIMIT), total: scored.length };
-  }, [catalog.items, matches, slot, era, liveOnly, pseudoCharacter, weights, upgrade, sort, dir]);
+  }, [catalog.items, matches, slot, era, liveOnly, filterContext, weights, upgrade, sort, dir]);
 
   const header = (key: SortKey, label: string, className?: string) => {
     const activeSort = sort === key;

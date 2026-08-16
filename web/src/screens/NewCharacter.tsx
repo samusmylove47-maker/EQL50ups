@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { describeCharacter, validateClasses } from '../engine/character';
+import { validateClasses } from '../engine/character';
 import { LEVEL_CAP, type ClassCode } from '../engine/constants';
 import { ClassPicker } from '../components/ClassPicker';
 import { useCatalog } from '../data/catalog';
@@ -134,7 +134,7 @@ export function NewCharacter() {
             <h2 className="section-label">Class trio</h2>
             <span className="hint">
               {classes.length
-                ? describeCharacter({ level: levelOk ? parsedLevel : LEVEL_CAP, classes })
+                ? `${levelOk ? parsedLevel : LEVEL_CAP} ${classes.join('/')}`
                 : 'Pick one to three distinct classes — the first is your primary.'}
             </span>
           </div>
@@ -146,7 +146,9 @@ export function NewCharacter() {
           ) : null}
           <p className="hint">
             Eligibility is a union: an item is usable if any of the three classes qualifies. Armour
-            proficiency and skill caps take the best of the trio.
+            proficiency and skill caps take the best of the trio, and an item's level requirement is
+            checked against the class that qualifies you for it. This becomes your first loadout —
+            add more, and set each class's own level, from the character page.
           </p>
         </section>
 

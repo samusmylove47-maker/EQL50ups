@@ -8,14 +8,28 @@
  * still works, it just stops remembering.
  */
 
-import { CLASS_SET } from '../engine/constants';
+import { CLASS_SET, type ClassCode } from '../engine/constants';
 import { normalizeState } from '../engine/upgrade';
-import type { Character } from '../engine/character';
+import {
+  DEFAULT_CLASS_LEVEL, clampLevel, defaultLoadoutName, makeLevels,
+  type Character, type ClassLevels, type Loadout,
+} from '../engine/character';
 import type { EquippedItem, GearSet } from '../engine/types';
 import { finite } from '../lib/format';
 
+/**
+ * The storage key is deliberately frozen at `.v1`: it is where every existing
+ * player's library already lives. Shape changes are handled by the `version`
+ * field inside the payload and the migrations below, never by moving the key —
+ * a new key would silently orphan everyone's saved characters.
+ */
 export const STORAGE_KEY = 'eqlups.state.v1';
-export const STATE_VERSION = 1;
+
+/**
+ * 1 — character = one level + one class trio.
+ * 2 — character = a per-class level map plus a list of named loadouts.
+ */
+export const STATE_VERSION = 2;
 
 export interface PersistedState {
   version: number;
@@ -62,28 +76,127 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+/**
+ * Distinct, per `validateClasses` — a repeated code would print as "WAR/WAR"
+ * in the header and is not a trio the game can produce.
+ */
+function sanitizeClassList(raw: unknown): ClassCode[] {
+  if (!Array.isArray(raw)) return [];
+  return [
+    ...new Set(
+      raw
+        .filter((c): c is string => typeof c === 'string')
+        .map((c) => c.toUpperCase())
+        .filter((c) => CLASS_SET.has(c)),
+    ),
+  ].slice(0, 3) as ClassCode[];
+}
+
+function sanitizeLevels(raw: unknown): ClassLevels {
+  const partial: Partial<Record<string, number>> = {};
+  if (isRecord(raw)) {
+    for (const [key, value] of Object.entries(raw)) {
+      const code = key.toUpperCase();
+      if (!CLASS_SET.has(code)) continue;
+      if (typeof value !== 'number' && typeof value !== 'string') continue;
+      partial[code] = clampLevel(value);
+    }
+  }
+  return makeLevels(partial);
+}
+
+function sanitizeLoadout(raw: unknown, index: number): Loadout | null {
+  if (!isRecord(raw)) return null;
+  const classes = sanitizeClassList(raw.classes);
+  if (!classes.length) return null;
+  const loadout: Loadout = {
+    id: typeof raw.id === 'string' && raw.id ? raw.id : `loadout_${index + 1}`,
+    name:
+      typeof raw.name === 'string' && raw.name.trim() ? raw.name.trim() : defaultLoadoutName(index),
+    classes,
+  };
+  if (typeof raw.race === 'string' && raw.race) loadout.race = raw.race;
+  return loadout;
+}
+
+/**
+ * Migration v1 -> v2.
+ *
+ * A v1 character was `{level, classes}`. The trio becomes the character's one
+ * loadout, and the single level is written onto each class in that trio —
+ * which is exactly what the header used to display, so nobody's numbers move.
+ * Classes outside the trio were never tracked and start at the floor.
+ */
+export function migrateCharacterV1(raw: Record<string, unknown>): Character | null {
+  const id = typeof raw.id === 'string' && raw.id ? raw.id : null;
+  if (!id) return null;
+  const classes = sanitizeClassList(raw.classes);
+  const level = clampLevel(finite(raw.level, 50));
+  const levels: Partial<Record<string, number>> = {};
+  for (const code of classes) levels[code] = level;
+
+  const loadout: Loadout = {
+    id: `${id}_loadout_1`,
+    name: defaultLoadoutName(0),
+    classes,
+  };
+  return {
+    id,
+    name: typeof raw.name === 'string' && raw.name.trim() ? raw.name : 'Unnamed',
+    race: typeof raw.race === 'string' && raw.race ? raw.race : null,
+    levels: makeLevels(levels),
+    // A v1 character with no valid class still has to have a loadout to be
+    // switchable later; it just has nothing in it.
+    loadouts: [loadout],
+    activeLoadoutId: loadout.id,
+  };
+}
+
 function sanitizeCharacter(raw: unknown): Character | null {
   if (!isRecord(raw)) return null;
   const id = typeof raw.id === 'string' && raw.id ? raw.id : null;
   if (!id) return null;
-  // Distinct, per `validateClasses` — a repeated code would print as "WAR/WAR"
-  // in the header and is not a trio the game can produce.
-  const classes = Array.isArray(raw.classes)
-    ? [
-        ...new Set(
-          raw.classes
-            .filter((c): c is string => typeof c === 'string')
-            .map((c) => c.toUpperCase())
-            .filter((c) => CLASS_SET.has(c)),
+
+  // v1 shape: no loadout list, but a class trio and one level.
+  if (!Array.isArray(raw.loadouts)) return migrateCharacterV1(raw);
+
+  const loadouts = raw.loadouts
+    .map((entry, i) => sanitizeLoadout(entry, i))
+    .filter((l): l is Loadout => l !== null);
+  if (!loadouts.length) {
+    // Loadouts all unusable: fall back through the v1 path so a legible
+    // character survives rather than being dropped entirely.
+    return migrateCharacterV1(raw);
+  }
+
+  const seen = new Set<string>();
+  for (const loadout of loadouts) {
+    while (seen.has(loadout.id)) loadout.id = `${loadout.id}_`;
+    seen.add(loadout.id);
+  }
+
+  const activeId =
+    typeof raw.activeLoadoutId === 'string' && seen.has(raw.activeLoadoutId)
+      ? raw.activeLoadoutId
+      : (loadouts[0] as Loadout).id;
+
+  const levels = isRecord(raw.levels)
+    ? sanitizeLevels(raw.levels)
+    : // A v2-shaped record with no level map at all: seed the trio from any
+      // legacy `level` field so the header keeps reading the same number.
+      sanitizeLevels(
+        Object.fromEntries(
+          (loadouts[0] as Loadout).classes.map((c) => [c, clampLevel(finite(raw.level, DEFAULT_CLASS_LEVEL))]),
         ),
-      ].slice(0, 3)
-    : [];
+      );
+
   return {
     id,
     name: typeof raw.name === 'string' && raw.name.trim() ? raw.name : 'Unnamed',
-    level: Math.max(1, Math.min(255, Math.round(finite(raw.level, 50)))),
-    classes: classes as Character['classes'],
     race: typeof raw.race === 'string' && raw.race ? raw.race : null,
+    levels,
+    loadouts,
+    activeLoadoutId: activeId,
   };
 }
 

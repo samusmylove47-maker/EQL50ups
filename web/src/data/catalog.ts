@@ -28,6 +28,18 @@ const EXTRA_SHARDS = ['OTHER'];
 export type CatalogStatus = 'idle' | 'loading' | 'ready' | 'missing' | 'error';
 export type ShardStatus = 'loading' | 'ready' | 'missing';
 
+/**
+ * One published focus effect: a name, prose, and the client's per-spell-slot
+ * breakdown. There are **no numbers a planner could score** in here — that is
+ * the point of shipping it. It exists so an exaltation can be described
+ * accurately instead of being reduced to a made-up stat contribution.
+ */
+export interface FocusEffectEntry {
+  n: string;
+  d?: string;
+  sl?: Array<{ s: number; e: string }>;
+}
+
 export interface CatalogState {
   status: CatalogStatus;
   error: string | null;
@@ -36,12 +48,25 @@ export interface CatalogState {
   byName: Map<string, Item>;
   bySlot: Map<SlotCode, Item[]>;
   shards: Record<string, ShardStatus | undefined>;
+  /**
+   * Item names exactly as the index published them, captured once at load.
+   *
+   * The share dictionary keys off this rather than off `items`, which grows as
+   * slot shards arrive: two clients that had loaded different shards would
+   * otherwise build different dictionaries and refuse each other's links. The
+   * index is verified to carry every name the shards do.
+   */
+  indexNames: string[];
+  /** Published focus-effect descriptions, keyed by lowercased effect name. */
+  effects: Map<string, FocusEffectEntry>;
+  effectsStatus: 'idle' | 'loading' | 'ready' | 'missing';
   usingFixture: boolean;
   /** Bumped on every mutation; memoised selectors key off it. */
   revision: number;
   load: () => Promise<void>;
   ensureSlot: (slot: SlotCode) => Promise<void>;
   ensureAll: () => Promise<void>;
+  ensureEffects: () => Promise<void>;
   loadFixture: () => void;
 }
 
@@ -82,6 +107,10 @@ function normalizeMeta(raw: unknown): CatalogMeta | null {
     attribution: typeof record.attribution === 'string' ? record.attribution : ATTRIBUTION,
     sources: record.sources,
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
 
 function indexItems(items: Item[]): {
@@ -142,6 +171,9 @@ export const useCatalog = create<CatalogState>((set, get) => ({
   byName: new Map(),
   bySlot: new Map(),
   shards: {},
+  indexNames: [],
+  effects: new Map(),
+  effectsStatus: 'idle',
   usingFixture: false,
   revision: 0,
 
@@ -171,6 +203,7 @@ export const useCatalog = create<CatalogState>((set, get) => ({
         status: 'ready',
         meta: normalizeMeta(metaRaw),
         items,
+        indexNames: items.map((item) => item.n),
         ...indexItems(items),
         revision: get().revision + 1,
       });
@@ -219,6 +252,35 @@ export const useCatalog = create<CatalogState>((set, get) => ({
     await Promise.all(wanted.filter((s) => !state.shards[s]).map((s) => get().ensureSlot(s)));
   },
 
+  async ensureEffects() {
+    if (get().effectsStatus !== 'idle') return;
+    set({ effectsStatus: 'loading' });
+    try {
+      const raw = await fetchJson('focus-effects.json');
+      const list = isRecord(raw) && Array.isArray(raw.effects) ? raw.effects : [];
+      const effects = new Map<string, FocusEffectEntry>();
+      for (const entry of list) {
+        if (!isRecord(entry) || typeof entry.n !== 'string' || !entry.n) continue;
+        const item: FocusEffectEntry = { n: entry.n };
+        if (typeof entry.d === 'string' && entry.d) item.d = entry.d;
+        if (Array.isArray(entry.sl)) {
+          item.sl = entry.sl
+            .filter(isRecord)
+            .map((slot) => ({ s: finite(slot.s), e: typeof slot.e === 'string' ? slot.e : '' }))
+            .filter((slot) => slot.e !== '');
+        }
+        effects.set(item.n.toLowerCase(), item);
+      }
+      set({
+        effects,
+        effectsStatus: effects.size ? 'ready' : 'missing',
+        revision: get().revision + 1,
+      });
+    } catch {
+      set({ effectsStatus: 'missing' });
+    }
+  },
+
   loadFixture() {
     const items = FIXTURE_ITEMS;
     set({
@@ -226,6 +288,7 @@ export const useCatalog = create<CatalogState>((set, get) => ({
       error: null,
       usingFixture: true,
       items,
+      indexNames: items.map((item) => item.n),
       ...indexItems(items),
       shards: Object.fromEntries(SLOT_TYPES.map((s) => [s, 'ready' as ShardStatus])),
       revision: get().revision + 1,

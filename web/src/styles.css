@@ -1660,3 +1660,121 @@ table.data tbody tr:hover {
     transition: none !important;
   }
 }
+
+/* --- 20. Exaltation summary, effect lines, level grid, item detail -------- */
+
+.exalt-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.exalt-summary strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.exalt-summary .hint {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.effect-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.effect-entry {
+  border-left: 2px solid var(--accent-dim);
+  padding-left: 10px;
+}
+
+.effect-kind {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.effect-donor {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.effect-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.effect-detail {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.effect-inline {
+  color: var(--text-dim);
+}
+
+table.data.compact td,
+table.data.compact th {
+  padding: 5px 10px;
+  font-size: 12.5px;
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px 14px;
+}
+
+.level-grid .field span .dim {
+  font-size: 11px;
+}
+
+.page-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+table.data tr.rowlink {
+  cursor: pointer;
+}
+
+table.data tr.rowlink:hover {
+  background: var(--panel-2);
+}
+
+table.data tr.rowlink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px 16px;
+  font-size: 12.5px;
+}
+
+.detail-grid div span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

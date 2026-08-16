@@ -7,7 +7,7 @@
  */
 
 import { useMemo, useState, type ReactNode } from 'react';
-import { describeCharacter, type Character } from '../engine/character';
+import { activeContext, describeCharacter, type Character } from '../engine/character';
 import type { WeightProfile } from '../engine/ep';
 import type { GearSet, Item } from '../engine/types';
 import type { UpgradeState } from '../engine/upgrade';
@@ -60,6 +60,9 @@ export function SetWorkspace({
   const catalog = useCatalog();
   const [openSlot, setOpenSlot] = useState<string | null>(null);
 
+  // Eligibility follows the active loadout, so switching one re-ranks every
+  // picker and re-filters every list without touching the set itself.
+  const context = useMemo(() => (character ? activeContext(character) : undefined), [character]);
   const views = useMemo(() => slotViews(gearSet, catalog), [gearSet, catalog]);
   const totals = useMemo(() => totalsFor(views), [views]);
   const contextTotals = useMemo(
@@ -148,6 +151,7 @@ export function SetWorkspace({
         {tab === 'exaltations' ? (
           <ExaltationsTab
             views={views}
+            context={context}
             readOnly={readOnly}
             onUpgrade={onUpgrade}
             onSetDonor={onSetDonor}
@@ -162,7 +166,7 @@ export function SetWorkspace({
       {openView && !readOnly ? (
         <ItemPicker
           position={openView.position}
-          character={character}
+          context={context}
           weights={gearSet.weights}
           currentItem={openView.item}
           currentName={openView.equipped?.itemName}

@@ -41,6 +41,8 @@ export interface Item {
   wp?: WeaponData;
   fx?: ItemEffect[];
   fl: string[];
+  /** Required level, where the corpus carries one. Absent means unrestricted. */
+  rl?: number;
   wt?: number;
   sz?: string;
   era?: string | null;

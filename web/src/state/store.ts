@@ -6,7 +6,10 @@
  */
 
 import { create } from 'zustand';
-import type { Character } from '../engine/character';
+import {
+  clampLevel, defaultLoadoutName, makeLevels,
+  type Character, type Loadout,
+} from '../engine/character';
 import type { ClassCode } from '../engine/constants';
 import { profileById, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
@@ -42,10 +45,17 @@ export interface AppState extends PersistedState {
     level: number;
     classes: ClassCode[];
     race: string | null;
+    /** Optional per-class levels; anything omitted starts at the floor. */
+    levels?: Partial<Record<string, number>>;
   }) => Character;
   updateCharacter: (id: string, patch: Partial<Omit<Character, 'id'>>) => void;
   deleteCharacter: (id: string) => void;
   setActiveCharacter: (id: string | null) => void;
+  setClassLevel: (characterId: string, code: ClassCode, level: number) => void;
+  addLoadout: (characterId: string, input?: { name?: string; classes?: ClassCode[] }) => Loadout | null;
+  updateLoadout: (characterId: string, loadoutId: string, patch: Partial<Omit<Loadout, 'id'>>) => void;
+  deleteLoadout: (characterId: string, loadoutId: string) => void;
+  setActiveLoadout: (characterId: string, loadoutId: string) => void;
   createSet: (characterId: string, name?: string, weights?: WeightProfile) => GearSet;
   duplicateSet: (id: string) => GearSet | null;
   renameSet: (id: string, name: string) => void;
@@ -95,6 +105,11 @@ export function flushPersist(): void {
 export const useApp = create<AppState>((set, get) => {
   const persist = () => schedulePersist(get, set);
 
+  const mutateCharacter = (id: string, mutate: (draft: Character) => Character): void => {
+    set({ characters: get().characters.map((c) => (c.id === id ? mutate(c) : c)) });
+    persist();
+  };
+
   const mutateSet = (id: string, mutate: (draft: GearSet) => GearSet): void => {
     set({
       sets: get().sets.map((s) => (s.id === id ? { ...mutate(s), updatedAt: Date.now() } : s)),
@@ -118,12 +133,23 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     createCharacter(input) {
+      // The level typed on the creation screen belongs to the classes actually
+      // chosen; the other thirteen start at the floor and are edited later.
+      const levels: Partial<Record<string, number>> = { ...input.levels };
+      for (const code of input.classes) levels[code] ??= clampLevel(input.level);
+
+      const loadout: Loadout = {
+        id: newId('load'),
+        name: defaultLoadoutName(0),
+        classes: [...input.classes],
+      };
       const character: Character = {
         id: newId('char'),
         name: input.name.trim() || 'Unnamed',
-        level: input.level,
-        classes: input.classes,
         race: input.race,
+        levels: makeLevels(levels),
+        loadouts: [loadout],
+        activeLoadoutId: loadout.id,
       };
       set({ characters: [...get().characters, character], activeCharacterId: character.id });
       persist();
@@ -135,6 +161,51 @@ export const useApp = create<AppState>((set, get) => {
         characters: get().characters.map((c) => (c.id === id ? { ...c, ...patch } : c)),
       });
       persist();
+    },
+
+    setClassLevel(characterId, code, level) {
+      mutateCharacter(characterId, (c) => ({
+        ...c,
+        levels: { ...c.levels, [code]: clampLevel(level) },
+      }));
+    },
+
+    addLoadout(characterId, input) {
+      const character = get().characters.find((c) => c.id === characterId);
+      if (!character) return null;
+      const loadout: Loadout = {
+        id: newId('load'),
+        name: input?.name?.trim() || defaultLoadoutName(character.loadouts.length),
+        classes: [...(input?.classes ?? character.loadouts[0]?.classes ?? [])],
+      };
+      mutateCharacter(characterId, (c) => ({ ...c, loadouts: [...c.loadouts, loadout] }));
+      return loadout;
+    },
+
+    updateLoadout(characterId, loadoutId, patch) {
+      mutateCharacter(characterId, (c) => ({
+        ...c,
+        loadouts: c.loadouts.map((l) => (l.id === loadoutId ? { ...l, ...patch, id: l.id } : l)),
+      }));
+    },
+
+    deleteLoadout(characterId, loadoutId) {
+      mutateCharacter(characterId, (c) => {
+        // A character always has at least one loadout: without one there is no
+        // trio, and every screen would have to invent an empty state for it.
+        if (c.loadouts.length <= 1) return c;
+        const loadouts = c.loadouts.filter((l) => l.id !== loadoutId);
+        const active = loadouts.some((l) => l.id === c.activeLoadoutId)
+          ? c.activeLoadoutId
+          : ((loadouts[0] as Loadout).id);
+        return { ...c, loadouts, activeLoadoutId: active };
+      });
+    },
+
+    setActiveLoadout(characterId, loadoutId) {
+      mutateCharacter(characterId, (c) =>
+        c.loadouts.some((l) => l.id === loadoutId) ? { ...c, activeLoadoutId: loadoutId } : c,
+      );
     },
 
     deleteCharacter(id) {
@@ -250,12 +321,23 @@ export const useApp = create<AppState>((set, get) => {
 
     adoptPlan(plan) {
       const now = Date.now();
+      // Re-key the loadouts as well as the character, so an adopted plan can
+      // never share ids with something already in the library.
+      const loadouts = plan.character.loadouts.map((l) => ({ ...l, id: newId('load') }));
+      if (!loadouts.length) {
+        loadouts.push({ id: newId('load'), name: defaultLoadoutName(0), classes: [] });
+      }
+      const activeIndex = Math.max(
+        0,
+        plan.character.loadouts.findIndex((l) => l.id === plan.character.activeLoadoutId),
+      );
       const character: Character = {
         id: newId('char'),
         name: plan.character.name,
-        level: plan.character.level,
-        classes: plan.character.classes,
         race: plan.character.race,
+        levels: makeLevels(plan.character.levels),
+        loadouts,
+        activeLoadoutId: (loadouts[activeIndex] ?? loadouts[0])?.id ?? '',
       };
       const gearSet: GearSet = {
         id: newId('set'),

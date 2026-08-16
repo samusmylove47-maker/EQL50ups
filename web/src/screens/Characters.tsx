@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { describeCharacter } from '../engine/character';
+import { activeRace, describeCharacter, loadoutClasses } from '../engine/character';
 import { CLASS_NAMES, type ClassCode } from '../engine/constants';
 import { isExportEnvelope } from '../share/codec';
 import { href, navigate } from '../router';
@@ -121,10 +121,16 @@ export function Characters() {
                   <h3>{character.name}</h3>
                   <div className="hint">{describeCharacter(character)}</div>
                   <div className="hint">
-                    {character.classes
+                    {loadoutClasses(character)
                       .map((c) => CLASS_NAMES[c as ClassCode] ?? c)
                       .join(' · ') || 'No classes'}
-                    {character.race ? ` · ${character.race}` : ''}
+                    {activeRace(character) ? ` · ${activeRace(character)}` : ''}
+                  </div>
+                  <div className="hint">
+                    <a href={href.character(character.id)}>
+                      {character.loadouts.length} loadout
+                      {character.loadouts.length === 1 ? '' : 's'} · per-class levels
+                    </a>
                   </div>
                 </div>
               </div>
