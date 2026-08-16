@@ -1,5 +1,21 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { canUse, makeContext, type LoadoutContext } from '../engine/character';
+/**
+ * The whole catalog, reachable.
+ *
+ * The previous version scored 5,848 matches, rendered the first 250 and
+ * offered no way to reach item 251 — no pagination, no "load more", and rows
+ * that were inert `<tr>`s you could click for no effect. That kills the one
+ * workflow this screen exists for: something drops mid-raid, you look it up,
+ * you decide. So: fixed-size pages over the whole result set, and rows that
+ * open a detail dialog and can equip straight into the set you were editing.
+ *
+ * Paging rather than virtualisation on purpose. The expensive half is scoring
+ * every candidate, which is memoised and unchanged; a page is a `slice`, so it
+ * costs one array copy and renders a bounded number of rows with no scroll
+ * measurement, no row-height guessing and no jump-to-item bugs.
+ */
+
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { activeContext, canUse, makeContext, type LoadoutContext } from '../engine/character';
 import { CLASSES, ERA_ORDER, LEVEL_CAP, SLOT_TYPES, type ClassCode } from '../engine/constants';
 import { PRESET_PROFILES, scoreItem, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, tier, type UpgradeState } from '../engine/upgrade';
@@ -10,13 +26,17 @@ import { searchIndexFor } from '../data/searchIndex';
 import { UpgradeStepper } from '../components/UpgradeStepper';
 import { count, dec, signed } from '../lib/format';
 import { eraLabel, flagLabel, isLive, qualityColor } from '../lib/itemStyle';
+import { ItemDetail } from '../components/ItemDetail';
 import { statVector } from '../selectors/gear';
-import { useApp } from '../state/store';
+import { characterFor, setsForCharacter, useApp } from '../state/store';
+import { href, navigate } from '../router';
+import { SLOT_POSITIONS } from '../engine/constants';
 
 type SortKey = 'ep' | 'name' | 'era' | 'slot';
 type SortDir = 'asc' | 'desc';
 
-const ROW_LIMIT = 250;
+/** Rows per page. Large enough to scan, small enough to render instantly. */
+const PAGE_SIZE = 100;
 
 /** How each column sorts on its first click: scores high-first, text A-first. */
 const NATURAL_DIRECTION: Record<SortKey, SortDir> = {
@@ -29,7 +49,8 @@ const NATURAL_DIRECTION: Record<SortKey, SortDir> = {
 export function ItemBrowser() {
   const catalog = useCatalog();
   const ensureAll = useCatalog((s) => s.ensureAll);
-  const characters = useApp((s) => s.characters);
+  const app = useApp();
+  const characters = app.characters;
 
   const [query, setQuery] = useState('');
   const [slot, setSlot] = useState<'any' | SlotCode>('any');
@@ -40,6 +61,9 @@ export function ItemBrowser() {
   const [liveOnly, setLiveOnly] = useState(true);
   const [sort, setSort] = useState<SortKey>('ep');
   const [dir, setDir] = useState<SortDir>('desc');
+  const [page, setPage] = useState(0);
+  const [detail, setDetail] = useState<Item | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Clicking the column you are already sorted by reverses it; clicking another
   // starts it in whichever direction that column reads best.
@@ -98,8 +122,39 @@ export function ItemBrowser() {
     const sign = dir === 'asc' ? 1 : -1;
     const primary = compare[sort];
     scored.sort((a, b) => sign * primary(a, b) || a.item.n.localeCompare(b.item.n));
-    return { rows: scored.slice(0, ROW_LIMIT), total: scored.length };
+    return { rows: scored, total: scored.length };
   }, [catalog.items, matches, slot, era, liveOnly, filterContext, weights, upgrade, sort, dir]);
+
+  // Narrowing the search should put you back at the top of the new results,
+  // not on page 14 of a list that no longer has one.
+  useEffect(() => {
+    setPage(0);
+  }, [deferredQuery, slot, era, classFilter, liveOnly, sort, dir, profileId, upgrade]);
+
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  // Any change to the filters can shrink the result set under the current page.
+  const safePage = Math.min(page, pageCount - 1);
+  const start = safePage * PAGE_SIZE;
+  const pageRows = useMemo(() => rows.slice(start, start + PAGE_SIZE), [rows, start]);
+
+  const goTo = (next: number) => {
+    setPage(Math.max(0, Math.min(pageCount - 1, next)));
+    tableRef.current?.scrollIntoView({ block: 'start' });
+  };
+
+  /*
+   * "Equip" targets: the set the reader was last editing, and the positions
+   * this item can legally occupy in it. Without a set there is nothing to
+   * equip into, and the detail dialog quietly drops the section.
+   */
+  const targetSet = setsForCharacter(app, app.activeCharacterId ?? characters[0]?.id ?? null)[0];
+  const targetCharacter = characterFor(app, targetSet);
+  const equipTargets = useMemo(() => {
+    if (!detail || !targetSet) return [];
+    return SLOT_POSITIONS.filter(
+      (position) => position.type === 'ANY' || detail.sl.includes(position.type),
+    ).map((position) => ({ positionId: position.id, label: position.label }));
+  }, [detail, targetSet]);
 
   const header = (key: SortKey, label: string, className?: string) => {
     const activeSort = sort === key;
@@ -124,7 +179,7 @@ export function ItemBrowser() {
         <div className="rowline">
           <span className="hint">
             {count(total)} match{total === 1 ? '' : 'es'}
-            {total > rows.length ? ` · showing first ${count(rows.length)}` : ''}
+            {total ? ` · ${count(start + 1)}–${count(Math.min(start + PAGE_SIZE, total))}` : ''}
           </span>
         </div>
       </div>
@@ -198,8 +253,8 @@ export function ItemBrowser() {
         </div>
         {characters.length ? (
           <p className="hint" style={{ marginTop: 10 }}>
-            This browser scores against preset profiles. For scoring against your own weights and
-            cap headroom, open a set and use its slot pickers.
+            Scored against the {PRESET_PROFILES.find((p) => p.id === profileId)?.label ?? 'preset'}{' '}
+            preset. Open any row for the full item, or your own set for cap-aware scoring.
           </p>
         ) : null}
       </div>
@@ -212,7 +267,7 @@ export function ItemBrowser() {
       ) : null}
 
       {rows.length ? (
-        <div className="table-wrap">
+        <div className="table-wrap" ref={tableRef}>
           <table className="data">
             <thead>
               <tr>
@@ -225,8 +280,20 @@ export function ItemBrowser() {
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ item, score }) => (
-                <tr key={item.n}>
+              {pageRows.map(({ item, score }) => (
+                <tr
+                  key={item.n}
+                  className="rowlink"
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Open ${item.n}`}
+                  onClick={() => setDetail(item)}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    setDetail(item);
+                  }}
+                >
                   <td>
                     <span style={{ color: qualityColor(item), fontWeight: 600 }}>{item.n}</span>
                     <div className="chip-row" style={{ marginTop: 3 }}>
@@ -255,6 +322,59 @@ export function ItemBrowser() {
             </tbody>
           </table>
         </div>
+      ) : null}
+
+      {pageCount > 1 ? (
+        <nav className="page-nav" aria-label="Item pages">
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => goTo(safePage - 1)}
+            disabled={safePage === 0}
+          >
+            ← Previous
+          </button>
+          <span>
+            Page {safePage + 1} of {count(pageCount)}
+          </span>
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => goTo(safePage + 1)}
+            disabled={safePage >= pageCount - 1}
+          >
+            Next →
+          </button>
+          <label className="checkline">
+            Jump to page
+            <input
+              type="number"
+              min={1}
+              max={pageCount}
+              value={safePage + 1}
+              aria-label="Jump to page"
+              style={{ width: 76 }}
+              onChange={(e) => goTo(Number(e.target.value) - 1)}
+            />
+          </label>
+        </nav>
+      ) : null}
+
+      {detail ? (
+        <ItemDetail
+          item={detail}
+          upgrade={upgrade}
+          equipTargets={equipTargets}
+          {...(targetSet ? { setName: targetSet.name } : {})}
+          context={targetCharacter ? activeContext(targetCharacter) : undefined}
+          onEquip={(positionId) => {
+            if (!targetSet) return;
+            app.equip(targetSet.id, positionId, detail.n, upgrade);
+            setDetail(null);
+            navigate(href.set(targetSet.id));
+          }}
+          onClose={() => setDetail(null)}
+        />
       ) : null}
     </div>
   );
