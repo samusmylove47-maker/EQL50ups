@@ -291,11 +291,18 @@ export function statDeltas(
   return out;
 }
 
-/** Weapon ratio line for the header summary, never NaN. */
+/**
+ * Weapon ratio the way the client prints it, never NaN.
+ *
+ * Three decimals, trailing zeros trimmed. That reproduces all five Tier 0
+ * samples exactly — Whitened Treant Fists 0.5 / 0.536 / 0.571 / 0.643 and
+ * Earthshaker 1.057 — where two decimals rendered Earthshaker as 1.06 and
+ * broke the line-by-line comparison against the game the panel exists for.
+ */
 export function ratioText(damage: number, delay: number): string {
   const d = finite(delay);
   if (d <= 0) return '—';
-  return dec(finite(damage) / d, 2);
+  return dec(finite(damage) / d, 3);
 }
 
 export interface AutoFillResult {

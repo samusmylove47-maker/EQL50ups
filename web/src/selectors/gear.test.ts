@@ -149,8 +149,17 @@ describe('stat vectors and summaries', () => {
   });
 
   it('formats a ratio without dividing by zero', () => {
-    expect(ratioText(14, 30)).toBe('0.47');
+    expect(ratioText(14, 30)).toBe('0.467');
     expect(ratioText(14, 0)).toBe('—');
+  });
+
+  it('prints every Tier 0 ratio exactly as the live client does', () => {
+    // research/validation/TIER0-VALIDATION.md §1.
+    expect(ratioText(14, 28)).toBe('0.5');
+    expect(ratioText(15, 28)).toBe('0.536');
+    expect(ratioText(16, 28)).toBe('0.571');
+    expect(ratioText(18, 28)).toBe('0.643');
+    expect(ratioText(74, 70)).toBe('1.057');
   });
 });
 

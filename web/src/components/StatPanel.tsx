@@ -33,12 +33,15 @@ interface RowProps {
   value: number;
   cap?: number;
   suffix?: string;
+  /** Decimal places, for the one quantity that is not a whole number. */
+  places?: number;
 }
 
-function StatRow({ label, value, cap, suffix }: RowProps) {
+function StatRow({ label, value, cap, suffix, places }: RowProps) {
   const raw = finite(value);
   const capped = cap !== undefined ? withCap(raw, cap) : null;
   const shown = capped ? capped.value : raw;
+  const text = places === undefined ? num(shown) : dec(shown, places);
   const className = [
     'stat-row',
     shown === 0 ? 'zero' : '',
@@ -51,7 +54,7 @@ function StatRow({ label, value, cap, suffix }: RowProps) {
     <div className={className}>
       <span className="k">{label}</span>
       <span className="v">
-        {num(shown)}
+        {text}
         {suffix ?? ''}
         {capped ? <span className="cap">/{num(capped.cap)}</span> : null}
         {capped && capped.overCap > 0 ? (
@@ -75,9 +78,21 @@ function Group({
   defaultOpen?: boolean;
   note?: string;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  /*
+   * `defaultOpen` is a live fact, not a one-off: the Weapons group opens when a
+   * weapon is equipped, which happens after this component first mounts.
+   * Seeding `useState` with it froze the group shut, hiding damage, delay and
+   * ratio for the whole session. Follow `defaultOpen` until the reader
+   * expresses a preference, then honour theirs.
+   */
+  const [chosen, setChosen] = useState<boolean | null>(null);
+  const open = chosen ?? defaultOpen;
   return (
-    <details className="stat-group" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+    <details
+      className="stat-group"
+      open={open}
+      onToggle={(e) => setChosen(e.currentTarget.open)}
+    >
       <summary>
         <span className="section-label">{title}</span>
         {note ? <span className="hint" style={{ marginLeft: 'auto' }}>{note}</span> : null}
@@ -127,7 +142,9 @@ export function StatPanel({ totals }: { totals: StatTotals }) {
         <StatRow label="AC" value={totals.ac} />
         <StatRow label="Attack" value={totals.attack} />
         <StatRow label="Attack Speed" value={totals.haste} suffix="%" />
-        <StatRow label="Equipped Weight" value={Math.round(totals.weight * 10) / 10} />
+        {/* One decimal, matching the tile above it — rounding to a whole number
+            printed the same weight as 1.7 in one place and 2 in the other. */}
+        <StatRow label="Equipped Weight" value={totals.weight} places={1} />
       </Group>
 
       <Group title="Weapons" defaultOpen={Boolean(primary || secondary)}>
