@@ -141,6 +141,7 @@ export function SetWorkspace({
             views={views}
             weights={gearSet.weights}
             totals={totals}
+            context={context}
             readOnly={readOnly}
             onPick={(id) => setOpenSlot(id)}
             onUpgrade={onUpgrade}

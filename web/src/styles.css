@@ -1,54 +1,52 @@
+@import './styles/tokens.css';
+
 /* =============================================================================
    EQL Upgrades — stylesheet
    Dark theme only, per UI-REFERENCE §A6: near-black grounds, one azure accent,
-   amber for era/tier labels, uppercase condensed titles, letter-spaced grey
+   amber for era/phase labels, uppercase condensed titles, letter-spaced grey
    section labels, pill buttons, thin rules between stat columns.
+
+   Every colour, space and size in this file resolves to a token from
+   `styles/tokens.css`. The block below is an alias layer only: it maps the
+   names this sheet grew up with onto the tokens, so there is exactly one
+   palette and changing it changes the whole app.
    ========================================================================== */
 
-/* --- 1. Tokens ---------------------------------------------------------- */
+/* --- 1. Token aliases ---------------------------------------------------- */
 
 :root {
   color-scheme: dark;
 
-  --bg: #0d0d0d;
-  --bg-raised: #131313;
-  --panel: #1a1a1a;
-  --panel-2: #202020;
-  --panel-3: #262626;
-  --line: #2b2b2b;
-  --line-soft: #232323;
+  --bg: var(--bg-page);
+  --bg-raised: var(--bg-inset);
+  --panel: var(--bg-panel);
+  --panel-2: var(--bg-panel-raised);
+  --panel-3: var(--bg-hover);
+  --line-soft: color-mix(in srgb, var(--line) 55%, var(--bg-panel));
 
-  --text: #e9e9ea;
-  --text-dim: #b3b3b6;
-  --muted: #8a8a8f;
-  --faint: #5e5e63;
+  --muted: var(--text-dim);
+  --faint: var(--text-faint);
 
-  --accent: #3b9fe8;
-  --accent-hot: #57b1f2;
-  --accent-dim: #1d5f8f;
-  --accent-ghost: rgba(59, 159, 232, 0.14);
+  --amber: var(--warn);
+  --amber-dim: color-mix(in srgb, var(--warn) 55%, var(--bg-page));
 
-  --amber: #d9a441;
-  --amber-dim: #8a6a2c;
+  --good: var(--gain);
+  --bad: var(--loss);
 
-  --good: #4fbf7b;
-  --bad: #e06070;
-  --warn: #e0a13c;
+  /*
+   * Item names are tinted by *usability*, not by a rarity tier — EverQuest
+   * Legends has none. See tokens.css: green when a class in the active loadout
+   * qualifies, red when none does, plain when there is no character to judge
+   * against. `--item-caution` stays reserved and unused.
+   */
+  --item-neutral: var(--text-strong);
 
-  --q-common: #cfd4da;
-  --q-uncommon: #6fd08c;
-  --q-rare: #57a9f0;
-  --q-epic: #b98ce8;
-  --q-locked: #d9a441;
+  --shadow: var(--shadow-modal);
 
-  --radius: 6px;
-  --radius-pill: 999px;
-  --shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --sans: var(--font);
+  --mono: var(--font-num);
 
-  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-
-  --gutter: 20px;
+  --gutter: var(--s5);
 }
 
 /* --- 2. Reset & base ---------------------------------------------------- */
@@ -120,25 +118,26 @@ ul {
 /* --- 3. Typography helpers ---------------------------------------------- */
 
 .page-title {
-  font-size: 26px;
+  font-size: var(--fs-title);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-stretch: 87.5%;
+  color: var(--text-strong);
 }
 
 .section-label {
-  font-size: 10.5px;
+  font-size: var(--fs-small);
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   color: var(--muted);
 }
 
 .era-label {
-  font-size: 10.5px;
+  font-size: var(--fs-micro);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   color: var(--amber);
 }
@@ -178,24 +177,26 @@ ul {
   top: 0;
   z-index: 30;
   display: flex;
-  align-items: center;
-  gap: 18px;
+  align-items: stretch;
+  gap: var(--s4);
   padding: 0 var(--gutter);
   height: 52px;
-  background: rgba(13, 13, 13, 0.92);
+  background: color-mix(in srgb, var(--bg-page) 92%, transparent);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--line);
 }
 
 .brand {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  color: var(--text);
+  align-items: center;
+  gap: var(--s2);
+  color: var(--text-strong);
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  font-size: 14px;
+  font-size: var(--fs-body);
+  flex: none;
+  min-width: 0;
 }
 
 .brand em {
@@ -203,38 +204,64 @@ ul {
   font-style: normal;
 }
 
+/*
+ * The nav was a fixed 272px block that neither wrapped nor shrank, so its
+ * right edge sat at x=440 in a 390px viewport and every screen scrolled
+ * sideways. It now shrinks with the bar and its items truncate rather than
+ * push.
+ */
 .topbar nav {
   display: flex;
-  gap: 4px;
+  gap: var(--s1);
   margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
+/*
+ * One active-state language. The nav used to mark its current item with a
+ * filled blue pill while the tab row 120px below marked its current item with
+ * a blue underline — two vocabularies for one idea. Both underline now.
+ */
 .topbar nav a {
-  padding: 6px 12px;
-  border-radius: var(--radius-pill);
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--s3);
   color: var(--text-dim);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.09em;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .topbar nav a:hover {
-  background: var(--panel-2);
-  color: var(--text);
+  color: var(--text-strong);
 }
 
 .topbar nav a[aria-current='page'] {
-  color: var(--accent);
-  background: var(--accent-ghost);
+  color: var(--text-strong);
+}
+
+.topbar nav a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  left: var(--s2);
+  right: var(--s2);
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
 }
 
 .page {
   flex: 1;
   width: 100%;
-  max-width: 1360px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 22px var(--gutter) 64px;
+  padding: var(--s5) var(--gutter) var(--s7);
 }
 
 .page-head {
@@ -291,13 +318,13 @@ ul {
 .btn-primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #041220;
+  color: var(--bg-page);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-hot);
   border-color: var(--accent-hot);
-  color: #041220;
+  color: var(--bg-page);
 }
 
 .btn-danger:hover:not(:disabled) {
@@ -307,7 +334,7 @@ ul {
 
 .btn-sm {
   padding: 4px 11px;
-  font-size: 11px;
+  font-size: var(--fs-small);
 }
 
 .btn-quiet {
@@ -320,6 +347,25 @@ ul {
   background: var(--panel-2);
   border-color: transparent;
   color: var(--text);
+}
+
+/*
+ * A square 26px control for the one-glyph actions. Deliberately smaller than
+ * the +N stepper beside it on a slot row: the destructive action used to be
+ * the larger of the two, and 8px away.
+ */
+.btn-icon {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  flex: none;
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+}
+
+.btn-icon:hover:not(:disabled) {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
 }
 
 .field {
@@ -480,13 +526,23 @@ select {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 30% 25%, #2a3a48, #14181c);
+  background: radial-gradient(
+    circle at 30% 25%,
+    color-mix(in srgb, var(--accent) 26%, var(--bg-inset)),
+    var(--bg-inset)
+  );
   border: 1px solid var(--line);
   color: var(--accent);
   font-weight: 800;
-  font-size: 17px;
+  font-size: var(--fs-mid);
   letter-spacing: 0.04em;
   flex: none;
+}
+
+.portrait.sm {
+  width: 34px;
+  height: 34px;
+  font-size: var(--fs-body);
 }
 
 .identity h1 {
@@ -522,7 +578,11 @@ select {
   border-radius: 50%;
   border: 1px solid var(--accent-dim);
   box-shadow: 0 0 0 3px var(--accent-ghost);
-  background: radial-gradient(circle at 35% 30%, #1d3d55, #101418);
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, var(--accent) 32%, var(--bg-inset)),
+    var(--bg-inset)
+  );
   display: grid;
   place-items: center;
   color: var(--accent);
@@ -607,64 +667,89 @@ select {
   display: flex;
   gap: 2px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 /* --- 8. Paper doll ------------------------------------------------------ */
 
 .doll {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(300px, 1.15fr) minmax(220px, 1fr);
-  gap: 14px;
+  grid-template-columns: minmax(260px, 1fr) 302px minmax(260px, 1fr);
+  gap: var(--s4);
   align-items: start;
+  margin-bottom: var(--s5);
 }
 
 .doll-col {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.doll-center {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: var(--s1);
   min-width: 0;
 }
 
-.slot-wrap {
+/* The character stays put while the two item columns scroll past it. */
+.doll-center {
+  position: sticky;
+  top: 66px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-bottom: 4px;
+  gap: var(--s3);
+  min-width: 0;
 }
 
-.slot-wrap.right .slot-foot {
-  justify-content: flex-end;
-}
-
-.slot {
-  display: grid;
-  grid-template-columns: 38px 1fr;
-  gap: 10px;
+/*
+ * One row, one height — 54px whether the slot is filled or empty.
+ *
+ * The old row was a 54px card plus a 40px control footer plus a 10px gap:
+ * 104px filled against 58px empty, so 23 slots needed 1,313px in one column
+ * and the page *grew by 45%* as it filled. The stepper and the clear control
+ * moved onto the row; the page height is now constant.
+ */
+.slot-wrap {
+  display: flex;
   align-items: center;
-  padding: 7px 8px;
+  gap: var(--s1);
+  min-height: 54px;
+  min-width: 0;
+  padding-right: var(--s2);
   border: 1px solid transparent;
   border-radius: var(--radius);
-  background: var(--panel);
-  text-align: left;
-  width: 100%;
-  cursor: pointer;
-  color: inherit;
+  background: var(--bg-panel);
   transition: border-color 0.1s ease, background 0.1s ease;
 }
 
-.slot:hover {
-  border-color: var(--accent-dim);
-  background: var(--panel-2);
+.slot-wrap.right {
+  flex-direction: row-reverse;
+  padding-right: 0;
+  padding-left: var(--s2);
+}
+
+.slot-wrap:hover {
+  border-color: var(--line-strong);
+  background: var(--bg-panel-raised);
+}
+
+.slot {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: var(--s3);
+  align-items: center;
+  padding: var(--s2);
+  min-height: 52px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  text-align: left;
+  min-width: 0;
+  cursor: pointer;
+  color: inherit;
 }
 
 .slot.right {
-  grid-template-columns: 1fr 38px;
+  grid-template-columns: 1fr 34px;
   text-align: right;
 }
 
@@ -672,52 +757,99 @@ select {
   order: 2;
 }
 
+.slot-wrap.empty {
+  background: var(--bg-inset);
+}
+
 .slot.empty .slot-name {
-  color: var(--faint);
+  color: var(--text-dim);
+  font-size: var(--fs-body);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-weight: 500;
 }
 
-.slot.any {
-  border-style: dashed;
-  border-color: var(--amber-dim);
-  background: linear-gradient(180deg, rgba(217, 164, 65, 0.06), transparent 70%), var(--panel);
+/*
+ * The two EQL-only positions get a warm ground rather than a dashed border:
+ * dashed universally reads as *empty / dropzone / invalid*, so the two most
+ * valuable filled slots in a set looked like validation errors.
+ */
+.slot-wrap.any {
+  border-color: color-mix(in srgb, var(--warn) 30%, transparent);
+  background: linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--warn) 8%, transparent),
+      transparent 60%
+    ),
+    var(--bg-panel);
 }
 
-.slot.unresolved {
-  border-color: var(--bad);
+.slot-wrap.any.empty {
+  background: linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--warn) 5%, transparent),
+      transparent 60%
+    ),
+    var(--bg-inset);
+}
+
+.slot-wrap.unresolved {
+  border-color: var(--danger);
 }
 
 .slot-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 4px;
-  background: var(--panel-3);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  background: var(--bg-inset);
   border: 1px solid var(--line);
   display: grid;
   place-items: center;
-  color: var(--faint);
-  font-size: 15px;
+  color: var(--text-faint);
   flex: none;
 }
 
 .slot.filled .slot-icon {
-  color: var(--accent);
-  background: linear-gradient(160deg, #1f2a33, #14181c);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, currentColor 16%, var(--bg-inset)),
+    var(--bg-inset)
+  );
+  border-color: color-mix(in srgb, currentColor 34%, var(--line));
 }
 
 .slot-body {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .slot-name {
-  font-size: 10px;
-  letter-spacing: 0.13em;
+  display: block;
+  font-size: var(--fs-micro);
+  line-height: 1.25;
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text-faint);
   font-weight: 700;
 }
 
+.slot-flex {
+  display: inline-block;
+  margin-left: var(--s1);
+  padding: 0 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+  color: var(--warn);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+}
+
 .slot-item {
-  font-size: 13px;
+  display: block;
+  font-size: var(--fs-body);
+  line-height: 1.25;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -725,7 +857,9 @@ select {
 }
 
 .slot-stats {
-  font-size: 11.5px;
+  display: block;
+  font-size: var(--fs-small);
+  line-height: 1.25;
   color: var(--text-dim);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -736,8 +870,119 @@ select {
 .slot-foot {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 8px;
+  gap: var(--s1);
+  flex: none;
+}
+
+/* --- 8b. The character panel -------------------------------------------- */
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%),
+    var(--bg-panel);
+}
+
+.figure-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  align-items: center;
+}
+
+.figure-row {
+  display: flex;
+  gap: var(--s1);
+  justify-content: center;
+}
+
+.figure-cell {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-inset);
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.1s ease, background 0.1s ease, transform 0.1s ease;
+}
+
+.figure-cell:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.figure-cell.on {
+  border-color: color-mix(in srgb, currentColor 40%, var(--line));
+  background: linear-gradient(
+    155deg,
+    color-mix(in srgb, currentColor 20%, var(--bg-inset)),
+    var(--bg-inset)
+  );
+}
+
+.figure-cell.bad {
+  border-color: var(--danger);
+}
+
+.figure-tier {
+  position: absolute;
+  right: -2px;
+  bottom: -3px;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--warn);
+  color: var(--bg-page);
+  font-size: 8.5px;
+  font-weight: 800;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.figure-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.figure-meter-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--bg-inset);
+  overflow: hidden;
+}
+
+.figure-meter-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.18s ease;
+}
+
+.figure-meter-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.figure-meter-row b {
+  color: var(--text-strong);
+  font-size: var(--fs-body);
+}
+
+.figure-meter-row i {
+  font-style: normal;
 }
 
 /* upgrade stepper */
@@ -747,18 +992,18 @@ select {
   align-items: stretch;
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
-  background: var(--panel-2);
+  background: var(--bg-inset);
   overflow: hidden;
-  height: 22px;
+  height: 28px;
 }
 
 .stepper button {
   border: 0;
   background: transparent;
-  color: var(--muted);
-  width: 22px;
+  color: var(--text);
+  width: 28px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--fs-mid);
   line-height: 1;
   display: grid;
   place-items: center;
@@ -770,19 +1015,25 @@ select {
 }
 
 .stepper button:disabled {
-  opacity: 0.3;
+  color: var(--text-faint);
   cursor: not-allowed;
 }
 
+/*
+ * The value chip stays coloured at every tier, so a column of 23 steppers
+ * shows the set's upgrade state at rest instead of reading as 23 identical
+ * grey chips.
+ */
 .stepper .value {
-  min-width: 34px;
+  min-width: 36px;
   display: grid;
   place-items: center;
-  font-size: 11.5px;
+  padding: 0 var(--s1);
+  font-size: var(--fs-small);
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: var(--amber);
-  background: var(--panel-3);
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, var(--bg-panel-raised));
   border-left: 1px solid var(--line);
   border-right: 1px solid var(--line);
   cursor: ns-resize;
@@ -790,7 +1041,8 @@ select {
 }
 
 .stepper .value[data-zero='true'] {
-  color: var(--muted);
+  color: var(--text-dim);
+  background: var(--bg-panel-raised);
 }
 
 .stepper .value:focus-visible {
@@ -803,7 +1055,37 @@ select {
 .stats {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--s2);
+}
+
+.stats-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  padding-bottom: var(--s1);
+  border-bottom: 1px solid var(--line);
+}
+
+/*
+ * Four groups abreast under the full width of the doll. The old panel was a
+ * fixed 3-column grid applied blindly to 4-, 6-, 7-, 9- and 10-item lists, so
+ * Vitals, Weapons, Stats and Spell Mods each orphaned a lone cell on a row of
+ * their own.
+ */
+.stat-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--s2);
+  align-items: start;
+}
+
+.stats-more {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  padding-top: var(--s1);
 }
 
 .stat-group {
@@ -880,7 +1162,7 @@ select {
 }
 
 .stat-row.at-cap {
-  background: rgba(217, 164, 65, 0.09);
+  background: color-mix(in srgb, var(--warn) 9%, transparent);
 }
 
 .stat-row.at-cap .v {
@@ -893,39 +1175,59 @@ select {
   margin-left: 4px;
 }
 
+/*
+ * The client's Vitals block, and the *only* place these seven numbers appear.
+ * A KPI strip used to restate five of them verbatim 40px above, each under a
+ * different name.
+ */
 .vitals {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
   gap: 1px;
-  background: var(--line-soft);
+  background: var(--line);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
 }
 
-.vital {
-  background: var(--panel);
-  padding: 10px 12px;
+.stat-row.vital {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  background: var(--bg-inset);
+  border: 0;
+  padding: var(--s2) var(--s3);
 }
 
-.vital .k {
-  font-size: 10px;
-  letter-spacing: 0.14em;
+.stat-row.vital .k {
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text-dim);
   font-weight: 700;
 }
 
-.vital .v {
-  font-size: 19px;
+.stat-row.vital .v {
+  font-size: var(--fs-large);
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
+  line-height: 1.2;
 }
 
-.vital .sub {
-  font-size: 11px;
-  color: var(--faint);
-  font-variant-numeric: tabular-nums;
+.stat-row.vital.zero .v {
+  color: var(--text-faint);
+  font-weight: 700;
+}
+
+/* Seven tiles never divide evenly, so the last one takes the remaining run. */
+.vitals .stat-row.vital:last-child {
+  grid-column: 1 / -1;
+}
+
+/* Weapon rows carry units and a ratio, so they get the full card width. */
+.stat-group.wide .stat-grid {
+  grid-template-columns: 1fr;
 }
 
 /* --- 10. Modal / picker -------------------------------------------------- */
@@ -934,7 +1236,7 @@ select {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(0, 0, 0, 0.66);
+  background: color-mix(in srgb, black 66%, transparent);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -983,9 +1285,9 @@ select {
 
 .picker-controls {
   display: flex;
-  gap: 10px;
+  gap: var(--s2) var(--s3);
   align-items: center;
-  padding: 12px 16px;
+  padding: var(--s3) var(--s4);
   border-bottom: 1px solid var(--line);
   flex-wrap: wrap;
 }
@@ -994,15 +1296,29 @@ select {
   flex: 1 1 240px;
 }
 
+/* Both checkboxes travel together, so the second cannot orphan itself on a
+   row of its own at the far left. */
+.checkgroup {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  flex-wrap: wrap;
+}
+
 .picker-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 7px 16px;
+  gap: var(--s3);
+  padding: 6px var(--s4);
   border-bottom: 1px solid var(--line);
-  font-size: 11.5px;
+  font-size: var(--fs-small);
   color: var(--muted);
   flex-wrap: wrap;
+}
+
+.picker-note {
+  margin-left: auto;
+  color: var(--text-faint);
 }
 
 .results {
@@ -1038,7 +1354,7 @@ select {
 }
 
 .result.equipped-now {
-  background: rgba(59, 159, 232, 0.07);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .result > span:first-child {
@@ -1047,17 +1363,29 @@ select {
 }
 
 .result-name {
-  font-size: 13.5px;
+  font-size: var(--fs-body);
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
   flex-wrap: wrap;
+}
+
+.result-glyph,
+.cell-glyph {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, currentColor 26%, var(--line));
+  background: color-mix(in srgb, currentColor 12%, var(--bg-inset));
 }
 
 .result-line {
   display: block;
-  font-size: 11.5px;
+  font-size: var(--fs-small);
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
   overflow: hidden;
@@ -1067,9 +1395,9 @@ select {
 
 .result-deltas {
   display: flex;
-  gap: 8px;
+  gap: var(--s2);
   flex-wrap: wrap;
-  font-size: 11px;
+  font-size: var(--fs-small);
   font-variant-numeric: tabular-nums;
   margin-top: 2px;
 }
@@ -1080,12 +1408,13 @@ select {
 }
 
 .result-score .n {
-  font-size: 15px;
+  font-size: var(--fs-mid);
   font-weight: 700;
+  color: var(--text-strong);
 }
 
 .result-score .d {
-  font-size: 11px;
+  font-size: var(--fs-small);
 }
 
 .tag {
@@ -1095,12 +1424,13 @@ select {
   border: 1px solid var(--line);
   background: var(--panel-2);
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: var(--fs-micro);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
+/* Amber is reserved for era and phase labels that are actually known. */
 .tag-era {
   color: var(--amber);
   border-color: var(--amber-dim);
@@ -1108,20 +1438,49 @@ select {
 
 .tag-locked {
   color: var(--warn);
-  border-color: var(--warn);
+  border-color: var(--amber-dim);
 }
 
-.tag-any {
-  color: var(--amber);
-  border-color: var(--amber-dim);
+.tag-worn {
+  color: var(--accent);
+  border-color: var(--accent-dim);
 }
 
 /* --- 11. Class picker ---------------------------------------------------- */
 
+.class-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.class-status {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 26px;
+}
+
 .class-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
-  gap: 10px;
+  gap: var(--s3);
+}
+
+/* Clicking a fourth class used to do nothing and say nothing. */
+@keyframes class-nudge {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.class-grid.nudge .class-chip[aria-pressed='true'] {
+  animation: class-nudge 0.24s ease 2;
+}
+
+.class-grid.nudge .class-chip[aria-pressed='true'] .class-orb {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 22%, transparent);
 }
 
 .class-chip {
@@ -1147,7 +1506,11 @@ select {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 32% 28%, #262f38, #12161a);
+  background: radial-gradient(
+    circle at 32% 28%,
+    var(--bg-hover),
+    var(--bg-inset)
+  );
   border: 1px solid var(--line);
   font-weight: 800;
   font-size: 13px;
@@ -1159,31 +1522,44 @@ select {
 .class-chip[aria-pressed='true'] .class-orb {
   border-color: var(--accent);
   color: var(--accent-hot);
-  box-shadow: 0 0 0 3px var(--accent-ghost), 0 0 16px rgba(59, 159, 232, 0.45);
+  box-shadow: 0 0 0 3px var(--accent-ghost),
+    0 0 16px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 .class-chip[aria-pressed='true'] {
   color: var(--text);
 }
 
+/*
+ * Both text slots are a fixed height. `Shadow Knight` is the one two-line
+ * label and the ordinal only existed under chosen chips, so the whole grid
+ * reflowed under the cursor as you selected.
+ */
 .class-chip .cname {
-  font-size: 10.5px;
+  font-size: var(--fs-small);
+  line-height: 1.25;
   letter-spacing: 0.05em;
   text-align: center;
+  min-height: 2.5em;
 }
 
 .class-chip .order {
-  font-size: 9px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   color: var(--accent);
   font-weight: 700;
-  min-height: 12px;
+  min-height: 13px;
 }
 
+/*
+ * A native `disabled` button swallows the click outright, so the grid behind
+ * it never hears about it. Letting the pointer through is what lets the picker
+ * answer a fourth pick instead of ignoring it.
+ */
 .class-chip:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* --- 12. Tables ---------------------------------------------------------- */
@@ -1198,16 +1574,16 @@ select {
 table.data {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: var(--fs-body);
 }
 
 table.data th {
   text-align: left;
-  padding: 9px 12px;
+  padding: var(--s2) var(--s3);
   background: var(--panel-2);
   border-bottom: 1px solid var(--line);
-  font-size: 10px;
-  letter-spacing: 0.13em;
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
@@ -1231,14 +1607,41 @@ table.data th button:hover {
   color: var(--text);
 }
 
+/*
+ * One line per row. 100 rows used to cost 6,132px because the name cell
+ * carried a second line of flag chips and `ERA UNKNOWN` wrapped onto a third.
+ */
 table.data td {
-  padding: 7px 12px;
+  padding: 5px var(--s3);
   border-bottom: 1px solid var(--line-soft);
-  vertical-align: top;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 340px;
 }
 
 table.data tbody tr:hover {
   background: var(--panel-2);
+}
+
+.cell-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+  max-width: 100%;
+  font-weight: 600;
+}
+
+.cell-item .iname {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-stats {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 .num {
@@ -1248,48 +1651,90 @@ table.data tbody tr:hover {
 
 /* --- 13. Cards & lists --------------------------------------------------- */
 
+/*
+ * 360px, not 260px. A card pinned to ~320px with three inline buttons in it
+ * had nowhere to put them, so the set row collapsed and painted "Set" over
+ * "RENAME" — while 1,000px of the container sat empty beside it.
+ */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--s3);
 }
 
 .card {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px;
+  border-radius: var(--radius-lg);
+  padding: var(--s4);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--s3);
 }
 
 .card h3 {
-  font-size: 16px;
+  font-size: var(--fs-mid);
   font-weight: 600;
+  color: var(--text-strong);
 }
 
 .card .row {
   display: flex;
-  gap: 8px;
+  gap: var(--s2);
   flex-wrap: wrap;
   align-items: center;
 }
 
+.card-ident {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-width: 0;
+}
+
+.card-foot {
+  margin-top: auto;
+  padding-top: var(--s1);
+}
+
+/*
+ * The name track takes the space that is left (`.grow` carries `min-width: 0`)
+ * and the buttons hold their own track. Without that the two overlapped.
+ */
 .set-line {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 7px 10px;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel-2);
+  flex-wrap: wrap;
+}
+
+.set-line-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  margin-left: auto;
+}
+
+.set-line > .grow {
+  flex: 1 1 11rem;
 }
 
 .set-line .meta {
-  font-size: 11px;
+  font-size: var(--fs-small);
   color: var(--muted);
+}
+
+.set-line > .grow > a {
+  display: block;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* --- 14. Weights & exaltations ------------------------------------------- */
@@ -1535,55 +1980,126 @@ table.data tbody tr:hover {
   font-size: 11.5px;
 }
 
+/*
+ * Two columns: the promise on the left, the product on the right. The old hero
+ * was a single 760px text block that ended at y=553 in a 1000px viewport, so
+ * 45% of the first screen of a *gear* planner showed no gear at all.
+ */
 .hero {
-  padding: 56px 0 40px;
-  max-width: 760px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: var(--s7);
+  align-items: center;
+  padding: var(--s6) 0 var(--s5);
+}
+
+.hero-copy {
+  max-width: 62ch;
 }
 
 .hero h1 {
-  font-size: 44px;
+  font-size: var(--fs-hero);
   line-height: 1.05;
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   font-stretch: 87.5%;
+  color: var(--text-strong);
 }
 
+/* One azure, reserved for primary buttons, active tabs and selection rings. */
 .hero h1 em {
-  color: var(--accent);
   font-style: normal;
+  color: var(--text-strong);
 }
 
 .hero p {
-  margin-top: 14px;
+  margin-top: var(--s4);
   color: var(--text-dim);
-  font-size: 15px;
+  font-size: var(--fs-mid);
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  margin-top: var(--s5);
+}
+
+.hero-art {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
+    var(--bg-panel);
+}
+
+.hero-art-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.hero-art-head b {
+  display: block;
+  color: var(--text-strong);
+  font-size: var(--fs-mid);
+  font-weight: 400;
+}
+
+.hero-art-head i {
+  display: block;
+  font-style: normal;
+  color: var(--text-dim);
+  font-size: var(--fs-small);
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.hero-art-note {
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.hero-art .figure-cell {
+  cursor: default;
+}
+
+.landing-section {
+  margin-top: var(--s6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
 }
 
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-  margin-top: 34px;
+  gap: var(--s3);
 }
 
 .feature {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 14px;
+  padding: var(--s4);
   background: var(--panel);
 }
 
 .feature h3 {
-  font-size: 12px;
-  letter-spacing: 0.13em;
+  font-size: var(--fs-small);
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
-  margin-bottom: 6px;
-  color: var(--accent);
+  margin-bottom: var(--s2);
+  color: var(--text-strong);
 }
 
 .feature p {
-  font-size: 12.5px;
+  font-size: var(--fs-body);
   color: var(--text-dim);
 }
 
@@ -1602,19 +2118,47 @@ table.data tbody tr:hover {
 /* --- 16. Responsive ------------------------------------------------------ */
 
 @media (max-width: 1080px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: var(--s5);
+  }
+
+  /*
+   * Gear first. The stat panel used to stack *above* every slot, so a tablet
+   * user scrolled ~800px of stat table before reaching the first slot they
+   * came to edit. The character panel is what leads now, and it is 380px, not
+   * a full sheet of numbers.
+   */
   .doll {
     grid-template-columns: 1fr 1fr;
   }
 
   .doll-center {
+    position: static;
     grid-column: 1 / -1;
     order: -1;
+  }
+
+  .figure {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--s5);
+    flex-wrap: wrap;
+  }
+
+  .figure > .figure-grid {
+    flex: none;
+  }
+
+  .figure > .figure-meter,
+  .figure > .vitals {
+    flex: 1 1 320px;
   }
 }
 
 @media (max-width: 720px) {
   :root {
-    --gutter: 12px;
+    --gutter: var(--s3);
   }
 
   .doll {
@@ -1622,7 +2166,7 @@ table.data tbody tr:hover {
   }
 
   .slot.right {
-    grid-template-columns: 38px 1fr;
+    grid-template-columns: 34px 1fr;
     text-align: left;
   }
 
@@ -1630,20 +2174,20 @@ table.data tbody tr:hover {
     order: 0;
   }
 
-  .slot-wrap.right .slot-foot {
-    justify-content: flex-start;
+  .slot-wrap.right {
+    flex-direction: row;
   }
 
   .hero h1 {
-    font-size: 32px;
+    font-size: var(--fs-title);
   }
 
   .identity h1 {
-    font-size: 20px;
+    font-size: var(--fs-large);
   }
 
   .modal-backdrop {
-    padding: 12px 8px;
+    padding: var(--s3) var(--s2);
   }
 
   .modal {
@@ -1652,6 +2196,44 @@ table.data tbody tr:hover {
 
   .socket {
     grid-template-columns: 1fr;
+  }
+}
+
+/*
+ * Phones. `scrollWidth 440` against `clientWidth 390` came from the top bar's
+ * nav: 272px wide with its right edge at x=440, neither wrapping nor
+ * collapsing. Everything in the bar now shrinks.
+ */
+@media (max-width: 560px) {
+  .topbar {
+    gap: var(--s2);
+    padding: 0 var(--s3);
+  }
+
+  .brand {
+    font-size: var(--fs-small);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .topbar nav a {
+    padding: 0 var(--s2);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.06em;
+  }
+
+  .figure-cell {
+    width: 42px;
+    height: 42px;
+  }
+
+  .iwin-float {
+    width: min(330px, calc(100vw - 24px));
+  }
+
+  .page-title {
+    font-size: var(--fs-large);
   }
 }
 
@@ -1844,4 +2426,265 @@ table.data tr.rowlink:focus-visible {
   .exalt-row .socket {
     grid-template-columns: 152px 1fr auto;
   }
+}
+
+/* --- 21. The EverQuest item window --------------------------------------- */
+/*
+ * UI-REFERENCE §B5: dark stone-grey beveled panels, small dense type, green
+ * numerics, cyan group headers, a red gradient title bar with the item name in
+ * white, gold for currency-like values. This is the one artefact in the app
+ * that is meant to look as though it came out of the game.
+ */
+
+.iwin {
+  --stone: color-mix(in srgb, var(--bg-panel-raised) 88%, var(--warn));
+  --stone-lit: color-mix(in srgb, var(--stone) 82%, white);
+  --stone-shade: color-mix(in srgb, var(--stone) 62%, black);
+  width: 100%;
+  border: 1px solid var(--stone-shade);
+  border-radius: 3px;
+  background: var(--stone);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--stone-lit) 45%, transparent),
+    var(--shadow-modal);
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  overflow: hidden;
+}
+
+.iwin-title {
+  padding: 5px var(--s3);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--danger) 88%, white),
+    color-mix(in srgb, var(--danger) 66%, black)
+  );
+  border-bottom: 1px solid var(--stone-shade);
+  text-shadow: 0 1px 1px rgb(0 0 0 / 0.45);
+}
+
+.iwin-title-name {
+  color: var(--text-strong);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
+.iwin-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: var(--s2) var(--s3) var(--s3);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--stone-lit) 25%, transparent), transparent 90px);
+}
+
+.iwin-top {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+}
+
+.iwin-icon {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--stone-shade);
+  border-radius: 2px;
+  background: var(--bg-inset);
+  color: var(--warn);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--stone-lit) 30%, transparent);
+}
+
+.iwin-ident {
+  min-width: 0;
+}
+
+.iwin-slots {
+  color: var(--text-strong);
+  font-weight: 700;
+  letter-spacing: var(--label-spacing);
+  font-size: var(--fs-micro);
+  text-transform: uppercase;
+}
+
+.iwin-flags {
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  font-size: var(--fs-micro);
+  text-transform: uppercase;
+}
+
+.iwin-era {
+  color: var(--warn);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.iwin-warn {
+  color: var(--warn);
+  font-size: var(--fs-micro);
+}
+
+.iwin-headline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--s3);
+  padding: var(--s1) var(--s2);
+  border-top: 1px solid var(--stone-shade);
+  border-bottom: 1px solid var(--stone-shade);
+  background: color-mix(in srgb, var(--bg-inset) 55%, transparent);
+  color: var(--text-dim);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.iwin-headline b,
+.iwin-stat b,
+.iwin-req span {
+  color: var(--gain);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.iwin-group {
+  margin-top: var(--s1);
+  color: var(--accent-hot);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  padding-bottom: 2px;
+}
+
+.iwin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+  gap: 0 var(--s3);
+}
+
+.iwin-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.iwin-stat i,
+.iwin-req i {
+  font-style: normal;
+  color: var(--text-dim);
+}
+
+.iwin-effect {
+  color: var(--text);
+}
+
+.iwin-effect i {
+  font-style: normal;
+  color: var(--accent-hot);
+  text-transform: uppercase;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.06em;
+  margin-right: var(--s1);
+}
+
+.iwin-dim {
+  color: var(--text-dim);
+}
+
+.iwin-req {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0 var(--s3);
+}
+
+.iwin-req > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.iwin-req > div > span {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.iwin-req .iwin-gold {
+  color: var(--warn);
+}
+
+.iwin-req .iwin-bad {
+  color: var(--loss);
+}
+
+.iwin-verdict {
+  margin-top: var(--s1);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.iwin.wide {
+  font-size: var(--fs-body);
+}
+
+.iwin.wide .iwin-title-name {
+  font-size: var(--fs-mid);
+}
+
+/* The floating hover/focus card. */
+.iwin-float {
+  position: fixed;
+  z-index: 90;
+  width: 330px;
+  pointer-events: none;
+}
+
+/* --- 22. Landing showcase ------------------------------------------------ */
+
+.showcase {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: center;
+  padding: var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+}
+
+.showcase-art {
+  min-width: 0;
+}
+
+.showcase-note {
+  font-size: var(--fs-body);
+  max-width: 60ch;
+}
+
+.showcase-note strong {
+  color: var(--text-strong);
+}
+
+@media (max-width: 760px) {
+  .showcase {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The full-sheet disclosure keeps its contents in the DOM while closed. */
+.stat-group.full-sheet > summary {
+  background: transparent;
+}
+
+.stat-group.full-sheet > .stat-columns {
+  padding: var(--s2);
 }

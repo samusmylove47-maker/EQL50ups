@@ -24,10 +24,12 @@ import { useCatalog } from '../data/catalog';
 import type { SlotCode } from '../data/normalize';
 import { searchIndexFor } from '../data/searchIndex';
 import { UpgradeStepper } from '../components/UpgradeStepper';
-import { count, dec, signed } from '../lib/format';
-import { eraLabel, flagLabel, isLive, qualityColor } from '../lib/itemStyle';
+import { count, ep as epText, signed } from '../lib/format';
+import { eraLabel, isLive, itemNameColor } from '../lib/itemStyle';
 import { ItemDetail } from '../components/ItemDetail';
-import { statVector } from '../selectors/gear';
+import { itemHoverProps } from '../components/ItemWindow';
+import { SlotGlyph } from '../components/SlotGlyph';
+import { shortStatLabel, statVector } from '../selectors/gear';
 import { characterFor, setsForCharacter, useApp } from '../state/store';
 import { href, navigate } from '../router';
 import { SLOT_POSITIONS } from '../engine/constants';
@@ -149,6 +151,18 @@ export function ItemBrowser() {
    */
   const targetSet = setsForCharacter(app, app.activeCharacterId ?? characters[0]?.id ?? null)[0];
   const targetCharacter = characterFor(app, targetSet);
+
+  /*
+   * Names are tinted against *your character*, not against the class dropdown.
+   * The dropdown narrows the list, so colouring by it would paint every
+   * surviving row the same green and the rule would never say anything; judged
+   * against the loadout you actually play, browsing the whole catalog tells
+   * you at a glance what you could wear and what you could not.
+   */
+  const colorContext = useMemo(
+    () => (targetCharacter ? activeContext(targetCharacter) : filterContext),
+    [targetCharacter, filterContext],
+  );
   const equipTargets = useMemo(() => {
     if (!detail || !targetSet) return [];
     return SLOT_POSITIONS.filter(
@@ -276,10 +290,12 @@ export function ItemBrowser() {
               </option>
             ))}
           </select>
+          {/* Same words as the picker's own stepper: it was "Rank at" there
+              and "Score at" here for one identical control. */}
           <span className="rowline">
-            <span className="hint">Score at</span>
+            <span className="hint">Preview at</span>
             <UpgradeStepper value={upgrade} label="scoring preview" onChange={setUpgrade} />
-            <button type="button" className="btn btn-sm btn-quiet" onClick={() => setUpgrade(tier(0))}>
+            <button type="button" className="btn btn-sm" onClick={() => setUpgrade(tier(0))}>
               Reset
             </button>
           </span>
@@ -319,6 +335,12 @@ export function ItemBrowser() {
               </tr>
             </thead>
             <tbody>
+              {/*
+                One line per item. The flag chips used to sit on a second line
+                inside the name cell and `ERA UNKNOWN` wrapped onto a third, so
+                100 rows cost 6,100px; both now live in the item window that
+                opens on hover and on click.
+              */}
               {pageRows.map(({ item, score }) => (
                 <tr
                   key={item.n}
@@ -332,30 +354,31 @@ export function ItemBrowser() {
                     event.preventDefault();
                     setDetail(item);
                   }}
+                  {...itemHoverProps(item, upgrade, colorContext)}
                 >
                   <td>
-                    <span style={{ color: qualityColor(item), fontWeight: 600 }}>{item.n}</span>
-                    <div className="chip-row" style={{ marginTop: 3 }}>
-                      {item.fl.slice(0, 3).map((flag) => (
-                        <span className="tag" key={flag}>
-                          {flagLabel(flag)}
-                        </span>
-                      ))}
-                      {!isLive(item) ? <span className="tag tag-locked">Not live</span> : null}
-                    </div>
+                    <span className="cell-item">
+                      <span className="cell-glyph" aria-hidden="true" style={{ color: itemNameColor(item, colorContext) }}>
+                        <SlotGlyph slot={item.sl[0] ?? 'ANY'} size={20} />
+                      </span>
+                      <span className="iname" style={{ color: itemNameColor(item, colorContext) }}>
+                        {item.n}
+                      </span>
+                    </span>
+                    {!isLive(item) ? <span className="tag tag-locked">Not live</span> : null}
                   </td>
                   <td className="dim">{item.sl.join(' / ') || '—'}</td>
                   <td className="dim">{item.cl.join(' ') || 'ALL'}</td>
-                  <td>
+                  <td className="cell-stats">
                     {statVector(item, upgrade)
                       .slice(0, 6)
-                      .map((s) => `${s.label} ${signed(s.value)}`)
+                      .map((s) => `${shortStatLabel(s.key)} ${signed(s.value)}`)
                       .join(' · ') || <span className="dim">—</span>}
                   </td>
                   <td>
                     {eraLabel(item) ? <span className="era-label">{eraLabel(item)}</span> : <span className="dim">—</span>}
                   </td>
-                  <td className="num">{dec(score, 1)}</td>
+                  <td className="num">{epText(score)}</td>
                 </tr>
               ))}
             </tbody>

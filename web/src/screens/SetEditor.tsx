@@ -108,9 +108,19 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
 
   return (
     <div>
+      {/* The notice used to have no dismiss and shifted the whole page down 60px
+          until you navigated away. */}
       {message ? (
         <div className="notice" role="status">
-          <span>{message}</span>
+          <span className="grow">{message}</span>
+          <button
+            type="button"
+            className="btn btn-quiet btn-icon"
+            aria-label="Dismiss this message"
+            onClick={() => setMessage(null)}
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       ) : null}
 
@@ -155,7 +165,7 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
             {character && character.loadouts.length ? (
               <details className="menu">
                 <summary className="btn btn-quiet btn-sm" aria-label="Switch loadout">
-                  ⚔ {describeLoadout(character, activeLoadout(character) ?? character.loadouts[0]!)}
+                  {describeLoadout(character, activeLoadout(character) ?? character.loadouts[0]!)}
                 </summary>
                 <div className="menu-body right">
                   {character.loadouts.map((loadout) => (
@@ -198,7 +208,7 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
                     : 'Fill every empty slot with the best scoring item'
               }
             >
-              {busy ? '… Filling' : '🏳 Auto-fill'}
+              {busy ? '… Filling' : '✦ Auto-fill'}
             </button>
             <button
               type="button"

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { CatalogFootnote, DataBanner } from './components/DataBanner';
+import { ItemWindowLayer } from './components/ItemWindow';
 import { useCatalog } from './data/catalog';
 import { href, useRoute } from './router';
 import { CharacterDetail } from './screens/CharacterDetail';
@@ -134,6 +135,9 @@ export function App() {
         <CatalogFootnote />
         <span>Sets are stored in this browser only.</span>
       </footer>
+
+      {/* One floating item window for the whole app; see components/ItemWindow. */}
+      <ItemWindowLayer />
     </div>
   );
 }

@@ -22,16 +22,19 @@ import type { Item } from '../engine/types';
 import { useCatalog } from '../data/catalog';
 import type { SlotCode } from '../data/normalize';
 import { searchIndexFor } from '../data/searchIndex';
-import { count, dec, signed, signedDec } from '../lib/format';
-import { eraLabel, flagLabel, isLive, itemInitials, qualityColor, sourceSummary } from '../lib/itemStyle';
+import { count, ep as epText, signed, signedDec } from '../lib/format';
+import { displayFlags, eraLabel, isLive, itemNameColor, sourceSummary } from '../lib/itemStyle';
 import {
   rankSlotItems,
   scoreContextFrom,
+  shortStatLabel,
   statDeltas,
   statVector,
   type ScoredItem,
 } from '../selectors/gear';
 import { Modal } from './Modal';
+import { itemHoverProps } from './ItemWindow';
+import { SlotGlyph } from './SlotGlyph';
 import { UpgradeStepper } from './UpgradeStepper';
 
 const RENDER_LIMIT = 150;
@@ -229,17 +232,13 @@ export function ItemPicker({
       onClose={onClose}
       headerExtra={
         <div className="rowline">
-          <span className="hint">Rank at</span>
+          <span className="hint">Preview at</span>
           <UpgradeStepper value={preview} label="ranking preview" onChange={setPreview} />
         </div>
       }
       footer={
         <>
-          <span className="hint grow">
-            {position.type === 'ANY'
-              ? 'Any Slot takes any wearable item. It is a worn position, not a hand, so weapon damage and ratio score nothing here.'
-              : `Ranked by EP against this set's weights, cap-aware.`}
-          </span>
+          <span className="grow" />
           {currentName ? (
             <button type="button" className="btn btn-danger" onClick={onClear}>
               Clear slot
@@ -293,18 +292,22 @@ export function ItemPicker({
           <option value="vendor">Vendor</option>
           <option value="crafted">Crafted</option>
         </select>
-        <label className="checkline">
-          <input type="checkbox" checked={liveOnly} onChange={(e) => setLiveOnly(e.target.checked)} />
-          Live content only
-        </label>
-        <label className="checkline">
-          <input
-            type="checkbox"
-            checked={hideNoDrop}
-            onChange={(e) => setHideNoDrop(e.target.checked)}
-          />
-          Hide No Drop
-        </label>
+        {/* One group, so the second checkbox cannot wrap away on its own and
+            end up orphaned at the far left under its sibling. */}
+        <span className="checkgroup">
+          <label className="checkline">
+            <input type="checkbox" checked={liveOnly} onChange={(e) => setLiveOnly(e.target.checked)} />
+            Live content only
+          </label>
+          <label className="checkline">
+            <input
+              type="checkbox"
+              checked={hideNoDrop}
+              onChange={(e) => setHideNoDrop(e.target.checked)}
+            />
+            Hide No Drop
+          </label>
+        </span>
       </div>
 
       <div className="picker-meta">
@@ -317,6 +320,11 @@ export function ItemPicker({
         </span>
         {currentName ? <span>Equipped: {currentName}</span> : null}
         {catalog.usingFixture ? <span className="era-label">Fixture data</span> : null}
+        <span className="picker-note">
+          {position.type === 'ANY'
+            ? 'Any Slot takes any wearable item — a worn position, not a hand, so weapon damage scores nothing here.'
+            : `Ranked by EP against this set's weights, cap-aware.`}
+        </span>
       </div>
 
       <div
@@ -341,8 +349,19 @@ export function ItemPicker({
 
         {rows.map((entry, index) => {
           const item = entry.item;
-          const deltas = statDeltas(item, preview, currentItem, currentUpgrade);
           const isEquipped = currentName?.toLowerCase() === item.n.toLowerCase();
+          /*
+           * The delta line is a *comparison*, so it only earns its place when
+           * there is something to compare against. With an empty slot the
+           * delta equalled the whole stat vector, and every row printed its
+           * stats twice — once plain, once green, in a different word order —
+           * on the first list every new user opens. And on the row that is
+           * already worn, the comparison is with itself.
+           */
+          const deltas =
+            currentItem && !isEquipped
+              ? statDeltas(item, preview, currentItem, currentUpgrade)
+              : [];
           const era2 = eraLabel(item);
           const source2 = sourceSummary(item);
           return (
@@ -356,33 +375,38 @@ export function ItemPicker({
               aria-selected={index === active}
               onMouseEnter={() => setActive(index)}
               onClick={() => onSelect(item, preview)}
+              {...itemHoverProps(item, preview, context, position.type)}
             >
               <span>
                 <span className="result-name">
-                  <span className="slot-icon" style={{ width: 22, height: 22, fontSize: 9 }} aria-hidden="true">
-                    {itemInitials(item.n)}
+                  <span className="result-glyph" aria-hidden="true" style={{ color: itemNameColor(item, context) }}>
+                    <SlotGlyph slot={position.type} size={22} />
                   </span>
-                  <span style={{ color: qualityColor(item) }}>{item.n}</span>
+                  <span className="iname" style={{ color: itemNameColor(item, context) }}>
+                    {item.n}
+                  </span>
                   {era2 ? <span className="tag tag-era">{era2}</span> : null}
                   {!isLive(item) ? <span className="tag tag-locked">Not live</span> : null}
-                  {item.fl.slice(0, 2).map((flag) => (
-                    <span className="tag" key={flag}>
-                      {flagLabel(flag)}
-                    </span>
-                  ))}
-                  {isEquipped ? <span className="tag">Equipped</span> : null}
+                  {displayFlags(item.fl)
+                    .slice(0, 2)
+                    .map((flag) => (
+                      <span className="tag" key={flag}>
+                        {flag}
+                      </span>
+                    ))}
+                  {isEquipped ? <span className="tag tag-worn">Equipped</span> : null}
                 </span>
                 <span className="result-line">
                   {statVector(item, preview)
                     .slice(0, 8)
-                    .map((s) => `${s.label} ${signed(s.value)}`)
+                    .map((s) => `${shortStatLabel(s.key)} ${signed(s.value)}`)
                     .join(' · ') || 'No stats'}
                 </span>
                 {deltas.length ? (
                   <span className="result-deltas">
                     {deltas.slice(0, 6).map((d) => (
                       <span key={d.key} className={d.delta > 0 ? 'good' : 'bad'}>
-                        {signed(d.delta)} {d.label}
+                        {signed(d.delta)} {shortStatLabel(d.key)}
                       </span>
                     ))}
                   </span>
@@ -390,9 +414,9 @@ export function ItemPicker({
                 {source2 ? <span className="result-line dim">{source2}</span> : null}
               </span>
               <span className="result-score">
-                <span className="n">{dec(entry.score, 1)}</span>
+                <span className="n">{epText(entry.score)}</span>
                 <span className="d dim"> EP</span>
-                {currentItem ? (
+                {currentItem && !isEquipped ? (
                   <>
                     <br />
                     <span className={`d ${entry.score >= wornScore ? 'good' : 'bad'}`}>

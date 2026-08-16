@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
-import { activeRace, describeCharacter, loadoutClasses } from '../engine/character';
-import { CLASS_NAMES, type ClassCode } from '../engine/constants';
+import { activeRace, describeCharacter } from '../engine/character';
 import { isExportEnvelope } from '../share/codec';
 import { href, navigate } from '../router';
 import { setsForCharacter, useApp } from '../state/store';
@@ -116,14 +115,20 @@ export function Characters() {
           const sets = setsForCharacter(state, character.id);
           return (
             <article className="card" key={character.id}>
-              <div className="spread">
-                <div>
+              {/*
+                The name column carries `min-width: 0` through `.grow` and the
+                buttons live in their own flex track. Without that the set row
+                collapsed: "Main Set" wrapped one letter per line and painted
+                the word "Set" straight over the word "RENAME".
+              */}
+              <div className="card-ident">
+                <div className="portrait sm" aria-hidden="true">
+                  {character.name.trim().charAt(0).toUpperCase() || '?'}
+                </div>
+                <div className="grow">
                   <h3>{character.name}</h3>
-                  <div className="hint">{describeCharacter(character)}</div>
                   <div className="hint">
-                    {loadoutClasses(character)
-                      .map((c) => CLASS_NAMES[c as ClassCode] ?? c)
-                      .join(' · ') || 'No classes'}
+                    {describeCharacter(character)}
                     {activeRace(character) ? ` · ${activeRace(character)}` : ''}
                   </div>
                   <div className="hint">
@@ -141,11 +146,11 @@ export function Characters() {
                     <div className="grow">
                       <a href={href.set(gearSet.id)}>{gearSet.name}</a>
                       <div className="meta">
-                        {Object.keys(gearSet.slots).length} equipped ·{' '}
+                        {Object.keys(gearSet.slots).length} equipped · edited{' '}
                         {new Date(gearSet.updatedAt).toLocaleDateString()}
                       </div>
                     </div>
-                    <div className="rowline">
+                    <div className="set-line-actions">
                       <button
                         type="button"
                         className="btn btn-sm btn-quiet"
@@ -178,7 +183,7 @@ export function Characters() {
                 {!sets.length ? <li className="hint">No sets yet.</li> : null}
               </ul>
 
-              <div className="row">
+              <div className="row card-foot">
                 <button
                   type="button"
                   className="btn btn-sm btn-primary"
@@ -189,9 +194,10 @@ export function Characters() {
                 >
                   New set
                 </button>
+                <span className="grow" />
                 <button
                   type="button"
-                  className="btn btn-sm btn-danger"
+                  className="btn btn-sm btn-quiet btn-danger"
                   onClick={() => {
                     if (
                       window.confirm(

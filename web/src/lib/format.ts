@@ -24,6 +24,19 @@ export function dec(value: unknown, places = 1): string {
   return s.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
 }
 
+/**
+ * Equivalency points, always to one decimal.
+ *
+ * The numeric policy in one function. `dec()` trims trailing zeros, so an EP
+ * column printed `57.5` next to `31` next to `41.8` and the decimal points in
+ * a right-aligned comparison column did not line up — 78 of 97 picker rows had
+ * no decimal and 19 had one. EP is 1dp everywhere; weapon ratio is 3dp because
+ * that is what the client prints; everything else is a whole number.
+ */
+export function ep(value: unknown): string {
+  return finite(value).toFixed(1);
+}
+
 /** Signed integer, e.g. `+12` / `-3` / `0`. */
 export function signed(value: unknown): string {
   const n = Math.round(finite(value));

@@ -2,16 +2,26 @@
  * Item presentation rules: the colour an item's name takes, and the labels
  * that ride alongside it.
  *
- * EQ has no WoW-style quality tiers, so the closest honest analogue is the
- * content era an item comes from — later era, richer colour — with anything
- * not yet live in the pre-Kunark game shown in amber, matching the reference
- * spec's use of amber for era/phase labels.
+ * **There are no rarity tiers in EverQuest Legends**, so a WoW-style
+ * grey/green/blue/purple ladder would be imported nonsense. The client instead
+ * tints an item's name by whether *this character* can use it. On the sampled
+ * Bard/Warrior/Berserker, Monk-only "Whitened Treant Fists" renders red while
+ * Earthshaker, Cloak of Flames and Bone-Clasped Girdle — each qualifying
+ * through one of the trio — render green.
+ *
+ * That is what we reproduce, driven by the active loadout: an item a class in
+ * the trio qualifies for is `--item-usable`, one that none of them qualifies
+ * for is `--item-blocked`, and when there is no character to judge against
+ * (the item browser with no class filter, a share link's read-only view) the
+ * name is simply plain. `--item-caution` maps to an unexplained third client
+ * state and stays deliberately unused.
  */
 
-import { ERA_ORDER, isEraLive, isTier0Confirmed } from '../engine/constants';
+import { canUse, type LoadoutContext } from '../engine/character';
+import { isEraLive, isTier0Confirmed } from '../engine/constants';
 import type { Item } from '../engine/types';
 
-export type Quality = 'common' | 'uncommon' | 'rare' | 'epic' | 'locked';
+export type Usability = 'usable' | 'blocked' | 'unjudged';
 
 export function isLive(item: Item): boolean {
   // Seeing an item in a live client outranks any era inference about it.
@@ -19,24 +29,44 @@ export function isLive(item: Item): boolean {
   return item.av !== false && isEraLive(item.era);
 }
 
-export function qualityOf(item: Item): Quality {
-  if (!isLive(item)) return 'locked';
-  const index = item.era ? ERA_ORDER.indexOf(item.era as (typeof ERA_ORDER)[number]) : -1;
-  if (index < 0) return 'common';
-  if (index >= 5) return 'epic';
-  if (index >= 3) return 'rare';
-  if (index >= 1) return 'uncommon';
-  return 'common';
+/** Restriction shape `canUse` wants, built from a catalog item. */
+function restrictionsOf(item: Item) {
+  return { classes: item.cl, races: item.ra, ...(item.rl ? { rl: item.rl } : {}) };
 }
 
-export function qualityColor(item: Item): string {
-  return `var(--q-${qualityOf(item)})`;
+export function usabilityOf(item: Item, context: LoadoutContext | undefined): Usability {
+  if (!context || !context.classes.length) return 'unjudged';
+  return canUse(restrictionsOf(item), context) ? 'usable' : 'blocked';
 }
 
+/** The colour an item name takes on every surface. */
+export function itemNameColor(item: Item, context: LoadoutContext | undefined): string {
+  const state = usabilityOf(item, context);
+  if (state === 'usable') return 'var(--item-usable)';
+  if (state === 'blocked') return 'var(--item-blocked)';
+  return 'var(--item-neutral)';
+}
+
+/**
+ * Why an item is tinted the way it is, for a tooltip or an assistive label.
+ * Silent when there is no character to judge against.
+ */
+export function usabilityNote(item: Item, context: LoadoutContext | undefined): string | null {
+  const state = usabilityOf(item, context);
+  if (state === 'unjudged') return null;
+  if (state === 'usable') return 'Usable by this loadout';
+  return 'This loadout cannot equip it';
+}
+
+/**
+ * The era badge, and only when the era is actually known.
+ *
+ * A missing era used to render as `ERA UNKNOWN` in an amber outlined badge —
+ * the loudest treatment in the row, spent on the absence of data. Amber is
+ * reserved for real era/phase labels (§A6); a null is simply absent.
+ */
 export function eraLabel(item: Item): string | null {
-  if (item.era) return item.era;
-  if (item.eraUnknown) return 'Era unknown';
-  return null;
+  return item.era ? item.era : null;
 }
 
 const FLAG_LABELS: Record<string, string> = {
@@ -51,7 +81,7 @@ const FLAG_LABELS: Record<string, string> = {
   ATTUNEABLE: 'Attuneable',
   NO_RENT: 'No Rent',
   ARTIFACT: 'Artifact',
-  LORE_EQUIPPED: 'Lore Equipped',
+  LORE_EQUIPPED: 'Lore',
   PLACEABLE: 'Placeable',
   FIXTURE: 'Fixture',
 };
@@ -60,12 +90,19 @@ export function flagLabel(flag: string): string {
   return FLAG_LABELS[flag] ?? flag.replace(/_/g, ' ').toLowerCase();
 }
 
-/** Short, stable initials for the icon tile when no artwork is available. */
-export function itemInitials(name: string): string {
-  const words = name.replace(/^\[[^\]]*\]\s*/, '').split(/\s+/).filter(Boolean);
-  const first = words[0]?.[0] ?? '?';
-  const second = words.length > 1 ? (words[words.length - 1]?.[0] ?? '') : (words[0]?.[1] ?? '');
-  return (first + second).toUpperCase();
+/**
+ * Flags as they should be shown: de-duplicated by label.
+ *
+ * `LORE` and `LORE_EQUIPPED` are both "Lore" to a reader and used to render as
+ * two adjacent identical-looking tags on the same row.
+ */
+export function displayFlags(flags: readonly string[]): string[] {
+  const out: string[] = [];
+  for (const flag of flags) {
+    const label = flagLabel(flag);
+    if (!out.includes(label)) out.push(label);
+  }
+  return out;
 }
 
 export function sourceSummary(item: Item): string | null {

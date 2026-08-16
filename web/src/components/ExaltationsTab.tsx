@@ -25,7 +25,7 @@ import type { LoadoutContext } from '../engine/character';
 import type { Item } from '../engine/types';
 import type { UpgradeState } from '../engine/upgrade';
 import { useCatalog } from '../data/catalog';
-import { qualityColor } from '../lib/itemStyle';
+import { itemNameColor } from '../lib/itemStyle';
 import { exaltationPlan, type ExaltedItem, type SocketView } from '../selectors/exaltations';
 import type { SlotView } from '../selectors/gear';
 import { Modal } from './Modal';
@@ -149,6 +149,7 @@ export function ExaltationsTab({
           <ExaltRow
             key={entry.positionId}
             entry={entry}
+            context={context}
             readOnly={readOnly}
             onUpgrade={onUpgrade}
             onSetDonor={onSetDonor}
@@ -160,6 +161,7 @@ export function ExaltationsTab({
       {target ? (
         <DonorPicker
           target={target}
+          context={context}
           onClose={() => setTarget(null)}
           onSelect={(donor) => {
             onSetDonor(target.positionId, target.kind, donor);
@@ -186,12 +188,14 @@ function EffectLines({ socket }: { socket: SocketView }) {
 
 function ExaltRow({
   entry,
+  context,
   readOnly,
   onUpgrade,
   onSetDonor,
   onPickDonor,
 }: {
   entry: ExaltedItem;
+  context: LoadoutContext | undefined;
   readOnly: boolean;
   onUpgrade: (positionId: string, next: UpgradeState) => void;
   onSetDonor: (positionId: string, kind: string, donor: string | null) => void;
@@ -203,7 +207,7 @@ function ExaltRow({
     <div className="exalt-row">
       <div className="exalt-row-head">
         <span className="slot-name">{entry.positionLabel}</span>
-        <span className="exalt-row-name" style={{ color: qualityColor(entry.item) }}>
+        <span className="exalt-row-name" style={{ color: itemNameColor(entry.item, context) }}>
           {entry.item.n}
         </span>
         <UpgradeStepper
@@ -295,10 +299,12 @@ function ExaltRow({
 
 function DonorPicker({
   target,
+  context,
   onSelect,
   onClose,
 }: {
   target: DonorTarget;
+  context: LoadoutContext | undefined;
   onSelect: (itemName: string) => void;
   onClose: () => void;
 }) {
@@ -377,7 +383,7 @@ function DonorPicker({
             onClick={() => onSelect(item.n)}
           >
             <span>
-              <span className="result-name" style={{ color: qualityColor(item) }}>
+              <span className="result-name" style={{ color: itemNameColor(item, context) }}>
                 {item.n}
               </span>
               <span className="result-line">{effect}</span>

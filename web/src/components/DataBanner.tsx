@@ -12,6 +12,7 @@ import { useCatalog } from '../data/catalog';
 import { FIXTURE_NOTICE } from '../data/fixture';
 import { count } from '../lib/format';
 
+
 export function DataBanner() {
   const status = useCatalog((s) => s.status);
   const error = useCatalog((s) => s.error);
@@ -77,14 +78,30 @@ export function DataBanner() {
   return null;
 }
 
+/**
+ * A raw ISO timestamp with milliseconds is a build artefact, not a fact a
+ * player wants on a consumer page. And the item count is already on the CTA
+ * that goes to the browser, so the footer stops repeating it.
+ */
+function generatedOn(iso: string | undefined): string | null {
+  if (!iso) return null;
+  const when = new Date(iso);
+  if (Number.isNaN(when.getTime())) return null;
+  return when.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 export function CatalogFootnote() {
   const meta = useCatalog((s) => s.meta);
   const items = useCatalog((s) => s.items.length);
+  const generated = generatedOn(meta?.generated);
   return (
     <>
       <span>{meta?.attribution ?? ATTRIBUTION}</span>
-      {items ? <span>{count(items)} items loaded</span> : null}
-      {meta?.generated ? <span>Data generated {meta.generated}</span> : null}
+      {items ? (
+        <span>
+          {count(items)} items loaded{generated ? `, ${generated}` : ''}
+        </span>
+      ) : null}
     </>
   );
 }

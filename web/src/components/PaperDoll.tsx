@@ -1,15 +1,26 @@
 /**
- * The paper doll: two columns of slots flanking a centre panel.
+ * The paper doll: two item columns flanking a character, with the stat sheet
+ * full-width beneath.
  *
- * All 23 positions from `SLOT_POSITIONS`, laid out to echo the client's
- * inventory ordering. The centre column carries the live stat panel rather
- * than a 3D model — this is a planner, and the numbers are the product.
+ * The previous composition put the stat table in the centre column, made that
+ * column the *widest* of the three, and left ~600px of black below it where
+ * the flanking columns kept going — the app literally centred and prioritised a
+ * spreadsheet, and framed a hole with it. Now the centre carries a character
+ * (`CharacterFigure`) and the numbers sit under the whole doll, where a
+ * full-width grid can lay them out four abreast instead of orphaning cells in
+ * a fixed three-column stack.
+ *
+ * Rows are one fixed height filled or empty, so the doll no longer grows 45%
+ * as you fill it: 23 rows fit on one screen instead of needing 1,648px.
  */
 
-import type { WeightProfile } from '../engine/ep';
+import { useMemo } from 'react';
+import type { LoadoutContext } from '../engine/character';
+import { scoreItem, type WeightProfile } from '../engine/ep';
 import type { StatTotals } from '../engine/stats';
 import type { UpgradeState } from '../engine/upgrade';
-import type { SlotView } from '../selectors/gear';
+import { resolvedEntries, type SlotView } from '../selectors/gear';
+import { CharacterFigure } from './CharacterFigure';
 import { SlotCard } from './SlotCard';
 import { StatPanel } from './StatPanel';
 
@@ -27,6 +38,7 @@ export interface PaperDollProps {
   views: readonly SlotView[];
   weights: WeightProfile;
   totals: StatTotals;
+  context?: LoadoutContext | undefined;
   readOnly?: boolean;
   onPick: (positionId: string) => void;
   onUpgrade: (positionId: string, next: UpgradeState) => void;
@@ -37,6 +49,7 @@ export function PaperDoll({
   views,
   weights,
   totals,
+  context,
   readOnly = false,
   onPick,
   onUpgrade,
@@ -53,6 +66,7 @@ export function PaperDoll({
           view={view}
           side={side}
           weights={weights}
+          context={context}
           readOnly={readOnly}
           onPick={onPick}
           onUpgrade={onUpgrade}
@@ -65,29 +79,50 @@ export function PaperDoll({
   const known = new Set([...LEFT_ORDER, ...RIGHT_ORDER]);
   const extras = views.filter((v) => !known.has(v.position.id));
 
+  /** What the set is worth under its own weights — one number for the whole doll. */
+  const setScore = useMemo(
+    () =>
+      resolvedEntries(views).reduce(
+        (sum, entry) => sum + scoreItem(entry.item, entry.upgrade, weights).total,
+        0,
+      ),
+    [views, weights],
+  );
+
   return (
-    <div className="doll">
-      <div className="doll-col" role="group" aria-label="Left equipment column">
-        {column(LEFT_ORDER, 'left')}
-      </div>
-      <div className="doll-center">
-        <StatPanel totals={totals} />
-      </div>
-      <div className="doll-col" role="group" aria-label="Right equipment column">
-        {column(RIGHT_ORDER, 'right')}
-        {extras.map((view) => (
-          <SlotCard
-            key={view.position.id}
-            view={view}
-            side="right"
-            weights={weights}
-            readOnly={readOnly}
+    <>
+      <div className="doll">
+        <div className="doll-col" role="group" aria-label="Left equipment column">
+          {column(LEFT_ORDER, 'left')}
+        </div>
+        <div className="doll-center">
+          <CharacterFigure
+            views={views}
+            totals={totals}
+            setScore={setScore}
+            context={context}
             onPick={onPick}
-            onUpgrade={onUpgrade}
-            onClear={onClear}
           />
-        ))}
+        </div>
+        <div className="doll-col" role="group" aria-label="Right equipment column">
+          {column(RIGHT_ORDER, 'right')}
+          {extras.map((view) => (
+            <SlotCard
+              key={view.position.id}
+              view={view}
+              side="right"
+              weights={weights}
+              context={context}
+              readOnly={readOnly}
+              onPick={onPick}
+              onUpgrade={onUpgrade}
+              onClear={onClear}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+
+      <StatPanel totals={totals} vitals="hoisted" />
+    </>
   );
 }

@@ -1,24 +1,38 @@
 /**
  * One paper-doll position.
  *
- * Left column places the icon outward-left with text inward; the right column
- * mirrors it, per UI-REFERENCE §A1. Filled slots show the item name in its era
- * colour plus a key-stat line; empty slots show a dim placeholder and the slot
- * name only. The two EQL "Any Slot" positions are drawn differently — dashed
- * amber — because they exist in no other planner.
+ * Left column places the glyph outward-left with text inward; the right column
+ * mirrors it, per UI-REFERENCE §A1. Three things changed in the visual pass:
+ *
+ *  - **A drawn slot glyph, not a monogram.** The two-letter tiles collided
+ *    (`IH` was both Indicolite Helm and Ivandyr's Hoop) so they identified
+ *    nothing; the glyph identifies the *slot*, which is what a paper doll row
+ *    is for, and is the same mark used in the picker and the browser.
+ *  - **The item name is tinted by usability**, green when a class in the active
+ *    loadout qualifies and red when none does — what the client itself does.
+ *  - **The word `Empty` is gone.** §A1: the slot name *is* the empty state.
+ *    It used to be printed 23 times, louder than the slot label above it.
+ *
+ * The row is one fixed height whether or not it is filled, so filling a slot
+ * never reflows the page: the +N stepper and the clear control moved from a
+ * 40px footer strip onto the row itself.
  */
 
+import type { LoadoutContext } from '../engine/character';
 import type { WeightProfile } from '../engine/ep';
 import type { UpgradeState } from '../engine/upgrade';
-import { itemInitials, qualityColor } from '../lib/itemStyle';
+import { itemNameColor } from '../lib/itemStyle';
 import { summarizeItem } from '../selectors/gear';
 import type { SlotView } from '../selectors/gear';
+import { itemHoverProps } from './ItemWindow';
+import { SlotGlyph } from './SlotGlyph';
 import { UpgradeStepper } from './UpgradeStepper';
 
 export interface SlotCardProps {
   view: SlotView;
   side: 'left' | 'right';
   weights: WeightProfile;
+  context?: LoadoutContext | undefined;
   readOnly?: boolean;
   onPick: (positionId: string) => void;
   onUpgrade: (positionId: string, next: UpgradeState) => void;
@@ -29,6 +43,7 @@ export function SlotCard({
   view,
   side,
   weights,
+  context,
   readOnly = false,
   onPick,
   onUpgrade,
@@ -36,48 +51,44 @@ export function SlotCard({
 }: SlotCardProps) {
   const { position, item, equipped, unresolved } = view;
   const isAny = position.type === 'ANY';
-  const classes = [
-    'slot',
-    side,
-    item ? 'filled' : 'empty',
-    isAny ? 'any' : '',
-    unresolved ? 'unresolved' : '',
-  ]
+  const state = [side, item ? 'filled' : 'empty', isAny ? 'any' : '', unresolved ? 'unresolved' : '']
     .filter(Boolean)
     .join(' ');
+  const classes = `slot ${state}`;
 
   const summary = item && equipped ? summarizeItem(item, equipped.upgrade, weights) : null;
+  const tone = item ? itemNameColor(item, context) : undefined;
 
   const body = (
-    <div className="slot-body">
-      <div className="slot-name">
+    <span className="slot-body">
+      <span className="slot-name">
         {position.label}
-        {isAny ? <span className="tag tag-any" style={{ marginLeft: 6 }}>EQL</span> : null}
-      </div>
+        {isAny ? <span className="slot-flex" title="An EQL-only flexible position">flex</span> : null}
+      </span>
       {item ? (
-        <div className="slot-item" style={{ color: qualityColor(item) }} title={item.n}>
+        <span className="slot-item" style={{ color: tone }} title={item.n}>
           {item.n}
-        </div>
+        </span>
       ) : unresolved ? (
-        <div className="slot-item bad" title={equipped?.itemName}>
+        <span className="slot-item bad" title={equipped?.itemName}>
           {equipped?.itemName}
-        </div>
-      ) : (
-        <div className="slot-item dim">Empty</div>
-      )}
-      {summary ? <div className="slot-stats">{summary}</div> : null}
-      {unresolved ? <div className="slot-stats bad">Not in catalog</div> : null}
-    </div>
+        </span>
+      ) : null}
+      {summary ? <span className="slot-stats">{summary}</span> : null}
+      {unresolved ? <span className="slot-stats bad">Not in catalog</span> : null}
+    </span>
   );
 
   const icon = (
-    <div className="slot-icon" aria-hidden="true">
-      {item ? itemInitials(item.n) : isAny ? '✦' : '·'}
-    </div>
+    <span className="slot-icon" aria-hidden="true" style={tone ? { color: tone } : undefined}>
+      <SlotGlyph slot={position.type} size={26} />
+    </span>
   );
 
   return (
-    <div className={`slot-wrap ${side}`}>
+    // The wrap carries the surface so the row reads as one object: the card
+    // and its +N control used to sit on separate grounds with a gap between.
+    <div className={`slot-wrap ${state}`}>
       <button
         type="button"
         className={classes}
@@ -85,6 +96,7 @@ export function SlotCard({
         aria-label={
           item ? `${position.label}: ${item.n}. Change item.` : `${position.label}: empty. Choose an item.`
         }
+        {...itemHoverProps(item, equipped?.upgrade ?? { full: 0, fraction: 0 }, context, position.type)}
       >
         {side === 'left' ? icon : body}
         {side === 'left' ? body : icon}
@@ -100,11 +112,12 @@ export function SlotCard({
           {readOnly ? null : (
             <button
               type="button"
-              className="btn btn-quiet btn-sm"
+              className="btn btn-quiet btn-icon"
               onClick={() => onClear(position.id)}
               aria-label={`Remove ${item?.n ?? equipped.itemName} from ${position.label}`}
+              title="Remove from this slot"
             >
-              Clear
+              <span aria-hidden="true">✕</span>
             </button>
           )}
         </div>

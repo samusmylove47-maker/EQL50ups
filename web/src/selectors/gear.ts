@@ -120,12 +120,30 @@ export function summarizeItem(
   const parts: string[] = [];
   const weapon = item.wp;
   if (weapon) {
+    /*
+     * `29/35` and `107/510` were the same glyph pattern meaning opposite
+     * things — a damage/delay pair and a value against a cap — 400px apart on
+     * one screen, so `36/35` read as being over a ceiling. Weapons say which.
+     */
     const damage = entries.find((e) => e.key === 'DMG')?.value ?? weapon.dmg;
-    parts.push(`${Math.round(damage)}/${Math.round(weapon.dly)}`);
+    parts.push(`${Math.round(damage)}/${Math.round(weapon.dly)} dmg/dly`);
   }
-  for (const entry of ranked) {
-    if (parts.length >= limit) break;
-    if (entry.key === 'DMG' && weapon) continue;
+
+  /*
+   * Weights choose *which* stats are worth showing; `statVector` order chooses
+   * how they are laid out. Rendering in weighted order meant the line
+   * reshuffled under the cursor as the +N stepper was clicked —
+   * `HP · MANA · END · AC` at +0 became `HP · AC · MANA · END` at +10.
+   */
+  const room = limit - (weapon ? 1 : 0);
+  const chosen = new Set(
+    ranked
+      .filter((entry) => !(entry.key === 'DMG' && weapon))
+      .slice(0, Math.max(0, room))
+      .map((entry) => entry.key),
+  );
+  for (const entry of entries) {
+    if (!chosen.has(entry.key)) continue;
     parts.push(`${shortStatLabel(entry.key)} ${signed(entry.value)}`);
   }
   return parts.join(' · ');
