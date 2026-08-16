@@ -1741,6 +1741,12 @@ table.data.compact th {
   font-size: 11px;
 }
 
+.pagejump {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .page-nav {
   display: flex;
   align-items: center;

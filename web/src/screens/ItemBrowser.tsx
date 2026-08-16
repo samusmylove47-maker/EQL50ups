@@ -178,7 +178,7 @@ export function ItemBrowser() {
         >
           Next →
         </button>
-        <label className="checkline">
+        <label className="pagejump">
           Jump to page
           <input
             type="number"

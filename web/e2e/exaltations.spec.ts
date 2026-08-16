@@ -1,4 +1,4 @@
-/** The exaltation tab: derived sockets, donors, and the unlock ladder. */
+/** The exaltation tab: derived sockets, donors, and the effects they carry. */
 
 import { createCharacter, expect, expectCleanText, openSlotPicker, test } from './helpers';
 
@@ -6,6 +6,11 @@ async function equipFirstEar(page: import('@playwright/test').Page) {
   await openSlotPicker(page, 0);
   await page.locator('.results .result').first().click();
   await expect(page.locator('.modal')).toHaveCount(0);
+}
+
+/** The first equipped item's row on the exaltations tab. */
+function row(page: import('@playwright/test').Page) {
+  return page.locator('.exalt-row').first();
 }
 
 test('with nothing equipped the tab explains itself instead of rendering nothing', async ({
@@ -22,23 +27,27 @@ test('sockets unlock with the tier and lock again when it drops', async ({ page 
   await equipFirstEar(page);
   await page.goto(`/${hash}/exaltations`);
 
-  const sockets = page.locator('.exalt-item').first().locator('.socket');
-  await expect(sockets).toHaveCount(5);
-  await expect(sockets.nth(0)).toContainText(/cosmetic/i); // ornamentation, always there
-  await expect(sockets.nth(1)).toContainText('Unlocks at +1');
-  await expect(sockets.nth(4)).toContainText('Unlocks at +4');
-  await expect(page.locator('.socket.locked')).toHaveCount(4);
+  /*
+   * At +0 the row states the tier that opens the first socket instead of
+   * printing five rows of a rule the reader already knows. This is the whole
+   * point of the rewrite: no locked rows, no `Cosmetic — no effect`, no
+   * `Unlocks at +N` anywhere on the page.
+   */
+  await expect(row(page)).toContainText('first socket at +1');
+  await expect(page.locator('.exalt-row .socket')).toHaveCount(0);
+  await expect(page.locator('body')).not.toContainText('Unlocks at');
+  await expect(page.locator('body')).not.toContainText('Cosmetic');
 
-  const plus = page.locator('.exalt-item').first().locator('.stepper button').last();
+  const plus = row(page).locator('.stepper button').last();
   for (let i = 0; i < 4; i++) await plus.click();
-  await expect(page.locator('.socket.locked')).toHaveCount(0);
-  await expect(page.locator('.exalt-item').first().getByRole('button', { name: 'Add' })).toHaveCount(
-    4,
-  );
+  await expect(row(page).locator('.socket')).toHaveCount(4);
+  await expect(row(page).getByRole('button', { name: 'Add' })).toHaveCount(4);
+  await expect(row(page)).toContainText('0/4 socketed');
 
-  const minus = page.locator('.exalt-item').first().locator('.stepper button').first();
+  const minus = row(page).locator('.stepper button').first();
   for (let i = 0; i < 4; i++) await minus.click();
-  await expect(page.locator('.socket.locked')).toHaveCount(4);
+  await expect(row(page).locator('.socket')).toHaveCount(0);
+  await expect(row(page)).toContainText('first socket at +1');
   await expectCleanText(page);
 });
 
@@ -50,7 +59,7 @@ test('donors are offered on a fresh load, not only after a picker has been opene
   const hash = await createCharacter(page);
   await equipFirstEar(page);
   await page.goto(`/${hash}/exaltations`);
-  await page.locator('.exalt-item').first().locator('.stepper button').last().click();
+  await row(page).locator('.stepper button').last().click();
 
   await page.goto('/#/characters'); // leave, then come back cold
   await page.reload();
@@ -62,20 +71,31 @@ test('donors are offered on a fresh load, not only after a picker has been opene
   expect(await page.locator('.modal .results .result').count()).toBeGreaterThan(0);
 });
 
-test('a donor can be added, changed and removed', async ({ page }) => {
+test('a donor can be added, changed and removed, and names the effect it carries', async ({
+  page,
+}) => {
   const hash = await createCharacter(page);
   await equipFirstEar(page);
   await page.goto(`/${hash}/exaltations`);
-  await page.locator('.exalt-item').first().locator('.stepper button').last().click();
+  await row(page).locator('.stepper button').last().click();
 
-  const focusSocket = page.locator('.exalt-item').first().locator('.socket').nth(1);
+  const focusSocket = row(page).locator('.socket').first();
+  await expect(focusSocket).toContainText('Focus Exaltation');
   await focusSocket.getByRole('button', { name: 'Add' }).click();
   await expect(page.locator('.modal .results .result').first()).toBeVisible({ timeout: 30_000 });
 
   const donors = page.locator('.modal .results .result');
   const chosen = await donors.first().locator('.result-name').innerText();
+  const effect = await donors.first().locator('.result-line').first().innerText();
   await donors.first().click();
-  await expect(focusSocket.locator('.donor')).toHaveText(chosen);
+
+  // Donor and effect, both named — the pairing the client prints.
+  await expect(focusSocket.locator('.donor')).toContainText(chosen);
+  await expect(focusSocket.locator('.donor')).toContainText(effect);
+
+  // And a set-wide effects panel that says plainly that it is not scoring them.
+  await expect(page.locator('.effect-list').first()).toContainText(effect);
+  await expect(page.locator('body')).toContainText('listed, not scored');
 
   await focusSocket.getByRole('button', { name: 'Change' }).click();
   await expect(page.locator('.modal .results .result').first()).toBeVisible({ timeout: 30_000 });
@@ -84,10 +104,11 @@ test('a donor can be added, changed and removed', async ({ page }) => {
   await search.fill('zzzzzz');
   await expect(page.locator('.modal .empty-state h2')).toHaveText(/no eligible donors/i);
   await page.keyboard.press('Escape');
-  await expect(focusSocket.locator('.donor')).toHaveText(chosen); // cancel kept it
+  await expect(focusSocket.locator('.donor')).toContainText(chosen); // cancel kept it
 
   await focusSocket.getByRole('button', { name: /remove/i }).click();
-  await expect(focusSocket.locator('.donor')).toHaveText('Empty');
+  await expect(focusSocket.locator('.donor')).toHaveText('—');
+  await expect(page.locator('.effect-list')).toHaveCount(0);
   await expectCleanText(page);
 });
 
@@ -95,8 +116,8 @@ test('a donor travels in the share link and the shared view cannot edit it', asy
   const hash = await createCharacter(page, { name: 'Exalter' });
   await equipFirstEar(page);
   await page.goto(`/${hash}/exaltations`);
-  await page.locator('.exalt-item').first().locator('.stepper button').last().click();
-  const focusSocket = page.locator('.exalt-item').first().locator('.socket').nth(1);
+  await row(page).locator('.stepper button').last().click();
+  const focusSocket = row(page).locator('.socket').first();
   await focusSocket.getByRole('button', { name: 'Add' }).click();
   await expect(page.locator('.modal .results .result').first()).toBeVisible({ timeout: 30_000 });
   const chosen = await page.locator('.modal .results .result').first().locator('.result-name').innerText();
@@ -109,8 +130,8 @@ test('a donor travels in the share link and the shared view cannot edit it', asy
 
   await page.goto(link);
   await page.getByRole('tab', { name: 'Exaltations' }).click();
-  const shared = page.locator('.exalt-item').first().locator('.socket').nth(1);
-  await expect(shared.locator('.donor')).toHaveText(chosen);
+  await expect(page.locator('.exalt-row').first().locator('.socket').first().locator('.donor'))
+    .toContainText(chosen);
   await expect(page.getByRole('button', { name: 'Add' })).toHaveCount(0);
-  await expect(page.locator('.exalt-item').first().locator('.stepper button').last()).toBeDisabled();
+  await expect(page.locator('.exalt-row').first().locator('.stepper button').last()).toBeDisabled();
 });

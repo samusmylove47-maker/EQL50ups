@@ -1,6 +1,6 @@
 /** The global item browser: search, filters, and every sort column both ways. */
 
-import { expect, expectCleanText, expectNoHorizontalScroll, test } from './helpers';
+import { createCharacter, expect, expectCleanText, expectNoHorizontalScroll, test } from './helpers';
 
 /**
  * Open the browser and wait for the shards to stop arriving — the match count
@@ -152,5 +152,88 @@ test('the scoring profile and the +N preview change the numbers', async ({ page 
 
   await page.getByRole('button', { name: /^reset$/i }).click();
   await expect(stepper.locator('.value')).toHaveText('+0');
+  await expectCleanText(page);
+});
+
+test('every item in the catalog is reachable, and rows open a detail window', async ({ page }) => {
+  // Regression: the browser rendered the first 250 of 5,848 matches with no
+  // pagination and inert `<tr>`s, so items 251+ could not be reached at all
+  // and no row could be clicked.
+  await open(page);
+
+  const head = page.locator('.page-head .hint');
+  await expect(head).toContainText('1–100');
+  expect(await page.locator('table.data tbody tr').count()).toBe(100);
+
+  // A nav above the table as well as below it, so the control is not buried
+  // under six screens of rows.
+  await expect(page.locator('.page-nav')).toHaveCount(2);
+
+  const nav = page.locator('.page-nav').first();
+  await expect(nav.getByRole('button', { name: /previous/i })).toBeDisabled();
+  await nav.getByRole('button', { name: /next/i }).click();
+  await expect(head).toContainText('101–200');
+
+  // The last page — the region that was previously unreachable by any means.
+  const pages = Number(
+    ((await nav.innerText()).match(/of ([\d,]+)/)?.[1] ?? '1').replace(/,/g, ''),
+  );
+  expect(pages).toBeGreaterThan(10);
+  await page.getByLabel('Jump to page (top)').fill(String(pages));
+  await expect(nav.getByRole('button', { name: /next/i })).toBeDisabled();
+  const total = Number(((await head.innerText()).match(/^([\d,]+)/)?.[1] ?? '0').replace(/,/g, ''));
+  await expect(head).toContainText(String(total).replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+
+  // Narrowing the search puts you back on page one rather than on a page that
+  // no longer exists.
+  await page.locator('input[aria-label="Search items"]').fill('ring');
+  await page.waitForTimeout(800);
+  await expect(head).toContainText('1–');
+
+  await expectCleanText(page);
+});
+
+test('a row opens the item, by mouse and by keyboard, and can equip it', async ({ page }) => {
+  await open(page);
+
+  const first = page.locator('table.data tbody tr').first();
+  await expect(first).toHaveAttribute('role', 'button');
+  const name = (await first.locator('td:first-child span').first().innerText()).trim();
+
+  await first.click();
+  await expect(page.locator('.modal')).toBeVisible();
+  await expect(page.locator('.modal')).toContainText(name);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.modal')).toHaveCount(0);
+
+  await first.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.modal')).toBeVisible();
+  await page.keyboard.press('Escape');
+
+  // With no character there is nothing to equip into, and the dialog says
+  // nothing rather than offering a dead button.
+  await expect(page.locator('body')).not.toContainText('Equip in');
+});
+
+test('an item found in the browser can be equipped straight into a set', async ({ page }) => {
+  await createCharacter(page, { name: 'Looter', classes: [0] });
+  await open(page);
+
+  await page.locator('input[aria-label="Search items"]').fill('helm');
+  await page.waitForTimeout(900);
+  const first = page.locator('table.data tbody tr').first();
+  const name = (await first.locator('td:first-child span').first().innerText()).trim();
+  await first.click();
+  await expect(page.locator('.modal')).toBeVisible();
+
+  const equip = page.locator('.modal .chip-row .btn').first();
+  await expect(equip).toBeVisible();
+  await equip.click();
+
+  // It lands in the set, and takes you there.
+  await page.waitForURL(/#\/set\//);
+  await expect(page.locator('.slot-item').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('body')).toContainText(name);
   await expectCleanText(page);
 });

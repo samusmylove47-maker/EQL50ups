@@ -145,3 +145,59 @@ test('a set URL that is not in this library says so and offers a way out', async
   await page.getByRole('link', { name: /your characters/i }).click();
   await expect(page).toHaveURL(/#\/characters$/);
 });
+
+test('a full 23-slot link is short enough to paste, and an old link still opens', async ({
+  page,
+}) => {
+  test.slow();
+  page.on('dialog', (d) => d.accept());
+
+  const hash = await createCharacter(page, { name: 'Compressor', classes: [0, 7, 15] });
+  await page.getByRole('button', { name: /auto-fill/i }).click();
+  await expect(page.locator('.notice')).toContainText(/placed \d+ items?/i, { timeout: 60_000 });
+
+  await page.getByRole('button', { name: /share/i }).click();
+  const link = await page.locator('.copy-field input').inputValue();
+  await page.keyboard.press('Escape');
+
+  /*
+   * The v1 codec produced 1,348 characters for this exact set — a wall of
+   * base64 that Discord wraps. Interning item names against the shipped
+   * catalog and packing the frame as bytes brings it under 400.
+   */
+  expect(link.length).toBeLessThan(400);
+  const payload = link.split('#/share/')[1] ?? '';
+  expect(payload.length).toBeLessThan(350);
+
+  // And it is still lossless: every slot comes back.
+  const equipped = await page.locator('.slot-item').count();
+  await page.goto(link);
+  await expect(page.locator('.set-header h1')).toHaveText('Compressor');
+  await page.waitForTimeout(1200);
+  expect(await page.locator('.slot-item').count()).toBe(equipped);
+  await expectCleanText(page);
+});
+
+test('a link made by the previous version still opens', async ({ page }) => {
+  // v1 was a positional JSON tuple. Those links are in people's chat history;
+  // they have to keep working, mapping the old single level onto the old trio.
+  const legacy = encode(
+    JSON.stringify([
+      1,
+      'Old Timer',
+      50,
+      null,
+      'BRD/WAR/BER',
+      'Legacy Set',
+      [['PRIMARY', 'Earthshaker', 6, 0], ['HEAD', 'Indicolite Helm', 0, 0]],
+      [['AC', 2], ['HP', 0.5]],
+      'made before the rework',
+    ]),
+  );
+  await page.goto(`/#/share/${legacy}`);
+  await expect(page.locator('.set-header h1')).toHaveText('Old Timer');
+  await expect(page.locator('.identity .sub')).toContainText('50 BRD/WAR/BER');
+  await expect(page.locator('body')).toContainText('Earthshaker');
+  await expect(page.locator('.set-notes')).toContainText('made before the rework');
+  await expectCleanText(page);
+});
