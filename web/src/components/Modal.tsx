@@ -43,9 +43,10 @@ export function Modal({ title, onClose, children, footer, headerExtra, width }: 
 
   useEffect(() => {
     restoreRef.current = document.activeElement;
-    // Move focus inside straight away; children with their own autofocus (the
-    // pickers' search boxes) take over a tick later.
-    dialogRef.current?.focus();
+    // Move focus inside straight away — unless a child claimed it first with
+    // `autoFocus`, which React applies during commit, before this effect runs.
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.contains(document.activeElement)) dialog.focus();
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {

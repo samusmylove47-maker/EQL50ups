@@ -23,11 +23,11 @@ export default defineConfig({
     trace: 'off',
   },
   webServer: {
-    // The bracket keeps the pattern from matching this command line itself; it
-    // clears a preview server left behind by an interrupted run, which would
-    // otherwise either fail --strictPort or serve a stale build.
+    // Clear a preview server left behind by an interrupted run, which would
+    // otherwise fail --strictPort or serve a stale build. Killing by port
+    // rather than by command line avoids matching this very command.
     command:
-      `pkill -f "[v]ite preview --port ${PORT}" ; ` +
+      `fuser -k ${PORT}/tcp 2>/dev/null ; ` +
       `npm run build && npx vite preview --port ${PORT} --host 127.0.0.1 --strictPort`,
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: false,
