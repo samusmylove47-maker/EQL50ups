@@ -1,18 +1,33 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { describeCharacter, validateClasses } from '../engine/character';
 import { LEVEL_CAP, type ClassCode } from '../engine/constants';
 import { ClassPicker } from '../components/ClassPicker';
+import { useCatalog } from '../data/catalog';
 import { href, navigate } from '../router';
 import { useApp } from '../state/store';
 
-/** Race codes as they appear in item restrictions. Optional — items rarely gate on race. */
-const RACES = [
-  'HUM', 'BAR', 'ERU', 'ELF', 'HIE', 'DEF', 'HEF', 'HFL', 'DWF', 'TRL', 'OGR', 'GNM', 'IKS',
-];
+/**
+ * Race codes are read out of the item corpus rather than invented, so the
+ * dropdown can only offer codes the eligibility check actually understands.
+ * These are the codes present in the published catalog's restriction lists,
+ * used as a floor until the catalog has loaded.
+ */
+const OBSERVED_RACE_CODES = ['BAR', 'DEF', 'ELF', 'HEF', 'IKS', 'OGR', 'TRL'];
+const NON_RACE_TOKENS = new Set(['ALL', 'NONE', 'ALL_EXCEPT']);
 
 export function NewCharacter() {
   const createCharacter = useApp((s) => s.createCharacter);
   const createSet = useApp((s) => s.createSet);
+  const items = useCatalog((s) => s.items);
+
+  const races = useMemo(() => {
+    const found = new Set<string>();
+    for (const item of items) {
+      for (const code of item.ra) if (!NON_RACE_TOKENS.has(code)) found.add(code);
+    }
+    for (const code of OBSERVED_RACE_CODES) found.add(code);
+    return [...found].sort();
+  }, [items]);
 
   const [name, setName] = useState('');
   const [level, setLevel] = useState(LEVEL_CAP);
@@ -77,7 +92,7 @@ export function NewCharacter() {
               <span>Race (optional)</span>
               <select value={race} onChange={(e) => setRace(e.target.value)}>
                 <option value="">Unset</option>
-                {RACES.map((code) => (
+                {races.map((code) => (
                   <option key={code} value={code}>
                     {code}
                   </option>
@@ -86,7 +101,8 @@ export function NewCharacter() {
             </label>
           </div>
           <p className="hint">
-            Race is optional and only used to filter race-restricted items. Race base attributes are
+            Race is optional and only used to filter race-restricted items; the codes offered are
+            the ones the item catalog actually restricts on. Race base attributes are
             deliberately not modelled — the only available source self-reports as unverified, so the
             planner shows gear totals rather than inventing a starting point.
           </p>
