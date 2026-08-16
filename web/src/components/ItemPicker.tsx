@@ -167,8 +167,22 @@ export function ItemPicker({
   const shardStatus = catalog.shards[position.type];
   const loading = catalog.status === 'loading' || shardStatus === 'loading';
 
+  /*
+   * List navigation is layered over the filter controls, so it has to give the
+   * controls back the keys they own: a <select> needs its arrows to change
+   * value, and a text box needs Home/End for the caret. Without that scoping
+   * the era and source dropdowns could not be operated from the keyboard at
+   * all, and Home in the search box jumped the list instead of the cursor.
+   * Ctrl/Cmd+Home/End still jumps the list from inside the text box.
+   */
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (!rows.length) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.tagName === 'SELECT') return;
+    const inTextField =
+      target instanceof HTMLInputElement && target.type !== 'checkbox' && !event.altKey;
+    const jumpsList = !inTextField || event.ctrlKey || event.metaKey;
+
     const move = (delta: number) => {
       event.preventDefault();
       setActive((i) => Math.max(0, Math.min(rows.length - 1, i + delta)));
@@ -187,10 +201,12 @@ export function ItemPicker({
         move(-10);
         break;
       case 'Home':
+        if (!jumpsList) return;
         event.preventDefault();
         setActive(0);
         break;
       case 'End':
+        if (!jumpsList) return;
         event.preventDefault();
         setActive(rows.length - 1);
         break;

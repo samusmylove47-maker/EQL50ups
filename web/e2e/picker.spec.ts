@@ -46,12 +46,12 @@ test('keyboard navigation moves, jumps and equips', async ({ page }) => {
   await expect(active).toHaveAttribute('id', 'picker-option-11');
   await page.keyboard.press('PageUp');
   await expect(active).toHaveAttribute('id', 'picker-option-1');
-  await page.keyboard.press('Home');
+  await page.keyboard.press('Control+Home');
   await expect(active).toHaveAttribute('id', 'picker-option-0');
-  await page.keyboard.press('End');
+  await page.keyboard.press('Control+End');
   const count = await page.locator('.results .result').count();
   await expect(active).toHaveAttribute('id', `picker-option-${count - 1}`);
-  await page.keyboard.press('Home');
+  await page.keyboard.press('Control+Home');
 
   const name = (
     await page.locator('.results .result').first().locator('.result-name').innerText()
@@ -59,6 +59,45 @@ test('keyboard navigation moves, jumps and equips', async ({ page }) => {
   await page.keyboard.press('Enter');
   await expect(page.locator('.modal')).toHaveCount(0);
   await expect(page.locator('.slot-wrap').first().locator('.slot-item')).toHaveText(name ?? '');
+});
+
+test('the filter controls keep the keys they own', async ({ page }) => {
+  // Regression: the list's key handler swallowed everything, so the era and
+  // source dropdowns could not be changed with the arrow keys and Home in the
+  // search box jumped the list instead of the caret.
+  await createCharacter(page);
+  await openSlotPicker(page, 0);
+
+  const search = page.locator('.modal input[aria-label="Search items by name"]');
+  await search.fill('ring');
+  await search.focus();
+  await page.keyboard.press('End');
+  await page.keyboard.press('Home');
+  expect(await search.evaluate((el: HTMLInputElement) => el.selectionStart)).toBe(0);
+  await page.keyboard.press('End');
+  expect(await search.evaluate((el: HTMLInputElement) => el.selectionStart)).toBe(4);
+
+  // But the list still answers to the arrows from the same field.
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('.results .result[data-active="true"]')).toHaveAttribute(
+    'id',
+    'picker-option-1',
+  );
+
+  const era = page.locator('.modal select[aria-label="Filter by era"]');
+  await era.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(era).not.toHaveValue('any');
+
+  const source = page.locator('.modal select[aria-label="Filter by source"]');
+  await source.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(source).not.toHaveValue('any');
+
+  const liveOnly = page.locator('.modal .checkline input').first();
+  await liveOnly.focus();
+  await page.keyboard.press('Space');
+  await expect(liveOnly).not.toBeChecked();
 });
 
 test('every exit path closes the picker', async ({ page }) => {
