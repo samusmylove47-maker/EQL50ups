@@ -1449,6 +1449,46 @@ table.data tbody tr:hover {
   white-space: pre-wrap;
 }
 
+/*
+ * Long unbroken text must never widen the page.
+ *
+ * Players name characters and sets whatever they like, and a 64-character word
+ * with no spaces pushed the header — and with it the whole document — past the
+ * viewport at every width. `anywhere` rather than `break-word` on purpose: only
+ * `anywhere` also shrinks the min-content size, which is what stops a flex or
+ * grid track from being stretched by the word in the first place.
+ */
+.identity,
+.set-identity,
+.set-line .grow {
+  min-width: 0;
+}
+
+.identity h1,
+.identity .sub,
+.set-notes,
+.card h3,
+.set-line a,
+.result-name,
+.empty-state p,
+.notice span,
+.hint {
+  overflow-wrap: anywhere;
+}
+
+.set-switch .name {
+  max-width: min(40ch, 42vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Pills never wrap, so cap them at their container instead of overflowing it. */
+.btn {
+  max-width: 100%;
+  overflow: hidden;
+}
+
 /* --- 15. Misc ------------------------------------------------------------ */
 
 .rowline {
