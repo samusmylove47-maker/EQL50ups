@@ -161,11 +161,13 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
               type="button"
               className="btn btn-quiet btn-sm"
               onClick={() => void runAutoFill()}
-              disabled={busy || catalog.status === 'missing'}
+              disabled={busy || catalog.status === 'missing' || catalog.status === 'error'}
               title={
                 catalog.status === 'missing'
                   ? 'No item data published yet'
-                  : 'Fill every empty slot with the best scoring item'
+                  : catalog.status === 'error'
+                    ? 'Item data could not be loaded'
+                    : 'Fill every empty slot with the best scoring item'
               }
             >
               {busy ? '… Filling' : '🏳 Auto-fill'}
