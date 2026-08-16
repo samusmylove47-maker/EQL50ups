@@ -125,6 +125,7 @@ export function StatPanel({ totals }: { totals: StatTotals }) {
         <StatRow label="Mana" value={totals.mana} />
         <StatRow label="Endurance" value={totals.endurance} />
         <StatRow label="AC" value={totals.ac} />
+        <StatRow label="Attack" value={totals.attack} />
         <StatRow label="Attack Speed" value={totals.haste} suffix="%" />
         <StatRow label="Equipped Weight" value={Math.round(totals.weight * 10) / 10} />
       </Group>

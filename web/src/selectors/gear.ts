@@ -7,7 +7,10 @@
  * stay presentational and the logic stays testable.
  */
 
-import { ATTRIBUTES, ATTRIBUTE_NAMES, SAVES, SAVE_NAMES, SLOT_POSITIONS, type SlotPosition } from '../engine/constants';
+import {
+  ATTRIBUTES, ATTRIBUTE_NAMES, SAVES, SAVE_NAMES, SKILL_DAMAGE_MODS,
+  SLOT_POSITIONS, type SlotPosition,
+} from '../engine/constants';
 import { canUse, type Character } from '../engine/character';
 import { computeTotals, resolveItem, type StatTotals } from '../engine/stats';
 import { scoreItem, type ScoreContext, type WeightProfile } from '../engine/ep';
@@ -34,9 +37,11 @@ export const STAT_LABELS: Record<string, string> = {
   REGEN: 'HP Regen',
   MANA_REGEN: 'Mana Regen',
   END_REGEN: 'End Regen',
+  ATTACK: 'Attack',
   DMG: 'Damage',
   DLY: 'Delay',
   RATIO: 'Ratio',
+  ...Object.fromEntries(SKILL_DAMAGE_MODS.map((m) => [m.key, `${m.label} Mod`])),
   ...Object.fromEntries(ATTRIBUTES.map((a) => [a, ATTRIBUTE_NAMES[a]])),
   ...Object.fromEntries(SAVES.map((s) => [`SV_${s}`, `${SAVE_NAMES[s]} Resist`])),
 };
@@ -55,7 +60,7 @@ export const SHORT_LABELS: Record<string, string> = {
   REGEN: 'REGEN', MANA_REGEN: 'MREGEN', END_REGEN: 'EREGEN', DMG: 'DMG',
   STR: 'STR', STA: 'STA', AGI: 'AGI', DEX: 'DEX', WIS: 'WIS', INT: 'INT', CHA: 'CHA',
   SV_MAGIC: 'MR', SV_FIRE: 'FR', SV_COLD: 'CR', SV_DISEASE: 'DR', SV_POISON: 'PR',
-  SV_VOID: 'VR',
+  SV_VOID: 'VR', ATTACK: 'ATK', BACKSTAB: 'BS',
 };
 
 export function statLabel(key: string): string {
@@ -82,9 +87,11 @@ export function statVector(item: Item, upgrade: UpgradeState): StatEntry[] {
   for (const attr of ATTRIBUTES) push(attr, r.attributes[attr]);
   for (const save of SAVES) push(`SV_${save}`, r.saves[save]);
   push('HASTE', r.flat.HASTE);
+  push('ATTACK', r.flat.ATTACK);
   push('REGEN', r.flat.REGEN ?? r.flat.HP_REGEN);
   push('MANA_REGEN', r.flat['MANA REGEN'] ?? r.flat.MANA_REGEN);
-  push('END_REGEN', r.flat.END_REGEN);
+  push('END_REGEN', r.flat.ENDUR_REGEN ?? r.flat.END_REGEN);
+  for (const mod of SKILL_DAMAGE_MODS) push(mod.key, r.skillMods[mod.key]);
   if (r.weapon) {
     push('DMG', r.weapon.damage);
     push('DLY', r.weapon.delay);
@@ -232,11 +239,14 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
   if (cached) return cached;
 
   const pool = itemsForSlot(catalog, slot);
+  // An "Any Slot" is a worn position, not a hand: `computeTotals` reports no
+  // weapon from it, so scoring must not pay for damage or ratio there either.
+  const weaponCounts = slot !== 'ANY';
   const scored: ScoredItem[] = [];
   for (const item of pool) {
     if (!includeUnreleased && !isLive(item)) continue;
     if (character && !canUse({ classes: item.cl, races: item.ra }, character)) continue;
-    const breakdown = scoreItem(item, upgrade, weights, existing ? { existing } : {});
+    const breakdown = scoreItem(item, upgrade, weights, { weaponCounts, ...(existing ? { existing } : {}) });
     scored.push({ item, score: finite(breakdown.total) });
   }
   scored.sort((a, b) => b.score - a.score || a.item.n.localeCompare(b.item.n));

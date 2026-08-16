@@ -36,7 +36,7 @@ export interface SetWorkspaceProps {
   actions?: ReactNode;
   /** Set switcher control rendered in the header. */
   setSwitcher?: ReactNode;
-  onEquip: (positionId: string, item: Item) => void;
+  onEquip: (positionId: string, item: Item, upgrade: UpgradeState) => void;
   onUnequip: (positionId: string) => void;
   onUpgrade: (positionId: string, next: UpgradeState) => void;
   onSetDonor: (positionId: string, kind: string, donor: string | null) => void;
@@ -148,8 +148,8 @@ export function SetWorkspace({
           currentName={openView.equipped?.itemName}
           currentUpgrade={openView.equipped?.upgrade ?? BASE_STATE}
           contextTotals={contextTotals}
-          onSelect={(item) => {
-            onEquip(openView.position.id, item);
+          onSelect={(item, upgrade) => {
+            onEquip(openView.position.id, item, upgrade);
             setOpenSlot(null);
           }}
           onClear={() => {

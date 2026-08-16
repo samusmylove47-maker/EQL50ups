@@ -8,12 +8,14 @@
  * spec's use of amber for era/phase labels.
  */
 
-import { ERA_ORDER, isEraLive } from '../engine/constants';
+import { ERA_ORDER, isEraLive, isTier0Confirmed } from '../engine/constants';
 import type { Item } from '../engine/types';
 
 export type Quality = 'common' | 'uncommon' | 'rare' | 'epic' | 'locked';
 
 export function isLive(item: Item): boolean {
+  // Seeing an item in a live client outranks any era inference about it.
+  if (isTier0Confirmed(item.n)) return true;
   return item.av !== false && isEraLive(item.era);
 }
 

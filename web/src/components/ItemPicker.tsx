@@ -47,7 +47,11 @@ export interface ItemPickerProps {
   currentUpgrade: UpgradeState;
   /** Totals of the rest of the set, for cap-aware scoring. */
   contextTotals: StatTotals;
-  onSelect: (item: Item) => void;
+  /**
+   * Equips at the tier the row was scored and previewed at, so the numbers the
+   * player just read are the numbers they get.
+   */
+  onSelect: (item: Item, upgrade: UpgradeState) => void;
   onClear: () => void;
   onClose: () => void;
 }
@@ -194,7 +198,7 @@ export function ItemPicker({
         const pick = rows[active];
         if (pick) {
           event.preventDefault();
-          onSelect(pick.item);
+          onSelect(pick.item, preview);
         }
         break;
       }
@@ -217,7 +221,7 @@ export function ItemPicker({
         <>
           <span className="hint grow">
             {position.type === 'ANY'
-              ? 'Any Slot accepts any wearable item at full value.'
+              ? 'Any Slot takes any wearable item. It is a worn position, not a hand, so weapon damage and ratio score nothing here.'
               : `Ranked by EP against this set's weights, cap-aware.`}
           </span>
           {currentName ? (
@@ -335,7 +339,7 @@ export function ItemPicker({
               role="option"
               aria-selected={index === active}
               onMouseEnter={() => setActive(index)}
-              onClick={() => onSelect(item)}
+              onClick={() => onSelect(item, preview)}
             >
               <span>
                 <span className="result-name">

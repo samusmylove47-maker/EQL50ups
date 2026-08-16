@@ -173,6 +173,45 @@ export function isEraLive(era: string | null | undefined): boolean {
 }
 
 /**
+ * Items the era gate hides that a live client demonstrably holds.
+ *
+ * `pipeline/README.md` records that EQL's `ERA_OVERRIDE` list — the Kunark and
+ * Velious items released early — was never recovered, so items tagged after
+ * Sky are gated out wholesale and some of them are wrong. This is that list,
+ * as far as it can be *observed* rather than guessed: every name below appears
+ * in `research/validation/tier0-inventory-Avenrae.txt`, a live
+ * `/outputfile inventory` export, so the character possesses it in the running
+ * game. `Hamed's Ring of Tears` is worn on a finger; `Tobrin's Mystical
+ * Eyepatch` and `Selo`s Drums of the March` are socketed into worn gear.
+ *
+ * Nothing is inferred from an item's neighbours, its zone or its era — only
+ * from having been seen in a client export. Extend it the same way: with
+ * evidence, never with a guess.
+ */
+export const TIER0_LIVE_ITEMS: ReadonlySet<string> = new Set(
+  [
+    'Batskull Earring',
+    'Crystalline Spear',
+    'Dragon Bone Bracelet',
+    'Gauntlets of Fiery Might',
+    'Gold Plated Koshigatana',
+    "Hamed's Ring of Tears",
+    'Hierophant`s Crook',
+    'McVaxius` Horn of War',
+    'Orb of Tishan',
+    'Selo`s Drums of the March',
+    "Tobrin's Mystical Eyepatch",
+    'Warhammer of Divine Grace',
+    'White Satin Gloves',
+  ].map((name) => name.toLowerCase()),
+);
+
+/** Was this exact item seen in a live client inventory export? */
+export function isTier0Confirmed(name: string | undefined): boolean {
+  return name !== undefined && TIER0_LIVE_ITEMS.has(name.toLowerCase());
+}
+
+/**
  * Level ceiling. INFERRED, not confirmed: a level-50 character in the sample
  * client capture shows "Next Level 100%" while accruing AA experience, which is
  * how a capped character behaves, and 50 was the pre-Kunark cap historically.

@@ -220,7 +220,9 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
             </details>
           </>
         }
-        onEquip={(position: string, item: Item) => state.equip(gearSet.id, position, item.n)}
+        onEquip={(position: string, item: Item, upgrade: UpgradeState) =>
+          state.equip(gearSet.id, position, item.n, upgrade)
+        }
         onUnequip={(position: string) => state.unequip(gearSet.id, position)}
         onUpgrade={(position: string, next: UpgradeState) =>
           state.setUpgrade(gearSet.id, position, next)

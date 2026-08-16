@@ -21,6 +21,7 @@ export interface StatTotals {
   mana: number;
   endurance: number;
   haste: number;
+  attack: number;
   hpRegen: number;
   manaRegen: number;
   endRegen: number;
@@ -45,7 +46,7 @@ function emptyTotals(): StatTotals {
   const saves = Object.fromEntries(SAVES.map((s) => [s, 0])) as Record<Save, number>;
   return {
     attributes, saves,
-    ac: 0, hp: 0, mana: 0, endurance: 0, haste: 0,
+    ac: 0, hp: 0, mana: 0, endurance: 0, haste: 0, attack: 0,
     hpRegen: 0, manaRegen: 0, endRegen: 0, weight: 0,
     heroic: Object.fromEntries(HEROIC_MODS.map((m) => [m.key, 0])),
     spellMods: Object.fromEntries(SPELL_MODS.map((m) => [m.key, 0])),
@@ -54,27 +55,56 @@ function emptyTotals(): StatTotals {
   };
 }
 
-/** Maps the corpus's stat keys onto canonical ones. */
-const SAVE_KEY_ALIASES: Record<string, Save> = {
-  'SV MAGIC': 'MAGIC', SV_MAGIC: 'MAGIC', MAGIC: 'MAGIC',
-  'SV FIRE': 'FIRE', SV_FIRE: 'FIRE', FIRE: 'FIRE',
-  'SV COLD': 'COLD', SV_COLD: 'COLD', COLD: 'COLD',
-  'SV DISEASE': 'DISEASE', SV_DISEASE: 'DISEASE', DISEASE: 'DISEASE',
-  'SV POISON': 'POISON', SV_POISON: 'POISON', POISON: 'POISON',
-  'SV VOID': 'VOID', SV_VOID: 'VOID', VOID: 'VOID',
+/**
+ * Spellings the corpus uses for each save, in priority order.
+ *
+ * A save is read **once** per item: the first spelling present wins and the
+ * rest are ignored. Summing the aliases instead — which is what an
+ * alias-to-canonical map invites — silently triples a resist on any payload
+ * that carries two spellings, and the normaliser deliberately accepts several
+ * input shapes, so that payload is reachable.
+ */
+const SAVE_ALIASES: Readonly<Record<Save, readonly string[]>> = {
+  MAGIC: ['SV MAGIC', 'SV_MAGIC', 'MAGIC'],
+  FIRE: ['SV FIRE', 'SV_FIRE', 'FIRE'],
+  COLD: ['SV COLD', 'SV_COLD', 'COLD'],
+  DISEASE: ['SV DISEASE', 'SV_DISEASE', 'DISEASE'],
+  POISON: ['SV POISON', 'SV_POISON', 'POISON'],
+  VOID: ['SV VOID', 'SV_VOID', 'VOID'],
 };
 
-const FLAT_KEYS = new Set(['HASTE', 'REGEN', 'HP_REGEN', 'MANA REGEN', 'MANA_REGEN', 'END_REGEN']);
+/** The one base value an item declares for a save, under any spelling. */
+function baseSave(merged: Record<string, number>, save: Save): number {
+  for (const alias of SAVE_ALIASES[save]) {
+    const value = merged[alias];
+    if (value) return value;
+  }
+  return 0;
+}
+
+/**
+ * Flat additive stat keys, with every spelling the corpus and the pipeline use.
+ * `ENDUR_REGEN` is the pipeline's vocabulary; `END_REGEN` is kept as an alias
+ * so an older payload still resolves.
+ */
+const FLAT_KEYS = [
+  'HASTE',
+  'REGEN', 'HP_REGEN',
+  'MANA REGEN', 'MANA_REGEN',
+  'END_REGEN', 'ENDUR_REGEN',
+  'ATTACK',
+] as const;
 
 /** Which stat keys on an item can trigger the synthetic Void save. */
 function voidTriggerKeys(item: Item): string[] {
   const st = item.st ?? {};
   const sv = item.sv ?? {};
+  const merged: Record<string, number> = { ...sv, ...st };
   const keys: string[] = [];
   for (const a of ATTRIBUTES) if (st[a]) keys.push(a);
-  for (const [raw, canonical] of Object.entries(SAVE_KEY_ALIASES)) {
-    if (canonical === 'VOID') continue;
-    if (sv[raw] || st[raw]) keys.push(`SV_${canonical}`);
+  for (const save of SAVES) {
+    if (save === 'VOID') continue;
+    if (baseSave(merged, save)) keys.push(`SV_${save}`);
   }
   return [...new Set(keys)];
 }
@@ -97,13 +127,22 @@ export function resolveItem(item: Item, upgrade: EquippedItem['upgrade']) {
 
   const saves: Partial<Record<Save, number>> = {};
   const merged: Record<string, number> = { ...sv, ...st };
-  for (const [raw, canonical] of Object.entries(SAVE_KEY_ALIASES)) {
-    const base = merged[raw];
-    if (base) saves[canonical] = (saves[canonical] ?? 0) + scalePrimary(base, upgrade);
+  for (const save of SAVES) {
+    const base = baseSave(merged, save);
+    if (base) saves[save] = scalePrimary(base, upgrade);
   }
 
+  /*
+   * SV Void is synthesised from the tier, and two catalog rows (Anthemion
+   * Armbands, Darkspun Shroud) also *print* a Void line — pipeline/README.md
+   * §6 reads those two wiki pages as captures of already-upgraded items, and
+   * their printed values are exactly what the synthetic rule yields at the
+   * tier named in that note (+2 and +1). The two therefore describe one line,
+   * not two, so they are reconciled with `max` and never added together.
+   * Summing them overstated Anthemion's Void by 12 at +10.
+   */
   const bonus = voidBonus(voidTriggerKeys(item), upgrade);
-  if (bonus) saves.VOID = (saves.VOID ?? 0) + bonus;
+  if (bonus) saves.VOID = Math.max(saves.VOID ?? 0, bonus);
 
   const ac = st.AC ? scalePrimary(st.AC, upgrade) : 0;
   const hp = st.HP ? scalePrimary(st.HP, upgrade) : 0;
@@ -115,6 +154,13 @@ export function resolveItem(item: Item, upgrade: EquippedItem['upgrade']) {
   for (const key of FLAT_KEYS) {
     const base = st[key];
     if (base) flat[key] = scaleFlat(base, upgrade);
+  }
+
+  // Skill damage modifiers (Backstab, Kick, …) ride in the same stat map.
+  const skillMods: Record<string, number> = {};
+  for (const mod of SKILL_DAMAGE_MODS) {
+    const base = st[mod.key];
+    if (base) skillMods[mod.key] = scaleFlat(base, upgrade);
   }
 
   const weapon = item.wp
@@ -129,7 +175,7 @@ export function resolveItem(item: Item, upgrade: EquippedItem['upgrade']) {
     : undefined;
 
   return {
-    attributes, saves, ac, hp, mana, endurance, flat, weapon,
+    attributes, saves, ac, hp, mana, endurance, flat, skillMods, weapon,
     weight: item.wt ? scaleWeight(item.wt, upgrade) : 0,
   };
 }
@@ -157,7 +203,12 @@ export function computeTotals(
 
     totals.hpRegen += r.flat.REGEN ?? r.flat.HP_REGEN ?? 0;
     totals.manaRegen += r.flat['MANA REGEN'] ?? r.flat.MANA_REGEN ?? 0;
-    totals.endRegen += r.flat.END_REGEN ?? 0;
+    totals.endRegen += r.flat.ENDUR_REGEN ?? r.flat.END_REGEN ?? 0;
+    totals.attack += r.flat.ATTACK ?? 0;
+
+    for (const [k, v] of Object.entries(r.skillMods)) {
+      totals.skillMods[k] = (totals.skillMods[k] ?? 0) + v;
+    }
 
     // Only the single highest worn haste applies; they do not sum.
     const haste = r.flat.HASTE ?? 0;

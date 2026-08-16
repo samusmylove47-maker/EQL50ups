@@ -18,6 +18,16 @@ export interface ScoreContext {
   /** Totals already contributed by the rest of the set, for cap awareness. */
   existing?: { attributes: Partial<Record<Attribute, number>>; saves: Partial<Record<Save, number>> };
   capAware?: boolean;
+  /**
+   * Whether the position being scored actually swings the item.
+   *
+   * `computeTotals` reports a weapon only from Primary and Secondary, so
+   * crediting damage and ratio anywhere else makes the score claim value the
+   * stat panel then refuses to show. Defaults to true; the ranking selector
+   * turns it off for the two "Any Slot" positions, which are worn positions
+   * rather than hands.
+   */
+  weaponCounts?: boolean;
 }
 
 export interface ScoreBreakdown {
@@ -27,12 +37,15 @@ export interface ScoreBreakdown {
 
 /**
  * How much of `amount` counts once `already` is spent against `cap`.
- * Returns the creditable portion and the wasted remainder.
+ *
+ * Measured as the movement of the *capped* total, which is the only part a
+ * character actually feels: `min(already + amount, cap) - min(already, cap)`.
+ * That handles the penalty case symmetrically — a −20 Strength item costs
+ * nothing to someone already 90 over the ceiling — where a headroom-only rule
+ * credited gains against the cap but charged losses in full.
  */
 function creditable(amount: number, already: number, cap: number): { counted: number; wasted: number } {
-  if (amount <= 0) return { counted: amount, wasted: 0 };
-  const headroom = Math.max(0, cap - already);
-  const counted = Math.min(amount, headroom);
+  const counted = Math.min(already + amount, cap) - Math.min(already, cap);
   return { counted, wasted: amount - counted };
 }
 
@@ -70,8 +83,9 @@ export function scoreItem(
   add('MANA', resolved.mana);
   add('ENDUR', resolved.endurance);
   for (const [key, amount] of Object.entries(resolved.flat)) add(key, amount);
+  for (const [key, amount] of Object.entries(resolved.skillMods)) add(key, amount);
 
-  if (resolved.weapon) {
+  if (resolved.weapon && (ctx.weaponCounts ?? true)) {
     add('RATIO', resolved.weapon.ratio);
     add('DMG', resolved.weapon.damage);
   }
@@ -146,6 +160,11 @@ export const WEIGHTABLE_KEYS: ReadonlyArray<{ key: string; label: string; group:
   { key: 'SV_POISON', label: 'Poison Resist', group: 'Resists' },
   { key: 'SV_VOID', label: 'Void Resist', group: 'Resists' },
   { key: 'HASTE', label: 'Haste', group: 'Combat' },
+  { key: 'ATTACK', label: 'Attack', group: 'Combat' },
+  { key: 'BACKSTAB', label: 'Backstab Mod', group: 'Combat' },
   { key: 'RATIO', label: 'Weapon Ratio', group: 'Combat' },
   { key: 'DMG', label: 'Weapon Damage', group: 'Combat' },
+  { key: 'HP_REGEN', label: 'HP Regen', group: 'Regen' },
+  { key: 'MANA_REGEN', label: 'Mana Regen', group: 'Regen' },
+  { key: 'ENDUR_REGEN', label: 'End Regen', group: 'Regen' },
 ];
