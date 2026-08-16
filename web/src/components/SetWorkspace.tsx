@@ -92,6 +92,8 @@ export function SetWorkspace({
         </div>
       </header>
 
+      {gearSet.notes ? <p className="hint set-notes">{gearSet.notes}</p> : null}
+
       <div className="tabrow" role="tablist" aria-label="Set sections">
         {SET_TABS.map((name) => (
           <button

@@ -56,6 +56,13 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
   }
 
   const runAutoFill = async () => {
+    const filled = Object.keys(gearSet.slots).length;
+    // Replacing hand-picked gear without asking would be rude.
+    const keepFilled =
+      filled > 0 &&
+      !window.confirm(
+        `Replace all ${filled} equipped item${filled === 1 ? '' : 's'}? Cancel to fill only the empty slots.`,
+      );
     setBusy(true);
     setMessage(null);
     try {
@@ -64,7 +71,7 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
       const views = slotViews(gearSet, fresh);
       const result = autoFill(fresh, views, character, gearSet.weights, {
         includeUnreleased: false,
-        keepFilled: false,
+        keepFilled,
       });
       for (const entry of result.assigned) {
         state.equip(gearSet.id, entry.position, entry.itemName);

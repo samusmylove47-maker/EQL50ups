@@ -62,7 +62,7 @@ export function useRoute(): Route {
   useEffect(() => {
     const onChange = () => {
       setRoute(currentRoute());
-      window.scrollTo({ top: 0 });
+      if (window.scrollY > 0) window.scrollTo({ top: 0 });
     };
     window.addEventListener('hashchange', onChange);
     return () => window.removeEventListener('hashchange', onChange);

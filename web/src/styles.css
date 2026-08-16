@@ -1425,6 +1425,12 @@ table.data tbody tr:hover {
   color: var(--bad);
 }
 
+.set-notes {
+  margin: -6px 0 12px;
+  max-width: 80ch;
+  white-space: pre-wrap;
+}
+
 /* --- 15. Misc ------------------------------------------------------------ */
 
 .rowline {

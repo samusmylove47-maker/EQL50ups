@@ -155,7 +155,8 @@ export function ItemPicker({
 
   useEffect(() => {
     const node = listRef.current?.querySelector<HTMLElement>('[data-active="true"]');
-    node?.scrollIntoView({ block: 'nearest' });
+    // Guarded: not every environment implements scrollIntoView.
+    if (typeof node?.scrollIntoView === 'function') node.scrollIntoView({ block: 'nearest' });
   }, [active, rows]);
 
   const shardStatus = catalog.shards[position.type];
@@ -238,6 +239,10 @@ export function ItemPicker({
           placeholder={`Search ${position.label.toLowerCase()} items…`}
           aria-label="Search items by name"
           autoComplete="off"
+          role="combobox"
+          aria-expanded={rows.length > 0}
+          aria-controls="picker-results"
+          aria-activedescendant={rows.length ? `picker-option-${active}` : undefined}
         />
         <input
           type="search"
@@ -295,6 +300,7 @@ export function ItemPicker({
 
       <div
         className="results"
+        id="picker-results"
         ref={listRef}
         role="listbox"
         aria-label={`${position.label} candidates`}
@@ -322,6 +328,7 @@ export function ItemPicker({
             <button
               type="button"
               key={`${item.n}-${index}`}
+              id={`picker-option-${index}`}
               className={`result${index === active ? ' active' : ''}${isEquipped ? ' equipped-now' : ''}`}
               data-active={index === active}
               role="option"

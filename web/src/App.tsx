@@ -44,6 +44,29 @@ export function App() {
     void loadCatalog();
   }, [hydrate, loadCatalog]);
 
+  // Native <details> menus stay open until told otherwise; close them when the
+  // user clicks away, chooses an entry, or presses Escape.
+  useEffect(() => {
+    const menus = () => document.querySelectorAll<HTMLDetailsElement>('details.menu[open]');
+    const onClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      for (const menu of menus()) {
+        if (!menu.contains(target) || target.closest('.menu-item')) menu.open = false;
+      }
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      for (const menu of menus()) menu.open = false;
+    };
+    document.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
   return (
     <div className="app">
       <header className="topbar">

@@ -10,10 +10,11 @@
 import { ATTRIBUTES, ATTRIBUTE_NAMES, SAVES, SAVE_NAMES, SLOT_POSITIONS, type SlotPosition } from '../engine/constants';
 import { canUse, type Character } from '../engine/character';
 import { computeTotals, resolveItem, type StatTotals } from '../engine/stats';
-import { scoreItem, type WeightProfile } from '../engine/ep';
+import { scoreItem, type ScoreContext, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
 import type { EquippedItem, GearSet, Item } from '../engine/types';
 import { dec, finite, signed } from '../lib/format';
+import { isLive } from '../lib/itemStyle';
 import type { CatalogState } from '../data/catalog';
 import { itemsForSlot } from '../data/catalog';
 import type { SlotCode } from '../data/normalize';
@@ -152,7 +153,9 @@ export function totalsFor(views: readonly SlotView[], excludePosition?: string):
 }
 
 /** Cap-aware scoring context: what the rest of the set already contributes. */
-export function scoreContextFrom(totals: StatTotals) {
+export type ScoreExisting = NonNullable<ScoreContext['existing']>;
+
+export function scoreContextFrom(totals: StatTotals): ScoreExisting {
   return {
     attributes: { ...totals.attributes },
     saves: { ...totals.saves },
@@ -169,7 +172,7 @@ export interface RankOptions {
   character: Character | undefined;
   weights: WeightProfile;
   upgrade: UpgradeState;
-  existing?: ReturnType<typeof scoreContextFrom>;
+  existing?: ScoreExisting;
   includeUnreleased: boolean;
 }
 
@@ -181,7 +184,7 @@ function weightSignature(weights: WeightProfile): string {
     .join(',');
 }
 
-function contextSignature(existing: RankOptions['existing']): string {
+function contextSignature(existing: ScoreExisting | undefined): string {
   if (!existing) return '-';
   const attrs = Object.entries(existing.attributes).map(([k, v]) => `${k}${Math.round(finite(v))}`);
   const saves = Object.entries(existing.saves).map(([k, v]) => `${k}${Math.round(finite(v))}`);
@@ -218,7 +221,7 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
   const pool = itemsForSlot(catalog, slot);
   const scored: ScoredItem[] = [];
   for (const item of pool) {
-    if (!includeUnreleased && item.av === false) continue;
+    if (!includeUnreleased && !isLive(item)) continue;
     if (character && !canUse({ classes: item.cl, races: item.ra }, character)) continue;
     const breakdown = scoreItem(item, upgrade, weights, existing ? { existing } : {});
     scored.push({ item, score: finite(breakdown.total) });

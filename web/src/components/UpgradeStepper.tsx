@@ -29,7 +29,7 @@ export function UpgradeStepper({ value, onChange, label, disabled = false }: Upg
   const banked = state.fraction > 0 ? ` (${state.fraction}/${denom} banked)` : '';
 
   return (
-    <div className="stepper" role="group" aria-label={`${label} upgrade level`}>
+    <div className="stepper" role="group" aria-label={`${label} upgrade controls`}>
       <button
         type="button"
         onClick={() => step(-1)}
