@@ -30,20 +30,41 @@ export function NewCharacter() {
   }, [items]);
 
   const [name, setName] = useState('');
-  const [level, setLevel] = useState(LEVEL_CAP);
+  /*
+   * The level is held as text, not as a clamped number. Clamping on every
+   * keystroke rewrote what was being typed — emptying the field snapped it to
+   * 1, so typing "40" over it produced 140 and then the cap. Keep the reader's
+   * own text, refuse to submit while it is out of range, and snap on blur.
+   */
+  const [levelText, setLevelText] = useState(String(LEVEL_CAP));
   const [race, setRace] = useState('');
   const [classes, setClasses] = useState<ClassCode[]>([]);
 
+  const parsedLevel = Number(levelText.trim());
+  const levelOk =
+    levelText.trim() !== '' &&
+    Number.isFinite(parsedLevel) &&
+    Number.isInteger(parsedLevel) &&
+    parsedLevel >= 1 &&
+    parsedLevel <= LEVEL_CAP;
+
   const validation = validateClasses(classes);
   const nameOk = name.trim().length > 0;
-  const canCreate = nameOk && validation.ok;
+  const canCreate = nameOk && validation.ok && levelOk;
+
+  const snapLevel = () => {
+    const clamped = Number.isFinite(parsedLevel)
+      ? Math.max(1, Math.min(LEVEL_CAP, Math.round(parsedLevel)))
+      : LEVEL_CAP;
+    setLevelText(String(levelText.trim() === '' ? LEVEL_CAP : clamped));
+  };
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!canCreate) return;
     const character = createCharacter({
       name: name.trim(),
-      level,
+      level: parsedLevel,
       classes,
       race: race || null,
     });
@@ -81,11 +102,11 @@ export function NewCharacter() {
                 type="number"
                 min={1}
                 max={LEVEL_CAP}
-                value={level}
-                onChange={(e) => {
-                  const next = Number(e.target.value);
-                  setLevel(Number.isFinite(next) ? Math.max(1, Math.min(LEVEL_CAP, next)) : 1);
-                }}
+                step={1}
+                value={levelText}
+                aria-invalid={levelOk ? undefined : true}
+                onChange={(e) => setLevelText(e.target.value)}
+                onBlur={snapLevel}
               />
             </label>
             <label className="field" style={{ width: 160 }}>
@@ -113,7 +134,7 @@ export function NewCharacter() {
             <h2 className="section-label">Class trio</h2>
             <span className="hint">
               {classes.length
-                ? describeCharacter({ level, classes })
+                ? describeCharacter({ level: levelOk ? parsedLevel : LEVEL_CAP, classes })
                 : 'Pick one to three distinct classes — the first is your primary.'}
             </span>
           </div>
@@ -135,6 +156,11 @@ export function NewCharacter() {
           </button>
           {!nameOk ? <span className="hint">A name is required.</span> : null}
           {nameOk && !validation.ok ? <span className="hint">{validation.error}</span> : null}
+          {nameOk && validation.ok && !levelOk ? (
+            <span className="hint bad" role="alert">
+              Level must be a whole number between 1 and {LEVEL_CAP}.
+            </span>
+          ) : null}
         </div>
       </div>
     </form>

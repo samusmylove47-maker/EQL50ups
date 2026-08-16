@@ -76,12 +76,15 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
       for (const entry of result.assigned) {
         state.equip(gearSet.id, entry.position, entry.itemName);
       }
+      const openSlots = views.length - Object.keys(gearSet.slots).length;
       setMessage(
         result.assigned.length
           ? `Auto-fill placed ${result.assigned.length} item${result.assigned.length === 1 ? '' : 's'}${
               result.skipped.length ? `; nothing scored above zero for ${result.skipped.join(', ')}.` : '.'
             }`
-          : 'Auto-fill found nothing to place — check that item data is loaded and your weights are not all zero.',
+          : keepFilled && openSlots === 0
+            ? 'Every slot is already filled. Run Auto-fill again and confirm to replace what is equipped.'
+            : 'Auto-fill found nothing to place — check that item data is loaded and your weights are not all zero.',
       );
     } finally {
       setBusy(false);

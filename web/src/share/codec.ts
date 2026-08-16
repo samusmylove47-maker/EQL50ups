@@ -19,7 +19,7 @@
  * because the input is a URL a stranger pasted.
  */
 
-import { SLOT_POSITIONS } from '../engine/constants';
+import { CLASS_SET, SLOT_POSITIONS } from '../engine/constants';
 import { normalizeState } from '../engine/upgrade';
 import type { Character } from '../engine/character';
 import type { EquippedItem, GearSet } from '../engine/types';
@@ -136,9 +136,18 @@ export function fromTuple(raw: unknown): SharedPlan | null {
     }
   }
 
+  // A stranger's URL: keep only real class codes, and only one of each, so a
+  // hand-edited link cannot produce a trio the character model forbids.
   const classList =
     typeof classes === 'string'
-      ? classes.split('/').map((c) => c.trim().toUpperCase()).filter(Boolean).slice(0, 3)
+      ? [
+          ...new Set(
+            classes
+              .split('/')
+              .map((c) => c.trim().toUpperCase())
+              .filter((c) => CLASS_SET.has(c)),
+          ),
+        ].slice(0, 3)
       : [];
 
   const plan: SharedPlan = {

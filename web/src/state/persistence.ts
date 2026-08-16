@@ -66,12 +66,17 @@ function sanitizeCharacter(raw: unknown): Character | null {
   if (!isRecord(raw)) return null;
   const id = typeof raw.id === 'string' && raw.id ? raw.id : null;
   if (!id) return null;
+  // Distinct, per `validateClasses` — a repeated code would print as "WAR/WAR"
+  // in the header and is not a trio the game can produce.
   const classes = Array.isArray(raw.classes)
-    ? raw.classes
-        .filter((c): c is string => typeof c === 'string')
-        .map((c) => c.toUpperCase())
-        .filter((c) => CLASS_SET.has(c))
-        .slice(0, 3)
+    ? [
+        ...new Set(
+          raw.classes
+            .filter((c): c is string => typeof c === 'string')
+            .map((c) => c.toUpperCase())
+            .filter((c) => CLASS_SET.has(c)),
+        ),
+      ].slice(0, 3)
     : [];
   return {
     id,
