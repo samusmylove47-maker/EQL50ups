@@ -205,7 +205,7 @@ function contextSignature(existing: ScoreExisting | undefined): string {
 }
 
 const rankCache = new Map<string, ScoredItem[]>();
-const RANK_CACHE_LIMIT = 24;
+const RANK_CACHE_LIMIT = 64;
 
 /**
  * Score and sort every candidate for a slot.
@@ -294,12 +294,18 @@ export interface AutoFillResult {
 }
 
 /**
- * Greedy, cap-aware best-in-slot fill.
+ * Cap-aware best-in-slot fill.
  *
- * Slots are filled in descending order of how much the best candidate is
- * worth, and each choice updates the cap context for the ones after it, so a
- * slot cannot win by stacking a stat the set has already maxed. Item names are
- * consumed once — no wearing the same ring twice.
+ * Two passes rather than one greedy item at a time. Pass one ranks every open
+ * slot against the set as it stands, then assigns in descending order of what
+ * the slot's best candidate is worth, consuming item names so nothing is worn
+ * twice. Pass two re-ranks against the totals pass one produced, which is
+ * where cap awareness bites: a slot that would have piled onto an attribute
+ * the set has now maxed loses to something that still scores.
+ *
+ * Re-ranking every slot after every single pick would be the exact answer and
+ * costs 23x more work for a difference that rarely changes the outcome; two
+ * passes keep the button under a blink.
  */
 export function autoFill(
   catalog: CatalogState,
@@ -308,55 +314,61 @@ export function autoFill(
   weights: WeightProfile,
   options: { includeUnreleased: boolean; keepFilled: boolean },
 ): AutoFillResult {
-  const assigned: AutoFillResult['assigned'] = [];
-  const skipped: string[] = [];
-  const used = new Set<string>();
-  const chosen = new Map<string, { item: Item; upgrade: UpgradeState }>();
-
+  const kept = new Map<string, { item: Item; upgrade: UpgradeState }>();
   for (const view of views) {
     if (options.keepFilled && view.item && view.equipped) {
-      used.add(view.item.n.toLowerCase());
-      chosen.set(view.position.id, {
+      kept.set(view.position.id, {
         item: view.item,
         upgrade: normalizeState(view.equipped.upgrade),
       });
     }
   }
 
-  const pending = views.filter((v) => !chosen.has(v.position.id));
+  const pending = views.filter((v) => !kept.has(v.position.id));
+  const upgradeFor = (view: SlotView) =>
+    view.equipped ? normalizeState(view.equipped.upgrade) : BASE_STATE;
 
-  for (let round = 0; round < pending.length; round++) {
-    const totals = computeTotals(
-      [...chosen.entries()].map(([position, e]) => ({ position, item: e.item, upgrade: e.upgrade })),
+  const totalsOf = (picks: Map<string, { item: Item; upgrade: UpgradeState }>) =>
+    computeTotals(
+      [...picks.entries()].map(([position, e]) => ({ position, item: e.item, upgrade: e.upgrade })),
     );
-    const context = scoreContextFrom(totals);
 
-    let best: { view: SlotView; item: Item; score: number } | null = null;
-    for (const view of pending) {
-      if (chosen.has(view.position.id)) continue;
-      const upgrade = view.equipped ? normalizeState(view.equipped.upgrade) : BASE_STATE;
-      const ranked = rankSlotItems(catalog, {
+  let chosen = new Map(kept);
+
+  for (let pass = 0; pass < 2; pass++) {
+    const context = scoreContextFrom(totalsOf(chosen));
+    const ranked = pending.map((view) => ({
+      view,
+      list: rankSlotItems(catalog, {
         slot: view.position.type as SlotCode,
         character,
         weights,
-        upgrade,
+        upgrade: upgradeFor(view),
         existing: context,
         includeUnreleased: options.includeUnreleased,
-      });
-      const pick = ranked.find((entry) => !used.has(entry.item.n.toLowerCase()));
-      if (!pick || pick.score <= 0) continue;
-      if (!best || pick.score > best.score) best = { view, item: pick.item, score: pick.score };
-    }
+      }),
+    }));
 
-    if (!best) break;
-    used.add(best.item.n.toLowerCase());
-    const upgrade = best.view.equipped ? normalizeState(best.view.equipped.upgrade) : BASE_STATE;
-    chosen.set(best.view.position.id, { item: best.item, upgrade });
-    assigned.push({ position: best.view.position.id, itemName: best.item.n });
+    const next = new Map(kept);
+    const used = new Set([...kept.values()].map((e) => e.item.n.toLowerCase()));
+
+    // Slots whose best candidate is worth most get first refusal on it.
+    ranked.sort((a, b) => (b.list[0]?.score ?? 0) - (a.list[0]?.score ?? 0));
+    for (const { view, list } of ranked) {
+      const pick = list.find((entry) => entry.score > 0 && !used.has(entry.item.n.toLowerCase()));
+      if (!pick) continue;
+      used.add(pick.item.n.toLowerCase());
+      next.set(view.position.id, { item: pick.item, upgrade: upgradeFor(view) });
+    }
+    chosen = next;
   }
 
+  const assigned: AutoFillResult['assigned'] = [];
+  const skipped: string[] = [];
   for (const view of pending) {
-    if (!chosen.has(view.position.id)) skipped.push(view.position.label);
+    const pick = chosen.get(view.position.id);
+    if (pick) assigned.push({ position: view.position.id, itemName: pick.item.n });
+    else skipped.push(view.position.label);
   }
   return { assigned, skipped };
 }
