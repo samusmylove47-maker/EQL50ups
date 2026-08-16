@@ -1,0 +1,162 @@
+/**
+ * The gear set workspace — header, tab row, paper doll, stat panel, picker.
+ *
+ * Shared by the editable set screen and the read-only share view so the two
+ * cannot drift apart. Everything it needs is passed in; it owns only the
+ * transient UI state (which slot's picker is open, which tab is showing).
+ */
+
+import { useMemo, useState, type ReactNode } from 'react';
+import { describeCharacter, type Character } from '../engine/character';
+import type { WeightProfile } from '../engine/ep';
+import type { GearSet, Item } from '../engine/types';
+import type { UpgradeState } from '../engine/upgrade';
+import { BASE_STATE } from '../engine/upgrade';
+import { useCatalog } from '../data/catalog';
+import { SET_TABS, type SetTab } from '../router';
+import { slotViews, totalsFor } from '../selectors/gear';
+import { ExaltationsTab } from './ExaltationsTab';
+import { ItemPicker } from './ItemPicker';
+import { PaperDoll } from './PaperDoll';
+import { WeightsEditor } from './WeightsEditor';
+
+const TAB_LABELS: Record<SetTab, string> = {
+  gear: 'Gear',
+  exaltations: 'Exaltations',
+  weights: 'Weights',
+};
+
+export interface SetWorkspaceProps {
+  character: Character | undefined;
+  gearSet: GearSet;
+  tab: SetTab;
+  onTabChange: (tab: SetTab) => void;
+  readOnly?: boolean;
+  /** Quiet actions rendered right-aligned on the tab row. */
+  actions?: ReactNode;
+  /** Set switcher control rendered in the header. */
+  setSwitcher?: ReactNode;
+  onEquip: (positionId: string, item: Item) => void;
+  onUnequip: (positionId: string) => void;
+  onUpgrade: (positionId: string, next: UpgradeState) => void;
+  onSetDonor: (positionId: string, kind: string, donor: string | null) => void;
+  onWeights: (weights: WeightProfile) => void;
+}
+
+export function SetWorkspace({
+  character,
+  gearSet,
+  tab,
+  onTabChange,
+  readOnly = false,
+  actions,
+  setSwitcher,
+  onEquip,
+  onUnequip,
+  onUpgrade,
+  onSetDonor,
+  onWeights,
+}: SetWorkspaceProps) {
+  const catalog = useCatalog();
+  const [openSlot, setOpenSlot] = useState<string | null>(null);
+
+  const views = useMemo(() => slotViews(gearSet, catalog), [gearSet, catalog]);
+  const totals = useMemo(() => totalsFor(views), [views]);
+  const contextTotals = useMemo(
+    () => (openSlot ? totalsFor(views, openSlot) : totals),
+    [views, openSlot, totals],
+  );
+
+  const openView = openSlot ? views.find((v) => v.position.id === openSlot) : undefined;
+  const initial = (character?.name ?? gearSet.name).trim().charAt(0).toUpperCase() || '?';
+
+  return (
+    <div>
+      <header className="set-header">
+        <div className="portrait" aria-hidden="true">
+          {initial}
+        </div>
+        <div className="identity">
+          <h1>{character?.name ?? 'Unknown character'}</h1>
+          <div className="sub">
+            {character ? describeCharacter(character) : 'No character attached'}
+            {character?.race ? ` · ${character.race}` : ''}
+          </div>
+        </div>
+        <div className="vrule" aria-hidden="true" />
+        <div className="set-identity">
+          <div className="set-glyph" aria-hidden="true">
+            ◆
+          </div>
+          {setSwitcher ?? <span className="name">{gearSet.name}</span>}
+        </div>
+      </header>
+
+      <div className="tabrow" role="tablist" aria-label="Set sections">
+        {SET_TABS.map((name) => (
+          <button
+            key={name}
+            type="button"
+            role="tab"
+            id={`tab-${name}`}
+            className="tab"
+            aria-selected={tab === name}
+            aria-controls={`panel-${name}`}
+            onClick={() => onTabChange(name)}
+          >
+            {TAB_LABELS[name]}
+          </button>
+        ))}
+        <div className="tab-actions">{actions}</div>
+      </div>
+
+      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+        {tab === 'gear' ? (
+          <PaperDoll
+            views={views}
+            weights={gearSet.weights}
+            totals={totals}
+            readOnly={readOnly}
+            onPick={(id) => setOpenSlot(id)}
+            onUpgrade={onUpgrade}
+            onClear={onUnequip}
+          />
+        ) : null}
+
+        {tab === 'exaltations' ? (
+          <ExaltationsTab
+            views={views}
+            readOnly={readOnly}
+            onUpgrade={onUpgrade}
+            onSetDonor={onSetDonor}
+          />
+        ) : null}
+
+        {tab === 'weights' ? (
+          <WeightsEditor weights={gearSet.weights} onChange={onWeights} readOnly={readOnly} />
+        ) : null}
+      </div>
+
+      {openView && !readOnly ? (
+        <ItemPicker
+          position={openView.position}
+          character={character}
+          weights={gearSet.weights}
+          currentItem={openView.item}
+          currentName={openView.equipped?.itemName}
+          currentUpgrade={openView.equipped?.upgrade ?? BASE_STATE}
+          contextTotals={contextTotals}
+          onSelect={(item) => {
+            onEquip(openView.position.id, item);
+            setOpenSlot(null);
+          }}
+          onClear={() => {
+            onUnequip(openView.position.id);
+            setOpenSlot(null);
+          }}
+          onClose={() => setOpenSlot(null)}
+        />
+      ) : null}
+    </div>
+  );
+}

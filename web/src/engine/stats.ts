@@ -68,25 +68,35 @@ const FLAT_KEYS = new Set(['HASTE', 'REGEN', 'HP_REGEN', 'MANA REGEN', 'MANA_REG
 
 /** Which stat keys on an item can trigger the synthetic Void save. */
 function voidTriggerKeys(item: Item): string[] {
+  const st = item.st ?? {};
+  const sv = item.sv ?? {};
   const keys: string[] = [];
-  for (const a of ATTRIBUTES) if (item.st[a]) keys.push(a);
+  for (const a of ATTRIBUTES) if (st[a]) keys.push(a);
   for (const [raw, canonical] of Object.entries(SAVE_KEY_ALIASES)) {
     if (canonical === 'VOID') continue;
-    if (item.sv[raw] || item.st[raw]) keys.push(`SV_${canonical}`);
+    if (sv[raw] || st[raw]) keys.push(`SV_${canonical}`);
   }
   return [...new Set(keys)];
 }
 
-/** Resolve one item's contribution at its chosen upgrade level. */
+/**
+ * Resolve one item's contribution at its chosen upgrade level.
+ *
+ * The catalog omits empty containers to keep the payload small, so every
+ * optional collection is read defensively rather than assumed present.
+ */
 export function resolveItem(item: Item, upgrade: EquippedItem['upgrade']) {
+  const st: Record<string, number> = item.st ?? {};
+  const sv: Record<string, number> = item.sv ?? {};
+
   const attributes: Partial<Record<Attribute, number>> = {};
   for (const a of ATTRIBUTES) {
-    const base = item.st[a];
+    const base = st[a];
     if (base) attributes[a] = scalePrimary(base, upgrade);
   }
 
   const saves: Partial<Record<Save, number>> = {};
-  const merged: Record<string, number> = { ...item.sv, ...item.st };
+  const merged: Record<string, number> = { ...sv, ...st };
   for (const [raw, canonical] of Object.entries(SAVE_KEY_ALIASES)) {
     const base = merged[raw];
     if (base) saves[canonical] = (saves[canonical] ?? 0) + scalePrimary(base, upgrade);
@@ -95,16 +105,15 @@ export function resolveItem(item: Item, upgrade: EquippedItem['upgrade']) {
   const bonus = voidBonus(voidTriggerKeys(item), upgrade);
   if (bonus) saves.VOID = (saves.VOID ?? 0) + bonus;
 
-  const ac = item.st.AC ? scalePrimary(item.st.AC, upgrade) : 0;
-  const hp = item.st.HP ? scalePrimary(item.st.HP, upgrade) : 0;
-  const mana = item.st.MANA ? scalePrimary(item.st.MANA, upgrade) : 0;
-  const endurance = item.st.ENDUR ?? item.st.END
-    ? scalePrimary(item.st.ENDUR ?? item.st.END ?? 0, upgrade)
-    : 0;
+  const ac = st.AC ? scalePrimary(st.AC, upgrade) : 0;
+  const hp = st.HP ? scalePrimary(st.HP, upgrade) : 0;
+  const mana = st.MANA ? scalePrimary(st.MANA, upgrade) : 0;
+  const enduranceBase = st.ENDUR ?? st.END ?? 0;
+  const endurance = enduranceBase ? scalePrimary(enduranceBase, upgrade) : 0;
 
   const flat: Record<string, number> = {};
   for (const key of FLAT_KEYS) {
-    const base = item.st[key];
+    const base = st[key];
     if (base) flat[key] = scaleFlat(base, upgrade);
   }
 
