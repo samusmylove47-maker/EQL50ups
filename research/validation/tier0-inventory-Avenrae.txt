@@ -1,0 +1,983 @@
+Location	Name	ID	Count	Slots
+Any Slot	Nautilus Shield +6	9404	1	10
+Any Slot-Slot2	Empty	0	0	0
+Any Slot-Slot7	Selo`s Drums of the March (Exaltation)	11626	1	10
+Any Slot-Slot8	Empty	0	0	0
+Any Slot-Slot9	Empty	0	0	0
+Any Slot-Slot10	Empty	0	0	0
+Ear	Black Sapphire Electrum Earring +4	14701	1	10
+Ear-Slot7	Empty	0	0	0
+Ear-Slot8	Empty	0	0	0
+Ear-Slot9	Empty	0	0	0
+Ear-Slot10	Empty	0	0	0
+Head	Shadow Rage Helm +5	55601	1	10
+Head-Slot2	Empty	0	0	0
+Head-Slot7	Empty	0	0	0
+Head-Slot8	Empty	0	0	0
+Head-Slot9	Empty	0	0	0
+Head-Slot10	Empty	0	0	0
+Face	Darkbrood Mask +4	1544	1	10
+Face-Slot7	Empty	0	0	0
+Face-Slot8	Empty	0	0	0
+Face-Slot9	Tobrin's Mystical Eyepatch (Exaltation)	11052	1	10
+Face-Slot10	Empty	0	0	0
+Ear	Black Sapphire Electrum Earring +4	14701	1	10
+Ear-Slot7	Empty	0	0	0
+Ear-Slot8	Empty	0	0	0
+Ear-Slot9	Fishbone Earring (Exaltation)	10313	1	10
+Ear-Slot10	Empty	0	0	0
+Neck	Talisman of Kejaar Kerrath +5	177931	1	10
+Neck-Slot1	Empty	0	0	0
+Neck-Slot7	Cape of Midnight Mist (Exaltation)	1407	1	10
+Neck-Slot8	Empty	0	0	0
+Neck-Slot9	Empty	0	0	0
+Neck-Slot10	Empty	0	0	0
+Shoulders	Imbued Granite Spaulders +4	4394	1	10
+Shoulders-Slot7	Empty	0	0	0
+Shoulders-Slot8	Refugee Shroud (Exaltation)	177823	1	10
+Shoulders-Slot9	Empty	0	0	0
+Shoulders-Slot10	Empty	0	0	0
+Arms	Lustrous Russet Vambraces +4	4833	1	10
+Arms-Slot2	Empty	0	0	0
+Arms-Slot7	Empty	0	0	0
+Arms-Slot8	Empty	0	0	0
+Arms-Slot9	Empty	0	0	0
+Arms-Slot10	Empty	0	0	0
+Back	Cloak of Flames +7	11621	1	10
+Back-Slot7	White Dragonscale Cloak (Exaltation)	11603	1	10
+Back-Slot8	Empty	0	0	0
+Back-Slot9	Empty	0	0	0
+Back-Slot10	Empty	0	0	0
+Wrist	Hotof's Bracer +4	1541	1	10
+Wrist-Slot2	Empty	0	0	0
+Wrist-Slot7	Empty	0	0	0
+Wrist-Slot8	Empty	0	0	0
+Wrist-Slot9	Empty	0	0	0
+Wrist-Slot10	Empty	0	0	0
+Wrist	Indicolite Bracer +7	4914	1	10
+Wrist-Slot2	Empty	0	0	0
+Wrist-Slot7	Empty	0	0	0
+Wrist-Slot8	Empty	0	0	0
+Wrist-Slot9	Empty	0	0	0
+Wrist-Slot10	Empty	0	0	0
+Range	Soldier's Brooch of the Stalwart +6	60038	1	10
+Range-Slot2	Empty	0	0	0
+Range-Slot7	Empty	0	0	0
+Range-Slot8	Empty	0	0	0
+Range-Slot9	Empty	0	0	0
+Range-Slot10	Empty	0	0	0
+Hands	Indicolite Gauntlets +4	4915	1	10
+Hands-Slot2	Empty	0	0	0
+Hands-Slot7	Empty	0	0	0
+Hands-Slot8	Empty	0	0	0
+Hands-Slot9	Empty	0	0	0
+Hands-Slot10	Empty	0	0	0
+Primary	Earthshaker +10	5667	1	10
+Primary-Slot2	Empty	0	0	0
+Primary-Slot7	Empty	0	0	0
+Primary-Slot8	Empty	0	0	0
+Primary-Slot9	Empty	0	0	0
+Primary-Slot10	Empty	0	0	0
+Secondary	Empty	0	0	0
+Fingers	Djarn's Amethyst Ring +4	10366	1	10
+Fingers-Slot7	Djarn's Amethyst Ring (Exaltation)	10366	1	10
+Fingers-Slot8	Empty	0	0	0
+Fingers-Slot9	Empty	0	0	0
+Fingers-Slot10	Empty	0	0	0
+Fingers	Hamed's Ring of Tears +6	16840	1	10
+Fingers-Slot7	Moonstone Ring (Exaltation)	10150	1	10
+Fingers-Slot8	Empty	0	0	0
+Fingers-Slot9	Empty	0	0	0
+Fingers-Slot10	Empty	0	0	0
+Chest	Indicolite Breastplate +6	4912	1	10
+Chest-Slot2	Empty	0	0	0
+Chest-Slot7	Empty	0	0	0
+Chest-Slot8	Spiky Splintmail (Exaltation)	177858	1	10
+Chest-Slot9	Empty	0	0	0
+Chest-Slot10	Empty	0	0	0
+Legs	Indicolite Greaves +6	4916	1	10
+Legs-Slot2	Empty	0	0	0
+Legs-Slot7	Empty	0	0	0
+Legs-Slot8	Empty	0	0	0
+Legs-Slot9	Empty	0	0	0
+Legs-Slot10	Empty	0	0	0
+Feet	Imbrued Platemail Boots +5	4867	1	10
+Feet-Slot2	Empty	0	0	0
+Feet-Slot7	Empty	0	0	0
+Feet-Slot8	Empty	0	0	0
+Feet-Slot9	Empty	0	0	0
+Feet-Slot10	Empty	0	0	0
+Waist	Bone-Clasped Girdle +4	11666	1	10
+Waist-Slot7	Bone-Clasped Girdle (Exaltation)	11666	1	10
+Waist-Slot8	Empty	0	0	0
+Waist-Slot9	Empty	0	0	0
+Waist-Slot10	Empty	0	0	0
+Any Slot	Bladestopper +6	11632	1	10
+Any Slot-Slot2	Empty	0	0	0
+Any Slot-Slot7	Lute of the Gypsy Princess (Exaltation)	10176	1	10
+Any Slot-Slot8	Bladestopper (Exaltation)	11632	1	10
+Any Slot-Slot9	Empty	0	0	0
+Any Slot-Slot10	Empty	0	0	0
+Ammo	Crude Arrow +5	177804	1	10
+Ammo-Slot7	Empty	0	0	0
+Ammo-Slot8	Empty	0	0	0
+Ammo-Slot9	Empty	0	0	0
+Ammo-Slot10	Empty	0	0	0
+General 1	Spacious Rucksack	177751	1	24
+General 1-Slot1	Iron Ration	13005	1	10
+General 1-Slot2	Water Flask	13006	133	10
+General 1-Slot3	Ration	13007	90	10
+General 1-Slot4	Ration	13007	100	10
+General 1-Slot5	Potion of Invisibility	14206	1	10
+General 1-Slot6	Potion of Invisibility	14206	1	10
+General 1-Slot7	Lizard Blood Potion	14312	1	10
+General 1-Slot8	Lizard Blood Potion	14312	1	10
+General 1-Slot9	Heretic Insurrection Orders	177930	1	10
+General 1-Slot10	Heretic Insurrection Orders	177930	1	10
+General 1-Slot11	Vial of Vampire Blood	14323	1	10
+General 1-Slot12	Vial of Vampire Blood	14323	1	10
+General 1-Slot13	Vial of Vampire Blood	14323	1	10
+General 1-Slot14	Thick Caustic Fluid	1595	1	10
+General 1-Slot15	Vial of Vampire Blood	14323	1	10
+General 1-Slot16	Vial of Vampire Blood	14323	1	10
+General 1-Slot17	Blood of the Dhampyre	14324	1	10
+General 1-Slot18	Bone Chips	13073	392	10
+General 1-Slot19	Prayers of Life	11631	1	10
+General 1-Slot20	Nightmare Hide +5	2333	1	10
+General 1-Slot20-Slot7	Empty	0	0	0
+General 1-Slot20-Slot9	Empty	0	0	0
+General 1-Slot20-Slot10	Empty	0	0	0
+General 1-Slot21	Prayers of Life	11631	1	10
+General 1-Slot22	Prayers of Life	11631	1	10
+General 1-Slot23	Death Scarab Gland	10217	1	10
+General 1-Slot24	Fire Beetle Eye	10307	1	10
+General 2	Spacious Rucksack	177751	1	24
+General 2-Slot1	Mote of Infinitesimal Potential	148590	5	10
+General 2-Slot2	Empty	0	0	0
+General 2-Slot3	Empty	0	0	0
+General 2-Slot4	Empty	0	0	0
+General 2-Slot5	Empty	0	0	0
+General 2-Slot6	Empty	0	0	0
+General 2-Slot7	Empty	0	0	0
+General 2-Slot8	Empty	0	0	0
+General 2-Slot9	Empty	0	0	0
+General 2-Slot10	Empty	0	0	0
+General 2-Slot11	Whitened Treant Fists	6502	1	10
+General 2-Slot11-Slot2	Empty	0	0	0
+General 2-Slot12	Empty	0	0	0
+General 2-Slot13	Whitened Treant Fists +1	6502	1	10
+General 2-Slot13-Slot2	Empty	0	0	0
+General 2-Slot13-Slot7	Empty	0	0	0
+General 2-Slot14	Empty	0	0	0
+General 2-Slot15	Whitened Treant Fists +2	6502	1	10
+General 2-Slot15-Slot2	Empty	0	0	0
+General 2-Slot15-Slot7	Empty	0	0	0
+General 2-Slot15-Slot8	Empty	0	0	0
+General 2-Slot16	Empty	0	0	0
+General 2-Slot17	Whitened Treant Fists +3	6502	1	10
+General 2-Slot17-Slot2	Empty	0	0	0
+General 2-Slot17-Slot7	Empty	0	0	0
+General 2-Slot17-Slot8	Empty	0	0	0
+General 2-Slot17-Slot9	Empty	0	0	0
+General 2-Slot18	Empty	0	0	0
+General 2-Slot19	Empty	0	0	0
+General 2-Slot20	Empty	0	0	0
+General 2-Slot21	Empty	0	0	0
+General 2-Slot22	Empty	0	0	0
+General 2-Slot23	Empty	0	0	0
+General 2-Slot24	Empty	0	0	0
+General 3	Spacious Rucksack	177751	1	24
+General 3-Slot1	Empty	0	0	0
+General 3-Slot2	Empty	0	0	0
+General 3-Slot3	Empty	0	0	0
+General 3-Slot4	Empty	0	0	0
+General 3-Slot5	Empty	0	0	0
+General 3-Slot6	Empty	0	0	0
+General 3-Slot7	Empty	0	0	0
+General 3-Slot8	Empty	0	0	0
+General 3-Slot9	Empty	0	0	0
+General 3-Slot10	Empty	0	0	0
+General 3-Slot11	Empty	0	0	0
+General 3-Slot12	Empty	0	0	0
+General 3-Slot13	Empty	0	0	0
+General 3-Slot14	Empty	0	0	0
+General 3-Slot15	Empty	0	0	0
+General 3-Slot16	Empty	0	0	0
+General 3-Slot17	Empty	0	0	0
+General 3-Slot18	Empty	0	0	0
+General 3-Slot19	Empty	0	0	0
+General 3-Slot20	Empty	0	0	0
+General 3-Slot21	Empty	0	0	0
+General 3-Slot22	Empty	0	0	0
+General 3-Slot23	Empty	0	0	0
+General 3-Slot24	Empty	0	0	0
+General 4	Spacious Rucksack	177751	1	24
+General 4-Slot1	Empty	0	0	0
+General 4-Slot2	Empty	0	0	0
+General 4-Slot3	Empty	0	0	0
+General 4-Slot4	Empty	0	0	0
+General 4-Slot5	Empty	0	0	0
+General 4-Slot6	Empty	0	0	0
+General 4-Slot7	Empty	0	0	0
+General 4-Slot8	Empty	0	0	0
+General 4-Slot9	Empty	0	0	0
+General 4-Slot10	Empty	0	0	0
+General 4-Slot11	Empty	0	0	0
+General 4-Slot12	Empty	0	0	0
+General 4-Slot13	McVaxius` Horn of War (Exaltation)	11607	1	10
+General 4-Slot14	Soul Leech, Dark Sword of Blood (Exaltation)	11609	1	10
+General 4-Slot15	Empty	0	0	0
+General 4-Slot16	Empty	0	0	0
+General 4-Slot17	Empty	0	0	0
+General 4-Slot18	Empty	0	0	0
+General 4-Slot19	Empty	0	0	0
+General 4-Slot20	Empty	0	0	0
+General 4-Slot21	Empty	0	0	0
+General 4-Slot22	Empty	0	0	0
+General 4-Slot23	Empty	0	0	0
+General 4-Slot24	Empty	0	0	0
+General 5	Spacious Rucksack	177751	1	24
+General 5-Slot1	Empty	0	0	0
+General 5-Slot2	Empty	0	0	0
+General 5-Slot3	Empty	0	0	0
+General 5-Slot4	Griffenne Blood	22526	13	10
+General 5-Slot5	Efreeti Statuette	20951	1	10
+General 5-Slot6	Glowing Necklace +1	20776	1	10
+General 5-Slot6-Slot7	Empty	0	0	0
+General 5-Slot7	Efreeti Statuette	20951	1	10
+General 5-Slot8	Bixie Essence	20843	1	10
+General 5-Slot9	Bixie Essence	20843	1	10
+General 5-Slot10	Azarack Skin	177794	1	10
+General 5-Slot11	Stone Amulet +1	20973	1	10
+General 5-Slot11-Slot7	Empty	0	0	0
+General 5-Slot12	Sphinxian Ring	20709	1	10
+General 5-Slot13	Brass Knuckles +1	20803	1	10
+General 5-Slot13-Slot2	Empty	0	0	0
+General 5-Slot13-Slot7	Empty	0	0	0
+General 5-Slot14	Shattered Emerald of Corruption	20484	1	10
+General 5-Slot15	Ceramic Mask +1	20757	1	10
+General 5-Slot15-Slot7	Empty	0	0	0
+General 5-Slot16	Silken Mask	20772	1	10
+General 5-Slot17	Bloodsky Sapphire	20996	1	10
+General 5-Slot18	Griffon Talon	20850	1	10
+General 5-Slot19	Large Opal	20766	1	10
+General 5-Slot20	Large Diamond	20761	1	10
+General 5-Slot21	Essence of Wind	10229	2	10
+General 5-Slot22	Large Opal	20766	1	10
+General 5-Slot23	Velium Gemmed Rune	38709	3	10
+General 5-Slot24	Complex Velium Gemmed Rune	38710	1	10
+General 6	Lightweight Bag	177750	1	12
+General 6-Slot1	Staff of the Earthcrafter (Exaltation)	11649	1	10
+General 6-Slot2	Empty	0	0	0
+General 6-Slot3	Empty	0	0	0
+General 6-Slot4	Empty	0	0	0
+General 6-Slot5	Aldryn, Blade of the Ocean +9	27708	1	10
+General 6-Slot5-Slot2	Empty	0	0	0
+General 6-Slot5-Slot7	Empty	0	0	0
+General 6-Slot5-Slot8	Empty	0	0	0
+General 6-Slot5-Slot9	Empty	0	0	0
+General 6-Slot5-Slot10	Ghoulbane (Exaltation)	5403	1	10
+General 6-Slot6	Serpent's Tooth +6	7257	1	10
+General 6-Slot6-Slot2	Empty	0	0	0
+General 6-Slot6-Slot7	Empty	0	0	0
+General 6-Slot6-Slot8	Empty	0	0	0
+General 6-Slot6-Slot9	Empty	0	0	0
+General 6-Slot6-Slot10	Earthshaker (Exaltation)	5667	1	10
+General 6-Slot7	Belt of the Four Winds	11673	1	10
+General 6-Slot8	Truvinan	11682	1	10
+General 6-Slot8-Slot2	Empty	0	0	0
+General 6-Slot9	Pauldrons of the Blue Sky	27701	1	10
+General 6-Slot10	Runed Wind Amulet	14569	1	10
+General 6-Slot11	Soldier's Brooch of the Virtuous +2	60040	1	10
+General 6-Slot11-Slot2	Empty	0	0	0
+General 6-Slot11-Slot7	Empty	0	0	0
+General 6-Slot11-Slot8	Empty	0	0	0
+General 6-Slot12	Fangol	11675	1	10
+General 6-Slot12-Slot2	Empty	0	0	0
+General 7	A Worn Candle	9979	1	10
+General 7-Slot2	Empty	0	0	0
+General 8	Lightweight Bag	177750	1	12
+General 8-Slot1	Aegis of the Wind	27716	1	10
+General 8-Slot1-Slot2	Empty	0	0	0
+General 8-Slot2	Theurgist's Star	27718	1	10
+General 8-Slot2-Slot2	Empty	0	0	0
+General 8-Slot3	Shuriken of the Tranquil +4	8332	1	10
+General 8-Slot3-Slot7	Empty	0	0	0
+General 8-Slot3-Slot8	Empty	0	0	0
+General 8-Slot3-Slot9	Empty	0	0	0
+General 8-Slot3-Slot10	Empty	0	0	0
+General 8-Slot4	Deterioriated Ancient Faydark Longbow +5	177863	1	10
+General 8-Slot4-Slot1	Empty	0	0	0
+General 8-Slot4-Slot7	Empty	0	0	0
+General 8-Slot4-Slot8	Empty	0	0	0
+General 8-Slot4-Slot9	Empty	0	0	0
+General 8-Slot4-Slot10	Empty	0	0	0
+General 8-Slot5	Blood Fire +5	11645	1	10
+General 8-Slot5-Slot2	Empty	0	0	0
+General 8-Slot5-Slot7	Empty	0	0	0
+General 8-Slot5-Slot8	Empty	0	0	0
+General 8-Slot5-Slot9	Empty	0	0	0
+General 8-Slot5-Slot10	Blood Fire (Exaltation)	11645	1	10
+General 8-Slot6	Ball of Everliving Golem +5	20677	1	10
+General 8-Slot6-Slot7	Empty	0	0	0
+General 8-Slot6-Slot8	Empty	0	0	0
+General 8-Slot6-Slot9	Empty	0	0	0
+General 8-Slot6-Slot10	Empty	0	0	0
+General 8-Slot7	Soul Leech, Dark Sword of Blood +5	11609	1	10
+General 8-Slot7-Slot2	Empty	0	0	0
+General 8-Slot7-Slot7	Empty	0	0	0
+General 8-Slot7-Slot8	Empty	0	0	0
+General 8-Slot7-Slot9	Empty	0	0	0
+General 8-Slot7-Slot10	Soul Leech, Dark Sword of Blood (Exaltation)	11609	1	10
+General 8-Slot8	Ring of Pureblood +5	1540	1	10
+General 8-Slot8-Slot7	Empty	0	0	0
+General 8-Slot8-Slot8	Empty	0	0	0
+General 8-Slot8-Slot9	Empty	0	0	0
+General 8-Slot8-Slot10	Empty	0	0	0
+General 8-Slot9	Skinner's Belt +3	1537	1	10
+General 8-Slot9-Slot7	Empty	0	0	0
+General 8-Slot9-Slot8	Empty	0	0	0
+General 8-Slot9-Slot9	Empty	0	0	0
+General 8-Slot10	Shield of Rainbow Hues +5	11644	1	10
+General 8-Slot10-Slot2	Empty	0	0	0
+General 8-Slot10-Slot7	Empty	0	0	0
+General 8-Slot10-Slot8	Empty	0	0	0
+General 8-Slot10-Slot9	Empty	0	0	0
+General 8-Slot10-Slot10	Empty	0	0	0
+General 8-Slot11	Leatherfoot Sandals +5	1534	1	10
+General 8-Slot11-Slot2	Empty	0	0	0
+General 8-Slot11-Slot7	Empty	0	0	0
+General 8-Slot11-Slot8	Empty	0	0	0
+General 8-Slot11-Slot9	Empty	0	0	0
+General 8-Slot11-Slot10	Empty	0	0	0
+General 8-Slot12	Triumphant Mask +3	1539	1	10
+General 8-Slot12-Slot7	Empty	0	0	0
+General 8-Slot12-Slot8	Empty	0	0	0
+General 8-Slot12-Slot9	Empty	0	0	0
+General 9	Empty	0	0	0
+General 10	Empty	0	0	0
+General 11	Empty	0	0	0
+General 12	Empty	0	0	0
+Held	Empty	0	0	0
+Bank1	Backpack	17005	1	8
+Bank1-Slot1	Torn Page of Mastery Water	28030	1	10
+Bank1-Slot2	Icon of the Ardent	19004	1	10
+Bank1-Slot3	Crystalline Spear +2	11610	1	10
+Bank1-Slot3-Slot2	Empty	0	0	0
+Bank1-Slot3-Slot7	Empty	0	0	0
+Bank1-Slot3-Slot8	Empty	0	0	0
+Bank1-Slot4	Wand of Allure +5	12507	1	10
+Bank1-Slot4-Slot7	Empty	0	0	0
+Bank1-Slot4-Slot9	Empty	0	0	0
+Bank1-Slot4-Slot10	Empty	0	0	0
+Bank1-Slot5	Diamond Rod +3	11570	1	10
+Bank1-Slot5-Slot2	Empty	0	0	0
+Bank1-Slot5-Slot7	Empty	0	0	0
+Bank1-Slot5-Slot8	Diamond Rod (Exaltation)	11570	1	10
+Bank1-Slot5-Slot9	Empty	0	0	0
+Bank1-Slot6	Rod of Infinite Thought +4	11574	1	10
+Bank1-Slot6-Slot2	Empty	0	0	0
+Bank1-Slot6-Slot7	Empty	0	0	0
+Bank1-Slot6-Slot8	Rod of Infinite Thought (Exaltation)	11574	1	10
+Bank1-Slot6-Slot9	Empty	0	0	0
+Bank1-Slot6-Slot10	Empty	0	0	0
+Bank1-Slot7	Adamantite Band +2	10151	1	10
+Bank1-Slot7-Slot7	Adamantite Band (Exaltation)	10151	1	10
+Bank1-Slot7-Slot8	Empty	0	0	0
+Bank1-Slot8	Clawed Knuckle-Ring +4	10403	1	10
+Bank1-Slot8-Slot7	Empty	0	0	0
+Bank1-Slot8-Slot8	Empty	0	0	0
+Bank1-Slot8-Slot9	Empty	0	0	0
+Bank1-Slot8-Slot10	Empty	0	0	0
+Bank2	Backpack	17005	1	8
+Bank2-Slot1	Wand of Darkness +4	12505	1	10
+Bank2-Slot1-Slot7	Empty	0	0	0
+Bank2-Slot1-Slot9	Empty	0	0	0
+Bank2-Slot1-Slot10	Empty	0	0	0
+Bank2-Slot2	Wand of Souls +4	12504	1	10
+Bank2-Slot2-Slot7	Empty	0	0	0
+Bank2-Slot2-Slot9	Empty	0	0	0
+Bank2-Slot2-Slot10	Empty	0	0	0
+Bank2-Slot3	Chipped Bone Rod +1	14510	1	10
+Bank2-Slot3-Slot7	Empty	0	0	0
+Bank2-Slot4	Wand of Lava +5	12503	1	10
+Bank2-Slot4-Slot7	Empty	0	0	0
+Bank2-Slot4-Slot9	Empty	0	0	0
+Bank2-Slot4-Slot10	Empty	0	0	0
+Bank2-Slot5	Wand of Swiftness +4	12506	1	10
+Bank2-Slot5-Slot7	Empty	0	0	0
+Bank2-Slot5-Slot9	Empty	0	0	0
+Bank2-Slot5-Slot10	Empty	0	0	0
+Bank2-Slot6	Wand of Swiftness +4	12506	1	10
+Bank2-Slot6-Slot7	Empty	0	0	0
+Bank2-Slot6-Slot9	Empty	0	0	0
+Bank2-Slot6-Slot10	Empty	0	0	0
+Bank2-Slot7	Wand of Conflagration +2	12500	1	10
+Bank2-Slot7-Slot7	Empty	0	0	0
+Bank2-Slot8	Chipped Bone Rod +4	14510	1	10
+Bank2-Slot8-Slot7	Empty	0	0	0
+Bank2-Slot8-Slot9	Empty	0	0	0
+Bank2-Slot8-Slot10	Empty	0	0	0
+Bank3	Backpack	17005	1	8
+Bank3-Slot1	Executioner's Axe +4	5407	1	10
+Bank3-Slot1-Slot2	Empty	0	0	0
+Bank3-Slot1-Slot7	Empty	0	0	0
+Bank3-Slot1-Slot8	Empty	0	0	0
+Bank3-Slot1-Slot9	Empty	0	0	0
+Bank3-Slot1-Slot10	Executioner's Axe (Exaltation)	5407	1	10
+Bank3-Slot2	Empty	0	0	0
+Bank3-Slot3	Empty	0	0	0
+Bank3-Slot4	Empty	0	0	0
+Bank3-Slot5	Empty	0	0	0
+Bank3-Slot6	Empty	0	0	0
+Bank3-Slot7	Empty	0	0	0
+Bank3-Slot8	Empty	0	0	0
+Bank4	Darkwood Trunk	17703	1	10
+Bank4-Slot1	Vermiculated Bracelet +4	3804	1	10
+Bank4-Slot1-Slot2	Empty	0	0	0
+Bank4-Slot1-Slot7	Empty	0	0	0
+Bank4-Slot1-Slot8	Empty	0	0	0
+Bank4-Slot1-Slot9	Empty	0	0	0
+Bank4-Slot1-Slot10	Empty	0	0	0
+Bank4-Slot2	Withered Totem of Widdershins +3	11665	1	10
+Bank4-Slot2-Slot2	Empty	0	0	0
+Bank4-Slot2-Slot7	Empty	0	0	0
+Bank4-Slot2-Slot8	Empty	0	0	0
+Bank4-Slot2-Slot9	Empty	0	0	0
+Bank4-Slot3	Empty	0	0	0
+Bank4-Slot4	Barbarian Spiritist`s Hammer +3	11647	1	10
+Bank4-Slot4-Slot2	Empty	0	0	0
+Bank4-Slot4-Slot7	Empty	0	0	0
+Bank4-Slot4-Slot8	Empty	0	0	0
+Bank4-Slot4-Slot9	Empty	0	0	0
+Bank4-Slot5	Empty	0	0	0
+Bank4-Slot6	Cryosilk Amice +3	1215	1	10
+Bank4-Slot6-Slot7	Empty	0	0	0
+Bank4-Slot6-Slot8	Empty	0	0	0
+Bank4-Slot6-Slot9	Empty	0	0	0
+Bank4-Slot7	Golden Efreeti Boots +4	4407	1	10
+Bank4-Slot7-Slot2	Empty	0	0	0
+Bank4-Slot7-Slot7	Golden Efreeti Boots (Exaltation)	4407	1	10
+Bank4-Slot7-Slot8	Empty	0	0	0
+Bank4-Slot7-Slot9	Empty	0	0	0
+Bank4-Slot7-Slot10	Empty	0	0	0
+Bank4-Slot8	Crested Spaulders +2	4302	1	10
+Bank4-Slot8-Slot7	Empty	0	0	0
+Bank4-Slot8-Slot8	Empty	0	0	0
+Bank4-Slot9	Crown of King Tranix +2	4504	1	10
+Bank4-Slot9-Slot2	Empty	0	0	0
+Bank4-Slot9-Slot7	Empty	0	0	0
+Bank4-Slot9-Slot8	Empty	0	0	0
+Bank4-Slot10	Runed Mithril Bracer	4406	1	10
+Bank4-Slot10-Slot2	Empty	0	0	0
+Bank5	Backpack	17005	1	8
+Bank5-Slot1	Torn, Burnt Book	19071	1	10
+Bank5-Slot2	Code of Zan Fi	12316	1	10
+Bank5-Slot3	Tergon's Spellbook	13387	1	10
+Bank5-Slot4	Torn, Frost-Covered Book	19070	1	10
+Bank5-Slot5	Torn, Frost-Covered Book	19070	1	10
+Bank5-Slot6	Terror Spines	19041	1	10
+Bank5-Slot7	Mallet Hilt	13391	1	10
+Bank5-Slot8	Hilt of the Nobleman	2413	1	10
+Bank6	Backpack	17005	1	8
+Bank6-Slot1	Smoked Glass Key	20363	1	10
+Bank6-Slot2	Charred Bone Key	20362	1	10
+Bank6-Slot3	Splintered Wooden Key	20361	1	10
+Bank6-Slot4	Bloodstained Key	20444	1	10
+Bank6-Slot5	Dull Bone Key	20442	1	10
+Bank6-Slot6	Guard's Keyring	20443	1	10
+Bank6-Slot7	Shiny Metal Key	20441	1	10
+Bank6-Slot8	Golden Crescent Key	20445	1	10
+Bank7	Large Soiled Bag	17404	1	10
+Bank7-Slot1	Dragon Bone Bracelet +5	11606	1	10
+Bank7-Slot1-Slot2	Empty	0	0	0
+Bank7-Slot1-Slot7	Empty	0	0	0
+Bank7-Slot1-Slot8	Empty	0	0	0
+Bank7-Slot1-Slot9	Empty	0	0	0
+Bank7-Slot1-Slot10	Empty	0	0	0
+Bank7-Slot2	Brell's Girdle +4	2742	1	10
+Bank7-Slot2-Slot7	Brell's Girdle (Exaltation)	2742	1	10
+Bank7-Slot2-Slot8	Empty	0	0	0
+Bank7-Slot2-Slot9	Empty	0	0	0
+Bank7-Slot2-Slot10	Empty	0	0	0
+Bank7-Slot3	Scalp of the Ghoul Lord +2	26997	1	10
+Bank7-Slot3-Slot2	Empty	0	0	0
+Bank7-Slot3-Slot7	Empty	0	0	0
+Bank7-Slot3-Slot8	Empty	0	0	0
+Bank7-Slot4	Moonstone Ring +5	10150	1	10
+Bank7-Slot4-Slot7	Clawed Knuckle-Ring (Exaltation)	10403	1	10
+Bank7-Slot4-Slot8	Empty	0	0	0
+Bank7-Slot4-Slot9	Empty	0	0	0
+Bank7-Slot4-Slot10	Empty	0	0	0
+Bank7-Slot5	Insidious Gloves +4	1250	1	10
+Bank7-Slot5-Slot2	Empty	0	0	0
+Bank7-Slot5-Slot7	Empty	0	0	0
+Bank7-Slot5-Slot8	Empty	0	0	0
+Bank7-Slot5-Slot9	Empty	0	0	0
+Bank7-Slot5-Slot10	Empty	0	0	0
+Bank7-Slot6	Midnight Clad Wristbands +5	177797	1	10
+Bank7-Slot6-Slot1	Empty	0	0	0
+Bank7-Slot6-Slot7	Empty	0	0	0
+Bank7-Slot6-Slot8	Empty	0	0	0
+Bank7-Slot6-Slot9	Empty	0	0	0
+Bank7-Slot6-Slot10	Empty	0	0	0
+Bank7-Slot7	Gnoll Hide Lariat +4	5317	1	10
+Bank7-Slot7-Slot2	Empty	0	0	0
+Bank7-Slot7-Slot7	Empty	0	0	0
+Bank7-Slot7-Slot8	Empty	0	0	0
+Bank7-Slot7-Slot9	Empty	0	0	0
+Bank7-Slot7-Slot10	Gnoll Hide Lariat (Exaltation)	5317	1	10
+Bank7-Slot8	Gnoll Hide Lariat +4	5317	1	10
+Bank7-Slot8-Slot2	Empty	0	0	0
+Bank7-Slot8-Slot7	Empty	0	0	0
+Bank7-Slot8-Slot8	Empty	0	0	0
+Bank7-Slot8-Slot9	Empty	0	0	0
+Bank7-Slot8-Slot10	Gnoll Hide Lariat (Exaltation)	5317	1	10
+Bank7-Slot9	Empty	0	0	0
+Bank7-Slot10	Lyssa`s Darkwood Piccolo +4	11642	1	10
+Bank7-Slot10-Slot7	Lyssa`s Darkwood Piccolo (Exaltation)	11642	1	10
+Bank7-Slot10-Slot8	Empty	0	0	0
+Bank7-Slot10-Slot9	Empty	0	0	0
+Bank7-Slot10-Slot10	Empty	0	0	0
+Bank8	Treasure Hunter`s Satchel	17702	1	10
+Bank8-Slot1	Dagger of Marnek +5	13169	1	10
+Bank8-Slot1-Slot2	Empty	0	0	0
+Bank8-Slot1-Slot7	Empty	0	0	0
+Bank8-Slot1-Slot8	Empty	0	0	0
+Bank8-Slot1-Slot9	Empty	0	0	0
+Bank8-Slot1-Slot10	Empty	0	0	0
+Bank8-Slot2	Sacrificial Dagger +5	7318	1	10
+Bank8-Slot2-Slot2	Empty	0	0	0
+Bank8-Slot2-Slot7	Empty	0	0	0
+Bank8-Slot2-Slot8	Empty	0	0	0
+Bank8-Slot2-Slot9	Empty	0	0	0
+Bank8-Slot2-Slot10	Empty	0	0	0
+Bank8-Slot3	White Dragonscale Cloak +2	11603	1	10
+Bank8-Slot3-Slot7	Empty	0	0	0
+Bank8-Slot3-Slot8	Empty	0	0	0
+Bank8-Slot4	Staff of Undead Legions +2	11662	1	10
+Bank8-Slot4-Slot2	Empty	0	0	0
+Bank8-Slot4-Slot7	Empty	0	0	0
+Bank8-Slot4-Slot8	Empty	0	0	0
+Bank8-Slot5	Cryosilk Veil +4	1212	1	10
+Bank8-Slot5-Slot7	Empty	0	0	0
+Bank8-Slot5-Slot8	Empty	0	0	0
+Bank8-Slot5-Slot9	Empty	0	0	0
+Bank8-Slot5-Slot10	Empty	0	0	0
+Bank8-Slot6	Rune Etched Greaves +4	4876	1	10
+Bank8-Slot6-Slot2	Empty	0	0	0
+Bank8-Slot6-Slot7	Empty	0	0	0
+Bank8-Slot6-Slot8	Empty	0	0	0
+Bank8-Slot6-Slot9	Empty	0	0	0
+Bank8-Slot6-Slot10	Empty	0	0	0
+Bank8-Slot7	Spiky Splintmail +7	177858	1	10
+Bank8-Slot7-Slot1	Empty	0	0	0
+Bank8-Slot7-Slot7	Empty	0	0	0
+Bank8-Slot7-Slot8	Spiky Splintmail (Exaltation)	177858	1	10
+Bank8-Slot7-Slot9	Empty	0	0	0
+Bank8-Slot7-Slot10	Empty	0	0	0
+Bank8-Slot8	Rune Etched Bracer +3	4874	1	10
+Bank8-Slot8-Slot2	Empty	0	0	0
+Bank8-Slot8-Slot7	Empty	0	0	0
+Bank8-Slot8-Slot8	Empty	0	0	0
+Bank8-Slot8-Slot9	Empty	0	0	0
+Bank8-Slot9	Amulet of Necropotence +4	11646	1	10
+Bank8-Slot9-Slot7	Empty	0	0	0
+Bank8-Slot9-Slot8	Amulet of Necropotence (Exaltation)	11646	1	10
+Bank8-Slot9-Slot9	Empty	0	0	0
+Bank8-Slot9-Slot10	Empty	0	0	0
+Bank8-Slot10	Mempo of Likato +3	11560	1	10
+Bank8-Slot10-Slot7	Empty	0	0	0
+Bank8-Slot10-Slot8	Empty	0	0	0
+Bank8-Slot10-Slot9	Mempo of Likato (Exaltation)	11560	1	10
+Bank9	Backpack	17005	1	8
+Bank9-Slot1	Blue Diamond	22503	9	10
+Bank9-Slot2	Fire Opal	10031	3	10
+Bank9-Slot3	Diamond	10037	5	10
+Bank9-Slot4	Star Ruby	10032	3	10
+Bank9-Slot5	Ruby	10035	8	10
+Bank9-Slot6	Black Sapphire	10036	4	10
+Bank9-Slot7	Fire Emerald	10033	3	10
+Bank9-Slot8	Sapphire	10034	4	10
+Bank10	Backpack	17005	1	8
+Bank10-Slot1	Golem Metal Wand +2	14313	1	10
+Bank10-Slot1-Slot7	Empty	0	0	0
+Bank10-Slot1-Slot8	Golem Metal Wand (Exaltation)	14313	1	10
+Bank10-Slot2	Golem Metal Wand +2	14313	1	10
+Bank10-Slot2-Slot7	Empty	0	0	0
+Bank10-Slot2-Slot8	Golem Metal Wand (Exaltation)	14313	1	10
+Bank10-Slot3	Golem Metal Wand +3	14313	1	10
+Bank10-Slot3-Slot7	Empty	0	0	0
+Bank10-Slot3-Slot8	Golem Metal Wand (Exaltation)	14313	1	10
+Bank10-Slot3-Slot9	Empty	0	0	0
+Bank10-Slot4	Golem Metal Wand +2	14313	1	10
+Bank10-Slot4-Slot7	Empty	0	0	0
+Bank10-Slot4-Slot8	Golem Metal Wand (Exaltation)	14313	1	10
+Bank10-Slot5	Crested Mistmoore Shield +1	9310	1	10
+Bank10-Slot5-Slot2	Empty	0	0	0
+Bank10-Slot5-Slot7	Empty	0	0	0
+Bank10-Slot6	Earthen Blade +2	5531	1	10
+Bank10-Slot6-Slot2	Empty	0	0	0
+Bank10-Slot6-Slot7	Empty	0	0	0
+Bank10-Slot6-Slot8	Empty	0	0	0
+Bank10-Slot7	McVaxius` Horn of War +5	11607	1	10
+Bank10-Slot7-Slot7	McVaxius` Horn of War (Exaltation)	11607	1	10
+Bank10-Slot7-Slot8	Empty	0	0	0
+Bank10-Slot7-Slot9	Empty	0	0	0
+Bank10-Slot7-Slot10	Empty	0	0	0
+Bank10-Slot8	Refugee Shroud +6	177823	1	10
+Bank10-Slot8-Slot7	Empty	0	0	0
+Bank10-Slot8-Slot8	Refugee Shroud (Exaltation)	177823	1	10
+Bank10-Slot8-Slot9	Empty	0	0	0
+Bank10-Slot8-Slot10	Empty	0	0	0
+Bank11	Light Burlap Sack	17353	1	8
+Bank11-Slot1	Orb of Tishan +3	11625	1	10
+Bank11-Slot1-Slot2	Empty	0	0	0
+Bank11-Slot1-Slot7	Empty	0	0	0
+Bank11-Slot1-Slot8	Empty	0	0	0
+Bank11-Slot1-Slot9	Empty	0	0	0
+Bank11-Slot2	Orb of Tishan +3	11625	1	10
+Bank11-Slot2-Slot2	Empty	0	0	0
+Bank11-Slot2-Slot7	Empty	0	0	0
+Bank11-Slot2-Slot8	Empty	0	0	0
+Bank11-Slot2-Slot9	Empty	0	0	0
+Bank11-Slot3	Rokyls Channelling Crystal +1	10219	1	10
+Bank11-Slot3-Slot2	Empty	0	0	0
+Bank11-Slot3-Slot7	Rokyls Channelling Crystal (Exaltation)	10219	1	10
+Bank11-Slot4	Rokyls Channelling Crystal +3	10219	1	10
+Bank11-Slot4-Slot2	Empty	0	0	0
+Bank11-Slot4-Slot7	Rokyls Channelling Crystal (Exaltation)	10219	1	10
+Bank11-Slot4-Slot8	Empty	0	0	0
+Bank11-Slot4-Slot9	Empty	0	0	0
+Bank11-Slot5	Barbarian Spiritist`s Hammer +2	11647	1	10
+Bank11-Slot5-Slot2	Empty	0	0	0
+Bank11-Slot5-Slot7	Empty	0	0	0
+Bank11-Slot5-Slot8	Empty	0	0	0
+Bank11-Slot6	Shimmering Orb +5	10406	1	10
+Bank11-Slot6-Slot2	Empty	0	0	0
+Bank11-Slot6-Slot7	Shimmering Orb (Exaltation)	10406	1	10
+Bank11-Slot6-Slot8	Empty	0	0	0
+Bank11-Slot6-Slot9	Empty	0	0	0
+Bank11-Slot6-Slot10	Empty	0	0	0
+Bank11-Slot7	Serpentine Bracer +2	10148	1	10
+Bank11-Slot7-Slot2	Empty	0	0	0
+Bank11-Slot7-Slot7	Empty	0	0	0
+Bank11-Slot7-Slot8	Empty	0	0	0
+Bank11-Slot8	Serrated Bone Dirk +3	7502	1	10
+Bank11-Slot8-Slot2	Empty	0	0	0
+Bank11-Slot8-Slot7	Empty	0	0	0
+Bank11-Slot8-Slot8	Empty	0	0	0
+Bank11-Slot8-Slot9	Empty	0	0	0
+Bank12	Treasure Hunter`s Satchel	17702	1	10
+Bank12-Slot1	Truesight Hammer +4	11565	1	10
+Bank12-Slot1-Slot2	Empty	0	0	0
+Bank12-Slot1-Slot7	Empty	0	0	0
+Bank12-Slot1-Slot8	Empty	0	0	0
+Bank12-Slot1-Slot9	Empty	0	0	0
+Bank12-Slot1-Slot10	Truesight Hammer (Exaltation)	11565	1	10
+Bank12-Slot2	Warhammer of Divine Grace +2	11611	1	10
+Bank12-Slot2-Slot2	Empty	0	0	0
+Bank12-Slot2-Slot7	Empty	0	0	0
+Bank12-Slot2-Slot8	Empty	0	0	0
+Bank12-Slot3	Empty	0	0	0
+Bank12-Slot4	Empty	0	0	0
+Bank12-Slot5	Vexthorne +4	11557	1	10
+Bank12-Slot5-Slot2	Empty	0	0	0
+Bank12-Slot5-Slot7	Empty	0	0	0
+Bank12-Slot5-Slot8	Empty	0	0	0
+Bank12-Slot5-Slot9	Empty	0	0	0
+Bank12-Slot5-Slot10	Empty	0	0	0
+Bank12-Slot6	The Baron's Blade +8	177773	1	10
+Bank12-Slot6-Slot1	Empty	0	0	0
+Bank12-Slot6-Slot7	Empty	0	0	0
+Bank12-Slot6-Slot8	Empty	0	0	0
+Bank12-Slot6-Slot9	Empty	0	0	0
+Bank12-Slot6-Slot10	Short Sword of the Ykesha (Exaltation)	5500	1	10
+Bank12-Slot7	Shimmering Ruby Stiletto +6	5820	1	10
+Bank12-Slot7-Slot2	Empty	0	0	0
+Bank12-Slot7-Slot7	Empty	0	0	0
+Bank12-Slot7-Slot8	Empty	0	0	0
+Bank12-Slot7-Slot9	Empty	0	0	0
+Bank12-Slot7-Slot10	Empty	0	0	0
+Bank12-Slot8	Empty	0	0	0
+Bank12-Slot9	Enchanted Fine Steel Bastard Sword +7	5213	1	10
+Bank12-Slot9-Slot2	Empty	0	0	0
+Bank12-Slot9-Slot7	Empty	0	0	0
+Bank12-Slot9-Slot8	Empty	0	0	0
+Bank12-Slot9-Slot9	Empty	0	0	0
+Bank12-Slot9-Slot10	Short Sword of the Ykesha (Exaltation)	5500	1	10
+Bank12-Slot10	Ghoulbane +6	5403	1	10
+Bank12-Slot10-Slot2	Empty	0	0	0
+Bank12-Slot10-Slot7	Empty	0	0	0
+Bank12-Slot10-Slot8	Empty	0	0	0
+Bank12-Slot10-Slot9	Empty	0	0	0
+Bank12-Slot10-Slot10	Empty	0	0	0
+Bank13	Backpack*	32601	1	8
+Bank13-Slot1	Jacinth	10053	4	10
+Bank13-Slot2	Black Pearl	10012	6	10
+Bank13-Slot3	Fiery Jewel of the Underfoot	1069	1	10
+Bank13-Slot4	Shattered Emerald of Corruption	20484	1	10
+Bank13-Slot5	Blood Flecked Obsidian Shard	1072	1	10
+Bank13-Slot6	Thick Caustic Fluid	1595	1	10
+Bank13-Slot7	Lizard Blood Potion	14312	1	10
+Bank13-Slot8	Blood of the Dhampyre	14324	1	10
+Bank14	Backpack*	32601	1	8
+Bank14-Slot1	Red Dragon Scales	11622	1	10
+Bank14-Slot2	White Dragon Hide	9240	1	10
+Bank14-Slot3	White Dragon Scales	11602	1	10
+Bank14-Slot4	White Dragon Scales	11602	1	10
+Bank14-Slot5	Torn, Burnt Book	19071	1	10
+Bank14-Slot6	Hilt of the Nobleman	2413	1	10
+Bank14-Slot7	Torn, Burnt Book	19071	1	10
+Bank14-Slot8	Ruined Sword Hilt	1076	1	10
+Bank15	Light Burlap Sack	17353	1	8
+Bank15-Slot1	Shadow Rage Gloves +5	55605	1	10
+Bank15-Slot1-Slot2	Empty	0	0	0
+Bank15-Slot1-Slot7	Empty	0	0	0
+Bank15-Slot1-Slot8	Empty	0	0	0
+Bank15-Slot1-Slot9	Empty	0	0	0
+Bank15-Slot1-Slot10	Empty	0	0	0
+Bank15-Slot2	Shadow Rage Sleeves +5	55603	1	10
+Bank15-Slot2-Slot2	Empty	0	0	0
+Bank15-Slot2-Slot7	Empty	0	0	0
+Bank15-Slot2-Slot8	Empty	0	0	0
+Bank15-Slot2-Slot9	Empty	0	0	0
+Bank15-Slot2-Slot10	Empty	0	0	0
+Bank15-Slot3	Shadow Rage Wristguard +4	55604	1	10
+Bank15-Slot3-Slot2	Empty	0	0	0
+Bank15-Slot3-Slot7	Empty	0	0	0
+Bank15-Slot3-Slot8	Empty	0	0	0
+Bank15-Slot3-Slot9	Empty	0	0	0
+Bank15-Slot3-Slot10	Empty	0	0	0
+Bank15-Slot4	Shadow Rage Boots +4	55607	1	10
+Bank15-Slot4-Slot2	Empty	0	0	0
+Bank15-Slot4-Slot7	Empty	0	0	0
+Bank15-Slot4-Slot8	Empty	0	0	0
+Bank15-Slot4-Slot9	Empty	0	0	0
+Bank15-Slot4-Slot10	Empty	0	0	0
+Bank15-Slot5	Rune Etched Chestplate +4	4872	1	10
+Bank15-Slot5-Slot2	Empty	0	0	0
+Bank15-Slot5-Slot7	Empty	0	0	0
+Bank15-Slot5-Slot8	Empty	0	0	0
+Bank15-Slot5-Slot9	Empty	0	0	0
+Bank15-Slot5-Slot10	Empty	0	0	0
+Bank15-Slot6	Lustrous Russet Breastplate +4	4832	1	10
+Bank15-Slot6-Slot2	Empty	0	0	0
+Bank15-Slot6-Slot7	Empty	0	0	0
+Bank15-Slot6-Slot8	Empty	0	0	0
+Bank15-Slot6-Slot9	Empty	0	0	0
+Bank15-Slot6-Slot10	Empty	0	0	0
+Bank15-Slot7	Empty	0	0	0
+Bank15-Slot8	Empty	0	0	0
+Bank16	Kavruul`s Mystic Pouch	17701	1	10
+Bank16-Slot1	Staff of Elemental Mastery: Fire +4	11566	1	10
+Bank16-Slot1-Slot2	Empty	0	0	0
+Bank16-Slot1-Slot7	Staff of Elemental Mastery: Fire (Exaltation)	11566	1	10
+Bank16-Slot1-Slot8	Staff of Elemental Mastery: Fire (Exaltation)	11566	1	10
+Bank16-Slot1-Slot9	Empty	0	0	0
+Bank16-Slot1-Slot10	Empty	0	0	0
+Bank16-Slot2	Staff of Elemental Mastery: Earth +4	11567	1	10
+Bank16-Slot2-Slot2	Empty	0	0	0
+Bank16-Slot2-Slot7	Staff of Elemental Mastery: Earth (Exaltation)	11567	1	10
+Bank16-Slot2-Slot8	Staff of Elemental Mastery: Earth (Exaltation)	11567	1	10
+Bank16-Slot2-Slot9	Empty	0	0	0
+Bank16-Slot2-Slot10	Empty	0	0	0
+Bank16-Slot3	Gold Plated Koshigatana +3	11630	1	10
+Bank16-Slot3-Slot2	Empty	0	0	0
+Bank16-Slot3-Slot7	Empty	0	0	0
+Bank16-Slot3-Slot8	Empty	0	0	0
+Bank16-Slot3-Slot9	Empty	0	0	0
+Bank16-Slot4	Diamondine Earring +3	10165	1	10
+Bank16-Slot4-Slot7	Diamondine Earring (Exaltation)	10165	1	10
+Bank16-Slot4-Slot8	Empty	0	0	0
+Bank16-Slot4-Slot9	Empty	0	0	0
+Bank16-Slot5	Gold Plated Koshigatana +4	11630	1	10
+Bank16-Slot5-Slot2	Empty	0	0	0
+Bank16-Slot5-Slot7	Empty	0	0	0
+Bank16-Slot5-Slot8	Empty	0	0	0
+Bank16-Slot5-Slot9	Empty	0	0	0
+Bank16-Slot5-Slot10	Gold Plated Koshigatana (Exaltation)	11630	1	10
+Bank16-Slot6	Diamondine Earring +3	10165	1	10
+Bank16-Slot6-Slot7	Diamondine Earring (Exaltation)	10165	1	10
+Bank16-Slot6-Slot8	Empty	0	0	0
+Bank16-Slot6-Slot9	Empty	0	0	0
+Bank16-Slot7	Empty	0	0	0
+Bank16-Slot8	Empty	0	0	0
+Bank16-Slot9	Empty	0	0	0
+Bank16-Slot10	Empty	0	0	0
+Bank17	Empty	0	0	0
+Bank18	Empty	0	0	0
+Bank19	Empty	0	0	0
+Bank20	Empty	0	0	0
+Bank21	Empty	0	0	0
+Bank22	Empty	0	0	0
+Bank23	Empty	0	0	0
+Bank24	Empty	0	0	0
+SharedBank1	Empty	0	0	0
+SharedBank2	Empty	0	0	0
+SharedBank3	Empty	0	0	0
+SharedBank4	Empty	0	0	0
+SharedBank5	Empty	0	0	0
+SharedBank6	Empty	0	0	0
+
+KeyRing	Name	ID	
+Augmentation	Embroidered Black Sleeves (Exaltation)	1362
+Augmentation	Bladestopper (Exaltation)	11632
+Augmentation	Bladestopper (Exaltation)	11632
+Augmentation	Short Sword of the Ykesha (Exaltation)	5500
+Augmentation	Short Sword of the Ykesha (Exaltation)	5500
+Augmentation	Green Silken Drape (Exaltation)	1412
+Augmentation	McVaxius` Horn of War (Exaltation)	11607
+Augmentation	Refugee Shroud (Exaltation)	177823
+Augmentation	Selo`s Drums of the March (Exaltation)	11626
+Augmentation	Gold Plated Koshigatana (Exaltation)	11630
+Augmentation	Blood Fire (Exaltation)	11645
+Augmentation	Runed Cowl (Exaltation)	10141
+Augmentation	Staff of Writhing (Exaltation)	6404
+Augmentation	Hierophant`s Crook (Exaltation)	11629
+Augmentation	Serpentine Bracer (Exaltation)	10148
+Augmentation	Moonstone Ring (Exaltation)	10150
+Augmentation	Lyssa`s Darkwood Piccolo (Exaltation)	11642
+Augmentation	McVaxius` Horn of War (Exaltation)	11607
+Augmentation	Shrieking Ahlspiess (Exaltation)	7507
+Augmentation	Blood Fire (Exaltation)	11645
+Augmentation	Shining Metallic Robes (Exaltation)	1360
+Activated	Guise of the Deceiver +4	2469
+Equipment	Golden Chitin Bracer +3	4408
+Equipment	Boots of the Long Road +3	177708
+Equipment	Polished Mithril Mask +4	4505
+Equipment	Polished Mithril Torque +4	4501
+Equipment	Mithril Breastplate	4309
+Equipment	Apothic Robe +6	1240
+Equipment	Bracelet of Woven Grass +5	10360
+Equipment	Midnight Clad Straps +6	177795
+Equipment	Tobrin's Mystical Eyepatch +3	11052
+Equipment	Midnight Clad Headband +4	177801
+Equipment	Midnight Clad Leggings +4	177799
+Equipment	Skull-Shaped Barbute +5	4301
+Equipment	Bracelet of Woven Grass +5	10360
+Equipment	Ethereal Mist Helm +4	4881
+Equipment	Umbral Platemail Breastplate +6	4842
+Equipment	Imbrued Platemail Greaves +5	4866
+Equipment	Black Tome with Silver Runes +4	13400
+Equipment	Rune Etched Gauntlets +4	4875
+Equipment	Drop of Crystallized Flame +7	177839
+Equipment	Clay Totem +5	10330
+Equipment	Ethereal Mist Vambraces +4	4883
+Equipment	Ethereal Mist Greaves +4	4886
+Equipment	Ethereal Mist Chestplate +3	4882
+Equipment	Eye of Innoruuk +6	20656
+Equipment	Crown of the Froglok Kings +2	10142
+Equipment	Dark Mail Gauntlets +5	3310
+Equipment	Executioners Hood +5	2468
+Equipment	Gauntlets of Fiery Might +4	11624
+Equipment	Umbral Platemail Boots +4	4847
+Equipment	Mithril Greaves +4	4412
+Equipment	Valorium Chestplate +5	4852
+Equipment	Vermiculated Tunic +1	3802
+Equipment	Umbral Platemail Helm +5	4841
+Equipment	Valorium Helmet +4	4851
+Equipment	Signet Ring of the Lost Crusader +7	177838
+Equipment	Chrysoberyl Talisman +2	10146
+Equipment	Valorium Gauntlets +5	4855
+Equipment	Keg Mallet +5	177815
+Equipment	Batskull Earring +2	10107
+Equipment	Imbrued Platemail Gauntlets +2	4865
+Equipment	Mithril Vambraces +5	4411
+Equipment	Runed Mithril Bracer +2	4406
+Equipment	Umbral Platemail Bracer +1	4844
+Equipment	Imbrued Platemail Bracer +5	4864
+Equipment	Midnight Clad Armbands +4	177796
+Equipment	Valorium Vambraces +5	4853
+Equipment	Six Note Blade +4	11553
+Equipment	Blade of Abrogation +2	5430
+Equipment	Blade of Abrogation	5430
+Equipment	Black Silk Cape	20783
+Equipment	Efreeti Standard	20817
+Equipment	Efreeti Magi Staff	20870
+Equipment	Staff of the Magister	11650
+Equipment	Efreeti Battle Axe +1	20983
+Equipment	Symbol of Marr +3	12800
+Equipment	Symbol of Marr +1	12800
+Equipment	Spear of Harmony	27725
+Equipment	Bracelet of Cessation +2	12804
+Equipment	Bracelet of Cessation	12804
+Equipment	Mask of Song	27720
+Equipment	Weight of the Gods +1	2924
+Equipment	Bracelet of Cessation +1	12804
+Equipment	Dawnchaser +4	11555
+Equipment	Imbrued Platemail Greaves +4	4866
+Equipment	Bracelet of Quiescence +3	12806
+Equipment	Bracelet of Quiescence +2	12806
+Equipment	Ton Po's Shoulder Wraps	1283
+Equipment	Treant Tear +2	12801
+Equipment	Treant Tear +1	12801
+Equipment	Efreeti War Axe	20711
+Equipment	Spiroc Wingblade	20679
+Equipment	Back Straps of Mastery	27714
+Equipment	Efreeti Magi Staff	20870
+Equipment	Sphinx Heart Amulet	14560
+Equipment	Gorgon Head Staff	11689
+Equipment	Cloak of Spiroc Feathers	1278
+Equipment	Band of Wailing Winds	27713
+Equipment	Griffon Wing Spaulders	2703
+Equipment	Sode of Empowerment +3	11561
+Equipment	Weight of the Gods +1	2924
+Equipment	Woven Skull Cap	20744
+Equipment	Insidious Halo +4	1246
+Equipment	Fine Velvet Cloak	20853
+Equipment	Fine Velvet Cloak	20853
+Equipment	Small Shield	20809
+Equipment	Golden Efreeti Gauntlets +1	4345
+Equipment	Bracelet of Cessation	12804
+Equipment	Pauldrons of Piety	27717
+Equipment	Mask of Empowerment	2707
+Equipment	Woven Skull Cap	20744
+Equipment	Stein of Flowing Ichor +2	12802
+Equipment	Stein of Flowing Ichor	12802
+Equipment	Stein of Flowing Ichor +1	12802
+Equipment	Honeycomb Belt	11684
+Equipment	Bracelet of Cessation	12804
+Equipment	Bracelet of Distortion +2	12803
+Equipment	Bracelet of Exertion	12805
+Equipment	Sandals of Alacrity	1280
+Equipment	Spiroc Wingblade +1	20679
+Equipment	Nature Walker's Mantle	2705
+Equipment	Shillelagh	6411
+Equipment	Ivory Mask	1275
+Equipment	Stein of Flowing Ichor +1	12802
+Equipment	Wind Walker's Mantle	1276
+Equipment	Khyldorn the Blood Drinker	27707
+Equipment	Golden Efreeti Bracers	4344
+Equipment	Efreeti Wind Staff	20779
+Equipment	Efreeti Standard	20817
+Equipment	Efreeti War Staff	20753
+Equipment	Efreeti Battle Axe	20983
+Equipment	Efreeti War Axe	20711
+Equipment	Spiroc Wingblade	20679
+Equipment	Sphinxian Ring +1	20709
+Equipment	Golden Efreeti Vambraces +1	4343
+Equipment	Golden Efreeti Vambraces	4343
+Equipment	Bracelet of Exertion	12805
+Equipment	White Satin Gloves	2923
+Equipment	White Satin Gloves	2923
+Equipment	Bracelet of Distortion +1	12803
+Equipment	Spiroc Wingblade	20679
+Equipment	Spiroc Wingblade	20679
+Equipment	Rod of the Protecting Winds	27711
+Equipment	Mantle of the Songweaver	27721
+Equipment	Mempo of Likato +4	11560
+Equipment	Obtenebrate Mithril Guard	11678
+Equipment	Efreeti Zweihander	20725
+Equipment	Efreeti War Bow +1	20861
+Equipment	Efreeti War Axe	20711
+Equipment	Efreeti Battle Axe +1	20983
+Equipment	Golden Efreeti Turban	4341
+Equipment	Efreeti Standard +1	20817
+Equipment	Neriak Ceremonial Robe +3	1527
+Equipment	Efreeti War Staff	20753
+Equipment	Efreeti Wind Staff	20779
+Equipment	Efreeti War Axe	20711
+Equipment	Efreeti Long Sword +1	20858
+Equipment	White Satin Gloves	2923
+Equipment	White Satin Gloves	2923
