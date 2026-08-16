@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Character } from '../engine/character';
+import { buildCharacter, loadoutClasses, type Character } from '../engine/character';
 import type { GearSet } from '../engine/types';
 import {
   STORAGE_KEY,
@@ -14,13 +14,14 @@ import {
 } from './persistence';
 
 function sampleState(): PersistedState {
-  const character: Character = {
+  const character: Character = buildCharacter({
     id: 'char_1',
     name: 'Avenrae',
-    level: 50,
     classes: ['BRD', 'WAR', 'BER'],
+    level: 50,
     race: 'HUM',
-  };
+    loadoutId: 'char_1_loadout_1',
+  });
   const gearSet: GearSet = {
     id: 'set_1',
     characterId: 'char_1',
@@ -33,7 +34,7 @@ function sampleState(): PersistedState {
     createdAt: 10,
     updatedAt: 20,
   };
-  return { version: 1, characters: [character], sets: [gearSet], activeCharacterId: 'char_1' };
+  return { version: 2, characters: [character], sets: [gearSet], activeCharacterId: 'char_1' };
 }
 
 function throwingStorage(error: Error): StorageLike {
@@ -118,7 +119,7 @@ describe('sanitizeState', () => {
       activeCharacterId: 'ghost',
     });
     expect(clean?.characters).toHaveLength(1);
-    expect(clean?.characters[0]?.classes).toEqual(['WAR', 'BRD']);
+    expect(loadoutClasses(clean?.characters[0] as Character)).toEqual(['WAR', 'BRD']);
     expect(clean?.sets.map((s) => s.id)).toEqual(['s1']);
     expect(clean?.activeCharacterId).toBeNull();
   });
@@ -143,7 +144,7 @@ describe('sanitizeState', () => {
     });
     const set = clean?.sets[0];
     expect(clean?.characters[0]?.name).toBe('Unnamed');
-    expect(clean?.characters[0]?.level).toBe(255);
+    expect(clean?.characters[0]?.levels.WAR).toBe(1);
     expect(clean?.characters[0]?.race).toBeNull();
     expect(set?.name).toBe('Untitled Set');
     expect(set?.slots.HEAD?.upgrade).toEqual({ full: 10, fraction: 0 });
@@ -162,7 +163,7 @@ describe('sanitizeState', () => {
     storage.setItem(STORAGE_KEY, JSON.stringify({ ...sampleState(), version: 99 }));
     const result = loadState(storage);
     expect(result.status).toBe('ok');
-    expect(result.state.version).toBe(1);
+    expect(result.state.version).toBe(2);
     expect(result.state.characters).toHaveLength(1);
   });
 });

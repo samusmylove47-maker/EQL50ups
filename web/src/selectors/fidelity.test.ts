@@ -20,12 +20,13 @@ import type { GearSet, Item } from '../engine/types';
 import { useCatalog, type CatalogState } from '../data/catalog';
 import { decodePlan, encodePlan, planFrom, type SharedPlan } from '../share/codec';
 import { sanitizeState } from '../state/persistence';
-import type { Character } from '../engine/character';
+import { activeContext, buildCharacter, type Character } from '../engine/character';
 import { rankSlotItems, resolvedEntries, slotViews, totalsFor } from './gear';
 
-const CHARACTER: Character = {
-  id: 'char_1', name: 'Avenrae', level: 50, classes: ['BRD', 'WAR', 'BER'], race: 'HFL',
-};
+const CHARACTER: Character = buildCharacter({
+  id: 'char_1', name: 'Avenrae', classes: ['BRD', 'WAR', 'BER'], level: 50, race: 'HFL',
+});
+const CONTEXT = activeContext(CHARACTER);
 
 const WEIGHTS = { AC: 2, STR: 1.25, HP: 0.2, RATIO: 20, HASTE: 2, SV_MAGIC: 0.3 };
 
@@ -97,9 +98,10 @@ describe('a round-tripped set produces identical totals', () => {
   it('preserves the character and the weight profile', () => {
     const set = complexSet(catalog().items);
     const decoded = decodePlan(encodePlan(planFrom(CHARACTER, set))) as SharedPlan;
-    expect(decoded.character).toEqual({
-      name: 'Avenrae', level: 50, race: 'HFL', classes: ['BRD', 'WAR', 'BER'],
-    });
+    expect(decoded.character.name).toBe('Avenrae');
+    expect(decoded.character.race).toBe('HFL');
+    expect(decoded.character.loadouts[0]?.classes).toEqual(['BRD', 'WAR', 'BER']);
+    expect(decoded.character.levels).toEqual(CHARACTER.levels);
     expect(decoded.set.weights).toEqual(WEIGHTS);
     expect(decoded.set.notes).toBe('round trip · fixture');
   });
@@ -159,7 +161,7 @@ describe('aggregation is order-independent', () => {
 describe('ranking is stable and deterministic', () => {
   const options = {
     slot: 'PRIMARY' as const,
-    character: CHARACTER,
+    context: CONTEXT,
     weights: WEIGHTS,
     upgrade: tier(0),
     includeUnreleased: false,

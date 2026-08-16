@@ -10,7 +10,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import type { Character } from '../engine/character';
+import { activeContext, buildCharacter, type Character } from '../engine/character';
 import type { Item } from '../engine/types';
 import { tier } from '../engine/upgrade';
 import { rankSlotItems } from '../selectors/gear';
@@ -45,6 +45,10 @@ function fakeCatalog(items: Item[]): CatalogState {
     byName,
     bySlot,
     shards: {},
+    indexNames: items.map((i) => i.n),
+    effects: new Map(),
+    effectsStatus: 'idle',
+    ensureEffects: async () => undefined,
     usingFixture: false,
     revision: 1000,
     load: async () => undefined,
@@ -78,18 +82,14 @@ describe.skipIf(!published)('shipped catalog', () => {
   });
 
   it('ranks a full slot without producing a single non-finite score', () => {
-    const character: Character = {
-      id: 'c',
-      name: 'Perf',
-      level: 50,
-      classes: ['WAR', 'BRD', 'BER'],
-      race: null,
-    };
+    const character: Character = buildCharacter({
+      id: 'c', name: 'Perf', classes: ['WAR', 'BRD', 'BER'], level: 50,
+    });
     const catalog = fakeCatalog(primary.length ? primary : index);
     const started = performance.now();
     const ranked = rankSlotItems(catalog, {
       slot: 'PRIMARY',
-      character,
+      context: activeContext(character),
       weights: { RATIO: 40, STR: 1, AC: 0.3, HP: 0.1 },
       upgrade: tier(0),
       includeUnreleased: true,

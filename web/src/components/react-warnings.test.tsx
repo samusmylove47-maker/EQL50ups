@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import { useCatalog } from '../data/catalog';
 import { tier } from '../engine/upgrade';
-import { encodePlan } from '../share/codec';
+import { encodePlan, planCharacter } from '../share/codec';
 import { emptyState } from '../state/persistence';
 import { useApp } from '../state/store';
 
@@ -139,7 +139,7 @@ describe('React says nothing on any screen', () => {
 
   it('a shared set, including its read-only tabs', () => {
     const payload = encodePlan({
-      character: { name: 'Shared One', level: 50, race: null, classes: ['SHM', 'ROG'] },
+      character: planCharacter({ name: 'Shared One', classes: ['SHM', 'ROG'], level: 50 }),
       set: {
         name: 'Borrowed',
         slots: {

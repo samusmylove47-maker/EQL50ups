@@ -1778,3 +1778,49 @@ table.data tr.rowlink:focus-visible {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+
+.exalt-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.exalt-row {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exalt-row:last-child {
+  border-bottom: 0;
+}
+
+.exalt-row-head {
+  display: grid;
+  grid-template-columns: 96px 1fr auto 150px;
+  gap: 12px;
+  align-items: center;
+}
+
+.exalt-row-name {
+  font-weight: 600;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exalt-row-state {
+  text-align: right;
+}
+
+@media (max-width: 860px) {
+  .exalt-row-head {
+    grid-template-columns: 1fr auto;
+  }
+
+  .exalt-row-state {
+    text-align: left;
+  }
+}

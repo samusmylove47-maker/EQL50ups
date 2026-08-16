@@ -288,3 +288,40 @@ export function validateClasses(classes: string[]): { ok: boolean; error?: strin
 export function defaultLoadoutName(index: number): string {
   return `Loadout ${index + 1}`;
 }
+
+export interface BuildCharacterInput {
+  id: string;
+  name: string;
+  classes: ClassCode[];
+  race?: string | null;
+  /** Level for the chosen classes; everything else starts at the floor. */
+  level?: number;
+  /** Explicit per-class levels, which win over `level`. */
+  levels?: Partial<Record<string, number>>;
+  loadoutId?: string;
+  loadoutName?: string;
+}
+
+/**
+ * A one-loadout character built from the fields the creation screen collects.
+ * Shared by the store and by tests so both agree on what a new character is.
+ */
+export function buildCharacter(input: BuildCharacterInput): Character {
+  const levels: Partial<Record<string, number>> = { ...input.levels };
+  for (const code of input.classes) {
+    levels[code] ??= clampLevel(input.level ?? DEFAULT_CLASS_LEVEL);
+  }
+  const loadout: Loadout = {
+    id: input.loadoutId ?? `${input.id}_loadout_1`,
+    name: input.loadoutName ?? defaultLoadoutName(0),
+    classes: [...input.classes],
+  };
+  return {
+    id: input.id,
+    name: input.name,
+    race: input.race ?? null,
+    levels: makeLevels(levels),
+    loadouts: [loadout],
+    activeLoadoutId: loadout.id,
+  };
+}

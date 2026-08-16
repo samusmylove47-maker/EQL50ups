@@ -32,8 +32,8 @@ import { CLASSES, CLASS_SET, SLOT_POSITIONS, type ClassCode } from '../engine/co
 import { PRESET_PROFILES } from '../engine/ep';
 import { normalizeState } from '../engine/upgrade';
 import {
-  DEFAULT_CLASS_LEVEL, clampLevel, defaultLoadoutName, makeLevels,
-  type Character, type Loadout,
+  DEFAULT_CLASS_LEVEL, buildCharacter, clampLevel, defaultLoadoutName, makeLevels,
+  type BuildCharacterInput, type Character, type Loadout,
 } from '../engine/character';
 import type { EquippedItem, GearSet } from '../engine/types';
 import { base64UrlToBytes, bytesToBase64Url, decodeText, encodeText } from '../lib/base64url';
@@ -105,6 +105,15 @@ export function normalizePlanCharacter(character: Omit<Character, 'id'>): Omit<C
     loadouts,
     activeLoadoutId: loadouts[activeIndex]?.id ?? loadouts[0]?.id ?? 'l0',
   };
+}
+
+/**
+ * A plan character built from plain fields — one loadout, positional ids.
+ * The identity-free half of `buildCharacter`, for callers assembling a plan
+ * rather than a library entry.
+ */
+export function planCharacter(input: Omit<BuildCharacterInput, 'id'>): Omit<Character, 'id'> {
+  return normalizePlanCharacter(buildCharacter({ id: 'plan', ...input }));
 }
 
 function sameWeights(a: Record<string, number>, b: Record<string, number>): boolean {

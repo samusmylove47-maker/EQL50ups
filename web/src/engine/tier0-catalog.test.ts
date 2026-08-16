@@ -18,7 +18,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { canUse, type Character } from '../engine/character';
+import { activeContext, buildCharacter, canUse, type Character } from '../engine/character';
 import type { Item } from '../engine/types';
 import { itemsForSlot, type CatalogState } from '../data/catalog';
 import { normalizeCatalog, type SlotCode } from '../data/normalize';
@@ -31,9 +31,10 @@ const INVENTORY = '../research/validation/tier0-inventory-Avenrae.txt';
 const INDEX = 'public/data/items-index.json';
 const published = existsSync(INDEX) && existsSync(INVENTORY);
 
-const AVENRAE: Character = {
-  id: 'avenrae', name: 'Avenrae', level: 50, classes: ['BRD', 'WAR', 'BER'], race: null,
-};
+const AVENRAE: Character = buildCharacter({
+  id: 'avenrae', name: 'Avenrae', classes: ['BRD', 'WAR', 'BER'], level: 50,
+});
+const AVENRAE_CTX = activeContext(AVENRAE);
 
 /** Client inventory location label to the planner's slot code. */
 const LOCATION_SLOT: Record<string, SlotCode> = {
@@ -102,6 +103,10 @@ function catalogState(items: Item[]): CatalogState {
   return {
     status: 'ready', error: null, meta: null, items, byName, bySlot,
     shards: {}, usingFixture: false, revision: 5150,
+    indexNames: items.map((i) => i.n),
+    effects: new Map(),
+    effectsStatus: 'idle',
+    ensureEffects: async () => undefined,
     load: async () => undefined,
     ensureSlot: async () => undefined,
     ensureAll: async () => undefined,
@@ -148,7 +153,7 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     for (const entry of worn) {
       const item = resolve(entry);
       if (!item) continue;
-      if (!canUse({ classes: item.cl, races: item.ra }, AVENRAE)) {
+      if (!canUse({ classes: item.cl, races: item.ra }, AVENRAE_CTX)) {
         refused.push(`${entry.name} (${item.cl.join(',')})`);
       }
     }
@@ -171,7 +176,7 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
       if (!item) continue;
       const ranked = rankSlotItems(state, {
         slot: entry.slot,
-        character: AVENRAE,
+        context: AVENRAE_CTX,
         weights: { AC: 1, STR: 1, HP: 0.2, RATIO: 20 },
         upgrade: tier(0),
         includeUnreleased: false,
@@ -187,13 +192,13 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     for (const slot of ['PRIMARY', 'CHEST', 'FINGERS', 'ANY'] as SlotCode[]) {
       const ranked = rankSlotItems(state, {
         slot,
-        character: AVENRAE,
+        context: AVENRAE_CTX,
         weights: { AC: 1 },
         upgrade: tier(0),
         includeUnreleased: true,
       });
       const illegal = ranked.filter(
-        (row) => !canUse({ classes: row.item.cl, races: row.item.ra }, AVENRAE),
+        (row) => !canUse({ classes: row.item.cl, races: row.item.ra }, AVENRAE_CTX),
       );
       expect(illegal.map((row) => row.item.n)).toEqual([]);
     }
@@ -202,11 +207,11 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
   it('never hides a usable, live candidate that the slot pool holds', () => {
     for (const slot of ['PRIMARY', 'CHEST', 'WAIST'] as SlotCode[]) {
       const eligible = itemsForSlot(state, slot).filter(
-        (item) => isLive(item) && canUse({ classes: item.cl, races: item.ra }, AVENRAE),
+        (item) => isLive(item) && canUse({ classes: item.cl, races: item.ra }, AVENRAE_CTX),
       );
       const ranked = rankSlotItems(state, {
         slot,
-        character: AVENRAE,
+        context: AVENRAE_CTX,
         weights: { AC: 1 },
         upgrade: tier(0),
         includeUnreleased: false,
@@ -217,11 +222,11 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
 
   it('hides content that is not live until the filter is lifted', () => {
     const live = rankSlotItems(state, {
-      slot: 'PRIMARY', character: AVENRAE, weights: { AC: 1 },
+      slot: 'PRIMARY', context: AVENRAE_CTX, weights: { AC: 1 },
       upgrade: tier(0), includeUnreleased: false,
     });
     const all = rankSlotItems(state, {
-      slot: 'PRIMARY', character: AVENRAE, weights: { AC: 1 },
+      slot: 'PRIMARY', context: AVENRAE_CTX, weights: { AC: 1 },
       upgrade: tier(0), includeUnreleased: true,
     });
     expect(all.length).toBeGreaterThan(live.length);
@@ -256,7 +261,7 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
   it('scores every candidate in every slot to a finite number', () => {
     for (const slot of [...SLOT_TYPES, 'ANY'] as SlotCode[]) {
       const ranked = rankSlotItems(state, {
-        slot, character: AVENRAE,
+        slot, context: AVENRAE_CTX,
         weights: { AC: 1, STR: 1, HP: 0.2, RATIO: 20, HASTE: 2, BACKSTAB: 0.5, ATTACK: 0.5 },
         upgrade: tier(6),
         includeUnreleased: true,

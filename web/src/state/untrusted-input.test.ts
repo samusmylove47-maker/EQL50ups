@@ -8,8 +8,9 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { validateClasses } from '../engine/character';
-import { decodePlan, encodePlan, type SharedPlan } from '../share/codec';
+import { loadoutClasses, validateClasses, type Character } from '../engine/character';
+import { decodePlan, encodePlan, planCharacter } from '../share/codec';
+import { encodeText } from '../lib/base64url';
 import { memoryStorage, sanitizeState, saveState, STORAGE_KEY } from './persistence';
 import { flushPersist, useApp } from './store';
 
@@ -23,38 +24,44 @@ const baseState = (classes: unknown) => ({
 describe('sanitizeState', () => {
   it('collapses a repeated class code into a trio the model accepts', () => {
     const clean = sanitizeState(baseState(['WAR', 'war', 'WAR', 'CLR']));
-    expect(clean?.characters[0]?.classes).toEqual(['WAR', 'CLR']);
-    expect(validateClasses(clean?.characters[0]?.classes ?? []).ok).toBe(true);
+    expect(loadoutClasses(clean?.characters[0] as Character)).toEqual(['WAR', 'CLR']);
+    expect(validateClasses(loadoutClasses(clean?.characters[0] as Character) ?? []).ok).toBe(true);
   });
 
   it('drops codes that are not classes at all', () => {
     const clean = sanitizeState(baseState(['WAR', 'NOPE', 42, null, 'CLR']));
-    expect(clean?.characters[0]?.classes).toEqual(['WAR', 'CLR']);
+    expect(loadoutClasses(clean?.characters[0] as Character)).toEqual(['WAR', 'CLR']);
   });
 
   it('never returns more than three classes', () => {
     const clean = sanitizeState(baseState(['WAR', 'CLR', 'PAL', 'RNG', 'DRU']));
-    expect(clean?.characters[0]?.classes).toHaveLength(3);
-    expect(validateClasses(clean?.characters[0]?.classes ?? []).ok).toBe(true);
+    expect(loadoutClasses(clean?.characters[0] as Character)).toHaveLength(3);
+    expect(validateClasses(loadoutClasses(clean?.characters[0] as Character) ?? []).ok).toBe(true);
   });
 });
 
 describe('decodePlan', () => {
-  const link = (classes: string) =>
-    encodePlan({
-      character: { name: 'A', level: 50, race: null, classes: classes.split('/') as never },
-      set: { name: 'S', slots: {}, weights: {} },
-    } as SharedPlan);
+  /* A v1 link is JSON, so its class list is free text a stranger can edit. */
+  const legacyLink = (classes: string) =>
+    encodeText(JSON.stringify([1, 'A', 50, null, classes, 'S', [], [], '']));
 
   it('collapses repeats and discards unknown codes from a hand-edited link', () => {
-    const plan = decodePlan(link('WAR/WAR/NOPE/CLR'));
-    expect(plan?.character.classes).toEqual(['WAR', 'CLR']);
-    expect(validateClasses(plan?.character.classes ?? []).ok).toBe(true);
+    const plan = decodePlan(legacyLink('WAR/WAR/NOPE/CLR'));
+    expect(plan?.character.loadouts[0]?.classes ?? []).toEqual(['WAR', 'CLR']);
+    expect(validateClasses(plan?.character.loadouts[0]?.classes ?? []).ok).toBe(true);
   });
 
   it('yields a usable plan even when every class is junk', () => {
-    const plan = decodePlan(link('XXX/YYY'));
-    expect(plan?.character.classes).toEqual([]);
+    const plan = decodePlan(legacyLink('XXX/YYY'));
+    expect(plan?.character.loadouts[0]?.classes ?? []).toEqual([]);
+  });
+
+  it('refuses to build a repeated trio out of a v2 payload either', () => {
+    const payload = encodePlan({
+      character: planCharacter({ name: 'A', classes: ['WAR', 'WAR', 'CLR'] as never }),
+      set: { name: 'S', slots: {}, weights: {} },
+    });
+    expect(decodePlan(payload)?.character.loadouts[0]?.classes).toEqual(['WAR', 'CLR']);
   });
 });
 

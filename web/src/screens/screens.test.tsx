@@ -14,7 +14,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../App';
 import { useCatalog } from '../data/catalog';
 import { tier } from '../engine/upgrade';
-import { encodePlan } from '../share/codec';
+import { encodePlan, planCharacter } from '../share/codec';
 import { emptyState } from '../state/persistence';
 import { useApp } from '../state/store';
 
@@ -120,8 +120,8 @@ describe('screens render without throwing or printing NaN', () => {
   it('exaltations and weights tabs', () => {
     const { setId } = seed();
     const exalt = render(`#/set/${setId}/exaltations`);
-    expect(exalt).toContain('Focus Exaltation');
-    expect(exalt).toContain('Unlocks at +');
+    expect(exalt).toContain('first socket at +1');
+    expect(exalt).toContain('socketed');
     expect(exalt).not.toMatch(/NaN/);
 
     const weights = render(`#/set/${setId}/weights`);
@@ -132,7 +132,7 @@ describe('screens render without throwing or printing NaN', () => {
 
   it('a share link reconstructs read-only', () => {
     const payload = encodePlan({
-      character: { name: 'Shared One', level: 50, race: null, classes: ['SHM', 'ROG'] },
+      character: planCharacter({ name: 'Shared One', classes: ['SHM', 'ROG'], level: 50 }),
       set: {
         name: 'Borrowed',
         slots: { HEAD: { itemName: '[Fixture] Iron Helm', upgrade: tier(7) } },

@@ -7,7 +7,7 @@
 
 import { create } from 'zustand';
 import {
-  clampLevel, defaultLoadoutName, makeLevels,
+  buildCharacter, clampLevel, defaultLoadoutName, makeLevels,
   type Character, type Loadout,
 } from '../engine/character';
 import type { ClassCode } from '../engine/constants';
@@ -135,22 +135,15 @@ export const useApp = create<AppState>((set, get) => {
     createCharacter(input) {
       // The level typed on the creation screen belongs to the classes actually
       // chosen; the other thirteen start at the floor and are edited later.
-      const levels: Partial<Record<string, number>> = { ...input.levels };
-      for (const code of input.classes) levels[code] ??= clampLevel(input.level);
-
-      const loadout: Loadout = {
-        id: newId('load'),
-        name: defaultLoadoutName(0),
-        classes: [...input.classes],
-      };
-      const character: Character = {
+      const character = buildCharacter({
         id: newId('char'),
         name: input.name.trim() || 'Unnamed',
+        classes: input.classes,
         race: input.race,
-        levels: makeLevels(levels),
-        loadouts: [loadout],
-        activeLoadoutId: loadout.id,
-      };
+        level: input.level,
+        loadoutId: newId('load'),
+        ...(input.levels ? { levels: input.levels } : {}),
+      });
       set({ characters: [...get().characters, character], activeCharacterId: character.id });
       persist();
       return character;

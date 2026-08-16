@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Character } from '../engine/character';
+import { activeContext, buildCharacter, type Character } from '../engine/character';
 import { SLOT_POSITIONS } from '../engine/constants';
 import { tier } from '../engine/upgrade';
 import type { GearSet } from '../engine/types';
@@ -15,21 +15,12 @@ import {
   ratioText,
 } from './gear';
 
-const WARRIOR: Character = {
-  id: 'c',
-  name: 'Test',
-  level: 50,
-  classes: ['WAR', 'BRD', 'BER'],
-  race: null,
-};
-
-const CASTER: Character = {
-  id: 'c2',
-  name: 'Test2',
-  level: 50,
-  classes: ['WIZ'],
-  race: null,
-};
+const WARRIOR: Character = buildCharacter({
+  id: 'c', name: 'Test', classes: ['WAR', 'BRD', 'BER'], level: 50,
+});
+const CASTER: Character = buildCharacter({ id: 'c2', name: 'Test2', classes: ['WIZ'], level: 50 });
+const WARRIOR_CTX = activeContext(WARRIOR);
+const CASTER_CTX = activeContext(CASTER);
 
 function gearSet(slots: GearSet['slots'] = {}): GearSet {
   return {
@@ -167,7 +158,7 @@ describe('ranking', () => {
   it('sorts candidates by EP descending', () => {
     const ranked = rankSlotItems(catalog(), {
       slot: 'HEAD',
-      character: WARRIOR,
+      context: WARRIOR_CTX,
       weights: { AC: 2, STA: 1 },
       upgrade: tier(0),
       includeUnreleased: false,
@@ -181,14 +172,14 @@ describe('ranking', () => {
   it('respects class eligibility across the whole trio', () => {
     const warrior = rankSlotItems(catalog(), {
       slot: 'HEAD',
-      character: WARRIOR,
+      context: WARRIOR_CTX,
       weights: { AC: 1, INT: 1 },
       upgrade: tier(0),
       includeUnreleased: false,
     });
     const caster = rankSlotItems(catalog(), {
       slot: 'HEAD',
-      character: CASTER,
+      context: CASTER_CTX,
       weights: { AC: 1, INT: 1 },
       upgrade: tier(0),
       includeUnreleased: false,
@@ -200,14 +191,14 @@ describe('ranking', () => {
   it('hides content that is not live unless asked', () => {
     const live = rankSlotItems(catalog(), {
       slot: 'PRIMARY',
-      character: WARRIOR,
+      context: WARRIOR_CTX,
       weights: { RATIO: 20 },
       upgrade: tier(0),
       includeUnreleased: false,
     });
     const all = rankSlotItems(catalog(), {
       slot: 'PRIMARY',
-      character: WARRIOR,
+      context: WARRIOR_CTX,
       weights: { RATIO: 20 },
       upgrade: tier(0),
       includeUnreleased: true,
@@ -219,7 +210,7 @@ describe('ranking', () => {
   it('offers wearable items to the EQL Any Slot positions', () => {
     const ranked = rankSlotItems(catalog(), {
       slot: 'ANY',
-      character: WARRIOR,
+      context: WARRIOR_CTX,
       weights: { AC: 1, HP: 0.2, CHA: 1 },
       upgrade: tier(0),
       includeUnreleased: false,
@@ -231,14 +222,14 @@ describe('ranking', () => {
   it('scores cap-aware: a maxed attribute earns nothing more', () => {
     const uncapped = rankSlotItems(catalog(), {
       slot: 'HEAD',
-      character: CASTER,
+      context: CASTER_CTX,
       weights: { INT: 1 },
       upgrade: tier(0),
       includeUnreleased: false,
     });
     const capped = rankSlotItems(catalog(), {
       slot: 'HEAD',
-      character: CASTER,
+      context: CASTER_CTX,
       weights: { INT: 1 },
       upgrade: tier(0),
       includeUnreleased: false,
@@ -256,7 +247,7 @@ describe('ranking', () => {
   it('returns the identical array for repeated identical queries (memoised)', () => {
     const options = {
       slot: 'HEAD' as const,
-      character: WARRIOR,
+      context: WARRIOR_CTX,
       weights: { AC: 1 },
       upgrade: tier(0),
       includeUnreleased: false,
@@ -268,7 +259,7 @@ describe('ranking', () => {
 describe('auto-fill', () => {
   it('fills empty slots without wearing the same item twice', () => {
     const views = slotViews(gearSet(), catalog());
-    const result = autoFill(catalog(), views, WARRIOR, { AC: 2, STR: 1, HP: 0.2, RATIO: 20 }, {
+    const result = autoFill(catalog(), views, WARRIOR_CTX, { AC: 2, STR: 1, HP: 0.2, RATIO: 20 }, {
       includeUnreleased: false,
       keepFilled: false,
     });
@@ -283,7 +274,7 @@ describe('auto-fill', () => {
       gearSet({ HEAD: { itemName: '[Fixture] Silk Cowl', upgrade: tier(0) } }),
       catalog(),
     );
-    const result = autoFill(catalog(), views, WARRIOR, { AC: 2 }, {
+    const result = autoFill(catalog(), views, WARRIOR_CTX, { AC: 2 }, {
       includeUnreleased: false,
       keepFilled: true,
     });
@@ -292,7 +283,7 @@ describe('auto-fill', () => {
 
   it('places nothing when every weight is zero', () => {
     const views = slotViews(gearSet(), catalog());
-    const result = autoFill(catalog(), views, WARRIOR, {}, {
+    const result = autoFill(catalog(), views, WARRIOR_CTX, {}, {
       includeUnreleased: false,
       keepFilled: false,
     });

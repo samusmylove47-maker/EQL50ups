@@ -11,15 +11,31 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  armorTier, canUse, canUseClass, canUseRace, describeCharacter,
-  qualifyingClasses, validateClasses, type Character,
+  activeContext, activeLoadout, activeRace, armorTier, canUse, canUseClass, canUseRace,
+  contextForLoadout, describeCharacter, describeLoadout, levelCheck, makeContext, makeLevels,
+  meetsLevel, primaryLevel, qualifyingClasses, validateClasses,
+  type Character, type LoadoutContext,
 } from './character';
 
-const TRIO: Character = {
-  id: 'a', name: 'Avenrae', level: 50, classes: ['BRD', 'WAR', 'BER'], race: null,
+const TRIO: LoadoutContext = makeContext(['BRD', 'WAR', 'BER'], null, {
+  BRD: 50, WAR: 50, BER: 50,
+});
+const TRIO_HFL: LoadoutContext = { ...TRIO, race: 'HFL' };
+const SOLO: LoadoutContext = makeContext(['WIZ'], 'ERU', { WIZ: 50 });
+
+/** The Tier 0 sample character, per the client's Loadouts tab. */
+const AVENRAE: Character = {
+  id: 'a',
+  name: 'Avenrae',
+  race: null,
+  levels: makeLevels({ BRD: 50, BER: 50, WAR: 50, MNK: 36, DRU: 36, SHD: 36, PAL: 21, MAG: 11 }),
+  loadouts: [
+    { id: 'l0', name: 'Loadout 1', classes: ['BRD', 'SHD', 'DRU'] },
+    { id: 'l1', name: 'Loadout 2', classes: ['WAR', 'PAL', 'BER'] },
+    { id: 'l2', name: 'Loadout 3', classes: ['BRD', 'WAR', 'BER'] },
+  ],
+  activeLoadoutId: 'l2',
 };
-const TRIO_HFL: Character = { ...TRIO, race: 'HFL' };
-const SOLO: Character = { id: 'b', name: 'Solo', level: 50, classes: ['WIZ'], race: 'ERU' };
 
 const classes = (list: string[]) => ({ classes: list });
 const races = (list: string[]) => ({ races: list });
@@ -128,8 +144,79 @@ describe('class validation', () => {
   });
 });
 
-describe('character header', () => {
-  it('formats the way the client does', () => {
-    expect(describeCharacter(TRIO)).toBe('50 BRD/WAR/BER');
+describe('per-class levels and loadouts', () => {
+  it('keeps a level for every one of the sixteen classes', () => {
+    const levels = makeLevels({ BRD: 50 });
+    expect(Object.keys(levels)).toHaveLength(16);
+    expect(levels.BRD).toBe(50);
+    expect(levels.WIZ).toBe(1);
+  });
+
+  it('formats the header from the primary class level, the way the client does', () => {
+    expect(describeCharacter(AVENRAE)).toBe('50 BRD/WAR/BER');
+    expect(primaryLevel(AVENRAE)).toBe(50);
+  });
+
+  it('reads the active loadout, and describes the inactive ones too', () => {
+    expect(activeLoadout(AVENRAE)?.id).toBe('l2');
+    expect(describeLoadout(AVENRAE, AVENRAE.loadouts[0] as never)).toBe('50 BRD/SHD/DRU');
+    expect(describeLoadout(AVENRAE, AVENRAE.loadouts[1] as never)).toBe('50 WAR/PAL/BER');
+  });
+
+  it('switches eligibility when the active loadout changes', () => {
+    const asBard = activeContext({ ...AVENRAE, activeLoadoutId: 'l0' });
+    const asWarrior = activeContext({ ...AVENRAE, activeLoadoutId: 'l1' });
+    expect(canUseClass({ classes: ['DRU'] }, asBard)).toBe(true);
+    expect(canUseClass({ classes: ['DRU'] }, asWarrior)).toBe(false);
+    expect(canUseClass({ classes: ['PAL'] }, asWarrior)).toBe(true);
+    expect(armorTier(asBard)).toBe(4); // Shadow Knight
+  });
+
+  it('falls back to the first loadout when the active id is stale', () => {
+    expect(activeLoadout({ ...AVENRAE, activeLoadoutId: 'gone' })?.id).toBe('l0');
+  });
+
+  it('lets a loadout override the character race, and inherits it otherwise', () => {
+    const withRace: Character = {
+      ...AVENRAE,
+      race: 'HFL',
+      loadouts: [{ id: 'l0', name: 'Ogre run', classes: ['WAR'], race: 'OGR' }],
+      activeLoadoutId: 'l0',
+    };
+    expect(activeRace(withRace)).toBe('OGR');
+    expect(activeRace({ ...withRace, loadouts: [{ id: 'l0', name: 'x', classes: ['WAR'] }] })).toBe(
+      'HFL',
+    );
+    expect(contextForLoadout(withRace, withRace.loadouts[0] as never).race).toBe('OGR');
+  });
+});
+
+describe('level requirements are checked against the qualifying class', () => {
+  const ctx = makeContext(['BRD', 'WAR', 'BER'], null, { BRD: 50, WAR: 12, BER: 50 });
+
+  it('uses the level of the class that makes the item usable, not the best level', () => {
+    const warriorOnly = { classes: ['WAR'], races: ['ALL'], rl: 40 };
+    expect(levelCheck(warriorOnly, ctx)).toEqual({ required: 40, best: 12, via: 'WAR', ok: false });
+    expect(meetsLevel(warriorOnly, ctx)).toBe(false);
+    expect(canUse(warriorOnly, ctx)).toBe(false);
+  });
+
+  it('passes when the qualifying class is high enough', () => {
+    expect(meetsLevel({ classes: ['BRD'], races: ['ALL'], rl: 46 }, ctx)).toBe(true);
+  });
+
+  it('takes the best of several qualifying classes', () => {
+    // Bard qualifies at 50, Warrior at 12: the Bard carries it.
+    expect(levelCheck({ classes: ['WAR', 'BRD'], races: ['ALL'], rl: 46 }, ctx).via).toBe('BRD');
+  });
+
+  it('treats an item with no requirement as always level-legal', () => {
+    expect(meetsLevel({ classes: ['WAR'], races: ['ALL'] }, ctx)).toBe(true);
+    expect(levelCheck({ classes: ['WAR'], races: ['ALL'] }, ctx).required).toBe(0);
+  });
+
+  it('judges an unrestricted item against the best class in the loadout', () => {
+    expect(meetsLevel({ classes: ['ALL'], races: ['ALL'], rl: 50 }, ctx)).toBe(true);
+    expect(meetsLevel({ classes: ['ALL'], races: ['ALL'], rl: 51 }, ctx)).toBe(false);
   });
 });

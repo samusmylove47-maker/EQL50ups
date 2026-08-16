@@ -6,8 +6,8 @@
  * **It said nothing, at length.** A fresh set printed the same rule 115 times —
  * `Cosmetic — no effect` on 23 rows, `Unlocks at +N` on 92 more — over 7,728px.
  * Sockets are derived from `+N` and nothing else, so a locked socket carries no
- * information a one-line "next socket at +1" does not. Items with something to
- * do get a card; items without get a table row.
+ * information a one-line "first socket at +1" does not. One row per item, in
+ * slot order, that grows in place when a socket opens.
  *
  * **Donors did nothing.** They are now resolved against the catalog, their
  * effect is named beside them the way the client names it, `canSocket` is
@@ -81,9 +81,6 @@ export function ExaltationsTab({
     );
   }
 
-  const withSockets = plan.items.filter((i) => i.filled.length || i.openCount);
-  const waiting = plan.items.filter((i) => !i.filled.length && !i.openCount);
-
   return (
     <div className="stack">
       <div className="exalt-summary" role="status">
@@ -94,7 +91,7 @@ export function ExaltationsTab({
           <strong>{plan.counts.open}</strong> open
         </span>
         <span>
-          <strong>{waiting.length}</strong> waiting on +N
+          <strong>{plan.items.length - plan.counts.withSockets}</strong> waiting on +N
         </span>
         <span className="hint">
           Focus +1 · Click +2 · Worn +3 · Proc +4. Ornamentation is cosmetic; the client counts it
@@ -115,7 +112,7 @@ export function ExaltationsTab({
             ))}
           </div>
           {plan.superseded.length ? (
-            <div className="effect-list dim">
+            <div className="effect-list">
               {plan.superseded.map((socket) => (
                 <p className="hint" key={`sup-${socket.socket.kind}-${socket.donorName}`}>
                   {socket.effect?.n} does not count — {socket.supersededBy} is the higher rank in
@@ -141,58 +138,24 @@ export function ExaltationsTab({
         </div>
       ) : null}
 
-      {withSockets.map((entry) => (
-        <ExaltCard
-          key={entry.positionId}
-          entry={entry}
-          readOnly={readOnly}
-          onUpgrade={onUpgrade}
-          onSetDonor={onSetDonor}
-          onPickDonor={setTarget}
-        />
-      ))}
-
-      {waiting.length ? (
-        <section className="panel panel-pad stack">
-          <div className="spread">
-            <h2 className="section-label">No sockets yet</h2>
-            <span className="hint">Upgrade an item to open its first socket.</span>
-          </div>
-          <div className="table-wrap">
-            <table className="data compact">
-              <thead>
-                <tr>
-                  <th>Slot</th>
-                  <th>Item</th>
-                  <th>+N</th>
-                  <th>Next socket</th>
-                </tr>
-              </thead>
-              <tbody>
-                {waiting.map((entry) => (
-                  <tr key={entry.positionId}>
-                    <td className="dim">{entry.positionLabel}</td>
-                    <td style={{ color: qualityColor(entry.item), fontWeight: 600 }}>
-                      {entry.item.n}
-                    </td>
-                    <td>
-                      <UpgradeStepper
-                        value={entry.state}
-                        label={entry.item.n}
-                        disabled={readOnly}
-                        onChange={(next) => onUpgrade(entry.positionId, next)}
-                      />
-                    </td>
-                    <td className="dim">
-                      {entry.nextUnlockTier === null ? '—' : `+${entry.nextUnlockTier}`}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
+      {/*
+        One row per equipped item, in slot order, growing in place as sockets
+        open. Deliberately not two sections: an item that crosses +1 used to be
+        re-parented, which threw away the keyboard focus of the very stepper
+        that had just been pressed.
+      */}
+      <section className="panel exalt-rows">
+        {plan.items.map((entry) => (
+          <ExaltRow
+            key={entry.positionId}
+            entry={entry}
+            readOnly={readOnly}
+            onUpgrade={onUpgrade}
+            onSetDonor={onSetDonor}
+            onPickDonor={setTarget}
+          />
+        ))}
+      </section>
 
       {target ? (
         <DonorPicker
@@ -221,7 +184,7 @@ function EffectLines({ socket }: { socket: SocketView }) {
   );
 }
 
-function ExaltCard({
+function ExaltRow({
   entry,
   readOnly,
   onUpgrade,
@@ -235,74 +198,85 @@ function ExaltCard({
   onPickDonor: (target: DonorTarget) => void;
 }) {
   const usable = entry.sockets.filter((s) => s.unlocked && s.socket.kind !== 'ornamentation');
+
   return (
-    <section className="exalt-item">
-      <header className="exalt-head">
-        <div>
-          <div className="slot-name">{entry.positionLabel}</div>
-          <div style={{ color: qualityColor(entry.item), fontWeight: 600 }}>{entry.item.n}</div>
-        </div>
+    <div className="exalt-row">
+      <div className="exalt-row-head">
+        <span className="slot-name">{entry.positionLabel}</span>
+        <span className="exalt-row-name" style={{ color: qualityColor(entry.item) }}>
+          {entry.item.n}
+        </span>
         <UpgradeStepper
           value={entry.state}
           label={entry.item.n}
           disabled={readOnly}
           onChange={(next) => onUpgrade(entry.positionId, next)}
         />
-      </header>
+        <span className="hint exalt-row-state">
+          {usable.length
+            ? `${entry.filled.length}/${usable.length} socketed`
+            : entry.nextUnlockTier === null
+              ? 'no sockets'
+              : `first socket at +${entry.nextUnlockTier}`}
+        </span>
+      </div>
 
-      <div className="socket-list">
-        {usable.map((socket) => (
-          <div className="socket" key={socket.socket.kind}>
-            <span className="kind">{socket.socket.label}</span>
-            <span className={`donor${socket.donorName ? '' : ' none'}`}>
-              {socket.donorName ? (
-                <>
-                  {socket.donorName}
-                  {socket.effect ? <span className="effect-inline"> → {socket.effect.n}</span> : null}
-                  {socket.donorName && !socket.effect ? (
-                    <span className="hint"> — carries no {socket.socket.kind} effect</span>
-                  ) : null}
-                  {!socket.legal ? (
-                    <span className="bad"> — shares no slot or class with this item</span>
-                  ) : null}
-                </>
-              ) : (
-                '—'
-              )}
-            </span>
-            <span className="rowline">
-              {!readOnly ? (
-                <>
-                  <button
-                    type="button"
-                    className="btn btn-sm"
-                    onClick={() =>
-                      onPickDonor({
-                        positionId: entry.positionId,
-                        kind: socket.socket.kind,
-                        label: socket.socket.label,
-                        host: entry.item,
-                      })
-                    }
-                  >
-                    {socket.donorName ? 'Change' : 'Add'}
-                  </button>
-                  {socket.donorName ? (
+      {usable.length ? (
+        <div className="socket-list">
+          {usable.map((socket) => (
+            <div className="socket" key={socket.socket.kind}>
+              <span className="kind">{socket.socket.label}</span>
+              <span className={`donor${socket.donorName ? '' : ' none'}`}>
+                {socket.donorName ? (
+                  <>
+                    {socket.donorName}
+                    {socket.effect ? (
+                      <span className="effect-inline"> → {socket.effect.n}</span>
+                    ) : (
+                      <span className="hint"> — carries no {socket.socket.kind} effect</span>
+                    )}
+                    {!socket.legal ? (
+                      <span className="bad"> — shares no slot or class with this item</span>
+                    ) : null}
+                  </>
+                ) : (
+                  '—'
+                )}
+              </span>
+              <span className="rowline">
+                {!readOnly ? (
+                  <>
                     <button
                       type="button"
-                      className="btn btn-sm btn-quiet"
-                      onClick={() => onSetDonor(entry.positionId, socket.socket.kind, null)}
-                      aria-label={`Remove ${socket.socket.label} from ${entry.item.n}`}
+                      className="btn btn-sm"
+                      onClick={() =>
+                        onPickDonor({
+                          positionId: entry.positionId,
+                          kind: socket.socket.kind,
+                          label: socket.socket.label,
+                          host: entry.item,
+                        })
+                      }
                     >
-                      ✕
+                      {socket.donorName ? 'Change' : 'Add'}
                     </button>
-                  ) : null}
-                </>
-              ) : null}
-            </span>
-          </div>
-        ))}
-      </div>
+                    {socket.donorName ? (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-quiet"
+                        onClick={() => onSetDonor(entry.positionId, socket.socket.kind, null)}
+                        aria-label={`Remove ${socket.socket.label} from ${entry.item.n}`}
+                      >
+                        ✕
+                      </button>
+                    ) : null}
+                  </>
+                ) : null}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       {entry.lostClasses.length || entry.lostSlots.length ? (
         <p className={`hint${entry.blocksLoadout ? ' bad' : ''}`}>
@@ -315,7 +289,7 @@ function ExaltCard({
           {entry.blocksLoadout ? ' Your active loadout can no longer use it.' : ''}
         </p>
       ) : null}
-    </section>
+    </div>
   );
 }
 

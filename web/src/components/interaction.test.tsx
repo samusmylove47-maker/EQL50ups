@@ -194,11 +194,18 @@ describe('exaltation sockets', () => {
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     });
 
-    expect(container.textContent).toContain('Unlocks at +1');
-    const spin = byLabel('[Fixture] Iron Helm upgrade level') as HTMLElement;
-    key(spin, 'ArrowUp');
-    key(spin, 'ArrowUp');
-    expect(container.textContent).not.toContain('Unlocks at +1');
-    expect(container.textContent).toContain('Unlocks at +3');
+    // At +0 nothing is socketable, so the row states the tier that opens the
+    // first socket rather than printing five locked rows.
+    expect(container.textContent).toContain('first socket at +1');
+    expect(container.textContent).not.toContain('Focus Exaltation');
+
+    // The stepper must survive its own press: the row grows in place rather
+    // than being re-parented into another section.
+    key(byLabel('[Fixture] Iron Helm upgrade level') as HTMLElement, 'ArrowUp');
+    expect(container.textContent).toContain('Focus Exaltation');
+    key(byLabel('[Fixture] Iron Helm upgrade level') as HTMLElement, 'ArrowUp');
+    expect(container.textContent).toContain('Click Exaltation');
+    expect(container.textContent).not.toContain('Worn Exaltation');
+    expect(container.textContent).toContain('0/2 socketed');
   });
 });
