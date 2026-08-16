@@ -35,6 +35,9 @@ const SAVE_KEYS = new Set(['FIRE', 'COLD', 'MAGIC', 'POISON', 'DISEASE', 'VOID']
 const FLAGS = new Set(['LORE', 'NO_DROP', 'MAGIC', 'NO_TRADE', 'TEMPORARY', 'EXPENDABLE', 'ATTUNEABLE',
   'ARTIFACT', 'LORE_EQUIPPED', 'QUEST', 'NO_RENT', 'PLACEABLE']);
 const EFFECT_KINDS = new Set(['click', 'proc', 'focus', 'worn', 'effect']);
+/** Weapon skills exactly as the live client spells them. */
+const WEAPON_SKILLS = new Set(['1H Slashing', '2H Slashing', '1H Blunt', '2H Blunt', 'Piercing',
+  '2H Piercing', 'Hand to Hand', 'Archery', 'Throwing']);
 const SIZES = new Set(['TINY', 'SMALL', 'MEDIUM', 'LARGE', 'GIANT']);
 const ERA_ORDER = ['Classic', 'Fear', 'Hate', 'Paineel', 'Temple', 'Sky', 'Kunark', 'Epic Quests',
   'Nov 2000', 'FearHateRevamp', 'Velious', 'Chardok Revamp', 'Luclin'];
@@ -142,6 +145,13 @@ assert('meta records source provenance with commit SHAs',
   Array.isArray(meta.provenance?.repos) && meta.provenance.repos.length >= 4 &&
   meta.provenance.repos.every((r) => /^[0-9a-f]{40}$/.test(r.sha ?? '')),
   'every provenance entry needs a 40-char commit sha');
+assert('meta documents field reliability for the fields the client contradicts',
+  meta.dataReliability?.flags?.confidence === 'low' &&
+  meta.dataReliability.flags.doNotUseAsAuthoritativeFilter === true &&
+  Array.isArray(meta.dataReliability.flags.clientVerifiedContradictions) &&
+  meta.dataReliability.flags.clientVerifiedContradictions.length > 0 &&
+  Array.isArray(meta.dataReliability.weaponSkill?.suspects),
+  'meta.dataReliability must flag the flag vocabulary as low-confidence and enumerate the suspect weapon skills');
 assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
   Array.isArray(meta.era?.order) && meta.era.order.join('|') === ERA_ORDER.join('|'),
   `meta.era=${JSON.stringify(meta.era?.current)} order=${JSON.stringify(meta.era?.order)}`);
@@ -242,6 +252,21 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
   assert('weapons carry both dmg and dly (or neither; AMMO may carry dmg alone)',
     bad.length === 0, `${bad.length} half-populated weapon blocks`, bad);
   if (ammoOnly.length) warn('ammo weapon blocks', `${ammoOnly.length} AMMO items carry dmg with no delay (correct for arrows)`, ammoOnly);
+}
+{
+  const badSkill = [], badRaw = [];
+  for (const it of items) {
+    const wp = it.wp;
+    if (!wp) continue;
+    if (wp.skill != null && !WEAPON_SKILLS.has(wp.skill)) badSkill.push(`${it.n}: ${JSON.stringify(wp.skill)}`);
+    if (wp.skillRaw != null && (typeof wp.skillRaw !== 'string' || !wp.skillRaw.trim() || wp.skillRaw === wp.skill)) {
+      badRaw.push(`${it.n}: skillRaw=${JSON.stringify(wp.skillRaw)} skill=${JSON.stringify(wp.skill)}`);
+    }
+  }
+  assert('weapon skills use the client vocabulary', badSkill.length === 0,
+    `${badSkill.length} non-canonical skill values`, badSkill);
+  assert('skillRaw is only present when it differs from the normalized skill', badRaw.length === 0,
+    `${badRaw.length} malformed skillRaw values`, badRaw);
 }
 
 // ---------------------------------------------------------------------------

@@ -116,6 +116,32 @@ const SAVE_KEYS = ['FIRE', 'COLD', 'MAGIC', 'POISON', 'DISEASE', 'VOID'];
 
 const SIZES = new Set(['TINY', 'SMALL', 'MEDIUM', 'LARGE', 'GIANT']);
 
+/** Weapon skills as the live client spells them. */
+const WEAPON_SKILLS = ['1H Slashing', '2H Slashing', '1H Blunt', '2H Blunt', 'Piercing',
+  '2H Piercing', 'Hand to Hand', 'Archery', 'Throwing'];
+const WEAPON_SKILL_SET = new Set(WEAPON_SKILLS);
+/**
+ * Wiki spellings -> client vocabulary. Only spelling is normalized; no weapon is
+ * ever moved between skills.
+ *
+ * `Throwingv1` / `Throwingv2` are in the wiki source itself (all four scrapes
+ * report them identically), but they are template artifacts, not a game
+ * distinction: the wiki's own category for all 37 throwing weapons is plain
+ * `Throwing`, and the suffix does not track slot (v1 is 7 RANGE + 1 RANGE/AMMO,
+ * plain Throwing is 6 RANGE/AMMO + 1 RANGE) or range (v1 40-210, v2 20-250,
+ * plain 45-200). Collapsed to `Throwing`, with the raw string preserved in
+ * `wp.skillRaw` so the distinction is recoverable if it ever proves meaningful.
+ */
+const SKILL_ALIASES = new Map(Object.entries({
+  'throwingv1': 'Throwing', 'throwingv2': 'Throwing', 'throwing': 'Throwing',
+  '1h slash': '1H Slashing', '1h slashing': '1H Slashing', '1h slashing /': '1H Slashing',
+  '2h slash': '2H Slashing', '2h slashing': '2H Slashing',
+  '1h blunt': '1H Blunt', '2h blunt': '2H Blunt',
+  '1h piercing': 'Piercing', 'piercing': 'Piercing', '2h piercing': '2H Piercing',
+  'hand to hand': 'Hand to Hand', 'h2h': 'Hand to Hand',
+  'archery': 'Archery',
+}));
+
 /** Effect kinds. `effect` = the source printed an effect without qualifying its type. */
 const EFFECT_KINDS = new Set(['click', 'proc', 'focus', 'worn', 'effect']);
 
@@ -337,6 +363,23 @@ function normSize(raw) {
   if (raw == null) return null;
   const s = String(raw).trim().toUpperCase();
   return SIZES.has(s) ? s : null;
+}
+
+/**
+ * Normalize a weapon skill to the client vocabulary.
+ * Returns { skill, raw } — `skill` is null when the value is not a weapon skill
+ * at all (SHIELD, spell-research skills), so it never reaches `wp.skill`.
+ */
+function normSkill(raw, unknown) {
+  if (raw == null) return { skill: null, raw: null };
+  const s = String(raw).replace(/\s+/g, ' ').trim();
+  if (!s) return { skill: null, raw: null };
+  const mapped = SKILL_ALIASES.get(s.toLowerCase().replace(/\s*\/\s*$/, ' /').trim())
+    ?? SKILL_ALIASES.get(s.toLowerCase());
+  if (mapped) return { skill: mapped, raw: mapped === s ? null : s };
+  if (WEAPON_SKILL_SET.has(s)) return { skill: s, raw: null };
+  if (unknown) unknown.add(s);
+  return { skill: null, raw: s };
 }
 
 function normStatKey(k) {
@@ -597,6 +640,9 @@ const report = {
   parsedFrom: new Counter(),
   unknownEraTags: new Counter(),
   classRecovered: new Counter(),
+  skillNormalized: new Counter(),
+  unknownSkills: new Set(),
+  skills: new Counter(),
   dropped: [],
   notes: [],
 };
@@ -888,6 +934,19 @@ for (const key of allKeys) {
     }
     if (wp && !wp.skill && js.skill) wp.skill = String(js.skill).trim();
   }
+  if (wp?.skill) {
+    const { skill, raw } = normSkill(wp.skill, report.unknownSkills);
+    if (skill) {
+      if (raw) { wp.skillRaw = raw; report.skillNormalized.add(`${raw} -> ${skill}`); }
+      wp.skill = skill;
+    } else {
+      // Not a weapon skill (SHIELD, spell research) — keep the source string but
+      // do not present it as one.
+      if (raw) wp.skillRaw = raw;
+      delete wp.skill;
+      report.skillNormalized.add(`${raw} -> (not a weapon skill)`);
+    }
+  }
 
   // ---- effects (union across typed sources, deduped on kind+name)
   const fx = [];
@@ -1031,10 +1090,77 @@ for (const key of allKeys) {
     ...(parsed === 'statsBlock' ? { parsed: 'statsBlock' } : {}),
     ...(conflictMap.has(key) ? { cf: conflictMap.get(key) } : {}),
   };
+  if (wp?.skill) report.skills.add(wp.skill);
   records.push(rec);
 }
 
 records.sort((a, b) => a.key.localeCompare(b.key));
+
+// ---------------------------------------------------------------------------
+// Weapon-skill reliability: the wiki contradicts the live client on fist weapons
+// ---------------------------------------------------------------------------
+
+/**
+ * Tier 0 screenshot: Whitened Treant Fists reads `Hand to Hand` in the client,
+ * but every source's raw wiki text says `1H Blunt`. The wiki is also internally
+ * inconsistent across the same item family (Bronze/Rusty/Steel Knuckles are
+ * `Hand to Hand`; Brass Knuckles, Knuckle Dusters and all Velium Knuckledusters
+ * are `1H Blunt`). Nothing is corrected here — the affected set is enumerated so
+ * the UI can hedge. The rule is stated so it can be audited.
+ */
+const FIST_NAME_RE = /\b(fist|fists|knuckle|knuckles|knuckledusters|claw|claws|cestus|ulak|ulaks|fistwrap|fistwraps|fist wraps)\b/i;
+const SUSPECT_SKILL_RULE =
+  'weapon usable by MNK (explicit class list, not ALL/ALL_EXCEPT) whose name matches ' +
+  '/fist|knuckle|claw|cestus|ulak|fistwrap/i and whose wiki skill is not "Hand to Hand"';
+// ---------------------------------------------------------------------------
+// Flag reliability: measure the wiki's two page conventions
+// ---------------------------------------------------------------------------
+
+/**
+ * The client shows `Lore Equipped, No Trade, Placeable` where the catalog says
+ * `LORE, MAGIC`. Measuring the raw flag line across every jmoyers page explains
+ * why: the wiki carries two authoring conventions, and the flag vocabulary
+ * partitions almost perfectly between them.
+ *
+ *   legacy  — space-separated ALL CAPS: "MAGIC ITEM LORE ITEM NO DROP"
+ *   modern  — comma-separated title case: "Lore Equipped, No Trade, Placeable"
+ *
+ * Nothing is remapped on the strength of this; it is measured and published so
+ * the UI can hedge. See meta.dataReliability.flags.
+ */
+function measureFlagConventions() {
+  const t = {
+    legacy: { pages: 0, NO_DROP: 0, NO_TRADE: 0, PLACEABLE: 0, LORE_EQUIPPED: 0, LORE: 0, MAGIC: 0 },
+    modern: { pages: 0, NO_DROP: 0, NO_TRADE: 0, PLACEABLE: 0, LORE_EQUIPPED: 0, LORE: 0, MAGIC: 0 },
+    bothSpellings: 0,
+  };
+  for (const j of byJ.values()) {
+    const first = String(j.statsBlock ?? '').split('\n').map((s) => s.trim()).find(Boolean);
+    if (!first || first.includes(':')) continue;          // no flag line on this page
+    if (!normFlags([first], null).length) continue;       // prose ("This is a meal!"), not flags
+    // Legacy pages write flags in ALL CAPS separated by spaces; the newer
+    // convention writes them in Title Case separated by commas.
+    const style = /,/.test(first) || /[a-z]/.test(first) ? 'modern' : 'legacy';
+    const b = t[style];
+    b.pages++;
+    const u = first.toUpperCase().replace(/[^A-Z ]/g, ' ').replace(/\s+/g, ' ');
+    const nd = /\bNO ?DROP\b/.test(u), nt = /\bNO ?TRADE\b/.test(u);
+    if (nd) b.NO_DROP++;
+    if (nt) b.NO_TRADE++;
+    if (nd && nt) t.bothSpellings++;
+    if (/\bPLACEABLE\b/.test(u)) b.PLACEABLE++;
+    if (/\bLORE EQUIPPED\b/.test(u)) b.LORE_EQUIPPED++;
+    else if (/\bLORE\b/.test(u)) b.LORE++;
+    if (/\bMAGIC\b/.test(u)) b.MAGIC++;
+  }
+  return t;
+}
+const flagConventions = measureFlagConventions();
+
+const skillSuspects = records
+  .filter((r) => r.wp?.skill && (r.cl ?? []).includes('MNK') && !(r.cl ?? []).includes('ALL_EXCEPT')
+    && FIST_NAME_RE.test(r.n) && r.wp.skill !== 'Hand to Hand')
+  .map((r) => ({ n: r.n, skill: r.wp.skill }));
 
 // ---------------------------------------------------------------------------
 // Emit
@@ -1121,7 +1247,61 @@ const meta = {
   statKeys: STAT_KEYS,
   saveKeys: SAVE_KEYS,
   flags: FLAGS,
+  weaponSkills: WEAPON_SKILLS,
   effectKinds: [...EFFECT_KINDS].sort(),
+
+  /**
+   * Fields where the wiki is known to diverge from the live client. Measured,
+   * not assumed. Nothing listed here has been "corrected" — the UI should
+   * present these fields with hedging, and must not offer them as authoritative
+   * filters. Evidence: research/validation/KNOWN-DATA-ISSUES.md.
+   */
+  dataReliability: {
+    stats: { confidence: 'high', note: 'AC/attributes/saves/dmg/delay reproduce the client exactly on every Tier 0 sample.' },
+    flags: {
+      confidence: 'low',
+      doNotUseAsAuthoritativeFilter: true,
+      summary: 'The wiki carries two authoring conventions and the flag vocabulary partitions between them. The client disagrees with the catalog on both Tier 0 items sampled.',
+      clientVerifiedContradictions: [
+        { item: 'Earthshaker', client: ['Lore Equipped', 'No Trade', 'Placeable'], catalog: ['LORE', 'MAGIC'] },
+        { item: 'Whitened Treant Fists', client: ['No Trade', 'Placeable'], catalog: ['MAGIC', 'NO_DROP'] },
+      ],
+      pageConventions: flagConventions,
+      findings: [
+        'NO_DROP and NO_TRADE never co-occur: 0 of 7,813 pages carrying a flag line have both.',
+        `NO_DROP appears on ${flagConventions.legacy.NO_DROP} legacy-style pages and ${flagConventions.modern.NO_DROP} modern-style pages.`,
+        `MAGIC appears on ${flagConventions.legacy.MAGIC} legacy-style pages and ${flagConventions.modern.MAGIC} modern-style pages.`,
+        `PLACEABLE appears on ${flagConventions.modern.PLACEABLE} modern-style pages and ${flagConventions.legacy.PLACEABLE} legacy-style pages, so it is recorded only by the newer convention.`,
+        'The client renders "No Trade" for Whitened Treant Fists, whose legacy-style page says NO DROP. Combined with the zero co-occurrence and the clean partition by page style, NO_DROP is most likely the same restriction the client calls No Trade, under the older spelling. This is NOT asserted in the data: both flags ship exactly as the wiki spells them.',
+        'MAGIC is absent from every modern-style page and from both client screenshots, so it may be a classic-EverQuest concept EQL no longer surfaces. Unresolved.',
+      ],
+      openQuestion: 'Are NO_DROP and NO_TRADE one restriction or two? Resolving it needs more client samples, ideally an item whose page uses the modern convention.',
+    },
+    weaponSkill: {
+      confidence: 'low-for-monk-fist-weapons',
+      summary: 'Spelling is normalized to the client vocabulary; no weapon has been moved between skills. The wiki itself appears wrong for fist-type Monk weapons.',
+      clientVerifiedContradictions: [
+        { item: 'Whitened Treant Fists', client: 'Hand to Hand', catalog: '1H Blunt' },
+      ],
+      evidence: [
+        'Our parse is faithful: all four independent scrapes report 1H Blunt for this item, and the wiki page category is 1H Blunt too.',
+        'The wiki is internally inconsistent within one item family: Bronze, Rusty and Steel Knuckles are Hand to Hand, while Brass Knuckles, Knuckle Dusters and every Velium Knuckledusters variant are 1H Blunt.',
+        'Only 11 items in the whole catalog carry Hand to Hand, and all are low damage (3-12); the high-end Monk fist gear is all skilled 1H Blunt.',
+        'Scope of possible error: 130 MNK-usable weapons carry a skill; 38 are MNK-only (1H Blunt 17, 2H Blunt 13, Hand to Hand 7, Throwing 1).',
+      ],
+      suspectRule: SUSPECT_SKILL_RULE,
+      suspectCount: skillSuspects.length,
+      suspects: skillSuspects,
+    },
+    dmgBonus: {
+      confidence: 'absent',
+      note: 'The client shows a Dmg Bon line (13 on Whitened Treant Fists, 50 on Earthshaker). No source carries it per item; jmoyers has it on 1 item only. It is probably derived from character level and weapon type. `wp.bonus` is emitted only where a source actually printed it.',
+    },
+    itemIds: {
+      confidence: 'high-but-sparse',
+      note: `Only ${withId} of ${records.length} items have a numeric id; they come from a live client export, not from any wiki source.`,
+    },
+  },
   counts: {
     items: records.length,
     withNumericId: withId,
@@ -1204,6 +1384,21 @@ if (!QUIET) {
   L('');
   L('-- effects --');
   for (const [k, v] of report.effectKinds.entries({ sort: 'value' })) L(`  ${k.padEnd(10)} ${String(v).padStart(6)}`);
+  L('');
+  L('-- weapon skills (normalized to the client vocabulary) --');
+  for (const [k, v] of report.skills.entries({ sort: 'value' })) L(`  ${k.padEnd(14)} ${String(v).padStart(6)}`);
+  L(`  spellings folded: ${report.skillNormalized.entries({ sort: 'value' }).map(([k, v]) => `${k} (${v})`).join(', ') || '(none)'}`);
+  L(`  values that are not weapon skills: ${[...report.unknownSkills].sort().join(', ') || '(none)'}`);
+  L(`  !! wiki-vs-client skill risk: ${skillSuspects.length} MNK fist-type weapons are skilled something other than Hand to Hand`);
+  L(`     (client confirms Whitened Treant Fists is Hand to Hand; the wiki says 1H Blunt. NOT corrected — see meta.dataReliability.weaponSkill)`);
+  L('');
+  L('-- flag reliability (raw wiki flag-line conventions) --');
+  for (const style of ['legacy', 'modern']) {
+    const b = flagConventions[style];
+    L(`  ${style.padEnd(7)} pages ${String(b.pages).padStart(5)}   NO_DROP ${String(b.NO_DROP).padStart(5)}  NO_TRADE ${String(b.NO_TRADE).padStart(4)}  MAGIC ${String(b.MAGIC).padStart(5)}  PLACEABLE ${String(b.PLACEABLE).padStart(3)}  LORE_EQUIPPED ${String(b.LORE_EQUIPPED).padStart(3)}  LORE ${String(b.LORE).padStart(5)}`);
+  }
+  L(`  pages carrying BOTH "No Drop" and "No Trade": ${flagConventions.bothSpellings}`);
+  L('     flags ship exactly as the wiki spells them; see meta.dataReliability.flags');
   L('');
   L('-- QA: statsBlock parser vs eqlwiki structured (overlap) --');
   for (const [f, [ok, bad]] of Object.entries(qa.parser)) {

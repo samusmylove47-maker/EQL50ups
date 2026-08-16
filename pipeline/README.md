@@ -41,7 +41,8 @@ user opens a slot.
   "ra": ["ALL"],                    // races, same convention
   "st": { "STR": 6, "STA": 6, "DEX": -5 }, // numeric stats
   "sv": { "FIRE": 15 },             // resists
-  "wp": { "dmg": 37, "dly": 70, "skill": "2H Slashing", "bonus": 50, "range": 100 },
+  "wp": { "dmg": 37, "dly": 70, "skill": "2H Slashing", "bonus": 50, "range": 100,
+          "skillRaw": "Throwingv2" },   // only when the wiki's spelling was normalized
   "fx": [ { "k": "proc", "n": "Earthquake", "d": "Combat, Casting Time: Instant", "lv": 45 } ],
   "fl": ["LORE","MAGIC"],           // flags
   "wt": 16, "sz": "GIANT",
@@ -82,6 +83,11 @@ always present so the UI can tell "no id known" from "field missing".
 - **Flags:** `MAGIC LORE NO_DROP NO_TRADE TEMPORARY EXPENDABLE ATTUNEABLE ARTIFACT LORE_EQUIPPED QUEST NO_RENT PLACEABLE`
 - **Effect kinds:** `click proc focus worn` plus `effect` — the last means the wiki printed an
   effect without saying what type it is. It is not a guess; do not treat it as any of the other four.
+- **Weapon skills (9):** `1H Slashing 2H Slashing 1H Blunt 2H Blunt Piercing 2H Piercing Hand to Hand Archery Throwing`
+  — the client's vocabulary. Only spelling is normalized; **no weapon is ever moved between
+  skills**. Where the wiki spelled it differently the original survives in `wp.skillRaw`.
+  A value that is not a weapon skill at all (`SHIELD`, spell-research skills on tomes) never
+  reaches `wp.skill`. See "Weapon skills" below for a divergence the client exposes.
 
 ---
 
@@ -201,6 +207,98 @@ Every other item ships `id: null`. Inventory-paste import will need name matchin
 
 ---
 
+## Where the wiki disagrees with the live client
+
+Two Tier 0 screenshots (Earthshaker, Whitened Treant Fists) contradict the catalog on *metadata*,
+never on stats — the numbers reproduce exactly. Both divergences are measured and published in
+`meta.json` → `dataReliability`, and **neither is "fixed" by guessing a mapping**.
+
+### Flags — low confidence, do not filter on them
+
+| Item | Client | Catalog |
+|---|---|---|
+| Earthshaker | `Lore Equipped, No Trade, Placeable` | `LORE, MAGIC` |
+| Whitened Treant Fists | `No Trade, Placeable` | `MAGIC, NO_DROP` |
+
+Measuring the raw flag line on all 7,404 jmoyers pages that carry one explains why. The wiki has
+**two authoring conventions**, and the flag vocabulary partitions almost perfectly between them:
+
+| Convention | Pages | NO_DROP | NO_TRADE | MAGIC | PLACEABLE | LORE_EQUIPPED | LORE |
+|---|---|---|---|---|---|---|---|
+| legacy — `MAGIC ITEM LORE ITEM NO DROP` (ALL CAPS, space-separated) | 7,185 | 3,355 | 82 | 5,398 | 1 | 29 | 4,404 |
+| modern — `Lore Equipped, No Trade, Placeable` (Title Case, comma-separated) | 219 | **0** | 110 | **0** | 20 | 86 | 1 |
+
+**Answering the question that was asked — are `NO_DROP` and `NO_TRADE` distinct in EQL?**
+The evidence says almost certainly **not**; they look like one restriction under two spellings.
+
+- **Zero** of the 7,404 pages carrying a flag line carry both spellings.
+- `NO_DROP` appears on **zero** of the 219 modern-convention pages, while `NO_TRADE` appears on 110
+  of them. The spellings partition by page style, not by item.
+- The one item we can check against the game — Whitened Treant Fists, a legacy-style page flagged
+  `NO DROP` — reads **`No Trade`** in the client.
+
+That is strong, but it is inference from three lines of evidence, not proof, so **both flags ship
+exactly as the wiki spells them**. Collapsing them would rewrite 3,355 items on a two-sample basis.
+Resolving it needs a client screenshot of an item whose wiki page uses the modern convention.
+
+Two related findings from the same measurement:
+
+- **`MAGIC` is absent from every modern-convention page** (0 of 219) and from both client
+  screenshots, while appearing on 5,398 legacy pages. It may be a classic-EverQuest concept EQL no
+  longer surfaces. Unresolved.
+- **`Placeable` is recorded only by the modern convention** (20 of 22 occurrences). The client shows
+  it on both sampled items, so its 22-item catalog coverage is a recording gap, not a real rarity.
+
+**Consequence for the UI:** `meta.dataReliability.flags.doNotUseAsAuthoritativeFilter` is `true`.
+Do not offer a "No Trade only" filter users would trust for loot decisions, and hedge flag display.
+
+### Weapon skills — the wiki is wrong on Monk fist weapons
+
+Whitened Treant Fists reads **`Hand to Hand`** in the client and **`1H Blunt`** in the catalog.
+
+**Our parse is faithful; the wiki itself is wrong.** All four independent scrapes report `1H Blunt`
+for this item, the raw wiki text says `Skill: 1H Blunt`, and the wiki's own page *category* is
+`1H Blunt` too. There is nothing for the pipeline to fix.
+
+The wiki is also internally inconsistent inside a single item family, which is what makes this look
+systematic rather than a one-off typo:
+
+| `Hand to Hand` (11 items total, all dmg 3–12) | `1H Blunt` |
+|---|---|
+| Bronze Knuckles, Rusty Knuckles, Steel Knuckles, Weighted Gloves, Worn Weighted Gloves, Bronze Ulak, Rusty Ulak, Sharp Claws, Flaming Fist, Spirit Render, Windhowl | Brass Knuckles, Knuckle Dusters, all six Velium Knuckledusters, Priceless/Primal Velium Fist Wraps, Wurmscale Fistwraps, Wu's Fist of Mastery, Wu's Tranquil Fist, Fist of Lightning, Fist of Nature, Whitened Treant Fists |
+
+Scope: 130 MNK-usable weapons carry a skill; 38 are MNK-only (1H Blunt 17, 2H Blunt 13,
+Hand to Hand 7, Throwing 1). Every `Hand to Hand` item in the entire catalog is low-damage starter
+gear; all the high-end Monk fist gear is skilled `1H Blunt`.
+
+`meta.dataReliability.weaponSkill.suspects` enumerates the **16** affected items, selected by a
+stated, auditable rule (`suspectRule`): a MNK-usable weapon with an explicit class list whose name
+matches `/fist|knuckle|claw|cestus|ulak|fistwrap/i` and whose skill is not `Hand to Hand`. The
+skill values themselves are untouched — flag them in the UI, don't silently rewrite them.
+
+### `Throwingv1` / `Throwingv2` — investigated before collapsing
+
+These are in the wiki source, not a scraper bug: all four scrapes report them identically
+(v1 on 8 items, v2 on 22). They encode **no** recoverable distinction:
+
+- the wiki's own category for all 37 throwing weapons is plain `Throwing`;
+- they do not track slot — v1 is 7 `RANGE` + 1 `RANGE+AMMO`, plain `Throwing` is 6 `RANGE+AMMO` + 1 `RANGE`;
+- they do not track range — v1 40–210, v2 20–250, plain 45–200, fully overlapping.
+
+They read as an infobox template parameter version. Both collapse to `Throwing`, and the raw string
+is preserved in `wp.skillRaw` so the distinction is recoverable if it ever proves meaningful.
+Also folded: `1H Slash` → `1H Slashing` (1), `1H Slashing /` → `1H Slashing` (1),
+`1H Piercing` → `Piercing` (2).
+
+### Damage bonus
+
+The client shows a `Dmg Bon` line (13 on the Fists, 50 on Earthshaker). No source carries it per
+item — jmoyers has `dmgBonus` on exactly 1 of 11,375 items — so it is almost certainly derived from
+character level and weapon type rather than stored. `wp.bonus` is emitted only where a source
+actually printed it. Recorded in `meta.dataReliability.dmgBonus`.
+
+---
+
 ## Known data problems
 
 Everything here is a property of the upstream sources, not of the pipeline.
@@ -236,6 +334,8 @@ Everything here is a property of the upstream sources, not of the pipeline.
 10. **Non-equipment dominates the catalog by count**: 4,343 of 11,249 items have no worn slot.
 11. **Exaltation socket contents are not in any source and never will be** — sockets are a function
     of item level, not an item property. Derive them from the chosen `+N`; do not look for a field.
+12. **Flags and Monk fist-weapon skills contradict the live client** — see the section above and
+    `meta.dataReliability`. Neither is corrected in the data.
 
 ---
 
@@ -268,13 +368,15 @@ SHA-256 prefix, so any shipped record can be traced back to an exact upstream re
 
 ## What `verify.mjs` checks
 
-30 assertions over the *shipped payload only* — it re-declares its own vocabularies rather than
+33 assertions over the *shipped payload only* — it re-declares its own vocabularies rather than
 importing the build's, so a mistake in `build.mjs` cannot validate itself.
 
 Structure (files present, schema versions agree, meta counts match, provenance SHAs well-formed,
-attribution present) · names (every item named, no duplicate name keys) · vocabularies (slots,
-classes, races, stat keys, save keys, flags) · numeric stats are finite numbers · weapons carry
-both `dmg` and `dly` or neither, with an `AMMO`-only exemption · era values are in the chronology
+attribution present, `dataReliability` documents the fields the client contradicts) · names (every
+item named, no duplicate name keys) · vocabularies (slots, classes, races, stat keys, save keys,
+flags, weapon skills) · numeric stats are finite numbers · weapons carry
+both `dmg` and `dly` or neither, with an `AMMO`-only exemption · `skillRaw` only present when it
+differs from the normalized skill · era values are in the chronology
 and `av` agrees with the gate · `eraUnknown` implies `av` unless another reason is recorded ·
 shard integrity (every item filed under a slot it actually has, index and shard records agree,
 every item reachable from some shard) · effects/sizes/weights well-formed · icon and item IDs are
