@@ -21,6 +21,8 @@ test('several characters and sets all round-trip a reload', async ({ page }) => 
   await createCharacter(page, { name: 'Beta', classes: [1, 2] });
   await page.locator('.set-switch').click();
   await page.locator('.menu-body .menu-item', { hasText: '+ New set' }).click();
+  await page.locator('.modal input[type=text]').fill('Set 2');
+  await page.getByRole('button', { name: /^create$/i }).click();
   await expect(page.locator('.set-switch .name')).toHaveText('Set 2');
 
   await page.goto('/#/characters');

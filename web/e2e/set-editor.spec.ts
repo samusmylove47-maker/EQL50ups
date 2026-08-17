@@ -127,9 +127,13 @@ test('Edit renames, saves notes, and refuses to blank the name', async ({ page }
   await expect(page.locator('.set-switch .name')).toHaveText('Ráid Sét 🐉 <b>');
   await expect(page.locator('.set-notes')).toHaveText('Notes with "quotes" & <tags>');
 
+  // A blank name is refused up front now: Save goes disabled and says why,
+  // rather than accepting the click and silently keeping the old name.
   await page.getByRole('button', { name: /edit/i }).click();
   await page.locator('.modal input[type=text]').fill('');
-  await page.getByRole('button', { name: /^save$/i }).click();
+  await expect(page.getByRole('button', { name: /^save$/i })).toBeDisabled();
+  await expect(page.locator('.setconfig-footnote')).toContainText(/give the set a name/i);
+  await page.getByRole('button', { name: /^cancel$/i }).click();
   await expect(page.locator('.set-switch .name')).toHaveText('Ráid Sét 🐉 <b>');
 
   // Cancel discards.
@@ -137,6 +141,67 @@ test('Edit renames, saves notes, and refuses to blank the name', async ({ page }
   await page.locator('.modal input[type=text]').fill('Discarded');
   await page.getByRole('button', { name: /^cancel$/i }).click();
   await expect(page.locator('.set-switch .name')).toHaveText('Ráid Sét 🐉 <b>');
+});
+
+test('Edit is the same dialog as create: weights and default filters, in one place', async ({
+  page,
+}) => {
+  await createCharacter(page);
+  await page.getByRole('button', { name: /edit/i }).click();
+
+  // UI-REFERENCE §A4's three sections, on the edit path too.
+  // Rendered uppercase by `.section-label`; the source strings are sentence case.
+  await expect(page.locator('.setconfig .section-label')).toHaveText([
+    'BASIC DETAILS',
+    'EQUIVALENCY POINTS',
+    'DEFAULT FILTERS',
+  ], { useInnerText: true });
+
+  // A preset seeds the weights and explains itself in its own words.
+  await page.locator('.setconfig-section select').first().selectOption('tank');
+  await expect(page.locator('.setconfig-help')).toHaveText(/mitigation and health/i);
+  await expect(page.getByLabel('AC weight')).toHaveValue('2');
+
+  // `+ Add Point` adds one stat at a time, and never offers the same one twice.
+  const before = await page.locator('.setconfig-weight').count();
+  await page.locator('.setconfig-add').click();
+  await page.locator('[aria-label="Stat to add"]').selectOption('HASTE');
+  await page.locator('.setconfig-addrow .btn-primary').click();
+  await expect(page.locator('.setconfig-weight')).toHaveCount(before + 1);
+  await page.locator('.setconfig-add').click();
+  await expect(page.locator('[aria-label="Stat to add"] option[value=HASTE]')).toHaveCount(0);
+  await page.locator('.setconfig-addrow .btn', { hasText: 'Cancel' }).click();
+
+  // Emptying the profile is refused: nothing can be ranked without weights.
+  for (const label of await page.locator('.setconfig-weight .k').allInnerTexts()) {
+    await page.locator(`[aria-label="Remove ${label}"]`).click();
+  }
+  await expect(page.getByRole('button', { name: /^save$/i })).toBeDisabled();
+  await expect(page.locator('.setconfig-footnote')).toContainText(/non-zero weight/i);
+
+  await page.locator('.setconfig-add').click();
+  await page.locator('[aria-label="Stat to add"]').selectOption('AC');
+  await page.locator('.setconfig-addrow .btn-primary').click();
+
+  await page.locator('.setconfig-filters select').nth(0).selectOption('Kunark');
+  await page.locator('.setconfig-filters select').nth(1).selectOption('quest');
+  await page.locator('.setconfig-filters input[type=checkbox]').check();
+  await page.getByRole('button', { name: /^save$/i }).click();
+  await expect(page.locator('.modal')).toHaveCount(0);
+
+  // Saves are debounced, so poll rather than reading storage the same tick.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => JSON.parse(localStorage.getItem('eqlups.state.v1') ?? '{}').sets?.[0]?.defaultFilters,
+      ),
+    )
+    .toEqual({ era: 'Kunark', source: 'quest', hideNoDrop: true });
+  const stored = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('eqlups.state.v1') ?? '{}'),
+  );
+  expect(stored.sets[0].weights).toEqual({ AC: 1 });
+  await expectCleanText(page);
 });
 
 test('the overflow menu duplicates, clears and deletes', async ({ page }) => {
@@ -166,6 +231,11 @@ test('the set switcher lists siblings and makes new sets', async ({ page }) => {
   await createCharacter(page);
   await page.locator('.set-switch').click();
   await page.locator('.menu-body .menu-item', { hasText: '+ New set' }).click();
+  // `+ New set` now asks before it makes anything: §A4's create dialog.
+  await expect(page.locator('.modal-head h2')).toHaveText(/new gear set/i);
+  await expect(page.getByRole('button', { name: /^create$/i })).toBeDisabled();
+  await page.locator('.modal input[type=text]').fill('Set 2');
+  await page.getByRole('button', { name: /^create$/i }).click();
   await expect(page.locator('.set-switch .name')).toHaveText('Set 2');
 
   await page.locator('.set-switch').click();

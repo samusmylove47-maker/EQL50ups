@@ -138,7 +138,11 @@ describe('malformed input is reported, never thrown', () => {
     ['null', null, /not a JSON object/],
     ['a bare number', 7, /not a JSON object/],
     ['an array', [1, 2, 3], /JSON array/],
-    ['a foreign format', { format: 'pawn-export', characters: [], sets: [] }, /declares format/],
+    [
+      'a foreign format',
+      { format: 'pawn-export', characters: [], sets: [] },
+      /not an EQL Upgrades export — it declares format "pawn-export"/,
+    ],
     ['no format at all', { characters: [], sets: [] }, /no "format" field/],
     [
       'a future schema',
@@ -233,6 +237,6 @@ describe('malformed input is reported, never thrown', () => {
     expect(report.ok).toBe(true);
     expect(report.singleSet).toBe(false);
     expect(report.counts.characters).toBe(1);
-    expect(summarizeReport(report)).toMatch(/Imported 1 set \(2 equipped items\) and 1 character\./);
+    expect(summarizeReport(report)).toMatch(/Imported 1 character and 1 set \(2 equipped items\)\./);
   });
 });

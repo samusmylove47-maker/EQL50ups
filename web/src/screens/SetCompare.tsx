@@ -84,9 +84,26 @@ function SlotSide({ side, kind }: { side: SlotDiff['a']; kind: 'a' | 'b' }) {
   );
 }
 
-function CappedRow({ row }: { row: CapRow }) {
+/**
+ * A capped row's third number.
+ *
+ * Printed only when it says something the raw delta does not — when a ceiling
+ * ate part of the move, or when the candidate is sitting on the ceiling. Every
+ * row carrying `+6 counts` under `+6` trains the eye to skip the line, which is
+ * exactly the line that matters on the rows where the two differ. The group
+ * header states the total either way, so the accounting is never absent.
+ */
+function creditNote(row: CapRow): string {
   const wasted = row.delta > 0 ? Math.max(0, row.delta - row.creditable) : 0;
   const absorbed = row.delta < 0 ? Math.max(0, row.creditable - row.delta) : 0;
+  if (wasted) return `only ${signed(row.creditable)} counts · ${num(wasted)} above the cap`;
+  if (absorbed) return `${signed(row.creditable)} counts · ${num(absorbed)} absorbed above the cap`;
+  if (row.atCapB) return 'at the ceiling';
+  return '';
+}
+
+function CappedRow({ row }: { row: CapRow }) {
+  const note = creditNote(row);
   return (
     <div className={`cmp-statrow${row.delta ? '' : ' zero'}`}>
       <span className="cmp-statlabel">{row.label}</span>
@@ -96,13 +113,7 @@ function CappedRow({ row }: { row: CapRow }) {
       </span>
       <span className={`cmp-statdelta ${deltaClass(row.delta)}`}>
         <span className="cmp-raw">{signed(row.delta)}</span>
-        {row.delta ? (
-          <span className="cmp-credit">
-            {signed(row.creditable)} counts
-            {wasted ? ` · ${num(wasted)} above cap` : ''}
-            {absorbed ? ` · ${num(absorbed)} absorbed above cap` : ''}
-          </span>
-        ) : null}
+        {note ? <span className="cmp-credit">{note}</span> : null}
       </span>
       <span className="cmp-statvalue">
         {num(Math.min(row.b, row.cap))}
@@ -130,13 +141,36 @@ function StatGroup({ group }: { group: DiffGroup }) {
   // `PlainRow[]` for counting — no need to branch just to measure.
   const rows: PlainRow[] = group.rows;
   const moved = rows.filter((row) => row.delta !== 0).length;
+
+  /*
+   * The group's cap accounting, stated once whether or not any row lost
+   * anything: "all of +21 counts" is a real answer to "how much of this gain is
+   * creditable", and it is the answer most of the time.
+   */
+  let capNote = '';
+  if (group.kind === 'capped') {
+    let gained = 0;
+    let credited = 0;
+    for (const row of group.rows) {
+      if (row.delta <= 0) continue;
+      gained += row.delta;
+      credited += row.creditable;
+    }
+    const wasted = gained - credited;
+    capNote = !gained
+      ? ''
+      : wasted > 0
+        ? ` · only ${signed(credited)} of ${signed(gained)} counts`
+        : ` · all of ${signed(gained)} counts`;
+  }
+
   return (
     <section className="cmp-group">
       <header className="cmp-grouphead">
         <h3 className="section-label">{group.title}</h3>
         <span className="hint">
           {moved ? `${moved} of ${rows.length} changed` : 'no change'}
-          {group.kind === 'capped' ? ` · ceiling ${num(group.cap)}` : ''}
+          {group.kind === 'capped' ? ` · ceiling ${num(group.cap)}${capNote}` : ''}
         </span>
       </header>
       <div className="cmp-statrows">

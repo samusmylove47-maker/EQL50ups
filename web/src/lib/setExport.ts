@@ -222,7 +222,7 @@ export function readEnvelope(raw: unknown): EnvelopeReport {
   if (raw.format !== EXPORT_FORMAT) {
     return fail(
       typeof raw.format === 'string'
-        ? `That file declares format "${raw.format}"; this planner reads "${EXPORT_FORMAT}".`
+        ? `That file is not an EQL Upgrades export — it declares format "${raw.format}", and this planner reads "${EXPORT_FORMAT}".`
         : 'That file is not an EQL Upgrades export — it carries no "format" field.',
     );
   }
@@ -316,8 +316,8 @@ export function summarizeReport(report: EnvelopeReport): string {
   if (!report.ok) return report.errors.join(' ');
   const { characters, sets, slots } = report.counts;
   const head =
-    `Imported ${sets} set${sets === 1 ? '' : 's'} (${slots} equipped item${slots === 1 ? '' : 's'}) ` +
-    `and ${characters} character${characters === 1 ? '' : 's'}.`;
+    `Imported ${characters} character${characters === 1 ? '' : 's'} and ` +
+    `${sets} set${sets === 1 ? '' : 's'} (${slots} equipped item${slots === 1 ? '' : 's'}).`;
   if (!report.rejected.length) return head;
   return `${head} ${report.rejected.length} thing${report.rejected.length === 1 ? '' : 's'} in the file could not be used.`;
 }

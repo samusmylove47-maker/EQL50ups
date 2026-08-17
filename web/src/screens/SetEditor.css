@@ -17,17 +17,26 @@
 /*
  * A second action inside a menu row has to stay obviously secondary, or the
  * row reads as two competing entries rather than "open this / diff this".
+ * Deliberately *not* a `.menu-item`: it is an action on the entry beside it,
+ * not an entry of its own, and counting menu entries should not count it.
  */
 .setmenu-compare {
   flex: 0 0 auto;
   width: 32px;
+  padding: var(--s2) 0;
   text-align: center;
-  color: var(--text-faint);
+  background: none;
+  border: 0;
   border-left: 1px solid var(--line);
+  color: var(--text-faint);
+  font: inherit;
+  font-size: var(--fs-body);
+  cursor: pointer;
 }
 
 .setmenu-compare:hover {
   color: var(--accent);
+  background: var(--bg-hover);
 }
 
 .import-rejects {

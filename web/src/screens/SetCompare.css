@@ -297,7 +297,7 @@
 
 .cmp-groups {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: var(--s3);
   align-items: start;
 }
@@ -307,9 +307,15 @@
   flex-direction: column;
 }
 
+/*
+ * Proportional tracks, not fixed ones. Fixed 84/180/84 columns left the label
+ * 68px inside a 440px card, which broke `Intelligence` across three lines —
+ * the same "a column too narrow to read" defect the doll shipped twice.
+ */
 .cmp-statrow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 84px minmax(0, 180px) 84px;
+  grid-template-columns:
+    minmax(0, 1.5fr) minmax(0, 0.85fr) minmax(0, 1.4fr) minmax(0, 0.85fr);
   gap: var(--s2);
   align-items: baseline;
   padding: var(--s1) 0;
@@ -328,7 +334,6 @@
 
 .cmp-statlabel {
   color: var(--text-dim);
-  overflow-wrap: anywhere;
 }
 
 .cmp-statvalue {
@@ -445,7 +450,6 @@
   }
 
   .cmp-statrow {
-    grid-template-columns: minmax(0, 1fr) 70px minmax(0, 130px) 70px;
     font-size: var(--fs-small);
   }
 }
@@ -460,7 +464,6 @@
   }
 
   .cmp-statrow {
-    grid-template-columns: minmax(0, 1fr) 56px minmax(0, 104px) 56px;
     font-size: var(--fs-small);
   }
 }

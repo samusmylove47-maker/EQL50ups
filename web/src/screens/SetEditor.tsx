@@ -202,7 +202,7 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
                   {sibling.id === gearSet.id ? null : (
                     <button
                       type="button"
-                      className="menu-item setmenu-compare"
+                      className="setmenu-compare"
                       title={`Compare ${gearSet.name} with ${sibling.name}`}
                       aria-label={`Compare ${gearSet.name} with ${sibling.name}`}
                       onClick={() => navigate(href.compare(gearSet.id, sibling.id))}

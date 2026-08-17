@@ -28,6 +28,14 @@ let container: HTMLDivElement | null = null;
 let root: Root | null = null;
 
 function render(hash: string): string {
+  // A test that renders twice must not leave the first tree mounted and still
+  // subscribed to the store.
+  if (root) {
+    act(() => root?.unmount());
+    container?.remove();
+    root = null;
+    container = null;
+  }
   window.location.hash = hash;
   container = document.createElement('div');
   document.body.appendChild(container);
@@ -176,6 +184,43 @@ describe('screen', () => {
     const text = render(href.compare('set_gone', idB));
     clean(text);
     expect(text).toContain('Set not found');
+  });
+
+  it('prints what a gain loses to the 510 ceiling, and what it does not', () => {
+    // Real catalog items top out far below the ceiling, so the branch that
+    // makes this screen worth building needs items built to reach it.
+    const belt = (name: string, str: number) => ({
+      id: null, n: name, sl: ['WAIST'], cl: ['ALL'], ra: ['ALL'],
+      st: { STR: str }, sv: {}, fl: [], av: true, era: 'Classic',
+    });
+    const items = [belt('Girdle of 500', 500), belt('Girdle of 540', 540)];
+    act(() => {
+      useCatalog.setState({
+        status: 'ready',
+        usingFixture: true,
+        items,
+        byName: new Map(items.map((i) => [i.n.toLowerCase(), i])),
+        revision: useCatalog.getState().revision + 1,
+      });
+    });
+
+    const state = useApp.getState();
+    const capA = state.createSet(state.characters[0]!.id, 'Under the cap');
+    const capB = state.createSet(state.characters[0]!.id, 'Over the cap');
+    state.equip(capA.id, 'WAIST', 'Girdle of 500');
+    state.equip(capB.id, 'WAIST', 'Girdle of 540');
+
+    const text = render(href.compare(capA.id, capB.id));
+    clean(text);
+    expect(text).toContain('only +10 counts · 30 above the cap');
+    expect(text).toContain('only +10 of +40 counts');
+    expect(text).toContain('lost above the 510/1000 ceilings');
+
+    // The reverse move gives the whole ceiling back, and says nothing was lost.
+    const back = render(href.compare(capB.id, capA.id));
+    clean(back);
+    expect(back).toContain('absorbed above the cap');
+    expect(back).toContain('nothing lost to a ceiling');
   });
 
   it('offers a way out when there is only one set in the library', () => {
