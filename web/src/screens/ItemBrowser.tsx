@@ -24,12 +24,12 @@ import { useCatalog } from '../data/catalog';
 import type { SlotCode } from '../data/normalize';
 import { searchIndexFor } from '../data/searchIndex';
 import { UpgradeStepper } from '../components/UpgradeStepper';
-import { count, ep as epText, signed } from '../lib/format';
+import { count, ep as epText } from '../lib/format';
 import { eraLabel, isLive, itemNameColor } from '../lib/itemStyle';
 import { ItemDetail } from '../components/ItemDetail';
 import { itemHoverProps } from '../components/ItemWindow';
 import { SlotGlyph } from '../components/SlotGlyph';
-import { shortStatLabel, statVector } from '../selectors/gear';
+import { statChip, statVector } from '../selectors/gear';
 import { characterFor, setsForCharacter, useApp } from '../state/store';
 import { href, navigate } from '../router';
 import { SLOT_POSITIONS } from '../engine/constants';
@@ -434,7 +434,7 @@ export function ItemBrowser() {
                   <td className="cell-stats">
                     {statVector(item, upgrade)
                       .slice(0, 6)
-                      .map((s) => `${shortStatLabel(s.key)} ${signed(s.value)}`)
+                      .map((s) => statChip(s.key, s.value))
                       .join(' · ') || <span className="dim">—</span>}
                   </td>
                   <td>

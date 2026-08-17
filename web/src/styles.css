@@ -1093,8 +1093,13 @@ select {
  * meant 46 green tiles saying one thing 46 times.
  */
 .figure-cell.on {
+  /*
+    Filled has to be *visible* at a glance: the whole point of the map is
+    answering "what is still empty". At --bg-panel-raised the filled and empty
+    tiles measured 1.13:1 apart, so a 23/23 set and a 0/23 set looked alike.
+  */
   border-color: var(--line-strong);
-  background: var(--bg-panel-raised);
+  background: #23262b;
 }
 
 .figure-cell.on .slot-glyph {
@@ -2637,6 +2642,13 @@ table.data tbody tr:hover {
 
   .slot-wrap.right {
     flex-direction: row;
+    /*
+      The padding is asymmetric to hold the mirrored two-column layout apart.
+      Flipping direction without resetting it stepped rows 13-23 in by 8px,
+      putting a visible notch down the middle of a single-column list.
+    */
+    padding-right: var(--s2);
+    padding-left: 0;
   }
 }
 

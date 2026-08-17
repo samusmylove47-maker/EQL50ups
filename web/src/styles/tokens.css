@@ -97,7 +97,8 @@
    * as the tier climbs, so a column of 23 steppers reads as a *state* rather
    * than as 23 identical chips. Eleven steps, sampled off one curve.
    */
-  --tier-0: #7a838c;
+  /* Raised from #7a838c (4.34:1 on the chip's own background). */
+  --tier-0: #9aa3ac;
   --tier-1: #9b9384;
   --tier-2: #ab9878;
   --tier-3: #b99c6c;

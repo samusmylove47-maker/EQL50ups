@@ -16,7 +16,7 @@ import { computeTotals, resolveItem, type StatTotals } from '../engine/stats';
 import { rankScorer, type ScoreContext, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
 import type { EquippedItem, GearSet, Item } from '../engine/types';
-import { dec, finite, signed } from '../lib/format';
+import { dec, finite, num, signed } from '../lib/format';
 import { isLive } from '../lib/itemStyle';
 import {
   describeActiveFilters, isDefaultFilters, matchesFilters, type SetFilters,
@@ -82,6 +82,21 @@ export function statLabel(key: string): string {
  * vocabulary and are therefore worse than an obviously raw key. A missing
  * mapping should look missing.
  */
+/**
+ * One stat as it appears in a compact list.
+ *
+ * Delay is the exception that forces this to exist: it is not a bonus, and
+ * higher is worse, so rendering it through `signed()` printed `DLY +70` and
+ * made the slowest weapon on the page look like the biggest number. Anything
+ * where "more" is not "better" prints bare.
+ */
+const UNSIGNED_KEYS: ReadonlySet<string> = new Set(['DLY', 'RATIO']);
+
+export function statChip(key: string, value: number): string {
+  const label = shortStatLabel(key);
+  return UNSIGNED_KEYS.has(key) ? `${label} ${num(value)}` : `${label} ${signed(value)}`;
+}
+
 export function shortStatLabel(key: string): string {
   return SHORT_LABELS[key] ?? key;
 }

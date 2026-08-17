@@ -49,6 +49,7 @@ import {
   shortStatLabel,
   statDeltas,
   statVector,
+  statChip,
   type ScoredItem,
 } from '../selectors/gear';
 import { useVirtualList } from '../lib/useVirtualList';
@@ -615,7 +616,7 @@ export function ItemPicker({
                   <span className="result-line">
                     {statVector(item, rankPreview)
                       .slice(0, 8)
-                      .map((s) => `${shortStatLabel(s.key)} ${signed(s.value)}`)
+                      .map((s) => statChip(s.key, s.value))
                       .join(' · ') || 'No stats'}
                   </span>
                   {deltas.length ? (
