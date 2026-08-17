@@ -12,7 +12,7 @@ import {
 } from '../engine/character';
 import type { ClassCode } from '../engine/constants';
 import { profileById, type WeightProfile } from '../engine/ep';
-import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
+import { BASE_STATE, clampTier, normalizeState, type UpgradeState } from '../engine/upgrade';
 import type { EquippedItem, GearSet } from '../engine/types';
 import type { SharedPlan } from '../share/codec';
 import type { ExportEnvelope } from '../share/codec';
@@ -37,9 +37,31 @@ export function newId(prefix: string): string {
 
 export const DEFAULT_WEIGHTS: WeightProfile = profileById('balanced');
 
+/**
+ * What one bulk `+N` write replaced, kept so it can be put back.
+ *
+ * There is no general undo in this app and building one for a single control
+ * would be the wrong trade. But a write that touches every equipped slot at
+ * once is the one edit a reader cannot rebuild by hand — 23 steppers, each with
+ * its own banked fraction — so this action, and only this action, carries its
+ * own way back. Held in memory and never persisted: an undo offer that survives
+ * a reload is an offer nobody remembers accepting.
+ */
+export interface BulkUpgradeRecord {
+  setId: string;
+  /** The tier that was applied to every equipped slot. */
+  applied: number;
+  /** Every equipped position's upgrade state as it stood immediately before. */
+  previous: Record<string, UpgradeState>;
+  /** The one tier they all shared beforehand, or null if they were mixed. */
+  previousTier: number | null;
+}
+
 export interface AppState extends PersistedState {
   hydrated: boolean;
   storageStatus: SaveStatus | LoadStatus;
+  /** The revert offer left by the most recent `setAllUpgrades`, if it stands. */
+  bulkUpgrade: BulkUpgradeRecord | null;
   hydrate: () => void;
   createCharacter: (input: {
     name: string;
@@ -80,6 +102,17 @@ export interface AppState extends PersistedState {
   equip: (setId: string, position: string, itemName: string, upgrade?: UpgradeState) => void;
   unequip: (setId: string, position: string) => void;
   setUpgrade: (setId: string, position: string, upgrade: UpgradeState) => void;
+  /**
+   * Put every equipped slot on one tier, banking nothing.
+   *
+   * Empty slots stay empty — a bulk tier is a statement about the gear you own,
+   * not an instruction to invent some. Returns how many slots actually moved,
+   * so the caller can tell "set fourteen items to +5" from "they were already
+   * there" without diffing the set itself.
+   */
+  setAllUpgrades: (setId: string, full: number) => number;
+  /** Undo the last `setAllUpgrades`, tier and banked fraction alike. */
+  revertAllUpgrades: () => boolean;
   setExaltation: (setId: string, position: string, kind: string, donor: string | null) => void;
   /**
    * Write a whole slot map in one mutation — what the `/outputfile inventory`
@@ -135,9 +168,18 @@ export const useApp = create<AppState>((set, get) => {
     persist();
   };
 
+  /*
+   * Every set edit runs through here, and every set edit retires a pending bulk
+   * revert. That is deliberately the *whole* rule rather than a list of the
+   * actions that touch slots: once a slot has been re-equipped, cleared or
+   * stepped by hand, "put it back the way it was" no longer has one honest
+   * meaning, and a rule each new action has to remember is a rule that will one
+   * day be forgotten. `setAllUpgrades` writes its own record after this runs.
+   */
   const mutateSet = (id: string, mutate: (draft: GearSet) => GearSet): void => {
     set({
       sets: get().sets.map((s) => (s.id === id ? { ...mutate(s), updatedAt: Date.now() } : s)),
+      ...(get().bulkUpgrade ? { bulkUpgrade: null } : {}),
     });
     persist();
   };
@@ -146,6 +188,7 @@ export const useApp = create<AppState>((set, get) => {
     ...emptyState(),
     hydrated: false,
     storageStatus: 'ok',
+    bulkUpgrade: null,
 
     hydrate() {
       if (get().hydrated) return;
@@ -343,6 +386,64 @@ export const useApp = create<AppState>((set, get) => {
       });
     },
 
+    setAllUpgrades(setId, full) {
+      const target = get().sets.find((s) => s.id === setId);
+      if (!target) return 0;
+
+      const applied = clampTier(full);
+      const next: UpgradeState = { full: applied, fraction: 0 };
+      const previous: Record<string, UpgradeState> = {};
+      const slots: Record<string, EquippedItem> = {};
+      let changed = 0;
+      let previousTier: number | null = null;
+      let uniform = true;
+
+      for (const [position, equipped] of Object.entries(target.slots)) {
+        // An empty slot is not a slot at +0; it stays out of both the write and
+        // the record, so reverting cannot resurrect anything either.
+        if (!equipped?.itemName) continue;
+        const before = normalizeState(equipped.upgrade);
+        previous[position] = before;
+        if (previousTier === null) previousTier = before.full;
+        else if (previousTier !== before.full) uniform = false;
+        if (before.full !== applied || before.fraction !== 0) changed += 1;
+        slots[position] = { ...equipped, upgrade: next };
+      }
+
+      // Nothing to say and nothing to undo: every equipped slot already reads
+      // exactly this, banked fractions included.
+      if (!changed) return 0;
+
+      set({
+        sets: get().sets.map((s) => (s.id === setId ? { ...s, slots, updatedAt: Date.now() } : s)),
+        bulkUpgrade: {
+          setId,
+          applied,
+          previous,
+          previousTier: uniform ? previousTier : null,
+        },
+      });
+      persist();
+      return changed;
+    },
+
+    revertAllUpgrades() {
+      const record = get().bulkUpgrade;
+      if (!record) return false;
+      // `mutateSet` clears the record on the way through, which is what makes
+      // the offer single-use rather than a lever that toggles a set forever.
+      mutateSet(record.setId, (s) => {
+        const slots = { ...s.slots };
+        for (const [position, upgrade] of Object.entries(record.previous)) {
+          const current = slots[position];
+          if (!current) continue;
+          slots[position] = { ...current, upgrade: { ...upgrade } };
+        }
+        return { ...s, slots };
+      });
+      return true;
+    },
+
     setExaltation(setId, position, kind, donor) {
       mutateSet(setId, (s) => {
         const current = s.slots[position];
@@ -462,7 +563,7 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     resetAll() {
-      set({ ...emptyState(), hydrated: true });
+      set({ ...emptyState(), hydrated: true, bulkUpgrade: null });
       persist();
     },
   };

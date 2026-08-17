@@ -446,6 +446,19 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
         onUpgrade={(position: string, next: UpgradeState) =>
           state.setUpgrade(gearSet.id, position, next)
         }
+        onBulkUpgrade={(full: number) => state.setAllUpgrades(gearSet.id, full)}
+        onRevertBulkUpgrade={() => state.revertAllUpgrades()}
+        // Scoped to this set on purpose: an offer left behind on a sibling is
+        // not an offer this screen can honour, and the switcher is one click.
+        bulkRevert={
+          state.bulkUpgrade && state.bulkUpgrade.setId === gearSet.id
+            ? {
+                items: Object.keys(state.bulkUpgrade.previous).length,
+                from: state.bulkUpgrade.previousTier,
+                to: state.bulkUpgrade.applied,
+              }
+            : null
+        }
         onSetDonor={(position: string, kind: string, donor: string | null) =>
           state.setExaltation(gearSet.id, position, kind, donor)
         }

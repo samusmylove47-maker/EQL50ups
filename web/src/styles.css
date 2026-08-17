@@ -1271,39 +1271,140 @@ select {
 }
 
 .stepper .value[data-tier='1'],
+.bulk-tiers button[data-tier='1'],
 .tier-chip[data-tier='1'],
 .figure-tier[data-tier='1'] { color: var(--tier-1); }
 .stepper .value[data-tier='2'],
+.bulk-tiers button[data-tier='2'],
 .tier-chip[data-tier='2'],
 .figure-tier[data-tier='2'] { color: var(--tier-2); }
 .stepper .value[data-tier='3'],
+.bulk-tiers button[data-tier='3'],
 .tier-chip[data-tier='3'],
 .figure-tier[data-tier='3'] { color: var(--tier-3); }
 .stepper .value[data-tier='4'],
+.bulk-tiers button[data-tier='4'],
 .tier-chip[data-tier='4'],
 .figure-tier[data-tier='4'] { color: var(--tier-4); }
 .stepper .value[data-tier='5'],
+.bulk-tiers button[data-tier='5'],
 .tier-chip[data-tier='5'],
 .figure-tier[data-tier='5'] { color: var(--tier-5); }
 .stepper .value[data-tier='6'],
+.bulk-tiers button[data-tier='6'],
 .tier-chip[data-tier='6'],
 .figure-tier[data-tier='6'] { color: var(--tier-6); }
 .stepper .value[data-tier='7'],
+.bulk-tiers button[data-tier='7'],
 .tier-chip[data-tier='7'],
 .figure-tier[data-tier='7'] { color: var(--tier-7); }
 .stepper .value[data-tier='8'],
+.bulk-tiers button[data-tier='8'],
 .tier-chip[data-tier='8'],
 .figure-tier[data-tier='8'] { color: var(--tier-8); }
 .stepper .value[data-tier='9'],
+.bulk-tiers button[data-tier='9'],
 .tier-chip[data-tier='9'],
 .figure-tier[data-tier='9'] { color: var(--tier-9); }
 .stepper .value[data-tier='10'],
+.bulk-tiers button[data-tier='10'],
 .tier-chip[data-tier='10'],
 .figure-tier[data-tier='10'] { color: var(--tier-10); }
 
 .stepper .value:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
+}
+
+/* bulk +N — one press for all 23 slots */
+
+/*
+ * A set is 23 slots and the stepper moves one, so +0 to +5 cost 115 presses on
+ * the app's headline feature. This strip is the same eleven-step ramp the chips
+ * below it use, laid out once at the top of the doll: it answers "what does my
+ * set look like at +5" in one press, and it states the ramp at rest instead of
+ * leaving it to be inferred from 23 chips that mostly read the same number.
+ */
+.bulk {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  min-width: 0;
+  margin-bottom: var(--s3);
+}
+
+/*
+ * Wraps rather than shrinks. As a flex item with `overflow: hidden` the strip
+ * is allowed to squeeze past its own content, and at 360px it did: +9 and +10
+ * were clipped clean off the end of the pill with nothing to say so, on the two
+ * tiers a player is most likely to be reaching for. The tiers stay their own
+ * size and take a second row instead. Height comes from the buttons for the
+ * same reason — a fixed one would clip that second row.
+ */
+.bulk-tiers {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--bg-inset);
+  overflow: hidden;
+}
+
+.bulk-tiers button {
+  min-width: 32px;
+  height: 24px;
+  padding: 0 var(--s1);
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  color: var(--tier-0);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-num);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.bulk-tiers button:first-child {
+  border-left: 0;
+}
+
+.bulk-tiers button:hover:not(:disabled) {
+  background: var(--panel-3);
+}
+
+/* Where the set already sits, washed the way the stepper washes its own chip. */
+.bulk-tiers button[aria-current='true'] {
+  background: color-mix(in srgb, currentColor 16%, var(--panel-2));
+}
+
+.bulk-tiers button:disabled {
+  color: var(--quiet);
+  cursor: not-allowed;
+}
+
+/* The pill clips a box-shadow ring, so the focus indicator is drawn inside it. */
+.bulk-tiers button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/*
+ * The way back. There is no general undo in the app, and this is the one write
+ * that flattens 23 individually-banked tiers at once, so it carries its own —
+ * and it names what it would restore rather than only saying "undo".
+ */
+.bulk-undo {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+  font-size: var(--fs-small);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- 9. Stat panel ------------------------------------------------------ */
@@ -3261,4 +3362,37 @@ table.data tr.rowlink:focus-visible {
 /* A note that is warning you rather than describing the list. */
 .picker-note-warn {
   color: var(--warn);
+}
+
+/*
+ * A whole item withheld from the ranked list because the catalog has no stats
+ * for it. Sits between the meta bar and the results, styled as a notice rather
+ * than as a row so it can never be mistaken for a candidate.
+ */
+.picker-unstatted {
+  margin: 0;
+  padding: var(--s2) var(--s4);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-small);
+  line-height: 1.45;
+}
+
+/*
+ * The item window's "we do not have this item's stats" block. Warm-toned like
+ * the era and not-live notices, because it is telling you about our data
+ * rather than about the item.
+ */
+.iwin-unstatted {
+  padding: var(--s1) var(--s2);
+  color: var(--warn);
+  font-size: var(--fs-micro);
+  line-height: 1.5;
+}
+
+.iwin-unstatted p {
+  margin: 0 0 var(--s1);
+}
+
+.iwin-unstatted p:last-child {
+  margin-bottom: 0;
 }

@@ -11,10 +11,11 @@ import { activeContext, describeCharacter, type Character } from '../engine/char
 import type { WeightProfile } from '../engine/ep';
 import type { GearSet, Item } from '../engine/types';
 import type { UpgradeState } from '../engine/upgrade';
-import { BASE_STATE } from '../engine/upgrade';
+import { BASE_STATE, normalizeState } from '../engine/upgrade';
 import { useCatalog } from '../data/catalog';
 import { SET_TABS, type SetTab } from '../router';
-import { slotViews, totalsFor } from '../selectors/gear';
+import { slotViews, totalsFor, type SlotView } from '../selectors/gear';
+import { BulkUpgrade, type BulkRevertOffer } from './BulkUpgrade';
 import { ExaltationsTab } from './ExaltationsTab';
 import { ItemPicker } from './ItemPicker';
 import { PaperDoll } from './PaperDoll';
@@ -25,6 +26,28 @@ const TAB_LABELS: Record<SetTab, string> = {
   exaltations: 'Exaltations',
   weights: 'Weights',
 };
+
+/**
+ * How many slots a bulk `+N` would touch, and whether they already agree.
+ *
+ * "Agree" means the same whole tier *and* nothing banked, because pressing +3
+ * on a set already reading +3 with experience banked against it is a real edit:
+ * it throws the banked fraction away. Marking that state as the current one
+ * would promise a no-op the control does not perform.
+ */
+function bulkStateOf(views: readonly SlotView[]): { equipped: number; current: number | null } {
+  let equipped = 0;
+  let first: UpgradeState | null = null;
+  let uniform = true;
+  for (const view of views) {
+    if (!view.equipped) continue;
+    const state = normalizeState(view.equipped.upgrade);
+    equipped += 1;
+    if (!first) first = state;
+    if (state.full !== first.full || state.fraction !== 0) uniform = false;
+  }
+  return { equipped, current: equipped > 0 && uniform && first ? first.full : null };
+}
 
 export interface SetWorkspaceProps {
   character: Character | undefined;
@@ -41,6 +64,14 @@ export interface SetWorkspaceProps {
   onUpgrade: (positionId: string, next: UpgradeState) => void;
   onSetDonor: (positionId: string, kind: string, donor: string | null) => void;
   onWeights: (weights: WeightProfile) => void;
+  /**
+   * Put every equipped slot on one tier. Omitted by the share view, which has
+   * nothing to write to — the bulk strip simply is not built there.
+   */
+  onBulkUpgrade?: (full: number) => void;
+  onRevertBulkUpgrade?: () => void;
+  /** The revert offer standing against *this* set, if any. */
+  bulkRevert?: BulkRevertOffer | null;
 }
 
 export function SetWorkspace({
@@ -56,6 +87,9 @@ export function SetWorkspace({
   onUpgrade,
   onSetDonor,
   onWeights,
+  onBulkUpgrade,
+  onRevertBulkUpgrade,
+  bulkRevert = null,
 }: SetWorkspaceProps) {
   const catalog = useCatalog();
   const [openSlot, setOpenSlot] = useState<string | null>(null);
@@ -69,6 +103,7 @@ export function SetWorkspace({
     () => (openSlot ? totalsFor(views, openSlot) : totals),
     [views, openSlot, totals],
   );
+  const bulk = useMemo(() => bulkStateOf(views), [views]);
 
   const openView = openSlot ? views.find((v) => v.position.id === openSlot) : undefined;
   const initial = (character?.name ?? gearSet.name).trim().charAt(0).toUpperCase() || '?';
@@ -137,16 +172,32 @@ export function SetWorkspace({
 
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'gear' ? (
-          <PaperDoll
-            views={views}
-            weights={gearSet.weights}
-            totals={totals}
-            context={context}
-            readOnly={readOnly}
-            onPick={(id) => setOpenSlot(id)}
-            onUpgrade={onUpgrade}
-            onClear={onUnequip}
-          />
+          <>
+            {/*
+             * Above the doll rather than in the quiet action row beside the
+             * tabs: it acts on the 23 chips underneath it, and it is only
+             * meaningful on this tab.
+             */}
+            {!readOnly && onBulkUpgrade && onRevertBulkUpgrade ? (
+              <BulkUpgrade
+                equipped={bulk.equipped}
+                current={bulk.current}
+                revert={bulkRevert}
+                onApply={onBulkUpgrade}
+                onRevert={onRevertBulkUpgrade}
+              />
+            ) : null}
+            <PaperDoll
+              views={views}
+              weights={gearSet.weights}
+              totals={totals}
+              context={context}
+              readOnly={readOnly}
+              onPick={(id) => setOpenSlot(id)}
+              onUpgrade={onUpgrade}
+              onClear={onUnequip}
+            />
+          </>
         ) : null}
 
         {tab === 'exaltations' ? (
