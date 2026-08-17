@@ -271,3 +271,85 @@ describe('screen', () => {
     expect(text).toContain('Nothing to compare against');
   });
 });
+
+/**
+ * Two plans for one character can target different class trios.
+ *
+ * The screen named the character's *active* loadout on both sides, so a
+ * BRD/SHD/DRU plan and a WAR/PAL/BER plan for the same character both printed
+ * the same trio — and nothing said that an item one side wins with may be
+ * unwearable by the other.
+ */
+describe('a comparison across two loadouts says so', () => {
+  let idA = '';
+  let idB = '';
+
+  beforeEach(() => {
+    useCatalog.getState().loadFixture();
+    useApp.setState({ ...emptyState(), hydrated: true, storageStatus: 'ok' });
+    const state = useApp.getState();
+    const character = state.createCharacter({
+      name: 'Avenrae',
+      level: 50,
+      classes: ['BRD', 'WAR', 'BER'],
+      race: null,
+    });
+    idA = state.createSet(character.id, 'Bard Plan').id;
+    idB = state.createSet(character.id, 'Warrior Plan').id;
+
+    // Patched directly rather than through the store so this covers the screen
+    // regardless of how a loadout comes to be stamped on a set.
+    useApp.setState((s) => ({
+      characters: s.characters.map((c) =>
+        c.id === character.id
+          ? {
+              ...c,
+              loadouts: [
+                { id: 'lo_bard', name: 'Bard', classes: ['BRD', 'SHD', 'DRU'] },
+                { id: 'lo_war', name: 'Warrior', classes: ['WAR', 'PAL', 'BER'] },
+              ],
+              activeLoadoutId: 'lo_bard',
+            }
+          : c,
+      ),
+      sets: s.sets.map((set) =>
+        set.id === idA
+          ? { ...set, loadoutId: 'lo_bard' }
+          : set.id === idB
+            ? { ...set, loadoutId: 'lo_war' }
+            : set,
+      ),
+    }));
+  });
+
+  it('names each plan by its own trio rather than the active one', () => {
+    const text = render(href.compare(idA, idB));
+    expect(text).not.toMatch(/NaN|undefined|\[object Object\]/);
+    expect(text).toContain('50 BRD/SHD/DRU');
+    expect(text).toContain('50 WAR/PAL/BER');
+  });
+
+  it('warns that a gain on one side may not be wearable on the other', () => {
+    const text = render(href.compare(idA, idB));
+    expect(text).toContain('target different loadouts');
+  });
+
+  it('stays quiet when both plans target the same loadout', () => {
+    useApp.setState((s) => ({
+      sets: s.sets.map((set) => (set.id === idB ? { ...set, loadoutId: 'lo_bard' } : set)),
+    }));
+    const text = render(href.compare(idA, idB));
+    expect(text).not.toContain('target different loadouts');
+    expect(text).not.toContain('50 WAR/PAL/BER');
+  });
+
+  it('falls back to the active loadout for a plan that names none', () => {
+    useApp.setState((s) => ({
+      sets: s.sets.map((set) => (set.id === idB ? { ...set, loadoutId: undefined } : set)),
+    }));
+    const text = render(href.compare(idA, idB));
+    expect(text).not.toMatch(/NaN|undefined/);
+    // Both resolve to the active loadout, so there is no cross-loadout warning.
+    expect(text).not.toContain('target different loadouts');
+  });
+});

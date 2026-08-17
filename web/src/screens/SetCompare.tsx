@@ -18,7 +18,7 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import { describeCharacter } from '../engine/character';
+import { describeFor, loadoutFor } from '../engine/character';
 import { useCatalog } from '../data/catalog';
 import { dec, ep as epText, num, signed, signedDec } from '../lib/format';
 import { diffSets, type CapRow, type DiffGroup, type PlainRow, type SlotDiff } from '../lib/setDiff';
@@ -304,6 +304,18 @@ export function SetCompare({ id, id2 }: { id: string; id2: string }) {
    * this screen used to, in two places — labelled the columns with a profile
    * they were not scored under.
    */
+  /*
+   * Two plans for one character can still target different class trios, and
+   * then "better" is not a single question: an item the BER plan wins with may
+   * be unwearable by the BRD one. The character banner below only fires when
+   * the *characters* differ, so without this a same-character, different-trio
+   * comparison read as though the two were interchangeable.
+   */
+  const loadoutA = characterA ? loadoutFor(characterA, setA.loadoutId) : undefined;
+  const loadoutB = characterB ? loadoutFor(characterB, setB.loadoutId) : undefined;
+  const crossLoadout =
+    Boolean(diff?.sameCharacter) && Boolean(loadoutA && loadoutB) && loadoutA?.id !== loadoutB?.id;
+
   const lensSet = diff?.lensOwner === 'b' ? setB : setA;
   const otherSet = diff?.lensOwner === 'b' ? setA : setB;
   const otherOwnEp = diff?.lensOwner === 'b' ? diff.epA : (diff?.epB ?? 0);
@@ -331,7 +343,9 @@ export function SetCompare({ id, id2 }: { id: string; id2: string }) {
             <span className="section-label">Baseline</span>
             <strong className="cmp-setname">{setA.name}</strong>
             <span className="hint">
-              {characterA ? `${characterA.name} · ${describeCharacter(characterA)}` : 'No character'}
+              {characterA
+                ? `${characterA.name} · ${describeFor(characterA, setA.loadoutId)}`
+                : 'No character'}
               {` · ${diff?.filledA ?? 0} equipped`}
             </span>
           </div>
@@ -342,7 +356,9 @@ export function SetCompare({ id, id2 }: { id: string; id2: string }) {
             <span className="section-label">Candidate</span>
             <strong className="cmp-setname">{setB.name}</strong>
             <span className="hint">
-              {characterB ? `${characterB.name} · ${describeCharacter(characterB)}` : 'No character'}
+              {characterB
+                ? `${characterB.name} · ${describeFor(characterB, setB.loadoutId)}`
+                : 'No character'}
               {` · ${diff?.filledB ?? 0} equipped`}
             </span>
           </div>
@@ -363,6 +379,16 @@ export function SetCompare({ id, id2 }: { id: string; id2: string }) {
           and stat columns still subtract cleanly, but eligibility, per-class levels and the active
           loadout differ, so "better" here means better as a pile of stats, not necessarily wearable
           by both.
+        </p>
+      ) : null}
+
+      {crossLoadout && characterA && characterB ? (
+        <p className="cmp-banner" role="status">
+          These two plans target different loadouts —{' '}
+          <strong>{describeFor(characterA, setA.loadoutId)}</strong> and{' '}
+          <strong>{describeFor(characterB, setB.loadoutId)}</strong>. The stat columns still
+          subtract cleanly, but an item one trio can equip the other may not, so a gain here is not
+          necessarily a gain you can wear.
         </p>
       ) : null}
 
