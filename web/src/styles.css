@@ -3257,3 +3257,8 @@ table.data tr.rowlink:focus-visible {
   font-weight: var(--fw-num);
   font-variant-numeric: tabular-nums;
 }
+
+/* A note that is warning you rather than describing the list. */
+.picker-note-warn {
+  color: var(--warn);
+}

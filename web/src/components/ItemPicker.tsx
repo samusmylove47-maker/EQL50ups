@@ -156,6 +156,9 @@ export function ItemPicker({
   const [preview, setPreview] = useState<UpgradeState>(currentUpgrade ?? BASE_STATE);
   const [active, setActive] = useState<ActiveRow>({ index: 0, name: null });
 
+  /** No non-zero weight anywhere: nothing can be ranked by score. */
+  const unweighted = !Object.values(weights ?? {}).some((w) => Number.isFinite(w) && w !== 0);
+
   /*
    * Every filter change re-ranks or re-filters up to 1,800 candidates. Each
    * one therefore drives the list from a *deferred* copy of its state: the
@@ -507,10 +510,18 @@ export function ItemPicker({
         </span>
         {currentName ? <span>Equipped: {currentName}</span> : null}
         {catalog.usingFixture ? <span className="era-label">Fixture data</span> : null}
-        <span className="picker-note">
-          {position.type === 'ANY'
-            ? 'Any Slot takes any wearable item — a worn position, not a hand, so weapon damage scores nothing here.'
-            : `Ranked by EP against this set's weights, cap-aware.`}
+        {/*
+          With nothing weighted every item scores 0 and the list falls back to
+          alphabetical, so this note claimed a ranking that was not happening
+          and the first screen read as nonsense ("A Broom", "A Crude Stein").
+          Say what is true, and say how to fix it.
+        */}
+        <span className={unweighted ? 'picker-note picker-note-warn' : 'picker-note'}>
+          {unweighted
+            ? 'No stat weights are set, so this list is alphabetical. Add weights on the Weights tab to rank by EP.'
+            : position.type === 'ANY'
+              ? 'Any Slot takes any wearable item — a worn position, not a hand, so weapon damage scores nothing here.'
+              : `Ranked by EP against this set's weights, cap-aware.`}
         </span>
       </div>
 
