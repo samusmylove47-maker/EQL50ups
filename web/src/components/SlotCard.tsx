@@ -63,7 +63,20 @@ export function SlotCard({
     <span className="slot-body">
       <span className="slot-name">
         {position.label}
-        {isAny ? <span className="slot-flex" title="An EQL-only flexible position">flex</span> : null}
+        {/*
+          The badge used to read `EQL` — the app's own name, on the app's own
+          differentiator, meaning nothing to a player — and `innerText`
+          concatenated it as `ANY SLOT 1EQL`. It says what the slot does now,
+          with a space in front of it.
+        */}
+        {isAny ? (
+          <>
+            {' '}
+            <span className="slot-flex" title="An EQL-only position: it takes any wearable item">
+              flex
+            </span>
+          </>
+        ) : null}
       </span>
       {item ? (
         <span className="slot-item" style={{ color: tone }} title={item.n}>
