@@ -1,9 +1,11 @@
 /*
  * Design tokens.
  *
- * Two rules govern this file:
+ * Three rules govern this file:
  *   1. Colour carries meaning. Nothing is tinted for decoration.
  *   2. Where the game client makes a choice, copy the client.
+ *   3. Every size, space and weight in the app resolves to a token declared
+ *      here. A literal in `styles.css` is a defect, not a shortcut.
  */
 
 :root {
@@ -22,9 +24,25 @@
   --text: #cfd4da;
   --text-strong: #f0f3f6;
   --text-dim: #8b939c;
-  --text-faint: #5e666e;
+  /*
+   * Raised from #5e666e (3.08:1 over --bg-panel, below AA) to #7a838c
+   * (≈4.6:1). 78% of the page's text used the two dimmest greys, and the slot
+   * label — the thing that says which row you are reading — was the dimmest
+   * of all, printed 23 times a screen underneath a *brighter* stat line.
+   */
+  --text-faint: #7a838c;
+  /* Rules, disabled glyphs and other non-words. 3:1 belongs here, not on text. */
+  --ink-quiet: #5e666e;
 
   /* ---- Accent ---------------------------------------------------------- */
+  /*
+   * §A6 gives azure exactly five jobs: the tab underline, the focus ring,
+   * primary pills, the class-picker selection ring, and the fill meter. It
+   * used to also stroke an accent detail inside 21 of the 23 slot glyphs, so a
+   * filled gear tab carried 48 azure strokes against 5 azure words — a 10:1
+   * decoration-to-signal ratio on the one colour that is supposed to mean
+   * "this is the thing you act on". The glyph accent is gone.
+   */
   --accent: #3b9fe8;
   --accent-hot: #56b0f2;
   --accent-dim: #1d5f8f;
@@ -38,6 +56,13 @@
    * Bard/Warrior/Berserker) is red, while Earthshaker, Cloak of Flames and
    * Bone-Clasped Girdle — each qualifying through at least one of the trio —
    * are green.
+   *
+   * The rule earns its keep on the item browser, where it reads 41 green / 59
+   * red. On the paper doll and in a slot picker it cannot: auto-fill and the
+   * pickers only ever offer equippable items, so all 23 names took one value
+   * and the "signal" was a full-screen tint. Those two surfaces re-point
+   * `--item-usable` at `--text-strong` locally (see `styles.css` §8), which
+   * leaves red as the only thing that shouts.
    *
    * A third state exists that we have not pinned down: Bladestopper renders
    * amber despite being usable. Until it is understood, `--item-caution` is
@@ -55,11 +80,37 @@
   /* ---- Semantics ------------------------------------------------------- */
   --gain: #4ec06a;
   --loss: #d5504a;
-  --at-cap: #d9a441;
+
+  /*
+   * At-cap is not a warning. It used to share `#d9a441` with era labels, the
+   * flex badge, the Any Slot rows and the fourth-class refusal, so amber meant
+   * four things at once. A ceiling reached gets its own cool hue; amber is
+   * spent only on era/phase labels (§A6) and on the top of the tier ramp.
+   */
+  --at-cap: #5cc6bd;
   --warn: #d9a441;
   --danger: #d5504a;
 
-  /* ---- Spacing scale (4px base) ---------------------------------------- */
+  /*
+   * The upgrade tier ramp — the app's headline differentiator, made visible at
+   * rest. `+0` is grey and says nothing; the chip warms through bronze to gold
+   * as the tier climbs, so a column of 23 steppers reads as a *state* rather
+   * than as 23 identical chips. Eleven steps, sampled off one curve.
+   */
+  --tier-0: #7a838c;
+  --tier-1: #9b9384;
+  --tier-2: #ab9878;
+  --tier-3: #b99c6c;
+  --tier-4: #c4a161;
+  --tier-5: #cca557;
+  --tier-6: #d3a94e;
+  --tier-7: #d9ad45;
+  --tier-8: #dfb23c;
+  --tier-9: #e6b832;
+  --tier-10: #f0c02a;
+
+  /* ---- Spacing scale (4px base, one documented half step) -------------- */
+  --s0: 2px;
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
@@ -73,6 +124,20 @@
   --radius-pill: 999px;
 
   /* ---- Type scale ------------------------------------------------------ */
+  /*
+   * Seven steps, and only seven. `styles.css` used to hard-code 30 further
+   * sizes outside this scale — 8.5, 10.5, 11.5, 12, 12.5, 14, 17, 24 — so the
+   * gear tab rendered eleven sizes and its two most common ones were both
+   * off-scale. Roles, so the scale can be applied rather than guessed:
+   *
+   *   micro  10  tags, badges, uppercase micro-labels
+   *   small  11  secondary lines, buttons, tabs, hints, dense numerics
+   *   body   13  running text, item names, stat rows, menu items
+   *   mid    15  card titles, set name, meter numerals
+   *   large  20  headline numerals (the Vitals tiles)
+   *   title  30  page and identity titles
+   *   hero   44  the landing headline
+   */
   --fs-micro: 10px;
   --fs-small: 11px;
   --fs-body: 13px;
@@ -80,6 +145,14 @@
   --fs-large: 20px;
   --fs-title: 30px;
   --fs-hero: 44px;
+
+  /*
+   * Three weights. There were five (300/400/600/700/800) on a single screen,
+   * which is a hierarchy nobody can learn.
+   */
+  --fw-body: 400;
+  --fw-emph: 600;
+  --fw-num: 800;
 
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-num: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
@@ -99,8 +172,15 @@
   font-feature-settings: 'tnum' 1;
 }
 
-.slot-glyph .glyph-accent {
-  stroke: var(--glyph-accent, var(--accent));
+/*
+ * Slot glyphs are one stroke in `currentColor`. Interior detail is separated
+ * by weight and opacity, never by a second hue — a second hue is what turned
+ * the Hands glyph into a mostly-blue palm with a thin green outline, so an
+ * item you *can* equip rendered predominantly blue.
+ */
+.slot-glyph .glyph-detail {
+  opacity: 0.55;
+  stroke-width: 1.1;
 }
 
 .section-label {
@@ -108,10 +188,16 @@
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   color: var(--text-dim);
-  font-weight: 600;
+  font-weight: var(--fw-emph);
 }
 
-:where(button, a, input, select, [tabindex]):focus-visible {
+/*
+ * `:where()` contributes zero specificity, which is what let `input:focus`
+ * (0,1,1) beat this ring (0,1,0) and leave every text input, search box and
+ * checkbox on a 1.24:1 indicator. The input rule in `styles.css` no longer
+ * competes; this is the only focus treatment in the app.
+ */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
   border-radius: var(--radius);

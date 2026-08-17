@@ -8,8 +8,15 @@
  *    (`IH` was both Indicolite Helm and Ivandyr's Hoop) so they identified
  *    nothing; the glyph identifies the *slot*, which is what a paper doll row
  *    is for, and is the same mark used in the picker and the browser.
- *  - **The item name is tinted by usability**, green when a class in the active
- *    loadout qualifies and red when none does — what the client itself does.
+ *  - **The marked state is inverted, and it marks the name only.** Usability
+ *    colour is a real signal on the item browser, where it reads 41 green / 59
+ *    red. Here it cannot be: auto-fill and the pickers only ever offer
+ *    equippable items, so a computed-style audit of a filled doll found 23 of
+ *    23 names in one green, 46 tiles with a green border and wash, and 92 of
+ *    140 glyph strokes green. A constant is not a signal, it is a full-screen
+ *    tint. So the doll re-points `--item-usable` at `--text-strong` (styles.css
+ *    §8), red is reserved for the exception, and the tint reaches the name
+ *    only — never the glyph, the tile border or the tile wash.
  *  - **The word `Empty` is gone.** §A1: the slot name *is* the empty state.
  *    It used to be printed 23 times, louder than the slot label above it.
  *
@@ -69,6 +76,12 @@ export function SlotCard({
           concatenated it as `ANY SLOT 1EQL`. It says what the slot does now,
           with a space in front of it.
         */}
+        {/*
+          A quiet tag, not an amber chip. Amber marks era and phase (§A6); the
+          two Any Slot rows used to carry a solid amber border, a warm wash and
+          an 8.5px amber badge, which made the two least-important rows on the
+          tab the visually heaviest ones.
+        */}
         {isAny ? (
           <>
             {' '}
@@ -92,8 +105,9 @@ export function SlotCard({
     </span>
   );
 
+  // The glyph identifies the slot, so it takes no item colour at all.
   const icon = (
-    <span className="slot-icon" aria-hidden="true" style={tone ? { color: tone } : undefined}>
+    <span className="slot-icon" aria-hidden="true">
       <SlotGlyph slot={position.type} size={26} />
     </span>
   );
@@ -123,7 +137,11 @@ export function SlotCard({
            */}
           {readOnly ? (
             equipped.upgrade.full > 0 ? (
-              <span className="tier-chip" title={`Upgraded to +${equipped.upgrade.full}`}>
+              <span
+                className="tier-chip"
+                data-tier={equipped.upgrade.full}
+                title={`Upgraded to +${equipped.upgrade.full}`}
+              >
                 +{equipped.upgrade.full}
               </span>
             ) : null
