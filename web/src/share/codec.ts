@@ -41,7 +41,20 @@ import { ByteReader, ByteWriter } from '../lib/bytes';
 import { finite } from '../lib/format';
 import { EMPTY_DICTIONARY, lookupName, nameAt, type ShareDictionary } from './dictionary';
 
-export const SHARE_VERSION = 2;
+/**
+ * v3 is v2's frame with a two-byte trailing checksum.
+ *
+ * Without one, a single mistyped character in a pasted link did not fail — it
+ * decoded into a *different, plausible plan*. Two of thirty single-character
+ * corruptions of a real 23-item link came back as a valid set with a slot
+ * quietly emptied, which for a product whose landing page says "the URL is the
+ * product" is the worst possible failure mode: silently wrong beats loudly
+ * broken only if nobody is planning around it.
+ */
+export const SHARE_VERSION = 3;
+
+/** v2 links carry no checksum and are still decoded, unverified. */
+export const SHARE_VERSION_NO_CHECKSUM = 2;
 /** The version whose links this codec can still read but no longer writes. */
 export const LEGACY_SHARE_VERSION = 1;
 
@@ -171,6 +184,22 @@ function writeWeights(w: ByteWriter, weights: Record<string, number>): void {
 }
 
 /** Plan -> opaque URL-safe payload. Pass a dictionary for the short form. */
+/**
+ * FNV-1a, folded to sixteen bits.
+ *
+ * Not cryptographic and not meant to be: the threat is a truncated paste or a
+ * mistyped character, not an adversary. Two bytes catch better than 99.998% of
+ * random corruptions for four characters of link.
+ */
+function checksum16(bytes: Uint8Array): number {
+  let hash = 0x811c9dc5;
+  for (const byte of bytes) {
+    hash ^= byte;
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return ((hash >>> 16) ^ (hash & 0xffff)) & 0xffff;
+}
+
 export function encodePlan(plan: SharedPlan, dict?: ShareDictionary): string {
   const character = normalizePlanCharacter(plan.character);
   const useDict = Boolean(dict && dict.names.length);
@@ -249,7 +278,13 @@ export function encodePlan(plan: SharedPlan, dict?: ShareDictionary): string {
   }
 
   writeWeights(w, plan.set.weights);
-  return bytesToBase64Url(w.finish());
+  const body = w.finish();
+  const sum = checksum16(body);
+  const framed = new Uint8Array(body.length + 2);
+  framed.set(body, 0);
+  framed[body.length] = (sum >> 8) & 0xff;
+  framed[body.length + 1] = sum & 0xff;
+  return bytesToBase64Url(framed);
 }
 
 /* ------------------------------------------------------------------ decoder */
@@ -257,6 +292,8 @@ export function encodePlan(plan: SharedPlan, dict?: ShareDictionary): string {
 export type DecodeFailure =
   | 'malformed'
   | 'unsupported-version'
+  /** The bytes parse, but the trailing checksum does not match them. */
+  | 'corrupt'
   /** The link interned its item names against a catalog build we do not have. */
   | 'catalog-mismatch';
 
@@ -545,7 +582,16 @@ export function decodePlanDetailed(payload: string, dict?: ShareDictionary): Dec
 
   try {
     const first = bytes[0];
-    if (first === SHARE_VERSION) return decodeV2(bytes, dict);
+    if (first === SHARE_VERSION) {
+      if (bytes.length < 3) return { plan: null, failure: 'malformed' };
+      const body = bytes.subarray(0, bytes.length - 2);
+      const carried = ((bytes[bytes.length - 2] as number) << 8) | (bytes[bytes.length - 1] as number);
+      // A link that does not check out is refused outright. Decoding it anyway
+      // is how a corrupted paste becomes a different, plausible-looking plan.
+      if (checksum16(body) !== carried) return { plan: null, failure: 'corrupt' };
+      return decodeV2(body, dict);
+    }
+    if (first === SHARE_VERSION_NO_CHECKSUM) return decodeV2(bytes, dict);
     // 0x5B is `[`: a v1 payload is JSON.
     if (first === 0x5b) {
       const parsed: unknown = JSON.parse(decodeText(payload));

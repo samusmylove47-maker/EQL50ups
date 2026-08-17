@@ -1197,9 +1197,20 @@ const DETAIL_OMIT = new Set(['key']);
 function cleanSourceText(value) {
   if (typeof value !== 'string') return null;
   let out = value
+    // HTML comments first: they can carry anything, including newlines, and a
+    // length-bounded tag pattern walks straight past a long one.
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<!--[\s\S]*$/g, ' ')
     .replace(/<br\s*\/?>/gi, ' ')
     .replace(/<\/?(?:ul|ol|li|u|b|i|em|strong|strike|s|small|span|div|p)\b[^>]*>/gi, ' ')
-    .replace(/<[^>]{0,80}>/g, ' ')
+    // Unbounded: an 80-character ceiling left a 129-character tag on the page.
+    .replace(/<[^>]*>/g, ' ')
+    // Wiki bold/italic markers, and external links in [url label] form.
+    .replace(/'''''|'''|''/g, '')
+    .replace(/\[(?:https?|ftp):\/\/\S+?(?:\s+([^\]]*))?\]/gi, '$1')
+    // Bare table-row and table-open syntax leaking out of an infobox.
+    .replace(/^\s*[|!]-?\s*/g, '')
+    .replace(/\{\||\|\}/g, ' ')
     .replace(/\{\{[^{}]*\}\}/g, ' ')
     // Templates nest, so one pass leaves the outer braces behind.
     .replace(/\{\{[^{}]*\}\}/g, ' ')
