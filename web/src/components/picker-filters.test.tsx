@@ -48,6 +48,8 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const LIVE = '[Fixture] Plain Helm';
 const UNRELEASED = '[Fixture] Helm From The Future';
 const NO_DROP = '[Fixture] Bound Helm';
+/** Real item, no stats anywhere — the `statsUnknown` case. */
+const UNSTATTED = '[Fixture] Unrecorded Helm';
 
 function helm(name: string, patch: Partial<Item> = {}): Item {
   return {
@@ -64,6 +66,11 @@ function seedCatalog(): void {
     helm(LIVE, { st: { AC: 30 } }),
     helm(UNRELEASED, { st: { AC: 20 }, av: false, era: 'Kunark' }),
     helm(NO_DROP, { st: { AC: 10 }, fl: ['FIXTURE', 'NO_DROP'] }),
+    helm(UNSTATTED, {
+      st: {},
+      statsUnknown: true,
+      evidence: 'Seen in a live client export; no wiki page carries its stats.',
+    }),
   ];
   const bySlot = new Map<string, Item[]>();
   for (const slot of SLOT_TYPES) bySlot.set(slot, []);
@@ -192,5 +199,60 @@ describe('the four filter controls', () => {
     const rows = [...container.querySelectorAll<HTMLElement>('.results .result')];
     const future = rows.find((row) => row.textContent?.includes(UNRELEASED));
     expect(future?.textContent).toContain('Not live');
+  });
+});
+
+/**
+ * An item with no stats is not a candidate, and is not a secret either.
+ *
+ * It cannot be ranked — every scorer reads an absent stat as zero, which would
+ * put a fabricated `0.0 EP` beside measured ones — so it is kept out of the
+ * list entirely. But dropping it silently turns a player searching for the helm
+ * on their own head into "No matching items", which reads as a denial that the
+ * item exists. It is named underneath instead.
+ */
+describe('an item the catalog has no stats for', () => {
+  function search(text: string): void {
+    const input = container.querySelector<HTMLInputElement>('[aria-label="Search items by name"]');
+    expect(input, 'the search box').toBeTruthy();
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+    act(() => {
+      setter?.call(input, text);
+      (input as HTMLInputElement).dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
+  const note = () => container.querySelector('.picker-unstatted')?.textContent ?? '';
+
+  it('is never a row, at any filter setting', () => {
+    expect(rowNames()).not.toContain(UNSTATTED);
+    toggle(checkbox('Live content only'));
+    expect(rowNames()).not.toContain(UNSTATTED);
+    toggle(checkbox('Hide No Drop'));
+    expect(rowNames()).not.toContain(UNSTATTED);
+  });
+
+  it('is named beneath the list, with the reason it is not in it', () => {
+    expect(note()).toContain(UNSTATTED);
+    expect(note()).toContain('no catalog carries');
+    expect(note()).toContain('made-up answer');
+  });
+
+  it('still answers a search for it, rather than reporting no matches', () => {
+    search('Unrecorded');
+    // The list is empty — correctly, it cannot be ranked — and the note is
+    // what stops that from reading as "no such item".
+    expect(rowNames()).toEqual([]);
+    expect(note()).toContain(UNSTATTED);
+  });
+
+  it('drops out of the way when the search is about something else', () => {
+    search('Plain');
+    expect(rowNames()).toEqual([LIVE]);
+    expect(note()).toBe('');
+  });
+
+  it('is not counted among the matches, because it is not one', () => {
+    expect(container.querySelector('.picker-meta')?.textContent ?? '').toContain('2 matches');
   });
 });
