@@ -381,9 +381,18 @@ export function ItemBrowser() {
                 affordance is a real `<button>` in the first cell instead, which
                 names the row without eating it.
               */}
-              {pageRows.map(({ item, score }) => (
+              {/*
+                Keyed by page position, not by name. An item name is not a key:
+                two shards can each carry an entry for the same item (`Dagas` is
+                in both `PRIMARY.json` and `SECONDARY.json`), and a duplicate key
+                makes React orphan DOM instead of replacing it — a search
+                narrowed to `1 match` was leaving five rows of the previous
+                result on screen, which is wrong data on the page rather than
+                merely untidy markup.
+              */}
+              {pageRows.map(({ item, score }, index) => (
                 <tr
-                  key={item.n}
+                  key={`${start + index}:${item.n}`}
                   className="rowlink"
                   tabIndex={0}
                   onClick={() => setDetail(item)}
