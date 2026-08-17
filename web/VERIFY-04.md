@@ -1,5 +1,11 @@
 # VERIFY-04 — adversarial verification of the round-4 fix batch
 
+> **Historical record — figures predate the 2026-08-17 era purge.** The catalog described here
+> shipped 11,249–11,252 items with out-of-era content hidden behind a "Live content only"
+> toggle. It now ships 3,533; 7,719 records are quarantined in `pipeline/quarantine.json`, and
+> the toggle has been removed because it could no longer change a single row. Every count below
+> was correct when measured and is not current. See `research/SOURCING-STANDARD.md`.
+
 **Method.** Every number below is mine. Nothing is taken from the claims. Built
 `npm run build` from the tree at `8190602`, served the `dist` output on
 `127.0.0.1:4231` (later `:4233`, see *Provenance*), drove Chromium

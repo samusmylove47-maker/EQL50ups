@@ -34,7 +34,7 @@ describe('chunked auto-fill', () => {
   it('produces exactly the result the single-shot run does', async () => {
     const catalog = useCatalog.getState();
     const views = slotViews(gearSet(), catalog);
-    const options = { includeUnreleased: false, keepFilled: false, filters: DEFAULT_SET_FILTERS };
+    const options = { keepFilled: false, filters: DEFAULT_SET_FILTERS };
 
     const oneShot = autoFill(catalog, views, CONTEXT, WEIGHTS, options);
     const chunked = await runSliced(autoFillSteps(catalog, views, CONTEXT, WEIGHTS, options), 0);
@@ -49,7 +49,7 @@ describe('chunked auto-fill', () => {
       gearSet({ HEAD: { itemName: '[Fixture] Iron Helm', upgrade: tier(2) } }),
       catalog,
     );
-    const options = { includeUnreleased: false, keepFilled: true, filters: DEFAULT_SET_FILTERS };
+    const options = { keepFilled: true, filters: DEFAULT_SET_FILTERS };
 
     const oneShot = autoFill(catalog, views, CONTEXT, WEIGHTS, options);
     const chunked = await runSliced(autoFillSteps(catalog, views, CONTEXT, WEIGHTS, options), 0);
@@ -62,7 +62,6 @@ describe('chunked auto-fill', () => {
     const catalog = useCatalog.getState();
     const views = slotViews(gearSet(), catalog);
     const work = autoFillSteps(catalog, views, CONTEXT, WEIGHTS, {
-      includeUnreleased: false,
       keepFilled: false,
       filters: DEFAULT_SET_FILTERS,
     });

@@ -387,9 +387,14 @@ describe('cap-aware scoring credits only what a character can still feel', () =>
 
 /* ------------------------------------------------------------------ *
  * Availability
+ *
+ * This list used to un-gate items the client hid. Since the purge it does more
+ * than that: `pipeline/build.mjs` reads it to decide whether an out-of-era
+ * record is shipped at all, so a name dropping out of it removes the item from
+ * the catalog rather than merely hiding it.
  * ------------------------------------------------------------------ */
 
-describe('items seen in a live client are never gated out', () => {
+describe('items seen in a live client are never withheld', () => {
   it('recognises the names recovered from the Tier 0 inventory export', () => {
     expect(isTier0Confirmed("Hamed's Ring of Tears")).toBe(true);
     expect(isTier0Confirmed('selo`s drums of the march')).toBe(true);

@@ -154,32 +154,35 @@ export const ITEM_FLAGS = [
 ] as const;
 
 /**
- * Content eras in chronological order. The game is pre-Kunark, so everything
- * from Sky backward is live and everything after it is pre-catalogued wiki
- * content that cannot yet drop.
+ * Content eras in chronological order — every era the catalog can contain.
+ *
+ * This is a sort key and a filter vocabulary, not a gate. The pipeline ships
+ * only pre-Kunark content plus what the live client export proves, so these
+ * seven names are exhaustive over the payload: `Classic` 2,907, `Sky` 382,
+ * `Temple` 101, `Fear` 27, `Paineel` 22, `Kunark` 13, `Hate` 5, and 76 items
+ * with no era at all (measured against `public/data/items-index.json`,
+ * 2026-08-17).
+ *
+ * `Epic Quests`, `Nov 2000`, `FearHateRevamp`, `Velious` and `Chardok Revamp`
+ * used to sit at the end of this list and were offered by both era `<select>`s.
+ * Nothing in those eras survives the purge, so every one of them was an option
+ * that guaranteed an empty list. `Kunark` stays because thirteen Kunark-tagged
+ * items ship — the ones the player's own inventory export holds.
  */
 export const ERA_ORDER = [
-  'Classic', 'Fear', 'Hate', 'Paineel', 'Temple', 'Sky',
-  'Kunark', 'Epic Quests', 'Nov 2000', 'FearHateRevamp', 'Velious', 'Chardok Revamp',
+  'Classic', 'Fear', 'Hate', 'Paineel', 'Temple', 'Sky', 'Kunark',
 ] as const;
 
-export const CURRENT_ERA = 'Sky';
-export const CURRENT_ERA_INDEX = ERA_ORDER.indexOf(CURRENT_ERA);
-
-export function isEraLive(era: string | null | undefined): boolean {
-  if (!era) return true; // unknown era stays visible; hiding is the worse failure
-  const idx = ERA_ORDER.indexOf(era as (typeof ERA_ORDER)[number]);
-  if (idx === -1) return true;
-  return idx <= CURRENT_ERA_INDEX;
-}
-
 /**
- * Items the era gate hides that a live client demonstrably holds.
+ * Items whose wiki era says they are out of era and which a live client
+ * demonstrably holds anyway.
  *
- * `pipeline/README.md` records that EQL's `ERA_OVERRIDE` list — the Kunark and
- * Velious items released early — was never recovered, so items tagged after
- * Sky are gated out wholesale and some of them are wrong. This is that list,
- * as far as Tier 0 — the running game — can attest.
+ * The pipeline ships an item only if its era is pre-Kunark or its name appears
+ * here; everything else is quarantined into `pipeline/quarantine.json`. So this
+ * list is not an un-gating of hidden rows any more — it is the sole reason
+ * thirteen Kunark items and the Shadow Rage set are in the catalog at all.
+ *
+ * This is that list, as far as Tier 0 — the running game — can attest.
  *
  * Nothing is inferred from an item's neighbours, its zone or its era. Every
  * name is grouped below by the evidence that put it there, so a reader can see
@@ -225,11 +228,12 @@ const TIER0_OBSERVED_IN_EXPORT = [
  * > sets."   — player report, 2026-08-17
  *
  * That places the whole set in the live game, so the one piece of it the export
- * does not happen to contain is un-gated on the report rather than left as the
- * only hidden member of a set whose other five are visible. This is the
- * weakest evidence in this file and it is deliberately quarantined here rather
- * than blended into the list above. It does **not** extend to the other 53
- * `FearHateRevamp` items: see research/validation/TIER0-PLAYER-REPORTS.md.
+ * does not happen to contain ships on the report rather than being quarantined
+ * as the only absent member of a set whose other five are in the catalog. This
+ * is the weakest evidence in this file and it is deliberately kept apart here
+ * rather than blended into the list above. It does **not** extend to the other
+ * 53 `FearHateRevamp` items, which were quarantined:
+ * see research/validation/TIER0-PLAYER-REPORTS.md.
  */
 const TIER0_REPORTED_BY_PLAYER = ['Shadow Rage Leggings'];
 

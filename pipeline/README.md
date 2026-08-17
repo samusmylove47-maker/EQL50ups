@@ -161,40 +161,71 @@ Records whose stats or slots came from the parser carry `"parsed": "statsBlock"`
 
 ---
 
-## Era gating policy
+## Era purge policy
 
-Chronology (`meta.era.order`):
+**Superseded 2026-08-17.** This used to be an era *gating* policy: everything was shipped, and
+out-of-era records went out with `av: false` for the client to hide behind a "Live content only"
+checkbox. That was wrong — a planner that will rank an item you can never obtain is worse than one
+with a smaller catalog, because the reader cannot tell which is which. Out-of-era records are now
+**quarantined out of the build**, and the checkbox has been removed from the app along with them.
+
+Chronology (`meta.era.order`) — the full ranking vocabulary, used to *decide* the purge:
 
 ```
 Classic → Fear → Hate → Paineel → Temple → Sky → Kunark → Epic Quests
        → Nov 2000 → FearHateRevamp → Velious → Chardok Revamp → Luclin
 ```
 
-`CURRENT_ERA = "Sky"`. The wiki pre-catalogues content that is not live in this pre-Kunark game,
-so an item is available when its era rank is **≤ Sky**.
+`CURRENT_ERA = "Sky"`. An item ships if and only if:
+
+1. its era rank is **≤ Sky**; **or**
+2. it appears in the player's live client inventory export, which is Tier M proof that it exists
+   whatever the wiki says about its era; **or**
+3. the player named it directly (`EQL_CONFIRMED_NAMES` — the Shadow Rage set).
+
+Everything else is quarantined: written in full, by name and with its reason, to
+`pipeline/quarantine.json`, and absent from the payload. Nothing is deleted from disk, so
+restoring an item once a Tier 1 patch note or a Tier M observation places it is a table entry
+rather than a re-scrape.
 
 - **`available_from` is preferred over a raw era tag.** It is acquisition-path aware: the latest
   era across the item's own tag, its recipe, and its earliest drop zone — i.e. the first era in
   which you could actually hold one. A Classic-tagged sword that only drops in a Kunark zone is
-  correctly gated out.
-- `non_legends` and `out_of_era` (26 items, the same set) force `av: false` regardless of era.
-  The reason is recorded in `ur`; `gb` carries eqlwiki's gating reason (`zone` or `recipe`).
-- **Items with no era anywhere are shipped `av: true` with `eraUnknown: true`.** 2,412 items
-  (21 %) are in this state. Hiding them would be the worse failure: they are mostly ordinary
-  Classic-era goods whose wiki page simply lacks a category. The build report calls this the
-  `flagged` count; the UI should surface it as "availability unverified", not as a hard filter.
-- `eraUnknown` describes the *absence of information* and is independent of `av`. Fifteen items are
-  both era-less and `non_legends`, so they ship `eraUnknown: true, av: false, ur: "non_legends"`.
+  correctly quarantined.
+- `non_legends` and `out_of_era` (26 items, the same set) are the wiki's own "not in Legends"
+  flags. The reason is recorded in `ur`; `gb` carries eqlwiki's gating reason (`zone` or `recipe`).
+  All 26 are quarantined, so none of them ships.
+- **Era-less is not classic.** An item with no era in any source is unconfirmed, not presumed
+  in-era, and is quarantined unless rule 2 or 3 vouches for it. 2,331 records were dropped this
+  way. The 76 era-less items that do ship are the ones Tier M places, and they carry
+  `eraUnknown: true`.
+- `eraUnknown` describes the *absence of era information* and says nothing about stats or
+  availability. Every shipped item has `av: true`; nothing ships with `av: false` or a `ur`, and
+  `verify.mjs` fails the build if one does.
 
-Current split: **5,407 gated out**, 2,412 unknown-era, the rest live. (The Tier 0 correction below
-moved six Shadow Rage pieces into `FearHateRevamp`, which ranks after Sky — so the era gate now
-hides a set the player is demonstrably wearing, and the app un-gates those six by name.)
+**Current split** (measured 2026-08-17): **11,252 scraped → 3,533 shipped, 7,719 quarantined.**
+
+| Shipped, by reason | | Quarantined, by reason | |
+|---|---:|---|---:|
+| `era:Classic` | 2,772 | `era:Velious` | 2,828 |
+| `era:Sky` | 324 | no era in any source | 2,331 |
+| `in-live-inventory` | 284 | `era:Kunark` | 1,457 |
+| `era:Temple` | 100 | `era:Epic Quests` | 867 |
+| `era:Fear` | 22 | `era:Chardok Revamp` | 145 |
+| `era:Paineel` | 21 | `era:FearHateRevamp` | 53 |
+| `player-confirmed` | 6 | wiki flags `non_legends` | 26 |
+| `era:Hate` | 4 | `era:Luclin` | 12 |
+
+By era tag, what ships is: Classic 2,907 · Sky 382 · Temple 101 · no era 76 · Fear 27 ·
+Paineel 22 · Kunark 13 · Hate 5. Those seven names are the whole vocabulary the app's era
+filter offers.
 
 **Not modelled:** the `ERA_OVERRIDE` list — Kunark/Velious items EQL made available early. The
 mechanism is documented upstream but the list was never filled in, and inventing one is exactly
-the failure mode this project guards against. Some gated-out items are therefore likely obtainable.
-The app carries the observed half of that list by name in `TIER0_LIVE_ITEMS`
+the failure mode this project guards against. Some quarantined items are therefore likely
+obtainable. The app carries the observed half of that list by name in `TIER0_LIVE_ITEMS`
 (`web/src/engine/constants.ts`): 18 items seen in a live client export, plus 1 named by the player.
+It is the only reason the thirteen Kunark-tagged items in the table above ship at all.
 
 ---
 
@@ -213,18 +244,29 @@ for every field in `research/validation/TIER0-PLAYER-REPORTS.md`:
 
 | Item | Correction |
 |---|---|
-| Shadow Rage Leggings | `era: Classic` → `FearHateRevamp` |
-| Shadow Rage Sleeves | no era anywhere → `FearHateRevamp` |
-| Shadow Rage Wristguard | no era anywhere → `FearHateRevamp` |
-| Shadow Rage Helm (#55601, HEAD) | added; `statsUnknown` |
-| Shadow Rage Gloves (#55605, HANDS) | added; `statsUnknown` |
-| Shadow Rage Boots (#55607, FEET) | added; `statsUnknown` |
+| Shadow Rage Leggings | wiki stats withheld; `era: Classic` cleared; `statsUnknown`, `eraUnknown` |
+| Shadow Rage Sleeves | wiki stats withheld; `statsUnknown`, `eraUnknown` |
+| Shadow Rage Wristguard | wiki stats withheld; `statsUnknown`, `eraUnknown` |
+| Shadow Rage Helm (#55601, HEAD) | added; `statsUnknown`, `eraUnknown` |
+| Shadow Rage Gloves (#55605, HANDS) | added; `statsUnknown`, `eraUnknown` |
+| Shadow Rage Boots (#55607, FEET) | added; `statsUnknown`, `eraUnknown` |
 
-Shadow Rage is the Berserker member of the `FearHateRevamp` planar class sets, alongside
+Shadow Rage is the Berserker planar set, reported by the player. An earlier version of this
+document claimed it was "the Berserker member of the `FearHateRevamp` planar class sets, alongside
 Legionnaire Scale (WAR), Greenmist (SHD), of the Righteous (PAL), of the Untamed (RNG) and of
-Harmony (DRU). The wiki never scraped it as a set. The three added records carry **name, id, slot,
-class and era and nothing else** — no stat, weight, size, flag or icon was invented, and the
-absence is stated in the data rather than filled with zeroes.
+Harmony (DRU)". **That was an inference reported as confirmation, and it was wrong.**
+`FearHateRevamp` is an original-EverQuest content patch; none of those five sets are in this game,
+and all 53 of its items are quarantined. Only Shadow Rage is confirmed, and only by the player.
+
+So the set ships with **no era at all**. The player placed it in the Planes of Fear *and* Hate —
+two planes, six pieces, no mapping between them — and picking either would be the same class of
+inference again. `verify.mjs` now fails the build if any `FearHateRevamp` item ships.
+
+All six pieces ship `statsUnknown`, including the three the wiki does carry numbers for: those
+numbers came from the same scrape that supplied 7,719 out-of-era records, so nothing shows they
+describe the Legends item rather than an original-EverQuest one of the same name. The three added
+records carry **name, id, slot and class and nothing else** — no stat, era, weight, size, flag or
+icon was invented, and the absence is stated in the data rather than filled with zeroes.
 
 ---
 
@@ -381,7 +423,8 @@ Everything here is a property of the upstream sources, not of the pipeline.
    page). The richer record wins. A further 162 are byte-identical duplicates inside jmoyers.
 9. **`src.v` (vendors) is a flat alternating list** of zone and vendor names in the upstream data.
    It is kept verbatim rather than guessed into pairs.
-10. **Non-equipment dominates the catalog by count**: 4,343 of 11,252 items have no worn slot.
+10. **Non-equipment is a large share of the catalog by count**: 1,342 of the 3,533 shipped items
+    have no worn slot.
 11. **Exaltation socket contents are not in any source and never will be** — sockets are a function
     of item level, not an item property. Derive them from the chosen `+N`; do not look for a field.
 12. **Flags and Monk fist-weapon skills contradict the live client** — see the section above and
@@ -418,7 +461,7 @@ SHA-256 prefix, so any shipped record can be traced back to an exact upstream re
 
 ## What `verify.mjs` checks
 
-37 assertions over the *shipped payload only* — it re-declares its own vocabularies rather than
+38 assertions over the *shipped payload only* — it re-declares its own vocabularies rather than
 importing the build's, so a mistake in `build.mjs` cannot validate itself.
 
 Structure (files present, schema versions agree, meta counts match, provenance SHAs well-formed,
@@ -426,15 +469,20 @@ attribution present, `dataReliability` documents the fields the client contradic
 item named, no duplicate name keys) · vocabularies (slots, classes, races, stat keys, save keys,
 flags, weapon skills) · numeric stats are finite numbers · weapons carry
 both `dmg` and `dly` or neither, with an `AMMO`-only exemption · `skillRaw` only present when it
-differs from the normalized skill · era values are in the chronology
-and `av` agrees with the gate · `eraUnknown` implies `av` unless another reason is recorded ·
+differs from the normalized skill · era values are in the chronology ·
+**everything that ships is available** (`av === true` on every item — the purge invariant, and the
+guard that would catch a regression that reintroduced client-side gating) · items with no era are
+flagged `eraUnknown` · **the purge itself, re-derived rather than trusted** (nothing past Sky ships
+unless the live export or the player vouches for it, and era-less is not presumed classic) ·
 shard integrity (every item filed under a slot it actually has, index and shard records agree,
 every item reachable from some shard) · effects/sizes/weights well-formed · icon and item IDs are
 positive integers · no numeric ID assigned twice · **`statsUnknown` records carry evidence and no
 stats, and keep the marker into the shards** · **Tier 0 coverage** · Tier 0 spot-checks
 (Earthshaker DMG 37 / delay 70 / id 5667, Cloak of Flames id 11621, Fishbone Earring id 10313) ·
-**the Shadow Rage set carries the Tier 0 player correction** (all six pieces, `FearHateRevamp`,
-BER, right slots and ids, and no stats on the three the wiki never had).
+**the Shadow Rage set carries the Tier 0 player correction** (all six pieces, BER, right slots and
+ids, `statsUnknown` with evidence on every one of them, and **no `FearHateRevamp` item shipping at
+all** — the era the previous session wrongly inferred is now a build failure, checked by era tag
+rather than by set name so that the Sky-era `Spear of Harmony` is not caught by a substring).
 
 Tier 0 coverage is the headline metric: **289 / 297 = 97.3 %**, with 289 IDs correct and 0 wrong.
 The build fails below 90 %.

@@ -157,7 +157,6 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
       const views = slotViews(gearSet, fresh);
       const result = await runSliced(
         autoFillSteps(fresh, views, character ? activeContext(character) : undefined, gearSet.weights, {
-          includeUnreleased: false,
           keepFilled,
           // The same filters the pickers open with. Without them Auto-fill drew
           // from a pool this set's own pickers refuse to offer.

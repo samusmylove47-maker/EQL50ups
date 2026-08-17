@@ -49,12 +49,37 @@ test('a library saved by the previous model survives the upgrade intact', async 
   await expect(page.locator('body')).toContainText('Earthshaker');
   await expect(page.locator('body')).toContainText('from the old model');
 
-  // And the migrated shape has been written back, so it is not re-migrated
-  // on every load and an export taken now carries the new model.
+  /*
+   * And the migrated shape has been written back, so it is not re-migrated on
+   * every load and an export taken now carries the new model.
+   *
+   * Polled, not sampled once. The write-back is scheduled through the store's
+   * 200 ms persist debounce (`schedulePersist` in `state/store.ts`), so "has
+   * been written back" is an *eventual* property and reading it at one
+   * arbitrary instant tests the scheduler as much as the migration. This
+   * assertion failed exactly once, under two workers on a loaded machine,
+   * reading version 1 — and did not reproduce in twelve further runs, isolated
+   * and under deliberate CPU load.
+   *
+   * The bar is unchanged: the stored version must still become 2, and if the
+   * write-back never happens this still fails, just after a timeout rather
+   * than instantly.
+   */
+  await expect
+    .poll(
+      async () =>
+        (
+          await page.evaluate(() =>
+            JSON.parse(localStorage.getItem('eqlups.state.v1') ?? '{}'),
+          )
+        ).version,
+      { message: 'the migrated library is written back to storage' },
+    )
+    .toBe(2);
+
   const stored = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('eqlups.state.v1') ?? '{}'),
   );
-  expect(stored.version).toBe(2);
   expect(stored.characters[0].loadouts).toHaveLength(1);
   expect(stored.characters[0].loadouts[0].classes).toEqual(['BRD', 'WAR', 'BER']);
   expect(stored.characters[0].levels.BRD).toBe(50);

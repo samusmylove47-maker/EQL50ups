@@ -1,18 +1,19 @@
 /**
  * What the picker's filter controls are allowed to cost.
  *
- * Era, source and Hide No Drop have always been free: they filter an
- * already-sorted array. "Live content only" was not, because
- * `includeUnreleased` sat in `rankSlotItems`' cache key, so the first press in
- * each direction re-scored the whole slot — ~200 ms on an Any Slot at 4x CPU
- * throttle — while the second press read a warm cache and measured 0 ms. A
- * benchmark that toggles twice and keeps the better number reports 0 ms; a user
- * gets the 200.
+ * Era, source and Hide No Drop are free: they filter an already-sorted array.
+ * A fourth control, "Live content only", was not — `includeUnreleased` sat in
+ * `rankSlotItems`' cache key, so the first press in each direction re-scored
+ * the whole slot (~200 ms on an Any Slot at 4x CPU throttle) while the second
+ * press read a warm cache and measured 0 ms. A benchmark that toggles twice and
+ * keeps the better number reports 0 ms; a user gets the 200.
  *
- * Wall-clock timing is the wrong assertion for that, since it is exactly what
- * the warm cache hides. What is asserted instead is the structural fact: the
- * ranking is requested for one candidate set and one only, and the live filter
- * is applied to the result.
+ * That control is gone: the pipeline quarantines out-of-era content instead of
+ * shipping it for the UI to hide, so the checkbox could not change a single row.
+ * The cost rule it taught outlives it, and is what this file pins — wall-clock
+ * timing being exactly the assertion a warm cache defeats, the structural fact
+ * is asserted instead: the ranking is requested for one candidate set and one
+ * only, and every filter narrows that result rather than joining its key.
  */
 
 import { act } from 'react';
@@ -46,7 +47,13 @@ declare global {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const LIVE = '[Fixture] Plain Helm';
-const UNRELEASED = '[Fixture] Helm From The Future';
+/**
+ * Shaped exactly like a record the old era gate refused: an era past Sky, and
+ * `av: false`. Nothing of that shape ships any more — the pipeline quarantines
+ * it and `pipeline/verify.mjs` fails the build if one slips through — so it is
+ * here as an adversarial input. The picker must show it like any other row.
+ */
+const OUT_OF_ERA = '[Fixture] Kunark-Tagged Helm';
 const NO_DROP = '[Fixture] Bound Helm';
 /** Real item, no stats anywhere — the `statsUnknown` case. */
 const UNSTATTED = '[Fixture] Unrecorded Helm';
@@ -64,7 +71,7 @@ let root: Root;
 function seedCatalog(): void {
   const items = [
     helm(LIVE, { st: { AC: 30 } }),
-    helm(UNRELEASED, { st: { AC: 20 }, av: false, era: 'Kunark' }),
+    helm(OUT_OF_ERA, { st: { AC: 20 }, av: false, era: 'Kunark' }),
     helm(NO_DROP, { st: { AC: 10 }, fl: ['FIXTURE', 'NO_DROP'] }),
     helm(UNSTATTED, {
       st: {},
@@ -147,38 +154,28 @@ afterEach(() => {
   rankCalls.length = 0;
 });
 
-describe('the four filter controls', () => {
-  it('ranks the whole candidate set once, released or not', () => {
+describe('the three filter controls', () => {
+  it('ranks the whole candidate set once, and shows all of it', () => {
     expect(rankCalls.length).toBeGreaterThan(0);
-    expect(rankCalls.every((options) => options.includeUnreleased === true)).toBe(true);
-    // The live filter is applied to the result, so the default view is narrower
-    // than the ranking behind it.
-    expect(rowNames()).toEqual([LIVE, NO_DROP]);
-  });
-
-  it('never asks for a second ranking when Live content only is toggled', () => {
-    const opened = rankCalls.length;
-    expect(opened).toBeGreaterThan(0);
-
-    toggle(checkbox('Live content only'));
-    expect(rowNames()).toEqual([LIVE, UNRELEASED, NO_DROP]);
-    // The *first* press in this direction, not the second: a round trip would
-    // read a warm cache and prove nothing.
-    expect(rankCalls.length).toBe(opened);
-
-    toggle(checkbox('Live content only'));
-    expect(rowNames()).toEqual([LIVE, NO_DROP]);
-    expect(rankCalls.length).toBe(opened);
+    // No filter narrows the opening view, so the list is the ranking itself.
+    expect(rowNames()).toEqual([LIVE, OUT_OF_ERA, NO_DROP]);
   });
 
   it('never asks for a ranking at all when era, source or No Drop change', () => {
     const before = rankCalls.length;
 
     select('Filter by era', 'Kunark');
-    expect(rowNames()).toEqual([]);
+    expect(rowNames()).toEqual([OUT_OF_ERA]);
     select('Filter by era', 'any');
+
+    // Pressed in both directions, and the count is checked after each: the
+    // *first* press in a direction is the one a warm cache would hide.
     toggle(checkbox('Hide No Drop'));
-    expect(rowNames()).toEqual([LIVE]);
+    expect(rowNames()).toEqual([LIVE, OUT_OF_ERA]);
+    expect(rankCalls.length).toBe(before);
+    toggle(checkbox('Hide No Drop'));
+    expect(rowNames()).toEqual([LIVE, OUT_OF_ERA, NO_DROP]);
+
     select('Filter by source', 'quest');
     expect(rowNames()).toEqual([]);
 
@@ -187,18 +184,29 @@ describe('the four filter controls', () => {
 
   it('still counts only what it shows', () => {
     const meta = () => container.querySelector('.picker-meta')?.textContent ?? '';
-    expect(meta()).toContain('2 matches');
-    toggle(checkbox('Live content only'));
     expect(meta()).toContain('3 matches');
     toggle(checkbox('Hide No Drop'));
     expect(meta()).toContain('2 matches');
+    select('Filter by era', 'Kunark');
+    expect(meta()).toContain('1 match');
   });
 
-  it('marks the unreleased row as such rather than hiding what it is', () => {
-    toggle(checkbox('Live content only'));
+  /*
+   * The era gate is gone, and this is the row that would notice if it came back.
+   *
+   * `[Fixture] Kunark-Tagged Helm` carries the two marks the old `isLive()`
+   * refused — `av: false` and an era past Sky. It ranks, it renders, it wears
+   * its era tag like any other row, and no "Not live" chip is printed on it,
+   * because there is no longer any such state to print.
+   */
+  it('shows a row the old era gate would have hidden, unmarked and unranked-down', () => {
     const rows = [...container.querySelectorAll<HTMLElement>('.results .result')];
-    const future = rows.find((row) => row.textContent?.includes(UNRELEASED));
-    expect(future?.textContent).toContain('Not live');
+    const kunark = rows.find((row) => row.textContent?.includes(OUT_OF_ERA));
+    expect(kunark, OUT_OF_ERA).toBeTruthy();
+    expect(kunark?.textContent).toContain('Kunark');
+    expect(kunark?.textContent).not.toContain('Not live');
+    // Second of three on AC, exactly where its stats put it — not demoted.
+    expect(rowNames()[1]).toBe(OUT_OF_ERA);
   });
 });
 
@@ -226,9 +234,9 @@ describe('an item the catalog has no stats for', () => {
 
   it('is never a row, at any filter setting', () => {
     expect(rowNames()).not.toContain(UNSTATTED);
-    toggle(checkbox('Live content only'));
-    expect(rowNames()).not.toContain(UNSTATTED);
     toggle(checkbox('Hide No Drop'));
+    expect(rowNames()).not.toContain(UNSTATTED);
+    select('Filter by era', 'Classic');
     expect(rowNames()).not.toContain(UNSTATTED);
   });
 
@@ -253,6 +261,7 @@ describe('an item the catalog has no stats for', () => {
   });
 
   it('is not counted among the matches, because it is not one', () => {
-    expect(container.querySelector('.picker-meta')?.textContent ?? '').toContain('2 matches');
+    // Four helms are seeded; three are rankable.
+    expect(container.querySelector('.picker-meta')?.textContent ?? '').toContain('3 matches');
   });
 });

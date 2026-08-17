@@ -68,7 +68,7 @@ function paste(text: string): void {
 /**
  * The shipped catalog, narrowed to what this one export can possibly reference.
  *
- * The full index is 11,249 items and indexing it takes long enough that doing
+ * The full index is 3,533 items and indexing it takes long enough that doing
  * it once per test in this file pushed an unrelated performance test over its
  * timeout. Every id and every name the file mentions is kept — including the
  * bag, bank and keyring entries the dialog must refuse — so nothing the

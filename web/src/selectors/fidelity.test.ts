@@ -164,7 +164,6 @@ describe('ranking is stable and deterministic', () => {
     context: CONTEXT,
     weights: WEIGHTS,
     upgrade: tier(0),
-    includeUnreleased: false,
   };
 
   it('returns the same order for the same inputs', () => {

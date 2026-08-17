@@ -152,7 +152,11 @@ keeps derived data share-alike. Data provenance (source repo + commit SHA) ships
 6. **EP stat weights** — presets per archetype + fully custom. This turns a database into an advisor.
 7. Share links + localStorage autosave + many named sets per character.
 8. **EQ-authentic item window** rendering.
-9. Era filter defaulting to live content, with an explicit "show unreleased" toggle.
+9. ~~Era filter defaulting to live content, with an explicit "show unreleased" toggle.~~
+   **Superseded 2026-08-17.** Out-of-era content is now quarantined in the pipeline
+   rather than shipped and hidden, so the toggle could not change a single row and
+   was removed. The era filter itself survives, as an ordinary filter over the seven
+   eras the catalog actually contains. See `research/SOURCING-STANDARD.md`.
 
 ### P1 — expected
 10. Exaltation planner (derived sockets, restriction intersection, no-stack family rule).
@@ -178,7 +182,7 @@ discovery can be social).
 | Risk | Reality | Mitigation |
 |---|---|---|
 | Data is **Tier 1/2**, not Tier 0 | Everything is community wiki scrapes, not game files | Ship provenance visibly; request Tier 0 spot-checks from the user |
-| Era gating is heuristic | ~30% of wiki items carry no era tag; the `ERA_OVERRIDE` list of early-released items is **empty** in every source | Leave unresolvable items visible (hiding is the worse failure), flag them, make the toggle obvious |
+| Era data is incomplete, and the catalog is a P99 import | 2,331 of 11,252 scraped items carry no era tag at all; the `ERA_OVERRIDE` list of early-released items is **empty** in every source; and most of the corpus is original-EverQuest content this game does not have | **Policy reversed 2026-08-17.** Shipping an unobtainable item is the worse failure, not hiding one: ship only pre-Kunark content plus what the live client export proves. Era-less is unconfirmed, not presumed classic. 7,719 records quarantined to `pipeline/quarantine.json`, restorable by name on Tier 0/1 evidence |
 | **Race base attributes unverified** | The one chardata source self-discloses `"verified": false` and admits it carries **Classic EQ values on an assumption** | **Do not ship them.** Gear-only totals until verified. Only the "+30 points per class / 90 per trio" invariant is real (read from the client) |
 | +N math could drift from live | Sourced from the wiki's calculator, fixture-verified against screenshots | Verify in-game; keep the rules in one isolated, unit-tested module |
 | Mote ladder conflict | Sources disagree on Greater vs Major ordering | Out of v1 scope; do not display a ladder we cannot verify |

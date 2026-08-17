@@ -71,7 +71,7 @@ afterEach(() => {
   container.remove();
 });
 
-describe('the item browser is a table, not 5,861 one-word rows', () => {
+describe('the item browser is a table, not 3,533 one-word rows', () => {
   beforeEach(() => {
     mount('#/items');
   });
@@ -106,7 +106,7 @@ describe('the item browser is a table, not 5,861 one-word rows', () => {
     for (const stop of stops) expect(stop.tagName).toBe('TR');
   });
 
-  it('scopes all six headers and captions the table with the live filter state', () => {
+  it('scopes all six headers and captions the table with the current filter state', () => {
     const scopes = [...container.querySelectorAll('table.data thead th')].map((th) =>
       th.getAttribute('scope'),
     );
@@ -117,7 +117,8 @@ describe('the item browser is a table, not 5,861 one-word rows', () => {
     // Visually hidden — the same facts are in the toolbar directly above it.
     expect(caption!.className).toContain('sr-only');
     expect(caption!.textContent).toMatch(/any slot/i);
-    expect(caption!.textContent).toMatch(/live content only/i);
+    expect(caption!.textContent).toMatch(/any class/i);
+    expect(caption!.textContent).toMatch(/any era/i);
     expect(caption!.textContent).toMatch(/sorted by ep, descending/i);
 
     // It follows the filters rather than describing the page it was written on.

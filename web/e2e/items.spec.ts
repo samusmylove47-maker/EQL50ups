@@ -125,13 +125,25 @@ test('search and filters narrow the catalog and can be undone', async ({ page })
   await page.waitForTimeout(400);
   expect(parse(await countText())).toBe(all);
 
-  // Unreleased content is hidden by default and can be revealed.
-  await page.locator('.checkline input').uncheck();
+  /*
+   * The unfiltered count is the whole catalog.
+   *
+   * There used to be a "Live content only" checkbox here, checked by default,
+   * and this test unchecked it and expected the count to rise. It cannot: the
+   * pipeline quarantines out-of-era content rather than shipping it for the UI
+   * to hide, so the control was removed. What is asserted instead is the fact
+   * that made it pointless — no control on this screen holds anything back, so
+   * clearing every filter reaches every shipped row.
+   */
+  await page.locator('select[aria-label="Filter by era"]').selectOption('Classic');
   await page.waitForTimeout(600);
-  expect(parse(await countText())).toBeGreaterThan(all);
-  await page.locator('.checkline input').check();
+  const classic = parse(await countText());
+  expect(classic).toBeGreaterThan(0);
+  expect(classic).toBeLessThan(all);
+  await page.locator('select[aria-label="Filter by era"]').selectOption('any');
   await page.waitForTimeout(600);
   expect(parse(await countText())).toBe(all);
+  await expect(page.locator('.checkline')).toHaveCount(0);
   await expectNoHorizontalScroll(page);
 });
 
@@ -156,7 +168,7 @@ test('the scoring profile and the +N preview change the numbers', async ({ page 
 });
 
 test('every item in the catalog is reachable, and rows open a detail window', async ({ page }) => {
-  // Regression: the browser rendered the first 250 of 5,848 matches with no
+  // Regression: the browser rendered the first 250 of its matches with no
   // pagination and inert `<tr>`s, so items 251+ could not be reached at all
   // and no row could be clicked.
   await open(page);
@@ -202,7 +214,7 @@ test('the row stays a row: six columns, scoped headers, a caption that follows t
    * `role="button"` removed the row from the table structure and orphaned its
    * six `<td>`s; `aria-label` on a button then *replaces* its contents as the
    * accessible name. Between them, the screen that exists to expose SLOT /
-   * CLASSES / STATS / ERA / EP across 5,861 items announced exactly one thing
+   * CLASSES / STATS / ERA / EP across 3,533 items announced exactly one thing
    * per row, for three consecutive reviews.
    */
   const semantics = await page.evaluate(() => {
@@ -233,11 +245,11 @@ test('the row stays a row: six columns, scoped headers, a caption that follows t
   await expect(page.locator('table.data tbody tr').first().locator('td button')).toHaveCount(1);
 
   // A caption is the table's accessible name, and the filters are the only
-  // thing that separates "5,861 items" from "94 items".
+  // thing that separates "3,533 items" from "94 items".
   const caption = page.locator('table.data caption');
   await expect(caption).toHaveCount(1);
   await expect(caption).toHaveClass(/sr-only/);
-  await expect(caption).toContainText(/any slot, any class, any era, live content only/i);
+  await expect(caption).toContainText(/any slot, any class, any era/i);
   await expect(caption).toContainText(/sorted by ep, descending/i);
 
   await page.locator('select[aria-label="Filter by slot"]').selectOption('HEAD');

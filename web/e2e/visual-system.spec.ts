@@ -12,8 +12,14 @@ import { createCharacter, expect, openSlotPicker, test } from './helpers';
 const TYPE_SCALE = ['10px', '11px', '13px', '15px', '20px', '30px', '44px'];
 const WEIGHTS = ['400', '600', '800'];
 
-const ACCENT = 'rgb(59, 159, 232)';
-const USABLE = 'rgb(78, 192, 106)';
+/*
+ * The palette, as `styles/tokens.css` declares it after the eqlsource re-skin
+ * (`research/DESIGN-EQLSOURCE.md`). Azure #3b9fe8 became the doc's steel blue
+ * and the client's usable-item green became its sage; both still do exactly the
+ * jobs asserted below, which is why these are constants rather than deletions.
+ */
+const ACCENT = 'rgb(117, 149, 184)';
+const USABLE = 'rgb(143, 174, 130)';
 
 async function filledSet(page: import('@playwright/test').Page): Promise<void> {
   page.on('dialog', (d) => d.accept());
@@ -179,7 +185,7 @@ test('every rendered size and weight comes off the declared scale — on all thr
  * that ancestor — a row scrolled halfway out of a list is not this bug.
  */
 const RING_PROBE = `(() => {
-  const ACCENT = 'rgb(59, 159, 232)';
+  const ACCENT = 'rgb(117, 149, 184)';
   const el = document.activeElement;
   if (!el || el === document.body) return null;
   const cs = getComputedStyle(el);
@@ -334,8 +340,9 @@ test('the stat sheet disclosure rings on all four edges, open and closed', async
         const ctx = canvas.getContext('2d')!;
         ctx.drawImage(img, 0, 0);
         const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        // The steel blue of `--accent`, per channel, with the same ±40 slack.
         const accent = (i: number) =>
-          Math.abs(data[i]! - 59) < 40 && Math.abs(data[i + 1]! - 159) < 40 && Math.abs(data[i + 2]! - 232) < 40;
+          Math.abs(data[i]! - 117) < 40 && Math.abs(data[i + 1]! - 149) < 40 && Math.abs(data[i + 2]! - 184) < 40;
         const out = { top: 0, bottom: 0, left: 0, right: 0 };
         for (let y = 0; y < canvas.height; y += 1) {
           for (let x = 0; x < canvas.width; x += 1) {

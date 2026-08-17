@@ -2,11 +2,15 @@
 
 /* =============================================================================
    EQL Upgrades — stylesheet
-   Dark theme only, per UI-REFERENCE §A6: near-black grounds, one azure accent,
-   amber for era/phase labels, uppercase condensed titles, letter-spaced grey
-   section labels, pill buttons, thin rules between stat columns.
+   Dark theme only, per UI-REFERENCE §A6 as re-skinned to eqlsource.com
+   (`research/DESIGN-EQLSOURCE.md`): warm brown-black grounds, one steel-blue
+   accent, amber for era/phase labels, four type roles, letter-spaced mono
+   section labels, 2px corners, thin rules between stat columns. Nothing glows
+   and nothing gradients — the two exceptions are the `<select>` arrow, which is
+   an icon drawn in CSS, and §21's item window, which is meant to look as though
+   it came out of the game rather than out of this stylesheet.
 
-   Every colour, space and size in this file resolves to a token from
+   Every colour, space, size and face in this file resolves to a token from
    `styles/tokens.css`. The block below is an alias layer only: it maps the
    names this sheet grew up with onto the tokens, so there is exactly one
    palette and changing it changes the whole app.
@@ -45,6 +49,15 @@
 
   --shadow: var(--shadow-modal);
 
+  /*
+   * The four type roles, under the short names this sheet uses. `--serif` is
+   * the display face (section titles, the wordmark, a character's name);
+   * `--condensed` is the heavy narrow face for card and panel headings;
+   * `--sans` is the reading face; `--mono` carries labels, eyebrows, nav and
+   * every number. Nothing in this file may name a family directly.
+   */
+  --serif: var(--font-display);
+  --condensed: var(--font-heading);
   --sans: var(--font);
   --mono: var(--font-num);
 
@@ -71,7 +84,13 @@ body {
   color: var(--text);
   font-family: var(--sans);
   font-size: var(--fs-body);
-  line-height: 1.45;
+  /*
+   * 1.55, not 1.45. The doc asks for ~1.65 on a magazine measure; this sheet's
+   * running text mostly lives in table rows and slot lines that are on a fixed
+   * pitch, so the prose surfaces (`.hero p`, `.feature p`, `.showcase-note`,
+   * notices) take the generous value and the dense ones keep their own.
+   */
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -119,7 +138,7 @@ ul {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: var(--radius);
 }
 
 ::selection {
@@ -128,12 +147,18 @@ ul {
 
 /* --- 3. Typography helpers ---------------------------------------------- */
 
+/*
+ * The display serif, uppercase — the doc's section-title role. It used to be
+ * the same system-ui stack as everything else, condensed by `font-stretch` to
+ * suggest a face the page did not have; there is a real one now, so the fake
+ * is gone.
+ */
 .page-title {
+  font-family: var(--serif);
   font-size: var(--fs-title);
   font-weight: var(--fw-num);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--track-display);
   text-transform: uppercase;
-  font-stretch: 87.5%;
   color: var(--text-strong);
   /*
     Player-supplied names go here, and a name has no spaces to wrap at if the
@@ -158,7 +183,14 @@ ul {
   overflow-wrap: anywhere;
 }
 
+/*
+ * The eyebrow role: mono, uppercase, tracked, quiet. The doc's card eyebrow
+ * (`TIER M · STRONGEST`) is exactly this shape, and it is what the app's forty
+ * section labels, slot labels, table headers and tags have always been trying
+ * to be.
+ */
 .section-label {
+  font-family: var(--mono);
   font-size: var(--fs-small);
   font-weight: var(--fw-emph);
   letter-spacing: var(--label-spacing);
@@ -167,6 +199,7 @@ ul {
 }
 
 .era-label {
+  font-family: var(--mono);
   font-size: var(--fs-micro);
   font-weight: var(--fw-emph);
   letter-spacing: var(--label-spacing);
@@ -218,21 +251,31 @@ ul {
   border-bottom: 1px solid var(--line);
 }
 
+/*
+ * The wordmark: display serif, uppercase, wide tracking — the doc's treatment
+ * of `EQL SOURCE`, applied to `EQL Upgrades` so the two read as siblings.
+ *
+ * The second word used to be azure, which was a sixth job for a colour granted
+ * exactly five (§A6) and the loudest thing in the bar. The distinction is now
+ * made the way the rest of the page makes it, with lightness: `EQL` cream,
+ * `Upgrades` quiet.
+ */
 .brand {
   display: flex;
   align-items: center;
   gap: var(--s2);
+  font-family: var(--serif);
   color: var(--text-strong);
-  font-weight: var(--fw-num);
-  letter-spacing: 0.09em;
+  font-weight: var(--fw-emph);
+  letter-spacing: var(--track-display);
   text-transform: uppercase;
-  font-size: var(--fs-body);
+  font-size: var(--fs-mid);
   flex: none;
   min-width: 0;
 }
 
 .brand em {
-  color: var(--accent);
+  color: var(--text-dim);
   font-style: normal;
 }
 
@@ -274,10 +317,12 @@ ul {
   display: flex;
   align-items: center;
   padding: 0 var(--s3);
+  /* Nav is mono, uppercase, widely tracked and muted — the doc's nav role. */
+  font-family: var(--mono);
   color: var(--text-dim);
   font-size: var(--fs-small);
-  font-weight: var(--fw-emph);
-  letter-spacing: var(--label-spacing);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--track-nav);
   text-transform: uppercase;
   white-space: nowrap;
   min-width: 0;
@@ -299,15 +344,16 @@ ul {
   bottom: 0;
   height: 2px;
   background: var(--accent);
-  border-radius: 2px 2px 0 0;
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
+/* Wide gutters and a generous top: the doc's layout is air first. */
 .page {
   flex: 1;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--s5) var(--gutter) var(--s7);
+  padding: var(--s6) var(--gutter) var(--s7);
 }
 
 .page-head {
@@ -343,7 +389,14 @@ ul {
   color: var(--text-dim);
   font-size: var(--fs-small);
   font-weight: var(--fw-emph);
-  letter-spacing: 0.07em;
+  /*
+   * Deliberately NOT mono. Buttons are actions rather than labels, and mono at
+   * this size is ~10% wider on a control that already carries
+   * `white-space: nowrap` and `overflow: hidden` — the phone widths would clip
+   * their own verbs. The uppercase tracking gives it the label's rhythm on the
+   * reading face.
+   */
+  letter-spacing: var(--track-display);
   text-transform: uppercase;
   cursor: pointer;
   transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
@@ -357,7 +410,7 @@ ul {
 }
 
 .btn:disabled {
-  opacity: 0.42;
+  opacity: var(--opacity-disabled);
   cursor: not-allowed;
 }
 
@@ -421,9 +474,10 @@ ul {
 }
 
 .field > span {
+  font-family: var(--mono);
   font-size: var(--fs-micro);
   font-weight: var(--fw-emph);
-  letter-spacing: 0.16em;
+  letter-spacing: var(--track-nav);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -454,7 +508,7 @@ input::placeholder {
  * input, search box and checkbox therefore focused at **1.24:1** against WCAG
  * 2.2 SC 2.4.13's 3:1, and the two 13px picker checkboxes, having no border to
  * fall back on, showed nothing at all. Matching the pseudo-class means both
- * rules apply and the solid 3b9fe8 ring in tokens.css wins on order.
+ * rules apply and the solid `--accent` ring in tokens.css wins on order.
  */
 input:focus-visible,
 select:focus-visible,
@@ -557,7 +611,12 @@ select {
   margin-bottom: 0;
   border-left-color: var(--accent);
   background: var(--bg-panel-raised);
-  box-shadow: 0 8px 28px rgb(0 0 0 / 45%);
+  /*
+   * The app's second elevation step, from the token file. This used to be its
+   * own literal recipe, so the one floating surface in the app was the one
+   * surface a re-skin could not reach.
+   */
+  box-shadow: var(--shadow-raised);
 }
 
 .notice-toast .grow {
@@ -579,8 +638,9 @@ select {
   border-left-color: var(--bad);
 }
 
+/* Bold runs read brighter, not heavier — the doc's emphasis value. */
 .notice strong {
-  color: var(--text);
+  color: var(--text-emph);
 }
 
 .empty-state {
@@ -593,10 +653,12 @@ select {
 }
 
 .empty-state h2 {
-  color: var(--text);
-  font-size: var(--fs-mid);
+  font-family: var(--serif);
+  color: var(--text-strong);
+  font-size: var(--fs-large);
+  font-weight: var(--fw-emph);
   margin-bottom: var(--s2);
-  letter-spacing: 0.05em;
+  letter-spacing: var(--track-display);
   text-transform: uppercase;
 }
 
@@ -624,22 +686,26 @@ select {
   padding-bottom: var(--s4);
 }
 
+/*
+ * Flat, not lit. The three monogram discs in the app carried a radial gradient
+ * apiece; the doc's whole character is "nothing glows, nothing gradients", and
+ * a lit sphere is the single most gamer-looking shape a page can have. The
+ * circle survives — it is geometry, not decoration — and the monogram is set
+ * in the display serif, so a portrait reads as an initial rather than a chip.
+ */
 .portrait {
   width: 46px;
   height: 46px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: radial-gradient(
-    circle at 30% 25%,
-    var(--bg-hover),
-    var(--bg-inset)
-  );
+  background: var(--bg-inset);
   border: 1px solid var(--line-strong);
+  font-family: var(--serif);
   color: var(--text-dim);
-  font-weight: var(--fw-num);
+  font-weight: var(--fw-emph);
   font-size: var(--fs-mid);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--track-display);
   flex: none;
 }
 
@@ -649,18 +715,23 @@ select {
   font-size: var(--fs-body);
 }
 
+/* A character's name is the page's title, so it takes the display serif. */
 .identity h1 {
+  font-family: var(--serif);
+  color: var(--text-strong);
   font-size: var(--fs-title);
   font-weight: var(--fw-body);
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   line-height: 1.15;
 }
 
+/* `50 BRD/WAR/BER` is a data line, not prose: mono. */
 .identity .sub {
+  font-family: var(--mono);
   color: var(--muted);
   font-size: var(--fs-body);
-  letter-spacing: 0.06em;
-  font-weight: var(--fw-emph);
+  letter-spacing: var(--track-display);
+  font-weight: var(--fw-body);
 }
 
 .vrule {
@@ -681,11 +752,7 @@ select {
   height: 30px;
   border-radius: 50%;
   border: 1px solid var(--line-strong);
-  background: radial-gradient(
-    circle at 35% 30%,
-    var(--bg-hover),
-    var(--bg-inset)
-  );
+  background: var(--bg-inset);
   display: grid;
   place-items: center;
   color: var(--text-dim);
@@ -710,9 +777,13 @@ select {
   background: var(--panel);
 }
 
+/* A set name is a panel heading: the heavy condensed face, player's own case. */
 .set-switch .name {
+  font-family: var(--condensed);
   font-size: var(--fs-mid);
-  font-weight: var(--fw-emph);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-heading);
+  color: var(--text-strong);
 }
 
 /* The rule and the spacing belong to the bar; the tablist inside it holds
@@ -733,15 +804,17 @@ select {
   flex-wrap: wrap;
 }
 
+/* Tabs are navigation, so they share the nav's mono. */
 .tab {
   position: relative;
   background: none;
   border: 0;
   padding: var(--s3) var(--s4);
+  font-family: var(--mono);
   color: var(--muted);
   font-size: var(--fs-small);
-  font-weight: var(--fw-emph);
-  letter-spacing: 0.14em;
+  font-weight: var(--fw-body);
+  letter-spacing: var(--track-nav);
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -762,7 +835,7 @@ select {
   bottom: -1px;
   height: 2px;
   background: var(--accent);
-  border-radius: 2px 2px 0 0;
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
 .tab-actions {
@@ -891,7 +964,7 @@ select {
 .slot.empty .slot-name {
   color: var(--text-dim);
   font-size: var(--fs-body);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--track-heading);
   text-transform: none;
   font-weight: var(--fw-body);
 }
@@ -961,11 +1034,13 @@ select {
  */
 .slot-name {
   display: block;
+  font-family: var(--mono);
   font-size: var(--fs-small);
   line-height: 1.25;
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   color: var(--text-dim);
+  /* Kept at emphasis weight: the label has to out-read the stat line under it. */
   font-weight: var(--fw-emph);
 }
 
@@ -973,11 +1048,11 @@ select {
   display: inline-block;
   margin-left: var(--s1);
   padding: 0 var(--s1);
-  border-radius: 2px;
+  border-radius: var(--radius);
   border: 1px solid var(--line-strong);
   color: var(--text-dim);
   font-size: var(--fs-micro);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--label-spacing);
 }
 
 /*
@@ -1037,12 +1112,18 @@ select {
   display: flex;
   flex-direction: column;
   gap: var(--s3);
+  /*
+   * `--s4`, not `--card-pad`. The centre column is a fixed 302px track and the
+   * map inside it is five 48px cells plus four 4px gaps = 256px; 24px of
+   * padding a side would put the panel's content box at 254px and squeeze the
+   * grid. This is the one card in the app that cannot take the doc's wider
+   * padding, and the reason is arithmetic rather than taste.
+   */
   padding: var(--s4);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background:
-    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--text-strong) 4%, transparent), transparent 70%),
-    var(--bg-panel);
+  /* Flat. The radial highlight along the top edge was the doc's "nothing gradients". */
+  background: var(--bg-panel);
 }
 
 /*
@@ -1118,9 +1199,14 @@ select {
     Filled has to be *visible* at a glance: the whole point of the map is
     answering "what is still empty". At --bg-panel-raised the filled and empty
     tiles measured 1.13:1 apart, so a 23/23 set and a 0/23 set looked alike.
+
+    This was the only raw hex in 4,500 lines of CSS — a lightness step invented
+    on the spot while `--bg-active` sat in the token file unused, defined for
+    exactly this. It is the token now, and the token is documented as carrying
+    this job. Measures 1.41:1 against `--bg-inset`, up from the literal's 1.24.
   */
   border-color: var(--line-strong);
-  background: #23262b;
+  background: var(--bg-active);
 }
 
 .figure-cell.on .slot-glyph {
@@ -1151,9 +1237,10 @@ select {
   right: 1px;
   bottom: 1px;
   padding: 0 var(--s0);
-  border-radius: 2px;
+  border-radius: var(--radius);
   background: var(--bg-page);
   color: var(--tier-0);
+  font-family: var(--mono);
   font-size: var(--fs-micro);
   font-weight: var(--fw-num);
   line-height: 1.4;
@@ -1168,7 +1255,7 @@ select {
 
 .figure-meter-bar {
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--radius);
   background: var(--bg-inset);
   overflow: hidden;
 }
@@ -1192,6 +1279,7 @@ select {
   justify-content: space-between;
   gap: 0 var(--s2);
   min-width: 0;
+  font-family: var(--mono);
   font-size: var(--fs-small);
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
@@ -1255,9 +1343,10 @@ select {
   display: grid;
   place-items: center;
   padding: 0 var(--s1);
+  font-family: var(--mono);
   font-size: var(--fs-small);
   font-weight: var(--fw-num);
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   color: var(--tier-0);
   background: color-mix(in srgb, currentColor 12%, var(--bg-panel-raised));
   border-left: 1px solid var(--line);
@@ -1359,9 +1448,10 @@ select {
   border-left: 1px solid var(--line);
   background: transparent;
   color: var(--tier-0);
+  font-family: var(--mono);
   font-size: var(--fs-small);
   font-weight: var(--fw-num);
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   display: grid;
@@ -1402,6 +1492,7 @@ select {
   align-items: center;
   gap: var(--s2);
   min-width: 0;
+  font-family: var(--mono);
   font-size: var(--fs-small);
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -1519,7 +1610,11 @@ select {
   color: var(--muted);
 }
 
+/* Numbers are set in mono — the doc's role for them, and it is what makes a
+   column of 40 stat values line up on the decimal rather than merely on the
+   right edge. */
 .stat-row .v {
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   color: var(--good);
   font-weight: var(--fw-emph);
@@ -1600,6 +1695,7 @@ select {
 }
 
 .stat-row.vital .k {
+  font-family: var(--mono);
   font-size: var(--fs-micro);
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
@@ -1639,7 +1735,12 @@ select {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: color-mix(in srgb, black 66%, transparent);
+  /*
+   * `--shade`, not the bare `black` keyword. Every modal scrim in the app is
+   * this one line, and a CSS keyword is the one value in a stylesheet that a
+   * token file can never reach.
+   */
+  background: color-mix(in srgb, var(--shade) 72%, transparent);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -1651,7 +1752,7 @@ select {
   width: min(980px, 100%);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
@@ -1673,10 +1774,13 @@ select {
   border-bottom: 0;
 }
 
+/* A dialog title is a panel heading: heavy condensed, uppercase, cream. */
 .modal-head h2 {
-  font-size: var(--fs-body);
+  font-family: var(--condensed);
+  color: var(--text-strong);
+  font-size: var(--fs-mid);
   font-weight: var(--fw-num);
-  letter-spacing: 0.13em;
+  letter-spacing: var(--track-heading);
   text-transform: uppercase;
 }
 
@@ -1704,15 +1808,6 @@ select {
 
 .picker-controls input[type='search'] {
   flex: 1 1 240px;
-}
-
-/* Both checkboxes travel together, so the second cannot orphan itself on a
-   row of its own at the far left. */
-.checkgroup {
-  display: flex;
-  align-items: center;
-  gap: var(--s4);
-  flex-wrap: wrap;
 }
 
 .picker-meta {
@@ -1788,7 +1883,7 @@ select {
   width: 24px;
   height: 24px;
   flex: none;
-  border-radius: 3px;
+  border-radius: var(--radius);
   border: 1px solid var(--line);
   background: var(--bg-inset);
 }
@@ -1810,6 +1905,13 @@ select {
   stroke: var(--ink-quiet);
 }
 
+/*
+ * Left on the reading face on purpose, along with `.slot-stats`. These are the
+ * two dense stat lines in the app: both truncate, both are the width-critical
+ * element of their row, and mono is ~10% wider per glyph. Numbers get the mono
+ * where a number stands alone — a vitals tile, a score, a tier chip, a table's
+ * numeric column — not where forty of them are strung into one clipped line.
+ */
 .result-line {
   display: block;
   font-size: var(--fs-small);
@@ -1856,19 +1958,20 @@ select {
 .result-deltas .good::before,
 .result-score .d.good::before {
   content: '\25B2\00a0';
-  font-size: 0.72em;
+  font-size: var(--fs-glyph);
   vertical-align: 0.1em;
 }
 
 .result-deltas .bad::before,
 .result-score .d.bad::before {
   content: '\25BC\00a0';
-  font-size: 0.72em;
+  font-size: var(--fs-glyph);
   vertical-align: 0.1em;
 }
 
 .result-score {
   text-align: right;
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1882,26 +1985,30 @@ select {
   font-size: var(--fs-small);
 }
 
+/* A tag is an eyebrow in a box: same face, same tracking, same case. */
 .tag {
   display: inline-block;
   padding: 1px var(--s2);
-  border-radius: 3px;
+  border-radius: var(--radius);
   border: 1px solid var(--line);
   background: var(--panel-2);
   color: var(--muted);
+  font-family: var(--mono);
   font-size: var(--fs-micro);
-  font-weight: var(--fw-emph);
-  letter-spacing: 0.1em;
+  font-weight: var(--fw-body);
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
 }
 
 /*
- * Amber marks the era worth *noticing*, not every era.
+ * Amber marks what is worth *noticing*, not every fact in the row.
  *
  * `CLASSIC` appeared on 10 of 12 rows as a loud outlined amber chip — the exact
- * mistake `ERA UNKNOWN` used to make, one step along. The era now reads as an
- * ordinary tag and amber is spent on content that is not live yet, which is the
- * one era fact that changes what you can do.
+ * mistake `ERA UNKNOWN` used to make, one step along. The era reads as an
+ * ordinary tag, and the amber is spent on the one thing that changes how you
+ * are allowed to read the row: `NO STAT DATA`, an item the game has that no
+ * source carries numbers for. It is the sole `.tag-locked` left. The other one,
+ * `NOT LIVE`, went with the era gate — nothing out of era ships to wear it.
  */
 .tag-era {
   color: var(--text-dim);
@@ -1985,24 +2092,26 @@ select {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: radial-gradient(
-    circle at 32% 28%,
-    var(--bg-hover),
-    var(--bg-inset)
-  );
+  background: var(--bg-inset);
   border: 1px solid var(--line);
+  font-family: var(--mono);
   font-weight: var(--fw-num);
   font-size: var(--fs-body);
-  letter-spacing: 0.03em;
+  letter-spacing: var(--track-heading);
   color: var(--text-dim);
   transition: box-shadow 0.14s ease, border-color 0.14s ease, color 0.14s ease;
 }
 
+/*
+ * A ring, not a lamp. The selected orb used to carry a 16px accent glow on top
+ * of its ring — the one genuinely glowing object in the app, on a page the doc
+ * describes as "nothing glows". The 3px ghost ring alone is the selection, and
+ * it is still the loudest thing in the grid.
+ */
 .class-chip[aria-pressed='true'] .class-orb {
   border-color: var(--accent);
   color: var(--accent-hot);
-  box-shadow: 0 0 0 3px var(--accent-ghost),
-    0 0 16px color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: 0 0 0 3px var(--accent-ghost);
 }
 
 .class-chip[aria-pressed='true'] {
@@ -2017,12 +2126,13 @@ select {
 .class-chip .cname {
   font-size: var(--fs-small);
   line-height: 1.25;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--track-display);
   text-align: center;
   min-height: 2.5em;
 }
 
 .class-chip .order {
+  font-family: var(--mono);
   font-size: var(--fs-micro);
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
@@ -2037,7 +2147,7 @@ select {
  * answer a fourth pick instead of ignoring it.
  */
 .class-chip:disabled {
-  opacity: 0.4;
+  opacity: var(--opacity-disabled);
   pointer-events: none;
 }
 
@@ -2071,6 +2181,7 @@ table.data th {
   padding: var(--s2) var(--s3);
   background: var(--panel-2);
   border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
   font-size: var(--fs-micro);
   font-weight: var(--fw-emph);
   letter-spacing: var(--label-spacing);
@@ -2176,22 +2287,35 @@ table.data tbody tr:hover {
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
-  gap: var(--s3);
+  /* The doc's grid gutter, ~24px — the same one the page uses at its edges. */
+  gap: var(--gutter);
 }
 
 .card {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  padding: var(--s4);
+  /* The doc's card: ~28px of internal padding, 1px border, 2px corners. */
+  padding: var(--card-pad);
   display: flex;
   flex-direction: column;
   gap: var(--s3);
 }
 
+/*
+ * The doc's card title — heavy condensed sans, tight, cream — but **not
+ * uppercased**, because what goes in here is a player's character name.
+ * `text-transform` is cosmetic only, so uppercasing it shows the reader
+ * something they did not type, and it made the same set read `SÉT ÑAME` in the
+ * editor and `Sét ñame` on its own share link. Uppercase is kept for headings
+ * the app itself wrote: `.feature h3`, `.modal-head h2`, `.empty-state h2`,
+ * `.page-title`, `.hero h1` and the landing sections.
+ */
 .card h3 {
+  font-family: var(--condensed);
   font-size: var(--fs-mid);
-  font-weight: var(--fw-emph);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-heading);
   color: var(--text-strong);
 }
 
@@ -2242,6 +2366,7 @@ table.data tbody tr:hover {
 }
 
 .set-line .meta {
+  font-family: var(--mono);
   font-size: var(--fs-small);
   color: var(--muted);
 }
@@ -2321,14 +2446,15 @@ table.data tbody tr:hover {
 }
 
 .socket.locked {
-  opacity: 0.55;
+  opacity: var(--opacity-quiet);
   border-style: dashed;
 }
 
 .socket .kind {
+  font-family: var(--mono);
   font-size: var(--fs-small);
   font-weight: var(--fw-emph);
-  letter-spacing: 0.1em;
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   color: var(--text-dim);
 }
@@ -2406,7 +2532,7 @@ table.data tbody tr:hover {
   text-align: left;
   background: none;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius);
   padding: var(--s2) var(--s3);
   color: var(--text-dim);
   font-size: var(--fs-body);
@@ -2548,26 +2674,33 @@ table.data tbody tr:hover {
   max-width: 70ch;
 }
 
+/*
+ * The page's one display line: serif, uppercase, high contrast — the doc's
+ * section-title treatment at hero size. The `font-stretch: 87.5%` that used to
+ * fake a condensed face out of system-ui is gone; there are real faces now.
+ */
 .hero h1 {
+  font-family: var(--serif);
   font-size: var(--fs-hero);
   line-height: 1.05;
   font-weight: var(--fw-num);
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-display);
   text-transform: uppercase;
-  font-stretch: 87.5%;
   color: var(--text-strong);
 }
 
-/* One azure, reserved for primary buttons, active tabs and selection rings. */
+/* One accent, reserved for primary buttons, active tabs and selection rings. */
 .hero h1 em {
   font-style: normal;
   color: var(--text-strong);
 }
 
+/* Prose measure and prose leading — the doc's ~1.65 on a generous measure. */
 .hero p {
   margin-top: var(--s4);
-  color: var(--text-dim);
+  color: var(--text);
   font-size: var(--fs-mid);
+  line-height: 1.65;
 }
 
 .hero-actions {
@@ -2581,12 +2714,10 @@ table.data tbody tr:hover {
   display: flex;
   flex-direction: column;
   gap: var(--s3);
-  padding: var(--s4);
+  padding: var(--card-pad);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background:
-    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--text-strong) 4%, transparent), transparent 70%),
-    var(--bg-panel);
+  background: var(--bg-panel);
 }
 
 .hero-art-head {
@@ -2597,6 +2728,7 @@ table.data tbody tr:hover {
 
 .hero-art-head b {
   display: block;
+  font-family: var(--serif);
   color: var(--text-strong);
   font-size: var(--fs-mid);
   font-weight: var(--fw-body);
@@ -2605,10 +2737,11 @@ table.data tbody tr:hover {
 .hero-art-head i {
   display: block;
   font-style: normal;
+  font-family: var(--mono);
   color: var(--text-dim);
   font-size: var(--fs-small);
-  letter-spacing: 0.06em;
-  font-weight: var(--fw-emph);
+  letter-spacing: var(--track-display);
+  font-weight: var(--fw-body);
 }
 
 .hero-art-note {
@@ -2631,30 +2764,52 @@ table.data tbody tr:hover {
 }
 
 .landing-section {
-  margin-top: var(--s6);
+  margin-top: var(--s7);
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
+}
+
+/*
+ * A section title, the way the doc sets one: display serif, uppercase, large,
+ * slightly tracked, sitting above its grid with air under it. Elsewhere in the
+ * app `.section-label` is the small mono eyebrow it has always been; on the
+ * landing page these three headings *are* the sections, so they are promoted
+ * here rather than given a second class name in the markup.
+ */
+.landing-section > .section-label {
+  font-family: var(--serif);
+  font-size: var(--fs-large);
+  font-weight: var(--fw-emph);
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  color: var(--text-strong);
 }
 
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--s3);
+  gap: var(--gutter);
 }
 
+/*
+ * The doc's card, exactly: 1px border, ~28px of padding, 2px corners. No top
+ * accent — the accent rule states a *source standing*, and a feature blurb has
+ * none to state. See `[data-standing]` in §23.
+ */
 .feature {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: var(--s4);
+  padding: var(--card-pad);
   background: var(--panel);
 }
 
 /* Declared, not inherited — see the note on `table.data th`. */
 .feature h3 {
-  font-size: var(--fs-small);
-  font-weight: var(--fw-emph);
-  letter-spacing: var(--label-spacing);
+  font-family: var(--condensed);
+  font-size: var(--fs-mid);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-heading);
   text-transform: uppercase;
   margin-bottom: var(--s2);
   color: var(--text-strong);
@@ -2662,7 +2817,8 @@ table.data tbody tr:hover {
 
 .feature p {
   font-size: var(--fs-body);
-  color: var(--text-dim);
+  line-height: 1.65;
+  color: var(--text);
 }
 
 .sr-only {
@@ -2812,16 +2968,18 @@ table.data tbody tr:hover {
   }
 
   .brand {
-    font-size: var(--fs-small);
+    font-size: var(--fs-body);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  /* Mono is wider than the reading face; the nav gives its tracking back
+     before it gives up a word. */
   .topbar nav a {
     padding: 0 var(--s2);
     font-size: var(--fs-micro);
-    letter-spacing: 0.06em;
+    letter-spacing: var(--track-display);
   }
 
   .figure-body {
@@ -2904,7 +3062,8 @@ table.data tbody tr:hover {
 }
 
 .exalt-summary strong {
-  color: var(--text);
+  color: var(--text-emph);
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -2925,9 +3084,10 @@ table.data tbody tr:hover {
 }
 
 .effect-kind {
+  font-family: var(--mono);
   font-size: var(--fs-small);
   font-weight: var(--fw-emph);
-  letter-spacing: 0.1em;
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -3006,9 +3166,10 @@ table.data tr.rowlink:focus-visible {
 
 .detail-grid div span {
   display: block;
+  font-family: var(--mono);
   color: var(--muted);
   font-size: var(--fs-small);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
 }
 
@@ -3043,6 +3204,17 @@ table.data tr.rowlink:focus-visible {
   font-weight: var(--fw-emph);
   font-size: var(--fs-body);
   overflow: hidden;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/*
+ * The truncating box. The ellipsis lives here rather than on `.exalt-row-name`
+ * because that is a flex container: its `text-overflow` applied to nothing, and
+ * the name cut off mid-word with no mark that anything was missing.
+ */
+.exalt-row-label {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
@@ -3052,9 +3224,26 @@ table.data tr.rowlink:focus-visible {
   text-align: right;
 }
 
+/*
+ * Below 860px the four cells fold into a 2×2 grid: slot name beside the item
+ * name, stepper beside the socket state.
+ *
+ * The flexible track has to be the **second** one, not the first. With
+ * `1fr auto` the item name sized its column to max-content while the stepper's
+ * `overflow: hidden` (§ `.stepper`) zeroed its own automatic minimum size — so
+ * on the longest names the name column ate the row and the stepper was handed
+ * 48px for 85px of buttons. The `+` was clipped clean out of the row and the
+ * tier could not be raised at all at 390px. Measured on `Black Sapphire
+ * Electrum Earring`: scrollWidth 85, clientWidth 48.
+ *
+ * `auto minmax(0, 1fr)` sizes column 1 to whichever of the slot name and the
+ * stepper is wider — neither of which can shrink usefully — and lets column 2
+ * absorb the shortfall, which is exactly what `.exalt-row-name`'s existing
+ * ellipsis is for. A truncated name still reads; a missing button does not.
+ */
 @media (max-width: 860px) {
   .exalt-row-head {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr);
   }
 
   .exalt-row-state {
@@ -3083,15 +3272,22 @@ table.data tr.rowlink:focus-visible {
  * numerics, cyan group headers, a red gradient title bar with the item name in
  * white, gold for currency-like values. This is the one artefact in the app
  * that is meant to look as though it came out of the game.
+ *
+ * It therefore keeps its bevel and its two gradients where the rest of the
+ * re-skin gives them up — but it no longer keeps its own *palette*. The bevel
+ * used to be mixed from `--bg-panel-raised` and `--warn` against the bare CSS
+ * keywords `white` and `black`, so half of it followed the token file and half
+ * of it could not, which is the worst of both. `--tint` and `--shade` are those
+ * two ends of the range, declared where everything else is declared.
  */
 
 .iwin {
-  --stone: color-mix(in srgb, var(--bg-panel-raised) 88%, var(--warn));
-  --stone-lit: color-mix(in srgb, var(--stone) 82%, white);
-  --stone-shade: color-mix(in srgb, var(--stone) 62%, black);
+  --stone: color-mix(in srgb, var(--bg-panel-raised) 88%, var(--client-gold));
+  --stone-lit: color-mix(in srgb, var(--stone) 82%, var(--tint));
+  --stone-shade: color-mix(in srgb, var(--stone) 62%, var(--shade));
   width: 100%;
   border: 1px solid var(--stone-shade);
-  border-radius: 3px;
+  border-radius: var(--radius);
   background: var(--stone);
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--stone-lit) 45%, transparent),
@@ -3105,18 +3301,18 @@ table.data tr.rowlink:focus-visible {
   padding: var(--s1) var(--s3);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--danger) 88%, white),
-    color-mix(in srgb, var(--danger) 66%, black)
+    color-mix(in srgb, var(--client-red) 88%, var(--tint)),
+    color-mix(in srgb, var(--client-red) 66%, var(--shade))
   );
   border-bottom: 1px solid var(--stone-shade);
-  text-shadow: 0 1px 1px rgb(0 0 0 / 0.45);
+  text-shadow: var(--shadow-text);
 }
 
 .iwin-title-name {
   color: var(--text-strong);
   font-size: var(--fs-body);
   font-weight: var(--fw-emph);
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-heading);
   overflow-wrap: anywhere;
 }
 
@@ -3141,9 +3337,9 @@ table.data tr.rowlink:focus-visible {
   display: grid;
   place-items: center;
   border: 1px solid var(--stone-shade);
-  border-radius: 2px;
+  border-radius: var(--radius);
   background: var(--bg-inset);
-  color: var(--warn);
+  color: var(--client-gold);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--stone-lit) 30%, transparent);
 }
 
@@ -3152,6 +3348,7 @@ table.data tr.rowlink:focus-visible {
 }
 
 .iwin-slots {
+  font-family: var(--mono);
   color: var(--text-strong);
   font-weight: var(--fw-emph);
   letter-spacing: var(--label-spacing);
@@ -3160,23 +3357,20 @@ table.data tr.rowlink:focus-visible {
 }
 
 .iwin-flags {
+  font-family: var(--mono);
   color: var(--text-dim);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--label-spacing);
   font-size: var(--fs-micro);
   text-transform: uppercase;
 }
 
 .iwin-era {
+  font-family: var(--mono);
   color: var(--warn);
   font-size: var(--fs-micro);
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   font-weight: var(--fw-emph);
-}
-
-.iwin-warn {
-  color: var(--warn);
-  font-size: var(--fs-micro);
 }
 
 .iwin-headline {
@@ -3187,28 +3381,30 @@ table.data tr.rowlink:focus-visible {
   border-top: 1px solid var(--stone-shade);
   border-bottom: 1px solid var(--stone-shade);
   background: color-mix(in srgb, var(--bg-inset) 55%, transparent);
+  font-family: var(--mono);
   color: var(--text-dim);
   font-size: var(--fs-micro);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--label-spacing);
   text-transform: uppercase;
 }
 
 .iwin-headline b,
 .iwin-stat b,
 .iwin-req span {
-  color: var(--gain);
+  color: var(--client-green);
   font-weight: var(--fw-emph);
   font-variant-numeric: tabular-nums;
 }
 
 .iwin-group {
   margin-top: var(--s1);
-  color: var(--accent-hot);
+  font-family: var(--mono);
+  color: var(--client-cyan);
   font-size: var(--fs-micro);
   font-weight: var(--fw-emph);
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--client-cyan) 26%, transparent);
   padding-bottom: var(--s0);
 }
 
@@ -3236,10 +3432,11 @@ table.data tr.rowlink:focus-visible {
 
 .iwin-effect i {
   font-style: normal;
-  color: var(--accent-hot);
+  color: var(--client-cyan);
+  font-family: var(--mono);
   text-transform: uppercase;
   font-size: var(--fs-micro);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--label-spacing);
   margin-right: var(--s1);
 }
 
@@ -3266,15 +3463,16 @@ table.data tr.rowlink:focus-visible {
 }
 
 .iwin-req .iwin-gold {
-  color: var(--warn);
+  color: var(--client-gold);
 }
 
 .iwin-req .iwin-bad {
-  color: var(--loss);
+  color: var(--client-red);
 }
 
 .iwin-verdict {
   margin-top: var(--s1);
+  font-family: var(--mono);
   font-size: var(--fs-micro);
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
@@ -3309,7 +3507,7 @@ table.data tr.rowlink:focus-visible {
   grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
   gap: var(--s6);
   align-items: center;
-  padding: var(--s5);
+  padding: var(--card-pad);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--bg-panel);
@@ -3321,11 +3519,12 @@ table.data tr.rowlink:focus-visible {
 
 .showcase-note {
   font-size: var(--fs-mid);
-  line-height: 1.55;
+  line-height: 1.65;
+  color: var(--text);
 }
 
 .showcase-note strong {
-  color: var(--text-strong);
+  color: var(--text-emph);
 }
 
 @media (max-width: 760px) {
@@ -3354,6 +3553,7 @@ table.data tr.rowlink:focus-visible {
   border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
   background: color-mix(in srgb, currentColor 12%, transparent);
   color: var(--tier-0);
+  font-family: var(--mono);
   font-size: var(--fs-small);
   font-weight: var(--fw-num);
   font-variant-numeric: tabular-nums;
@@ -3395,4 +3595,69 @@ table.data tr.rowlink:focus-visible {
 
 .iwin-unstatted p:last-child {
   margin-bottom: 0;
+}
+
+/* --- 23. Source standing -------------------------------------------------- */
+/*
+ * The eqlsource card device, adopted whole: **a 2px coloured rule on the top
+ * edge only**, stating how far the numbers under it are to be trusted. The
+ * colours and their meanings live in `styles/tokens.css` under "Source
+ * standing"; the hierarchy they encode is `research/SOURCING-STANDARD.md`,
+ * whose rule 5 is that "a player looking at a number is entitled to know
+ * whether it came from the game or from a wiki page of uncertain provenance".
+ *
+ * Three deliberate constraints:
+ *
+ *   1. **It is not decoration.** A surface may only take a standing when the
+ *      app already *knows* one from data it holds — never as a default and
+ *      never to make a card look finished. That is why `.card` and `.feature`
+ *      have no accent rule: a character card and a feature blurb have no
+ *      source to state, and painting one on would be exactly the inference the
+ *      standard forbids.
+ *   2. **Red is spent once**, on the one state the standard says to distrust.
+ *   3. It rides the top edge and nothing else, so it never competes with the
+ *      left rules `.notice` and `.effect-entry` already use for callouts.
+ *
+ * Today one surface carries it: the item window, which is the only place in
+ * the app that prints an individual item's numbers. `ItemWindow.tsx` sets
+ * `data-standing` from facts already in the catalog and nothing inferred —
+ * see the note there. Applying it to item rows or stat rows later is a
+ * `data-standing` attribute, not a refactor.
+ */
+
+[data-standing] {
+  border-top: 2px solid var(--line-strong);
+}
+
+[data-standing='trusted'] {
+  border-top-color: var(--source-trusted);
+}
+
+[data-standing='corroborating'] {
+  border-top-color: var(--source-corroborating);
+}
+
+[data-standing='distrust'] {
+  border-top-color: var(--source-distrust);
+}
+
+/*
+ * The eyebrow that names it: mono, uppercase, widely tracked, with `·` as the
+ * separator — the doc's `TIER M · STRONGEST`.
+ *
+ * **The rule carries the colour and the eyebrow carries the words**, which is
+ * how the doc has it: its colour table gives the tier accents to the top edge
+ * and lists the eyebrow only under "muted / eyebrow / nav". Tinting the words
+ * as well was tried and abandoned — the item window's stone is the lightest
+ * ground in the app, and a 10px brick eyebrow measured 3.68:1 on it, which is
+ * a caption nobody with ordinary eyesight should have to lean into. The two
+ * standings are already told apart by what they say.
+ */
+.standing-label {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--text-emph);
 }

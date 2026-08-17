@@ -98,9 +98,15 @@ does not:
   scattered single pieces or nothing for the other eleven. That is a gap in the
   catalog, not proof the gear does not exist — see
   `research/validation/TIER0-PLAYER-REPORTS.md`.
-- **Some content is era-gated that may be obtainable.** The list of Kunark and
-  Velious items released early was never recovered upstream; items observed in a
-  live inventory are un-gated by name, and the rest stay hidden behind a toggle.
+- **Some quarantined content may be obtainable.** The catalog ships only
+  pre-Kunark content plus what a live client export proves, because the wiki it
+  is built from is partly a Project 1999 import and carries the whole
+  original-EverQuest corpus. EQL's own list of Kunark and Velious items released
+  early was never recovered upstream, so items the live inventory names ship by
+  name — thirteen Kunark items do — and the remaining 7,719 records are
+  quarantined out of the build rather than shipped and hidden. Some of those are
+  probably in the game. They come back the moment a Tier 0 or Tier 1 source says
+  so; they are named in `pipeline/quarantine.json` for exactly that.
 - **Exaltation effects are listed, not scored.** The catalog publishes names and
   prose, no numbers. Inventing values was rejected.
 - **Heroic, Spell and Skill-damage mods read 0** — the live client shows the same
@@ -110,10 +116,17 @@ does not:
 
 ## Data
 
-11,252 items, ~850 KiB gzipped, built by `pipeline/build.mjs` from community
+3,533 items, ~290 KiB gzipped, built by `pipeline/build.mjs` from community
 wiki scrapes pinned to specific commits, plus a small, fully enumerated set of
 Tier 0 corrections where the running game contradicts the wiki. Coverage against
 a real inventory export: **97.3%**.
+
+The raw scrape holds 11,252 items. 7,719 of them are content from expansions
+this game does not have, or carry no era at all, and are quarantined into
+`pipeline/quarantine.json` rather than shipped — see `research/SOURCING-STANDARD.md`.
+What ships is pre-Kunark content, plus every item the player's own client export
+proves, plus the player-confirmed Shadow Rage set. Era-less is treated as
+unconfirmed, not presumed classic.
 
 Item data derives from the **EverQuest Legends Wiki**, used under **CC BY-SA
 4.0**; derived data is shared alike. EverQuest is a trademark of Daybreak Game

@@ -180,7 +180,7 @@ export function Characters() {
                 </div>
               </div>
 
-              <ul className="stack" style={{ gap: 6 }}>
+              <ul className="stack" style={{ gap: 'var(--s2)' }}>
                 {sets.map((gearSet, index) => (
                   <li className="set-line" key={gearSet.id}>
                     <div className="grow">

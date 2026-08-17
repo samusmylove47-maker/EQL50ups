@@ -139,9 +139,9 @@ export function indexItems(items: Item[]): CatalogIndex {
  *
  * A shard replaces index-level records with richer ones for a single slot, but
  * the previous implementation re-ran the full `indexItems` over the whole
- * catalog each time — rebuilding all nineteen buckets across 11,249 items on
- * every shard load, eighteen times over a session. That was the largest single
- * block left on opening a slot picker.
+ * catalog each time — rebuilding all nineteen buckets across every one of the
+ * 3,533 items on every shard load, eighteen times over a session. That was the
+ * largest single block left on opening a slot picker.
  *
  * Only the buckets an incoming item can appear in are rebuilt: the slots it
  * claims, plus the slots of whatever record it displaces, in case the two
@@ -283,7 +283,7 @@ function commitShards(
 
   // One merge over the concatenation rather than one per shard: `mergeItems`
   // builds a name→index map of the whole catalog before it starts, so calling
-  // it nineteen times built that map nineteen times over 11,249 items. Merging
+  // it nineteen times built that map nineteen times over 3,533 items. Merging
   // the shards in order gives the same result, because a later shard still
   // lands on whatever an earlier one already merged — and it de-duplicates
   // within the batch, which matters here because an item can ship in two

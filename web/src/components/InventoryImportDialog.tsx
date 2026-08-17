@@ -285,7 +285,9 @@ export function InventoryImportDialog({
                               </span>
                             ) : null}
                           </td>
-                          <td className="num invimport-tier">+{row.tier}</td>
+                          <td className="num invimport-tier" data-tier={row.tier}>
+                            +{row.tier}
+                          </td>
                           <td className="invimport-donors">
                             {(donors.get(row.positionId) ?? [])
                               .map((d) => `${d.socketLabel.replace(' Exaltation', '')}: ${d.donorName}`)

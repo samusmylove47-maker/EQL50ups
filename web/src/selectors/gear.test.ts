@@ -164,7 +164,6 @@ describe('ranking', () => {
       context: WARRIOR_CTX,
       weights: { AC: 2, STA: 1 },
       upgrade: tier(0),
-      includeUnreleased: false,
     });
     expect(ranked.length).toBeGreaterThan(0);
     const scores = ranked.map((r) => r.score);
@@ -178,36 +177,51 @@ describe('ranking', () => {
       context: WARRIOR_CTX,
       weights: { AC: 1, INT: 1 },
       upgrade: tier(0),
-      includeUnreleased: false,
     });
     const caster = rankSlotItems(catalog(), {
       slot: 'HEAD',
       context: CASTER_CTX,
       weights: { AC: 1, INT: 1 },
       upgrade: tier(0),
-      includeUnreleased: false,
     });
     expect(warrior.map((r) => r.item.n)).not.toContain('[Fixture] Silk Cowl');
     expect(caster.map((r) => r.item.n)).toContain('[Fixture] Silk Cowl');
   });
 
-  it('hides content that is not live unless asked', () => {
-    const live = rankSlotItems(catalog(), {
+  /*
+   * There is no era gate in the ranking, and re-adding one would be a defect.
+   *
+   * `rankSlotItems` used to take an `includeUnreleased` flag and drop anything
+   * `isLive()` refused — a record marked `av: false`, or an era past Sky. The
+   * pipeline now quarantines that content out of the build instead of shipping
+   * it for the UI to hide, so the flag had nothing left to exclude. This pins
+   * the rule that replaced it: eligibility is class, race, level and having
+   * stats, and an era field on its own can never remove a row.
+   */
+  it('gates on class and stats, never on era', () => {
+    const base = catalog();
+    const sword = base.byName.get('[fixture] bronze longsword') as Item;
+    // Exactly the shape the old gate excluded: past Sky, and flagged unavailable.
+    const outOfEra: Item = { ...sword, n: '[Fixture] Blade of Tomorrow', era: 'Kunark', av: false };
+    const bySlot = new Map(base.bySlot);
+    bySlot.set('PRIMARY', [...(bySlot.get('PRIMARY') ?? []), outOfEra]);
+    const state: CatalogState = {
+      ...base,
+      items: [...base.items, outOfEra],
+      byName: new Map(base.byName).set(outOfEra.n.toLowerCase(), outOfEra),
+      bySlot,
+      // Every memoised selector keys off this; a warm cache would hide the
+      // very row under test.
+      revision: base.revision + 3000,
+    };
+
+    const ranked = rankSlotItems(state, {
       slot: 'PRIMARY',
       context: WARRIOR_CTX,
       weights: { RATIO: 20 },
       upgrade: tier(0),
-      includeUnreleased: false,
     });
-    const all = rankSlotItems(catalog(), {
-      slot: 'PRIMARY',
-      context: WARRIOR_CTX,
-      weights: { RATIO: 20 },
-      upgrade: tier(0),
-      includeUnreleased: true,
-    });
-    expect(live.map((r) => r.item.n)).not.toContain('[Fixture] Unreleased Blade of Tomorrow');
-    expect(all.map((r) => r.item.n)).toContain('[Fixture] Unreleased Blade of Tomorrow');
+    expect(ranked.map((r) => r.item.n)).toContain('[Fixture] Blade of Tomorrow');
   });
 
   it('offers wearable items to the EQL Any Slot positions', () => {
@@ -216,7 +230,6 @@ describe('ranking', () => {
       context: WARRIOR_CTX,
       weights: { AC: 1, HP: 0.2, CHA: 1 },
       upgrade: tier(0),
-      includeUnreleased: false,
     });
     expect(ranked.map((r) => r.item.n)).toContain('[Fixture] Charm of Anywhere');
     expect(ranked.map((r) => r.item.n)).toContain('[Fixture] Iron Helm');
@@ -228,14 +241,12 @@ describe('ranking', () => {
       context: CASTER_CTX,
       weights: { INT: 1 },
       upgrade: tier(0),
-      includeUnreleased: false,
     });
     const capped = rankSlotItems(catalog(), {
       slot: 'HEAD',
       context: CASTER_CTX,
       weights: { INT: 1 },
       upgrade: tier(0),
-      includeUnreleased: false,
       existing: {
         attributes: { INT: 510 },
         saves: {},
@@ -253,7 +264,6 @@ describe('ranking', () => {
       context: WARRIOR_CTX,
       weights: { AC: 1 },
       upgrade: tier(0),
-      includeUnreleased: false,
     };
     expect(rankSlotItems(catalog(), options)).toBe(rankSlotItems(catalog(), options));
   });
@@ -263,7 +273,6 @@ describe('auto-fill', () => {
   it('fills empty slots without wearing the same item twice', () => {
     const views = slotViews(gearSet(), catalog());
     const result = autoFill(catalog(), views, WARRIOR_CTX, { AC: 2, STR: 1, HP: 0.2, RATIO: 20 }, {
-      includeUnreleased: false,
       keepFilled: false,
       filters: DEFAULT_SET_FILTERS,
     });
@@ -279,7 +288,6 @@ describe('auto-fill', () => {
       catalog(),
     );
     const result = autoFill(catalog(), views, WARRIOR_CTX, { AC: 2 }, {
-      includeUnreleased: false,
       keepFilled: true,
       filters: DEFAULT_SET_FILTERS,
     });
@@ -289,7 +297,6 @@ describe('auto-fill', () => {
   it('places nothing when every weight is zero', () => {
     const views = slotViews(gearSet(), catalog());
     const result = autoFill(catalog(), views, WARRIOR_CTX, {}, {
-      includeUnreleased: false,
       keepFilled: false,
       filters: DEFAULT_SET_FILTERS,
     });
@@ -313,7 +320,6 @@ describe('auto-fill and the set default filters', () => {
   const WEIGHTS = { AC: 2, STR: 1, HP: 0.2, RATIO: 20 };
   const fill = (filters: SetFilters, keepFilled = false) =>
     autoFill(catalog(), slotViews(gearSet(), catalog()), WARRIOR_CTX, WEIGHTS, {
-      includeUnreleased: false,
       keepFilled,
       filters,
     });
@@ -393,7 +399,6 @@ describe('auto-fill and the set default filters', () => {
   it('changes nothing when the filters are the defaults', () => {
     const a = fill(DEFAULT_SET_FILTERS);
     const b = autoFill(catalog(), slotViews(gearSet(), catalog()), WARRIOR_CTX, WEIGHTS, {
-      includeUnreleased: false,
       keepFilled: false,
       filters: { era: 'any', source: 'any', hideNoDrop: false },
     });
@@ -443,22 +448,19 @@ describe('items with no stat data', () => {
     };
   }
 
-  it('never ranks one, at any tier, with or without the era filter', () => {
+  it('never ranks one, at any tier', () => {
     const state = withUnstattedHead();
-    for (const includeUnreleased of [true, false]) {
-      for (const at of [tier(0), tier(10)]) {
-        const ranked = rankSlotItems(state, {
-          slot: 'HEAD',
-          context: WARRIOR_CTX,
-          weights: { AC: 2, STR: 1, HP: 0.2 },
-          upgrade: at,
-          includeUnreleased,
-        });
-        expect(ranked.some((row) => row.item.n === '[Fixture] Unrecorded Helm')).toBe(false);
-        // The real HEAD items are still all there — this excludes one item, not
-        // every item that happens to score nothing.
-        expect(ranked.length).toBeGreaterThan(0);
-      }
+    for (const at of [tier(0), tier(10)]) {
+      const ranked = rankSlotItems(state, {
+        slot: 'HEAD',
+        context: WARRIOR_CTX,
+        weights: { AC: 2, STR: 1, HP: 0.2 },
+        upgrade: at,
+      });
+      expect(ranked.some((row) => row.item.n === '[Fixture] Unrecorded Helm')).toBe(false);
+      // The real HEAD items are still all there — this excludes one item, not
+      // every item that happens to score nothing.
+      expect(ranked.length).toBeGreaterThan(0);
     }
   });
 
@@ -468,7 +470,6 @@ describe('items with no stat data', () => {
       context: WARRIOR_CTX,
       weights: { AC: 2 },
       upgrade: tier(0),
-      includeUnreleased: true,
     });
     expect(ranked.some((row) => row.item.statsUnknown)).toBe(false);
   });
@@ -479,7 +480,6 @@ describe('items with no stat data', () => {
     // "nothing scored" run — HEAD has real competition and the ghost loses by
     // being ineligible rather than by scoring low.
     const result = autoFill(state, slotViews(gearSet(), state), WARRIOR_CTX, { AC: 2 }, {
-      includeUnreleased: true,
       keepFilled: false,
       filters: DEFAULT_SET_FILTERS,
     });
@@ -497,7 +497,6 @@ describe('items with no stat data', () => {
       revision: base.revision + 2000,
     };
     const lonely = autoFill(onlyGhost, slotViews(gearSet(), onlyGhost), WARRIOR_CTX, { AC: 2 }, {
-      includeUnreleased: true,
       keepFilled: false,
       filters: DEFAULT_SET_FILTERS,
     });

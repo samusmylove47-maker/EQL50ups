@@ -37,9 +37,13 @@ upgrade maths was corrected twice against the game after a third-party model dis
 **Our item catalog is Tier 2, and it is contaminated.** The catalog is built from
 `eqlwiki.com` scrapes. Tier 5 warns that large parts of that wiki are a Project 1999
 import — and the item tables carry the same inheritance. As of 2026-08-17 the raw scrape
-held **11,252 items, of which 7,720 were content from expansions that do not exist in
-EverQuest Legends**: Ruins of Kunark, Scars of Velious, Shadows of Luclin, the Fear/Hate
-revamp, the Chardok revamp, and epic quests.
+held **11,252 items, of which 7,719 were content from expansions that do not exist in
+EverQuest Legends** or carried no era at all: Scars of Velious (2,828), no era in any
+source (2,331), Ruins of Kunark (1,457), epic quests (867), the Chardok revamp (145), the
+Fear/Hate revamp (53), pages the wiki itself flags as not-in-Legends (26), and Shadows of
+Luclin (12). **3,533 items ship.** The rest are quarantined, in full and by name, in
+`pipeline/quarantine.json`, so restoring any of them is a table entry rather than a
+re-scrape.
 
 This was not a subtle failure. A previous session read the wiki's `FearHateRevamp` era tag,
 inferred that its five sets (Legionnaire Scale, Greenmist, of the Righteous, of the Untamed,

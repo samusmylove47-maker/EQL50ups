@@ -97,9 +97,14 @@ Carried over from the build report, all documented in `pipeline/README.md`:
 - **`ALL except <list>` is unrecoverable on 8 items**, which ship as `ALL` and
   are therefore too permissive.
 - **`ERA_OVERRIDE` is empty upstream** — the list of Kunark/Velious items EQL
-  released early was never filled in, so some era-gated items are probably
+  released early was never filled in, so some quarantined items are probably
   obtainable in game. Inventing that list is exactly the failure this project
-  guards against, so they stay gated with the filter exposed to the user.
+  guards against, so they are **not shipped at all**: 7,719 records are held in
+  `pipeline/quarantine.json`, named and reasoned, and restored only when a Tier
+  M or Tier 1 source places them. This is a change of disposition, not of risk —
+  they used to ship gated behind a "Live content only" filter, and that filter
+  has been removed. The 19 items the live export and the player do vouch for are
+  carried by name in `TIER0_LIVE_ITEMS` (`web/src/engine/constants.ts`).
 - **2 items print `SV VOID`** as a base stat, which the engine normally
   synthesizes; flagged so it is not double-counted.
 

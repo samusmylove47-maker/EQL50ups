@@ -10,6 +10,23 @@
     />
     <title>EQL Upgrades</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!--
+      The four type roles from research/DESIGN-EQLSOURCE.md: Playfair Display for
+      section titles and the wordmark, Oswald for card and panel headings, Lato
+      for reading text, JetBrains Mono for labels, nav and numbers.
+
+      Self-hosted, deliberately. These were briefly loaded from fonts.googleapis.com
+      with a comment claiming `display=swap` kept the page paintable if that host
+      never answered. It does not: `swap` governs the font-face swap, not the
+      stylesheet, and a <link rel="stylesheet"> blocks rendering until it resolves
+      or the socket gives up. Measured on a network where the host is unreachable,
+      first paint went from 68ms to 12,884ms — a blank page for thirteen seconds.
+
+      An app whose own landing copy promises "no account, no server: your sets
+      live in this browser" should not hand a third party the power to stop it
+      booting. 152KB of woff2, latin subset, served from our own origin.
+    -->
+    <link rel="stylesheet" href="./fonts/fonts.css" />
   </head>
   <body>
     <div id="root"></div>

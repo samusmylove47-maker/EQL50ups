@@ -164,8 +164,10 @@ export function matchesSource(item: Item, filter: SourceFilter): boolean {
  * set's own rules is worse than either rule being wrong, so there is now one
  * predicate and both call it.
  *
- * "Live content only" is deliberately not part of this: it is a picker-session
- * toggle, not a stored per-set filter, and Auto-fill takes it separately.
+ * These three are the whole vocabulary. There was a fourth, session-only
+ * control — "Live content only" — which is gone: the pipeline quarantines
+ * out-of-era content instead of shipping it for the UI to hide, so the filter
+ * had nothing left to remove.
  */
 export function matchesFilters(item: Item, filters: SetFilters): boolean {
   if (filters.era !== 'any' && item.era !== filters.era) return false;

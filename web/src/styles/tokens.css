@@ -6,47 +6,113 @@
  *   2. Where the game client makes a choice, copy the client.
  *   3. Every size, space and weight in the app resolves to a token declared
  *      here. A literal in `styles.css` is a defect, not a shortcut.
+ *
+ * ---------------------------------------------------------------------------
+ * THE EQLSOURCE SKIN
+ *
+ * This palette follows `research/DESIGN-EQLSOURCE.md`, transcribed from a
+ * screenshot of eqlsource.com — the companion site this planner will be
+ * absorbed into. Editorial, not gamer: warm brown-black grounds rather than
+ * cool grey, cream rather than white, four type roles rather than one system
+ * stack, 2px corners, no gradients and no glows.
+ *
+ * **The source colours were eyeballed off one image, not sampled.** They are
+ * good starting values and the design doc says so. Where a value below differs
+ * from the doc it is because this app prints *numbers people read* on that
+ * colour and the doc's value did not clear WCAG AA on our grounds; each such
+ * correction is recorded at the token. Correcting the eyeballing later is an
+ * edit to this file, not a refactor.
  */
 
 :root {
-  /* ---- Ground ---------------------------------------------------------- */
-  --bg-page: #0d0d0d;
-  --bg-panel: #161719;
-  --bg-panel-raised: #1c1e21;
-  --bg-inset: #101113;
-  --bg-hover: #22252a;
-  --bg-active: #2a2e34;
-
-  --line: #26292e;
-  --line-strong: #34383f;
-
-  /* ---- Type ------------------------------------------------------------ */
-  --text: #cfd4da;
-  --text-strong: #f0f3f6;
-  --text-dim: #8b939c;
-  /*
-   * Raised from #5e666e (3.08:1 over --bg-panel, below AA) to #7a838c
-   * (≈4.6:1). 78% of the page's text used the two dimmest greys, and the slot
-   * label — the thing that says which row you are reading — was the dimmest
-   * of all, printed 23 times a screen underneath a *brighter* stat line.
+  /* ---- Ground ---------------------------------------------------------- *
+   * Brown-black. The doc gives page #0a0908, card #131110, border #2a2622;
+   * those three are taken verbatim. The rest of the ramp is interpolated
+   * around them at the same hue.
    */
-  --text-faint: #7a838c;
+  --bg-page: #0a0908;
+  --bg-panel: #131110;
+  --bg-panel-raised: #1b1815;
+  --bg-inset: #0f0d0c;
+  --bg-hover: #241f1b;
+  /*
+   * Not decoration: `.figure-cell.on` is the one surface that has to be
+   * *visibly* lighter than `--bg-inset`, because the equipment map's whole job
+   * is answering "what is still empty". `--bg-panel-raised` gave 1.13:1 there
+   * and a 23/23 set looked like a 0/23 set; the previous skin invented a raw
+   * hex for 1.24:1. This token is that step, and it measures 1.41:1.
+   */
+  --bg-active: #332c26;
+
+  --line: #2a2622;
+  --line-strong: #3d3730;
+
+  /* ---- Type ------------------------------------------------------------ *
+   * The doc's four text values: cream #f4eee3, body #b3aa9d, bold-run
+   * emphasis #d9d0c2, muted #8a8378.
+   */
+  --text: #b3aa9d;
+  --text-strong: #f4eee3;
+  /*
+   * "Bold runs read brighter, not heavier" — the doc's emphasis value, for
+   * `<strong>` inside running text.
+   */
+  --text-emph: #d9d0c2;
+  /*
+   * A notch brighter than the doc's #8a8378 muted. This token carries the slot
+   * labels, table headers and nav — 11px uppercase text printed dozens of
+   * times a screen — and #8a8378 measures 5.02:1 on `--bg-panel` against
+   * #948d81's 5.73:1. The doc's muted is used one step down, as `--text-faint`.
+   */
+  --text-dim: #948d81;
+  /*
+   * ≈4.6:1 over `--bg-panel`, the floor the previous skin established after
+   * finding 78% of the page's text on the two dimmest greys — with the slot
+   * label, the thing that says which row you are reading, dimmest of all at
+   * 3.08:1 underneath a *brighter* stat line. Measures 4.57:1.
+   */
+  --text-faint: #847c70;
   /* Rules, disabled glyphs and other non-words. 3:1 belongs here, not on text. */
-  --ink-quiet: #5e666e;
+  --ink-quiet: #6b645a;
 
   /* ---- Accent ---------------------------------------------------------- */
   /*
-   * §A6 gives azure exactly five jobs: the tab underline, the focus ring,
-   * primary pills, the class-picker selection ring, and the fill meter. It
+   * §A6 gives the accent exactly five jobs: the tab underline, the focus ring,
+   * the primary button, the class-picker selection ring, and the fill meter. It
    * used to also stroke an accent detail inside 21 of the 23 slot glyphs, so a
-   * filled gear tab carried 48 azure strokes against 5 azure words — a 10:1
+   * filled gear tab carried 48 accent strokes against 5 accent words — a 10:1
    * decoration-to-signal ratio on the one colour that is supposed to mean
    * "this is the thing you act on". The glyph accent is gone.
+   *
+   * The hue is the doc's steel blue. It is the only cool colour left in the
+   * palette, which is what makes an interactive edge findable against a page
+   * that is otherwise entirely warm. 6.05:1 on `--bg-panel` and never below
+   * 4.4:1 on any ground in this file, so the focus ring clears WCAG 2.2
+   * SC 2.4.13's 3:1 everywhere it can land.
    */
-  --accent: #3b9fe8;
-  --accent-hot: #56b0f2;
-  --accent-dim: #1d5f8f;
-  --accent-ghost: rgba(59, 159, 232, 0.14);
+  --accent: #7595b8;
+  --accent-hot: #8fadd2;
+  --accent-dim: #34465e;
+  --accent-ghost: rgba(117, 149, 184, 0.14);
+
+  /* ---- Source standing ------------------------------------------------- *
+   * The eqlsource card device: a 2px coloured rule on the TOP EDGE ONLY,
+   * naming how far a number is to be trusted, per `research/SOURCING-STANDARD.md`.
+   *
+   *   trusted        Tier M / 1 / 2 — first-hand client output, patch notes,
+   *                  structured wiki fields
+   *   corroborating  Tier 3 / 4     — named guides, aggregators
+   *   distrust       Tier 5         — wiki prose, and anything we cannot source
+   *
+   * Red is spent once, deliberately, on the tier the standard says to
+   * distrust — so `--source-distrust` and `--danger` are the same value rather
+   * than two nearly-identical reds. Nothing may take one of these three hues
+   * for decoration: they are the one place in this file where colour is
+   * allowed to make a claim about provenance.
+   */
+  --source-trusted: #8fae82;
+  --source-corroborating: #7595b8;
+  --source-distrust: #c86454;
 
   /*
    * Item name colour follows the client, which tints by *usability* rather
@@ -57,48 +123,66 @@
    * Bone-Clasped Girdle — each qualifying through at least one of the trio —
    * are green.
    *
-   * The rule earns its keep on the item browser, where it reads 41 green / 59
-   * red. On the paper doll and in a slot picker it cannot: auto-fill and the
+   * The rule earns its keep on the item browser, where it reads 43 green / 57
+   * red — counted off the rendered `.cell-open.iname` colours on page 1 of
+   * `#/items`, default sort, against a WAR/BRD/BER trio.
+   * On the paper doll and in a slot picker it cannot: auto-fill and the
    * pickers only ever offer equippable items, so all 23 names took one value
    * and the "signal" was a full-screen tint. Those two surfaces re-point
    * `--item-usable` at `--text-strong` locally (see `styles.css` §8), which
    * leaves red as the only thing that shouts.
    *
+   * Green and red are now the doc's sage and brick rather than the old
+   * saturated pair, so they sit inside the warm palette instead of on top of
+   * it. They are still unmistakably green and red — `Landing.tsx` prints the
+   * two words as a legend and that sentence has to stay true.
+   *
    * A third state exists that we have not pinned down: Bladestopper renders
    * amber despite being usable. Until it is understood, `--item-caution` is
    * reserved and unused rather than guessed at.
    */
-  --item-usable: #4ec06a;
-  --item-blocked: #d5504a;
+  --item-usable: #8fae82;
+  --item-blocked: #c86454;
   --item-caution: #d9a441;
 
-  /* ---- Eras ------------------------------------------------------------ */
-  --era-live: #b7bdc4;
-  --era-gated: #7a6a4a;
-  --era-unknown: #6b7076;
-
   /* ---- Semantics ------------------------------------------------------- */
-  --gain: #4ec06a;
-  --loss: #d5504a;
+  --gain: #8fae82;
+  /*
+   * The doc's brick is #c1584a, which measures 4.27:1 on `--bg-panel` — under
+   * AA for the 13px item names and stat numbers this hue carries. Lifted to
+   * 4.85:1 on the panel and 4.55:1 on the raised panel a table row hovers to.
+   * Same brick, one step up.
+   */
+  --loss: #c86454;
 
   /*
    * At-cap is not a warning. It used to share `#d9a441` with era labels, the
    * flex badge, the Any Slot rows and the fourth-class refusal, so amber meant
    * four things at once. A ceiling reached gets its own cool hue; amber is
    * spent only on era/phase labels (§A6) and on the top of the tier ramp.
+   *
+   * Cool on purpose, and kept distinct from `--accent`: a cap is a state, not
+   * something you can click.
    */
-  --at-cap: #5cc6bd;
+  --at-cap: #6fb5aa;
   --warn: #d9a441;
-  --danger: #d5504a;
+  --danger: #c86454;
 
   /*
    * The upgrade tier ramp — the app's headline differentiator, made visible at
-   * rest. `+0` is grey and says nothing; the chip warms through bronze to gold
-   * as the tier climbs, so a column of 23 steppers reads as a *state* rather
-   * than as 23 identical chips. Eleven steps, sampled off one curve.
+   * rest. This is `+0` to `+10` on an item, and it is **not** the source
+   * standing above; the two vocabularies never touch. `+0` is grey and says
+   * nothing; the chip warms through bronze to gold as the tier climbs, so a
+   * column of 23 steppers reads as a *state* rather than as 23 identical
+   * chips. Eleven steps, sampled off one curve.
+   *
+   * Steps 1–10 were already warm and are unchanged. `--tier-0` was a cool grey
+   * (#9aa3ac) whose whole job was to look like "no tier"; in a warm palette a
+   * cool grey reads as a rendering fault, so it is now a near-neutral warm grey
+   * at the same lightness. 7.26:1 on `--bg-panel`, and it stays clear of
+   * `--tier-1` by chroma, exactly as it did before.
    */
-  /* Raised from #7a838c (4.34:1 on the chip's own background). */
-  --tier-0: #9aa3ac;
+  --tier-0: #a5a09a;
   --tier-1: #9b9384;
   --tier-2: #ab9878;
   --tier-3: #b99c6c;
@@ -110,6 +194,36 @@
   --tier-9: #e6b832;
   --tier-10: #f0c02a;
 
+  /* ---- The client's own colours ---------------------------------------- *
+   * Rule 2 of this file: where the game client makes a choice, copy the
+   * client. UI-REFERENCE §B5 records those choices for the item window — a red
+   * gradient title bar, cyan group headers, green numerics, gold for
+   * currency-like values — and §21 of `styles.css` reproduces them.
+   *
+   * They are declared here rather than borrowed from the app's palette because
+   * the window is a *quotation*, and a quotation does not follow the house
+   * style. Under the previous skin `.iwin` read its cyan off `--accent-hot`
+   * and its green off `--gain`, which was only ever a coincidence of the app
+   * being azure-and-green at the time; the re-skin moved both, and the window
+   * would have silently stopped matching the game it is imitating. These four
+   * are the client's values and they do not move when the site's do.
+   *
+   * Nothing outside §21 may use them.
+   */
+  --client-cyan: #56b0f2;
+  --client-green: #4ec06a;
+  --client-gold: #d9a441;
+  --client-red: #d5504a;
+
+  /*
+   * The two ends of the range, so nothing in the app reaches for the bare CSS
+   * keywords `white` and `black`. A modal scrim, the item window's bevel and
+   * its title gradient all used to, which meant five surfaces that would not
+   * follow this file anywhere.
+   */
+  --tint: #f4eee3;
+  --shade: #0a0908;
+
   /* ---- Spacing scale (4px base, one documented half step) -------------- */
   --s0: 2px;
   --s1: 4px;
@@ -120,9 +234,23 @@
   --s6: 32px;
   --s7: 48px;
 
-  --radius: 4px;
-  --radius-lg: 8px;
-  --radius-pill: 999px;
+  /* The doc's card: ~28px of internal padding. 24px is the nearest step. */
+  --card-pad: var(--s5);
+
+  /*
+   * One corner, and it is nearly square.
+   *
+   * The doc is explicit: "~2px radius", "nothing is rounded more than
+   * slightly". All three names survive because forty-odd call sites read
+   * better as `--radius-lg` on a card than as a bare number, and because
+   * restoring a rounder look is then three lines rather than a sweep. Under
+   * this skin the app has no pills: `--radius-pill` is 2px, and the controls
+   * that used to be capsules — buttons, the stepper, the bulk strip, the tier
+   * chip, the compare status chip — are now flat-cornered.
+   */
+  --radius: 2px;
+  --radius-lg: 2px;
+  --radius-pill: 2px;
 
   /* ---- Type scale ------------------------------------------------------ */
   /*
@@ -135,7 +263,7 @@
    *   small  11  secondary lines, buttons, tabs, hints, dense numerics
    *   body   13  running text, item names, stat rows, menu items
    *   mid    15  card titles, set name, meter numerals
-   *   large  20  headline numerals (the Vitals tiles)
+   *   large  20  headline numerals (the Vitals tiles), section titles
    *   title  30  page and identity titles
    *   hero   44  the landing headline
    */
@@ -148,27 +276,104 @@
   --fs-hero: 44px;
 
   /*
+   * Relative, and deliberately not on the scale above: this sizes the ▲/▼
+   * direction marks the picker draws as generated content, which are glyphs
+   * riding on a line of text rather than type of their own. It has a token so
+   * that it is one decision rather than two literals.
+   */
+  --fs-glyph: 0.72em;
+
+  /*
    * Three weights. There were five (300/400/600/700/800) on a single screen,
    * which is a hierarchy nobody can learn.
+   *
+   * Note for the webfonts below: Lato ships 400/700 and has no 600, so
+   * `--fw-emph` resolves to Lato 700; Oswald tops out at 700, so `--fw-num`
+   * resolves to Oswald 700. Both are the intended weights for those faces and
+   * both keep the *declared* weight on the declared scale, which is what the
+   * type audit reads.
    */
   --fw-body: 400;
   --fw-emph: 600;
   --fw-num: 800;
 
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-num: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+  /* ---- Type roles ------------------------------------------------------ *
+   * Four faces, one job each, replacing the single system-ui stack.
+   *
+   *   display   section titles and the wordmark        Playfair Display
+   *   heading   card and panel headings, uppercase     Oswald 600/700
+   *   body      running text, item names, stat rows    Lato
+   *   num       labels, eyebrows, nav, numbers         JetBrains Mono
+   *
+   * **Every stack below has to survive the webfont never arriving.** They are
+   * loaded from Google Fonts by `index.html` with `display=swap`, so a reader
+   * behind a firewall, an ad blocker or an offline cache sees the fallback and
+   * nothing else. Each fallback is therefore chosen to hold the *role* rather
+   * than merely to be a font: a real serif for display, a genuinely narrow
+   * face ahead of the generic sans for headings, a humanist sans for body, and
+   * the platform mono. Both states were rendered and compared while this was
+   * written — the layout does not move between them, only the voice does.
+   *
+   * **`Liberation Sans` is in the heading stack for the same reason
+   * `Helvetica Neue` is**, and it is what makes the fallback state hold four
+   * roles instead of three. Measured with CDP `getPlatformFontsForNode` on a
+   * Linux box with the two font hosts blocked: none of Oswald, Arial Narrow,
+   * Liberation Sans Narrow or Helvetica Neue is installed there, so headings
+   * fell through to `system-ui` — and so does `--font` below. Both roles
+   * painted in DejaVu Sans, and a card heading was separated from body text by
+   * size and case alone. `Helvetica Neue` already covers this on macOS; this is
+   * the entry that covers it on Linux. Neither is narrow, and neither is meant
+   * to be: the job here is to be a *different* grotesque from the body face
+   * when the narrow ones are absent. Where Oswald or Arial Narrow do exist
+   * this changes nothing.
+   */
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif;
+  --font-heading: 'Oswald', 'Arial Narrow', 'Liberation Sans Narrow', 'Helvetica Neue',
+    'Liberation Sans', system-ui, sans-serif;
+  --font: 'Lato', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-num: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
 
-  /* Section labels: small, spaced, quiet. */
+  /* ---- Tracking -------------------------------------------------------- *
+   * Uppercase needs air, and how much depends on the face. Four values, one
+   * per role, replacing thirteen literal steps spread over twenty-seven
+   * declarations.
+   */
+  /* Mono eyebrows and micro-labels: the app's most common uppercase run. */
   --label-spacing: 0.09em;
+  /* Mono nav and tabs: wider, because there are few words and much space. */
+  --track-nav: 0.14em;
+  /* Display serif, uppercase: Playfair is already wide; a little goes far. */
+  --track-display: 0.06em;
+  /* Condensed sans, uppercase: Oswald is tight by design and stays that way. */
+  --track-heading: 0.03em;
 
-  --shadow-modal: 0 18px 50px rgba(0, 0, 0, 0.62);
+  /*
+   * Two states, two values. The app shipped five different opacities meaning
+   * "you cannot press this" or "this is beside the point" — 0.4, 0.42, 0.5 and
+   * two 0.55s — across four stylesheets, which is four independent decisions
+   * about one idea.
+   */
+  --opacity-disabled: 0.42;
+  --opacity-quiet: 0.55;
+
+  /*
+   * Elevation, in three steps rather than three unrelated recipes. The toast
+   * and the item window's title used to carry their own literal shadows, so
+   * neither would have followed this file anywhere.
+   */
+  --shadow-modal: 0 14px 40px rgba(0, 0, 0, 0.7);
+  --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.55);
+  --shadow-text: 0 1px 1px rgba(0, 0, 0, 0.45);
+
   --focus-ring: 0 0 0 2px var(--accent);
 }
 
-/* Numeric columns line up only if the digits are tabular. */
+/* Numeric columns line up only if the digits are tabular — and the app's
+   numbers are set in mono, which is the doc's role for them. */
 .num,
 .stat-value,
 .ep-score {
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
@@ -180,11 +385,12 @@
  * item you *can* equip rendered predominantly blue.
  */
 .slot-glyph .glyph-detail {
-  opacity: 0.55;
+  opacity: var(--opacity-quiet);
   stroke-width: 1.1;
 }
 
 .section-label {
+  font-family: var(--font-num);
   font-size: var(--fs-small);
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;

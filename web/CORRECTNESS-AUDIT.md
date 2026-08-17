@@ -13,7 +13,8 @@ this codebase had been treating as ground truth.
 1. **Unit** — the engine driven directly over every stat key at every tier 0–10, with
    banked fractions, negatives, zeros, absent fields, 9,999s and NaNs.
    (`src/engine/correctness.test.ts`, `character.test.ts`, `upgrade.test.ts`)
-2. **Corpus** — the shipped 11,249-item catalog joined to
+2. **Corpus** — the shipped catalog (11,249 items when this audit ran; 3,533 since the
+   2026-08-17 era purge) joined to
    `research/validation/tier0-inventory-Avenrae.txt`, a live `/outputfile inventory`
    export, and pushed through the app's own loader, eligibility and ranking code.
    (`src/engine/tier0-catalog.test.ts`, `src/selectors/fidelity.test.ts`)
@@ -239,9 +240,14 @@ Gauntlets of Fiery Might  McVaxius` Horn of War     White Satin Gloves
 `Selo`s Drums of the March` are socketed as exaltations into worn gear. With "Live content
 only" on — the default — the picker offered none of them.
 
-**Fix:** `TIER0_LIVE_ITEMS` in `engine/constants.ts`, consulted by `isLive`. Every entry is
-a name **observed in a client export**. Nothing is inferred from an item's era, zone or
-neighbours; the list is extended the same way or not at all.
+**Fix:** `TIER0_LIVE_ITEMS` in `engine/constants.ts`, consulted at the time by `isLive`.
+Every entry is a name **observed in a client export**. Nothing is inferred from an item's
+era, zone or neighbours; the list is extended the same way or not at all.
+
+**Updated 2026-08-17.** `isLive` is gone. The same list is now read by `pipeline/build.mjs`,
+where it decides whether an out-of-era record is *shipped at all* rather than whether a
+shipped record is *displayed*. Those 13 Kunark-tagged items are in the catalog for exactly
+this reason and no other.
 
 ---
 
@@ -262,8 +268,8 @@ neighbours; the list is extended the same way or not at all.
 | Ranking isolation | unrelated slot changes far from any cap | scores unchanged; they move only when a ceiling is actually reached |
 | Every candidate scores finite, sorted | all 19 slots, whole catalog, tier 6 | no NaN, order verified descending |
 | Robustness | absent `st`/`sv`, zeros, negatives at every tier, 9,999, 1e9, NaN | no NaN escapes; penalties never invert; positives never decrease with tier |
-| Unknown-era items stay visible | 2,414 rows with `eraUnknown` | all live, deliberately |
-| Era toggle works | live-only vs all, same slot | all ⊃ live; every live row passes `isLive` |
+| Unknown-era items stay visible | 2,414 rows with `eraUnknown` | all live, deliberately — **superseded 2026-08-17**: era-less is now treated as unconfirmed and quarantined; 76 such rows ship, each vouched for by the live export or the player |
+| ~~Era toggle works~~ | ~~live-only vs all, same slot~~ | ~~all ⊃ live; every live row passes `isLive`~~ — **superseded 2026-08-17**: out-of-era content is quarantined in the pipeline, so `all == live` for every slot. `isLive` and the toggle it drove have been removed; `src/engine/tier0-catalog.test.ts` now asserts the purge invariant (`av === true` on every shipped item) in their place |
 | No NaN / undefined / `[object Object]` on screen | full `body.innerText` sweep | clean, zero console errors |
 
 ---
@@ -331,9 +337,13 @@ built to avoid.
    no source carries it per item and it is probably derived from level and weapon type.
 7. **8 items ship as `["ALL"]` because their exclusion list was unrecoverable**, so they
    are offered to classes that cannot use them. Upstream; not inventable here.
-8. **The `ERA_OVERRIDE` list is still incomplete.** 13 items are now un-gated on client
-   evidence. Others are certainly still wrongly gated; only more client evidence can name
-   them, and the "Live content only" toggle remains the escape hatch.
+8. **The `ERA_OVERRIDE` list is still incomplete.** 13 items are now shipped on client
+   evidence. Others are certainly still wrongly excluded; only more client evidence can
+   name them. **Updated 2026-08-17:** there is no escape hatch any more. The "Live content
+   only" toggle was removed along with the gate it drove, because the pipeline now
+   quarantines out-of-era records instead of shipping them hidden. The recourse is
+   `pipeline/quarantine.json`, which names all 7,719 withheld records so any of them can be
+   restored on evidence.
 
 ---
 

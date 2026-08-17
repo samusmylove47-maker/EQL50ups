@@ -93,7 +93,7 @@ export function WeightsEditor({ weights, onChange, readOnly = false }: WeightsEd
       <div className="weights-grid">
         {groupKeys().map(({ group, keys }) => (
           <section className="panel panel-pad" key={group}>
-            <h3 className="section-label" style={{ marginBottom: 8 }}>
+            <h3 className="section-label" style={{ marginBottom: 'var(--s2)' }}>
               {group}
             </h3>
             {keys.map((entry) => (

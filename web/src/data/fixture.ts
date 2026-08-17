@@ -73,10 +73,6 @@ export const FIXTURE_ITEMS: Item[] = [
   fixture({
     n: 'Barbed Arrow', sl: ['AMMO'], st: { DEX: 2 }, wp: { dmg: 5, dly: 20, skill: 'Archery' }, wt: 0.1,
   }),
-  fixture({
-    n: 'Unreleased Blade of Tomorrow', sl: ['PRIMARY'], st: { STR: 15, AC: 12 },
-    wp: { dmg: 22, dly: 26, skill: '1H Slashing' }, wt: 5, era: 'Kunark', av: false,
-  }),
 ];
 
 export const FIXTURE_NOTICE =

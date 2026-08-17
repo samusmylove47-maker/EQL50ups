@@ -299,11 +299,12 @@ const TIER0_CORRECTIONS = [
  *   - `n` and `id` are read off the live client export line-for-line;
  *   - `sl` is unambiguous from the item's own name (Helm/Gloves/Boots) and is
  *     the slot every sibling planar set uses for that piece;
- *   - `cl` and `era` come from the player report quoted above.
- * Weight, size, flags, icon, races and every stat are simply absent, because
- * nothing observed them. `ra` is therefore left off and the app's documented
- * default (ALL) applies, exactly as it does for the ~4,300 other records with
- * no race data.
+ *   - `cl` comes from the player report quoted above.
+ * No `era` appears here, deliberately: the player placed the set in two planes,
+ * so naming one for any single piece would be an inference. Weight, size, flags,
+ * icon, races and every stat are simply absent, because nothing observed them.
+ * `ra` is therefore left off and the app's documented default (ALL) applies,
+ * exactly as it does for every other record whose sources carry no race data.
  */
 const TIER0_KNOWN_ITEMS = [
   {
@@ -1264,7 +1265,13 @@ for (const key of allKeys) {
 // Apply the Tier 0 corrections declared at the top of this file
 // ---------------------------------------------------------------------------
 
-/** Recompute availability after an era override, by the same rule as the loop. */
+/**
+ * Recompute the wiki's availability reading after an era override, by the same
+ * rule as the loop. The `ur` half is what matters downstream — `shipDecision`
+ * reads `ur === 'non_legends'`. The `av` half is provisional: every survivor of
+ * the purge is forced to `av: true` further down, because by then being in the
+ * payload at all is the statement that the item is obtainable.
+ */
 function gateFor(era, rec) {
   if (rec.ur === 'non_legends' || rec.ur === 'out_of_era') return { av: false, ur: rec.ur };
   if (era != null && ERA_RANK.get(era) > CURRENT_ERA_RANK) return { av: false, ur: `era:${era}` };
@@ -1345,10 +1352,12 @@ records.sort((a, b) => a.key.localeCompare(b.key));
  * the Chardok revamp and the epic quests are all in there, and none of it is in
  * this game.
  *
- * Until now those items shipped with `av: false` and were hidden behind a UI
- * toggle. That is not good enough. A planner that will happily rank an item the
- * player can never obtain is worse than one with a smaller catalog, because the
- * player cannot tell which is which. So they are removed from what ships.
+ * Those items used to ship with `av: false` and be hidden behind a "Live
+ * content only" checkbox. That was not good enough. A planner that will happily
+ * rank an item the player can never obtain is worse than one with a smaller
+ * catalog, because the player cannot tell which is which. So they are removed
+ * from what ships — and the checkbox went with them, having nothing left to
+ * hide.
  *
  * An item survives if any of:
  *   1. its era is pre-Kunark — rank at or before CURRENT_ERA;
@@ -1632,7 +1641,6 @@ const focus = F_ITEMS.map((f) => ({
 })).sort((a, b) => a.n.localeCompare(b.n));
 writeOut('focus-effects.json', { v: SCHEMA_VERSION, count: focus.length, effects: focus });
 
-const eraGatedOut = records.filter((r) => !r.av).length;
 const eraUnknownCount = records.filter((r) => r.eraUnknown).length;
 const statsUnknownCount = records.filter((r) => r.statsUnknown).length;
 const withId = records.filter((r) => r.id != null).length;
@@ -1651,7 +1659,7 @@ const meta = {
   era: {
     current: CURRENT_ERA,
     order: ERA_ORDER,
-    policy: 'available = era rank <= CURRENT_ERA rank; items with no era anywhere are shipped available with eraUnknown:true',
+    policy: 'ships iff era rank <= CURRENT_ERA rank, or the item is in the live client export, or the player named it; everything else is quarantined to pipeline/quarantine.json and never reaches the payload. Era-less is unconfirmed, not presumed classic: the few era-less items that do ship are the ones Tier 0 vouches for, and they carry eraUnknown:true. Everything shipped is available (av:true) — there is no client-side era gate.',
   },
   slots: { worn: SLOTS, any: ANY_SLOT, otherShard: NO_SLOT_SHARD, anyPolicy: 'items with an:1 may be placed in either "Any Slot" position; no ANY shard is emitted (it would duplicate every worn item)' },
   classes: CLASSES,
@@ -1742,7 +1750,15 @@ const meta = {
     withStats: records.filter((r) => r.st).length,
     withEffects: records.filter((r) => r.fx).length,
     withAcquisition: records.filter((r) => r.src).length,
-    eraGatedOut,
+    /*
+     * There is no `eraGatedOut` count any more, and its absence is the point.
+     * It reported how many shipped records carried `av: false` for the client to
+     * hide behind a "Live content only" toggle. Since the purge, out-of-era
+     * records are not shipped at all — the number was structurally zero, and
+     * publishing it implied a gate that no longer exists. What replaced it is
+     * `pipeline/quarantine.json`, which counts and names what was withheld from
+     * the build instead of what the client was expected to hide.
+     */
     eraUnknown: eraUnknownCount,
     statsUnknown: statsUnknownCount,
     flagged: eraUnknownCount,
@@ -1807,11 +1823,14 @@ if (!QUIET) {
   L('-- era --');
   for (const [k, v] of report.eras.entries({ sort: 'value' })) {
     const rank = ERA_RANK.has(k) ? ERA_RANK.get(k) : null;
-    const state = rank == null ? 'unknown -> shipped, flagged' : (rank <= CURRENT_ERA_RANK ? 'live' : 'GATED OUT');
+    // These are pre-purge tallies over every scraped record, so they include
+    // eras that no longer reach the payload at all. `-- purge --` below is the
+    // record of what actually shipped.
+    const state = rank == null ? 'no era -> quarantined unless Tier 0 vouches' : (rank <= CURRENT_ERA_RANK ? 'in era' : 'QUARANTINED unless Tier 0 vouches');
     L(`  ${k.padEnd(16)} ${String(v).padStart(6)}   ${state}`);
   }
   L(`  era resolved from: ${report.eraSources.entries({ sort: 'value' }).map(([k, v]) => `${k}=${v}`).join(', ')}`);
-  L(`  gated out total:   ${eraGatedOut}`);
+  L('  wiki availability flags seen while scraping (superseded by the purge):');
   for (const [k, v] of report.unavailReasons.entries({ sort: 'value' })) L(`    ${k.padEnd(22)} ${String(v).padStart(6)}`);
   L(`  unknown era (flagged, still shipped): ${eraUnknownCount}`);
   if (report.unknownEraTags.size) L(`  unrecognised era tags: ${report.unknownEraTags.entries({ limit: 10 }).map(([k, v]) => `${k}=${v}`).join(', ')}`);

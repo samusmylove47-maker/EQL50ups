@@ -1,8 +1,8 @@
 /**
  * The whole catalog, reachable.
  *
- * The previous version scored 5,848 matches, rendered the first 250 and
- * offered no way to reach item 251 — no pagination, no "load more", and rows
+ * The previous version rendered only the first 250 of its matches and offered
+ * no way to reach item 251 — no pagination, no "load more", and rows
  * that were inert `<tr>`s you could click for no effect. That kills the one
  * workflow this screen exists for: something drops mid-raid, you look it up,
  * you decide. So: fixed-size pages over the whole result set, and rows that
@@ -25,7 +25,7 @@ import { statsAreUnknown, type SlotCode } from '../data/normalize';
 import { searchIndexFor } from '../data/searchIndex';
 import { UpgradeStepper } from '../components/UpgradeStepper';
 import { count, ep as epText } from '../lib/format';
-import { eraLabel, isLive, itemNameColor } from '../lib/itemStyle';
+import { eraLabel, itemNameColor } from '../lib/itemStyle';
 import { ItemDetail } from '../components/ItemDetail';
 import { itemHoverProps } from '../components/ItemWindow';
 import { SlotGlyph } from '../components/SlotGlyph';
@@ -60,7 +60,6 @@ export function ItemBrowser() {
   const [classFilter, setClassFilter] = useState<'any' | ClassCode>('any');
   const [profileId, setProfileId] = useState(PRESET_PROFILES[0]?.id ?? 'balanced');
   const [upgrade, setUpgrade] = useState<UpgradeState>(BASE_STATE);
-  const [liveOnly, setLiveOnly] = useState(true);
   const [sort, setSort] = useState<SortKey>('ep');
   const [dir, setDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(0);
@@ -104,10 +103,12 @@ export function ItemBrowser() {
    * Filtering and scoring are memoised apart from sorting.
    *
    * They used to share one memo keyed on `sort` and `dir`, so clicking a column
-   * header re-scored all 5,861 candidates to reach a comparison that never
-   * looks at the weights — 255-348 ms of blocked main thread on every sort, and
-   * again on a second press of the same column because nothing was cached.
-   * Sorting now reads an already-scored array.
+   * header re-scored every candidate to reach a comparison that never looks at
+   * the weights — 255-348 ms of blocked main thread on every sort, measured on
+   * the 5,861-row catalog of the day, and again on a second press of the same
+   * column because nothing was cached. Sorting now reads an already-scored
+   * array; the catalog is 3,533 rows since the purge, and the fix outlives the
+   * size either way.
    */
   const scored = useMemo(() => {
     // `score: null` means "not scorable", which is not the same as scoring 0.
@@ -116,7 +117,6 @@ export function ItemBrowser() {
       if (matches && !matches.has(item)) continue;
       if (slot !== 'any' && !item.sl.includes(slot)) continue;
       if (era !== 'any' && item.era !== era) continue;
-      if (liveOnly && !isLive(item)) continue;
       if (filterContext && !canUse({ classes: item.cl, races: item.ra }, filterContext)) continue;
       /*
        * The stat line is resolved here, not in the row. Rendering it inline
@@ -141,7 +141,7 @@ export function ItemBrowser() {
       });
     }
     return out;
-  }, [catalog.items, matches, slot, era, liveOnly, filterContext, weights, upgrade]);
+  }, [catalog.items, matches, slot, era, filterContext, weights, upgrade]);
 
   const { rows, total } = useMemo(() => {
     type Row = { item: Item; score: number | null; stats: string };
@@ -169,7 +169,7 @@ export function ItemBrowser() {
   // not on page 14 of a list that no longer has one.
   useEffect(() => {
     setPage(0);
-  }, [deferredQuery, slot, era, classFilter, liveOnly, sort, dir, profileId, upgrade]);
+  }, [deferredQuery, slot, era, classFilter, sort, dir, profileId, upgrade]);
 
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   // Any change to the filters can shrink the result set under the current page.
@@ -269,7 +269,7 @@ export function ItemBrowser() {
    * What this table currently is, in one sentence.
    *
    * A `<caption>` is the table's accessible name, and the filters are the only
-   * thing that distinguishes `5,861 items` from `94 items`; without it a screen
+   * thing that distinguishes `3,533 items` from `94 items`; without it a screen
    * reader reaches a table called nothing, holding a number it cannot account
    * for. Visually hidden because the same facts are on screen in the toolbar
    * directly above it.
@@ -279,7 +279,6 @@ export function ItemBrowser() {
     slot === 'any' ? 'any slot' : `slot ${slot}`,
     classFilter === 'any' ? 'any class' : `usable by ${classFilter}`,
     era === 'any' ? 'any era' : `${era} era`,
-    liveOnly ? 'live content only' : 'including content that is not yet live',
     query.trim() ? `matching “${query.trim()}”` : null,
     `scored with the ${PRESET_PROFILES.find((p) => p.id === profileId)?.label ?? 'preset'} weights at +${upgrade.full}`,
   ]
@@ -298,7 +297,7 @@ export function ItemBrowser() {
         </div>
       </div>
 
-      <div className="panel panel-pad" style={{ marginBottom: 14 }}>
+      <div className="panel panel-pad" style={{ marginBottom: 'var(--s4)' }}>
         <div className="rowline">
           <input
             type="search"
@@ -362,13 +361,9 @@ export function ItemBrowser() {
               Reset
             </button>
           </span>
-          <label className="checkline">
-            <input type="checkbox" checked={liveOnly} onChange={(e) => setLiveOnly(e.target.checked)} />
-            Live content only
-          </label>
         </div>
         {characters.length ? (
-          <p className="hint" style={{ marginTop: 10 }}>
+          <p className="hint" style={{ marginTop: 'var(--s3)' }}>
             Scored against the {PRESET_PROFILES.find((p) => p.id === profileId)?.label ?? 'preset'}{' '}
             preset. Open any row for the full item, or your own set for cap-aware scoring.
           </p>
@@ -378,7 +373,7 @@ export function ItemBrowser() {
       {catalog.status === 'ready' && !rows.length ? (
         <div className="empty-state">
           <h2>Nothing matches</h2>
-          <p>Loosen a filter, or allow content that is not yet live in the current era.</p>
+          <p>Loosen a filter — a narrower search, slot, class or era than the catalog holds.</p>
         </div>
       ) : null}
 
@@ -414,7 +409,7 @@ export function ItemBrowser() {
                 `role="button"` removed the row from the table structure and
                 orphaned its six `<td>`s, and an `aria-label` on a button
                 *replaces* its contents as the accessible name — so the screen
-                built to expose SLOT / CLASSES / STATS / ERA / EP across 5,861
+                built to expose SLOT / CLASSES / STATS / ERA / EP across 3,533
                 items announced exactly one thing per row. The activation
                 affordance is a real `<button>` in the first cell instead, which
                 names the row without eating it.
@@ -465,7 +460,6 @@ export function ItemBrowser() {
                         {item.n}
                       </button>
                     </span>
-                    {!isLive(item) ? <span className="tag tag-locked">Not live</span> : null}
                     {statsAreUnknown(item) ? (
                       <span className="tag tag-locked">No stat data</span>
                     ) : null}

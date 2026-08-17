@@ -305,7 +305,8 @@ test('auto-fill fills, asks before replacing, and explains a full set', async ({
   await expect(page.locator('.slot-wrap .slot.filled')).toHaveCount(23);
 });
 
-const ACCENT = 'rgb(59, 159, 232)';
+/* `--accent`, which the eqlsource re-skin moved from azure to steel blue. */
+const ACCENT = 'rgb(117, 149, 184)';
 
 test('the auto-fill notice never moves the page, and clears itself', async ({ page }) => {
   test.slow();

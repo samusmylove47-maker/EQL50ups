@@ -244,7 +244,7 @@ describe('default filters', () => {
           name: 'Existing',
           notes: 'keep me',
           weights: { AC: 1 },
-          filters: { era: 'Velious', source: 'vendor', hideNoDrop: true },
+          filters: { era: 'Kunark', source: 'vendor', hideNoDrop: true },
         }}
         onCancel={() => {}}
         onSubmit={onSubmit}
@@ -252,12 +252,12 @@ describe('default filters', () => {
     );
 
     const selects = [...container.querySelectorAll<HTMLSelectElement>('.setconfig-filters select')];
-    expect(selects[0]?.value).toBe('Velious');
+    expect(selects[0]?.value).toBe('Kunark');
     expect(selects[1]?.value).toBe('vendor');
 
     click(primary());
     expect(onSubmit.mock.calls[0]?.[0]?.filters).toEqual({
-      era: 'Velious',
+      era: 'Kunark',
       source: 'vendor',
       hideNoDrop: true,
     });

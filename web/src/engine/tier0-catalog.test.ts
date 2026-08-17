@@ -4,8 +4,8 @@
  * `research/validation/tier0-inventory-Avenrae.txt` is an `/outputfile
  * inventory` export from a level 50 BRD/WAR/BER. Every worn position in it is
  * a thing the game itself allowed that character to equip, which makes it the
- * strongest available test of eligibility and era gating: the picker must
- * offer all of it, and hide none of it.
+ * strongest available test of what the catalog must contain and what the picker
+ * must offer: all of it has to ship, and none of it may be withheld.
  *
  * Only the **worn positions** carry that guarantee. The bags hold gems, food
  * and spell components, and the `Equipment` key-ring is a collection rather
@@ -22,7 +22,6 @@ import { activeContext, buildCharacter, canUse, type Character } from '../engine
 import type { Item } from '../engine/types';
 import { itemsForSlot, type CatalogState } from '../data/catalog';
 import { normalizeCatalog, type SlotCode } from '../data/normalize';
-import { isLive } from '../lib/itemStyle';
 import { rankSlotItems, unstattedForSlot } from '../selectors/gear';
 import { tier } from './upgrade';
 import { SLOT_TYPES } from './constants';
@@ -199,13 +198,13 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     expect(refused).toEqual([]);
   });
 
-  it('shows every worn item as live, gating none of it out', () => {
-    const gated = worn
+  it('ships every worn item as available, withholding none of it', () => {
+    const withheld = worn
       .map(resolve)
       .filter((item): item is Item => Boolean(item))
-      .filter((item) => !isLive(item))
+      .filter((item) => item.av !== true)
       .map((item) => item.n);
-    expect(gated).toEqual([]);
+    expect(withheld).toEqual([]);
   });
 
   it('offers every worn item the picker can score, and only withholds the unscorable', () => {
@@ -218,7 +217,6 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
         context: AVENRAE_CTX,
         weights: { AC: 1, STR: 1, HP: 0.2, RATIO: 20 },
         upgrade: tier(0),
-        includeUnreleased: false,
       });
       if (!ranked.some((row) => row.item.n === item.n)) {
         absent.push(`${item.n} missing from ${entry.slot}`);
@@ -233,18 +231,15 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     ]);
   });
 
-  it('never lets an unstatted item into a ranking, however the slot is asked for', () => {
+  it('never lets an unstatted item into a ranking, in any slot', () => {
     for (const slot of ['HEAD', 'HANDS', 'FEET', 'ANY'] as SlotCode[]) {
-      for (const includeUnreleased of [true, false]) {
-        const ranked = rankSlotItems(state, {
-          slot,
-          context: AVENRAE_CTX,
-          weights: { AC: 1, STR: 1, HP: 0.2 },
-          upgrade: tier(0),
-          includeUnreleased,
-        });
-        expect(ranked.filter((row) => row.item.statsUnknown)).toEqual([]);
-      }
+      const ranked = rankSlotItems(state, {
+        slot,
+        context: AVENRAE_CTX,
+        weights: { AC: 1, STR: 1, HP: 0.2 },
+        upgrade: tier(0),
+      });
+      expect(ranked.filter((row) => row.item.statsUnknown)).toEqual([]);
     }
   });
 
@@ -255,7 +250,6 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
         context: AVENRAE_CTX,
         weights: { AC: 1 },
         upgrade: tier(0),
-        includeUnreleased: true,
       });
       const illegal = ranked.filter(
         (row) => !canUse({ classes: row.item.cl, races: row.item.ra }, AVENRAE_CTX),
@@ -264,17 +258,16 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     }
   });
 
-  it('never hides a usable, live candidate that the slot pool holds', () => {
+  it('never hides a usable candidate that the slot pool holds', () => {
     for (const slot of ['PRIMARY', 'CHEST', 'WAIST'] as SlotCode[]) {
-      const eligible = itemsForSlot(state, slot).filter(
-        (item) => isLive(item) && canUse({ classes: item.cl, races: item.ra }, AVENRAE_CTX),
+      const eligible = itemsForSlot(state, slot).filter((item) =>
+        canUse({ classes: item.cl, races: item.ra }, AVENRAE_CTX),
       );
       const ranked = rankSlotItems(state, {
         slot,
         context: AVENRAE_CTX,
         weights: { AC: 1 },
         upgrade: tier(0),
-        includeUnreleased: false,
       });
       expect(ranked).toHaveLength(eligible.length);
     }
@@ -283,29 +276,23 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
   /*
    * There is no unreleased content left to hide.
    *
-   * These four tests used to describe a catalog that shipped all 11,252 wiki
-   * items and hid the out-of-era ones behind a toggle. The player's verdict on
-   * that design was blunt: a planner that will rank an item you can never obtain
-   * "poisons and ruins this entire project". EQ Legends is classic-era only, and
-   * the wiki it was built from carries the whole original-EverQuest corpus, so
-   * ~7,700 records were quarantined out of the build entirely.
+   * These three tests used to describe a catalog that shipped all 11,252 wiki
+   * items and hid the out-of-era ones behind a "Live content only" toggle. The
+   * player's verdict on that design was blunt: a planner that will rank an item
+   * you can never obtain "poisons and ruins this entire project". EQ Legends is
+   * classic-era only, and the wiki it was built from carries the whole
+   * original-EverQuest corpus, so 7,719 records were quarantined out of the
+   * build entirely and the toggle was removed with them.
    *
-   * What is asserted now is the purge itself: everything shipped is obtainable,
-   * so the live filter has nothing left to remove.
+   * What is asserted now is the purge itself: nothing ships that the app would
+   * have had to hide.
    */
-  it('ships nothing that is not obtainable, so the live filter is a no-op', () => {
-    for (const slot of ['PRIMARY', 'CHEST', 'WAIST'] as SlotCode[]) {
-      const live = rankSlotItems(state, {
-        slot, context: AVENRAE_CTX, weights: { AC: 1 },
-        upgrade: tier(0), includeUnreleased: false,
-      });
-      const all = rankSlotItems(state, {
-        slot, context: AVENRAE_CTX, weights: { AC: 1 },
-        upgrade: tier(0), includeUnreleased: true,
-      });
-      expect(all.length, slot).toBe(live.length);
-    }
-    expect(items.every((item) => isLive(item))).toBe(true);
+  it('marks every shipped item available, leaving nothing for a filter to hide', () => {
+    // `av` survives normalisation verbatim — only an explicit `av: false` in the
+    // payload can fail this — so it is the app-side reading of the purge
+    // invariant `pipeline/verify.mjs` enforces on the way out.
+    const unavailable = items.filter((item) => item.av !== true);
+    expect(unavailable.map((item) => item.n)).toEqual([]);
   });
 
   it('carries no item from an expansion this game does not have', () => {
@@ -326,8 +313,12 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
   it('keeps the items the live export proves, whatever the wiki called them', () => {
     for (const name of ['Batskull Earring', 'Crystalline Spear', 'Dragon Bone Bracelet']) {
       const item = items.find((entry) => entry.n === name);
+      // Shipping at all *is* the assertion now. These three carry the wiki's
+      // `Kunark` tag, which used to hide them behind the era gate and would
+      // now quarantine them out of the build; the export is why they survive.
       expect(item, name).toBeDefined();
-      expect(isLive(item!), name).toBe(true);
+      expect(item?.era, name).toBe('Kunark');
+      expect(item?.av, name).toBe(true);
     }
   });
 
@@ -354,7 +345,6 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
         slot, context: AVENRAE_CTX,
         weights: { AC: 1, STR: 1, HP: 0.2, RATIO: 20, HASTE: 2, BACKSTAB: 0.5, ATTACK: 0.5 },
         upgrade: tier(6),
-        includeUnreleased: true,
       });
       expect(ranked.every((row) => Number.isFinite(row.score))).toBe(true);
       const scores = ranked.map((row) => row.score);

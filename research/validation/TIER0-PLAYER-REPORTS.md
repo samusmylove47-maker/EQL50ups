@@ -63,21 +63,24 @@ Their stats, flags, weights and icons are untouched — the wiki's numbers, exac
 those. They ship with `statsUnknown: true` and an `evidence` string naming what proves they exist.
 See "Representing a known item with no stats" below.
 
-**3. The six pieces were un-gated.**
+**3. The six pieces ship regardless of era.**
 
-`FearHateRevamp` ranks *after* `Sky` in the era chronology, so tagging the set with its real era
-gated it out as "not yet live" — while the player is wearing the helm. The six pieces are therefore
-listed in `TIER0_LIVE_ITEMS` (`web/src/engine/constants.ts`), the existing mechanism for "the era
-gate hides this and a live client demonstrably holds it". Five are there because they appear in the
-export; `Shadow Rage Leggings` is there because the report says Shadow Rage is one set, and it is
-quarantined in a separate, separately-documented list in that file so the weaker evidence is
-visible rather than blended in.
+An earlier reading tagged the set `FearHateRevamp`, which ranks *after* `Sky`, so the set would
+have been withheld as out of era — while the player is wearing the helm. That tag was itself an
+inference and has since been removed: the set now ships with **no era at all** (see the correction
+above the line). The six pieces are listed in `TIER0_LIVE_ITEMS`
+(`web/src/engine/constants.ts`), which is the mechanism for "the wiki says this is out of era and a
+live client demonstrably holds it". Five are there because they appear in the export;
+`Shadow Rage Leggings` is there because the report says Shadow Rage is one set, and it is held in a
+separate, separately-documented list in that file so the weaker evidence is visible rather than
+blended in.
 
 ### What deliberately did **not** change
 
-- **The other 53 `FearHateRevamp` items are still gated out.** One set being live is not proof the
-  era is. Un-gating 53 items on that inference is precisely the move this project exists to refuse.
-  It is, however, now an open question worth resolving — see below.
+- **The other 53 `FearHateRevamp` items do not ship.** One set being live is not proof the era is.
+  Shipping 53 items on that inference is precisely the move this project exists to refuse. They are
+  quarantined in `pipeline/quarantine.json` and `verify.mjs` fails the build if a `FearHateRevamp`
+  item reaches the payload. It is, however, an open question worth resolving — see below.
 - **No stat, flag, weight or icon was invented for the three new records.** A zero is a measurement;
   an absent value is not.
 - **No seventh Shadow Rage piece was added.** Every sibling set has a chest piece, so one very
@@ -119,11 +122,14 @@ Nothing is added on the strength of that reasoning. It is written down so that:
 
 ### Open question for the next Tier 0 sample
 
-**Is the whole `FearHateRevamp` era live?** The player possesses six items from it, which means at
-least part of it is obtainable now. If the era is live in full, 53 items are currently hidden behind
-the "Live content only" filter for no reason. Resolving it needs either a patch note, or a client
-sighting of a `FearHateRevamp` item outside the Shadow Rage set — a Legionnaire Scale or Greenmist
-piece would settle it. Until then the era gate stands and only the observed items are un-gated.
+**Is the whole `FearHateRevamp` era live?** The player possesses six items the wiki filed under it,
+which means at least part of what that tag covers is obtainable now. If the era is live in full, 53
+items are being withheld from the catalog for no reason. Resolving it needs either a patch note, or
+a client sighting of a `FearHateRevamp` item outside the Shadow Rage set — a Legionnaire Scale or
+Greenmist piece would settle it. Until then those 53 stay quarantined and only the observed items
+ship. Note that the mechanism changed on 2026-08-17: they are absent from the payload now, not
+hidden behind a filter, so the cost of the open question is a smaller catalog rather than a
+misleading one.
 
 ---
 

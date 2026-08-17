@@ -75,7 +75,7 @@ export function CharacterDetail({ id }: { id: string }) {
         </div>
       </div>
 
-      <section className="panel panel-pad stack" style={{ marginBottom: 14 }}>
+      <section className="panel panel-pad stack" style={{ marginBottom: 'var(--s4)' }}>
         <div className="spread">
           <h2 className="section-label">Loadouts</h2>
           <span className="hint">
@@ -88,14 +88,14 @@ export function CharacterDetail({ id }: { id: string }) {
           checked against the class that qualifies you for the item.
         </p>
 
-        <ul className="stack" style={{ gap: 6 }}>
+        <ul className="stack" style={{ gap: 'var(--s2)' }}>
           {character.loadouts.map((loadout) => {
             const isActive = loadout.id === character.activeLoadoutId;
             return (
               <li className="set-line" key={loadout.id}>
                 <div className="grow">
                   <strong>{loadout.name}</strong>
-                  {isActive ? <span className="tag" style={{ marginLeft: 8 }}>Active</span> : null}
+                  {isActive ? <span className="tag" style={{ marginLeft: 'var(--s2)' }}>Active</span> : null}
                   <div className="meta">
                     {describeLoadout(character, loadout)}
                     {' · '}
@@ -244,7 +244,7 @@ export function CharacterDetail({ id }: { id: string }) {
         </Modal>
       ) : null}
 
-      <div className="rowline" style={{ marginTop: 14 }}>
+      <div className="rowline" style={{ marginTop: 'var(--s4)' }}>
         <button
           type="button"
           className="btn btn-sm btn-danger"

@@ -1,5 +1,11 @@
 # CRITIQUE-04 — Information architecture, workflows, functional completeness
 
+> **Historical record — figures predate the 2026-08-17 era purge.** The catalog described here
+> shipped 11,249–11,252 items with out-of-era content hidden behind a "Live content only"
+> toggle. It now ships 3,533; 7,719 records are quarantined in `pipeline/quarantine.json`, and
+> the toggle has been removed because it could no longer change a single row. Every count below
+> was correct when measured and is not current. See `research/SOURCING-STANDARD.md`.
+
 Adversarial re-score against sixtyupgrades.com. Everything below was measured in Chromium at
 1600×1000 (and at 1280/1024/768/430/390/320) against a production build served from `dist`, or read
 in the source it names. Prior scores: 4.5 → 6.875 → 7.29. Target 9.0.

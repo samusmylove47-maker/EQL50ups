@@ -20,13 +20,13 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { LoadoutContext } from '../engine/character';
-import { CLASS_NAMES, type ClassCode } from '../engine/constants';
+import { CLASS_NAMES, isTier0Confirmed, type ClassCode } from '../engine/constants';
 import { canUseClass, canUseRace, levelCheck } from '../engine/character';
 import type { Item } from '../engine/types';
 import { statsAreUnknown } from '../data/normalize';
 import { scaleWeight, type UpgradeState } from '../engine/upgrade';
 import { dec, num, signed } from '../lib/format';
-import { displayFlags, eraLabel, isLive, itemNameColor, usabilityNote } from '../lib/itemStyle';
+import { displayFlags, eraLabel, itemNameColor, usabilityNote } from '../lib/itemStyle';
 import { ratioText, shortStatLabel, statLabel, statVector } from '../selectors/gear';
 import { SlotGlyph } from './SlotGlyph';
 
@@ -45,6 +45,55 @@ export interface ItemWindowProps {
 /** Stats the client prints in the item's headline block rather than as a list. */
 const HEADLINE = new Set(['AC', 'HP', 'MANA', 'ENDUR']);
 
+/**
+ * Where this window's numbers stand, per `research/SOURCING-STANDARD.md`.
+ *
+ * eqlsource.com marks every source card with a coloured rule on its top edge
+ * and a mono eyebrow naming the tier, and the standard's rule 5 says a player
+ * looking at a number is entitled to know where it came from. This is that
+ * device, on the one surface in the app that prints an individual item's
+ * numbers.
+ *
+ * **It states only what the app already holds as fact, and returns `null` the
+ * moment it would have to infer.**
+ *
+ *   - `trusted` — the item's name is in `TIER0_LIVE_ITEMS`: it was seen in the
+ *     owner's `/outputfile inventory` export or reported directly by them.
+ *     That is Tier M, first-hand client output, and it outranks every read
+ *     source for the fact that this item exists. The label says "in the live
+ *     game" rather than "in the client" because the set covers both the export
+ *     and the player's own report, and those are the same authority.
+ *   - `distrust` — the catalog carries no stats for it, so the window prints
+ *     none. Red, spent once, on the one state the standard says to distrust.
+ *     The mark is about the *numbers*: an item can be Tier M confirmed to
+ *     exist and still have no sourced stats, which is exactly Shadow Rage, so
+ *     this case is tested first and the body text below states the existence
+ *     evidence separately.
+ *   - `null` — an ordinary catalog row. The standard places structured wiki
+ *     data at Tier 2 *and* warns in the same breath that the wiki's item
+ *     tables carry a Project 1999 import; picking either reading per item
+ *     would be an inference, and an inference is never evidence. So the window
+ *     makes no claim at all and looks exactly as it did before.
+ *
+ * The `corroborating` steel of the token file is deliberately unused here for
+ * the same reason `--item-caution` is unused: it is reserved for the day the
+ * pipeline records a per-item source tier, not guessed at now.
+ */
+type Standing = 'trusted' | 'distrust';
+
+interface StandingMark {
+  standing: Standing;
+  label: string;
+}
+
+function standingOf(item: Item): StandingMark | null {
+  if (statsAreUnknown(item)) return { standing: 'distrust', label: 'Unsourced · stats withheld' };
+  if (isTier0Confirmed(item.n)) {
+    return { standing: 'trusted', label: 'Tier M · confirmed in the live game' };
+  }
+  return null;
+}
+
 export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemWindowProps) {
   const stats = statVector(item, upgrade);
   const weapon = item.wp;
@@ -58,14 +107,16 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
   const era = eraLabel(item);
   const flags = displayFlags(item.fl);
   const glyphSlot = slot ?? item.sl[0] ?? 'ANY';
+  const mark = standingOf(item);
 
   return (
-    <div className={`iwin${wide ? ' wide' : ''}`}>
+    <div className={`iwin${wide ? ' wide' : ''}`} data-standing={mark?.standing}>
       <div className="iwin-title">
         <span className="iwin-title-name">{item.n}</span>
       </div>
 
       <div className="iwin-body">
+        {mark ? <div className="standing-label">{mark.label}</div> : null}
         <div className="iwin-top">
           <div className="iwin-icon" aria-hidden="true">
             <SlotGlyph slot={glyphSlot} size={34} />
@@ -74,7 +125,6 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
             <div className="iwin-slots">{item.sl.join('  ') || 'NO SLOT'}</div>
             {flags.length ? <div className="iwin-flags">{flags.join('  ')}</div> : null}
             {era ? <div className="iwin-era">{era}</div> : null}
-            {!isLive(item) ? <div className="iwin-warn">Not live in this era</div> : null}
           </div>
         </div>
 

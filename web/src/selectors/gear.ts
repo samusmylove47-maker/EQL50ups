@@ -17,7 +17,6 @@ import { rankScorer, type ScoreContext, type WeightProfile } from '../engine/ep'
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
 import type { EquippedItem, GearSet, Item } from '../engine/types';
 import { dec, finite, num, signed } from '../lib/format';
-import { isLive } from '../lib/itemStyle';
 import {
   describeActiveFilters, isDefaultFilters, matchesFilters, type SetFilters,
 } from '../lib/setFilters';
@@ -246,7 +245,6 @@ export interface RankOptions {
   weights: WeightProfile;
   upgrade: UpgradeState;
   existing?: ScoreExisting;
-  includeUnreleased: boolean;
 }
 
 function weightSignature(weights: WeightProfile): string {
@@ -271,12 +269,13 @@ const RANK_CACHE_LIMIT = 64;
  * Score and sort every candidate for a slot.
  *
  * The expensive half of the picker. Memoised on (catalog revision, slot,
- * class trio, weights, preview tier, cap context, era filter) so that typing
- * in the search box never rescores anything — search only filters an
- * already-sorted array.
+ * class trio, weights, preview tier, cap context) so that typing in the search
+ * box never rescores anything — search only filters an already-sorted array.
+ * Every other filter a surface applies — era, source, No Drop — narrows this
+ * result rather than joining the key, so none of them can cost a re-rank.
  */
 export function rankSlotItems(catalog: CatalogState, options: RankOptions): ScoredItem[] {
-  const { slot, context, weights, upgrade, existing, includeUnreleased } = options;
+  const { slot, context, weights, upgrade, existing } = options;
   const key = [
     catalog.revision,
     slot,
@@ -288,7 +287,6 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
     weightSignature(weights),
     `${upgrade.full}.${upgrade.fraction}`,
     contextSignature(existing),
-    includeUnreleased ? 'all' : 'live',
   ].join('|');
 
   const cached = rankCache.get(key);
@@ -315,7 +313,6 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
      * a surface says out loud that it is holding one back.
      */
     if (statsAreUnknown(item)) continue;
-    if (!includeUnreleased && !isLive(item)) continue;
     if (context && !canUse({ classes: item.cl, races: item.ra, ...(item.rl ? { rl: item.rl } : {}) }, context)) {
       continue;
     }
@@ -337,9 +334,9 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
  *
  * The alternative — dropping them silently — turns a player searching their
  * own helm into "No matching items", which reads as "that item does not exist"
- * about an item they are wearing. Same eligibility rules as the ranking, minus
- * the era gate: whether a piece is live has no bearing on whether we know its
- * stats, and the reader is being told about a gap in our data either way.
+ * about an item they are wearing. Same eligibility rules as the ranking: class,
+ * race and level, and nothing else. The reader is being told about a gap in our
+ * data, so no filter should be able to suppress the admission.
  */
 export function unstattedForSlot(
   catalog: CatalogState,
@@ -404,7 +401,6 @@ export function ratioText(damage: number, delay: number): string {
 }
 
 export interface AutoFillOptions {
-  includeUnreleased: boolean;
   keepFilled: boolean;
   /**
    * The set's own default filters, honoured exactly as its pickers honour them.
@@ -548,7 +544,6 @@ export function* autoFillSteps(
         weights,
         upgrade: upgradeFor(view),
         existing: capContext,
-        includeUnreleased: options.includeUnreleased,
       });
       const list = narrow(all);
       if (!(list[0] && list[0].score > 0) && all[0] && all[0].score > 0) {

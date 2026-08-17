@@ -18,16 +18,9 @@
  */
 
 import { canUse, type LoadoutContext } from '../engine/character';
-import { isEraLive, isTier0Confirmed } from '../engine/constants';
 import type { Item } from '../engine/types';
 
 export type Usability = 'usable' | 'blocked' | 'unjudged';
-
-export function isLive(item: Item): boolean {
-  // Seeing an item in a live client outranks any era inference about it.
-  if (isTier0Confirmed(item.n)) return true;
-  return item.av !== false && isEraLive(item.era);
-}
 
 /** Restriction shape `canUse` wants, built from a catalog item. */
 function restrictionsOf(item: Item) {

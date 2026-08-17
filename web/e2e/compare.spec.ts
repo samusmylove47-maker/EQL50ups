@@ -151,7 +151,8 @@ test('the diff page is keyboard reachable with a visible ring', async ({ page })
     };
   });
   expect(focus?.inside, 'tabbing reaches the diff').toBe(true);
-  expect(focus?.ring, `no visible focus on "${focus?.name}"`).toMatch(/rgb\(59, 159, 232\)/);
+  // `--accent`, which the eqlsource re-skin moved from azure to steel blue.
+  expect(focus?.ring, `no visible focus on "${focus?.name}"`).toMatch(/rgb\(117, 149, 184\)/);
 });
 
 test('a set exports to JSON and imports back losslessly', async ({ page }) => {

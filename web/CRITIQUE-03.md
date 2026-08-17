@@ -1,5 +1,11 @@
 # CRITIQUE-03 — Reconciled punch list
 
+> **Historical record — figures predate the 2026-08-17 era purge.** The catalog described here
+> shipped 11,249–11,252 items with out-of-era content hidden behind a "Live content only"
+> toggle. It now ships 3,533; 7,719 records are quarantined in `pipeline/quarantine.json`, and
+> the toggle has been removed because it could no longer change a single row. Every count below
+> was correct when measured and is not current. See `research/SOURCING-STANDARD.md`.
+
 Four independent critics re-scored the build against sixtyupgrades.com, and three adversarial
 verifiers independently re-drove the fixes the previous round claimed. This document merges all
 seven into one ordered work list, adjudicates their contradictions against the source, and separates

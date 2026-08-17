@@ -184,11 +184,28 @@ describe('rankScorer', () => {
     const weights = { AC: 2, HP: 0.2, STR: 1, STA: 1, RATIO: 20 };
     const upgrade = tier(3);
 
+    /*
+     * Best of five, not one sample.
+     *
+     * This is wall-clock timing on a shared CPU: a single pass that happens to
+     * be preempted by another vitest worker (or, in CI, by the browser suite)
+     * measures the scheduler rather than the scorer, and this assertion failed
+     * that way once under load while passing on every unloaded run. The minimum
+     * of several passes is the least-interrupted one, which is the figure that
+     * actually describes the code.
+     *
+     * The bar below is unchanged — this makes the measurement honest, not the
+     * threshold softer.
+     */
     const run = (fn: (item: Item) => number) => {
-      for (const item of items) fn(item);
-      const started = performance.now();
-      for (const item of items) fn(item);
-      return performance.now() - started;
+      for (const item of items) fn(item); // warm up JIT and caches
+      let best = Infinity;
+      for (let pass = 0; pass < 5; pass++) {
+        const started = performance.now();
+        for (const item of items) fn(item);
+        best = Math.min(best, performance.now() - started);
+      }
+      return best;
     };
 
     const slow = run((item) => scoreItem(item, upgrade, weights).total);

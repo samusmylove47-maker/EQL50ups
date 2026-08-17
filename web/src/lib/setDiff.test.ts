@@ -292,7 +292,6 @@ describe('diffSets', () => {
         weights,
         upgrade: BASE_STATE,
         existing: scoreContextFrom(totalsFor(views, 'HEAD')),
-        includeUnreleased: true,
       });
       const inPicker = ranked.find((entry) => entry.item.n === 'Helm of 50')?.score;
 

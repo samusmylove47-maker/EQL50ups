@@ -100,10 +100,13 @@ test('the filter controls keep the keys they own', async ({ page }) => {
   await page.keyboard.press('ArrowDown');
   await expect(source).not.toHaveValue('any');
 
-  const liveOnly = page.locator('.modal .checkline input').first();
-  await liveOnly.focus();
+  // Hide No Drop is the picker's only checkbox, and it starts unchecked.
+  const hideNoDrop = page.locator('.modal .checkline input');
+  await expect(hideNoDrop).toHaveCount(1);
+  await expect(hideNoDrop).not.toBeChecked();
+  await hideNoDrop.focus();
   await page.keyboard.press('Space');
-  await expect(liveOnly).not.toBeChecked();
+  await expect(hideNoDrop).toBeChecked();
 });
 
 test('every exit path closes the picker', async ({ page }) => {
@@ -181,13 +184,24 @@ test('filters narrow the list and combine', async ({ page }) => {
   await page.waitForTimeout(250);
   expect(await rows()).toBe(base);
 
-  // Live-only is on by default; allowing unreleased content can only add rows.
-  const liveOnly = page.locator('.modal .checkline input').first();
-  await expect(liveOnly).toBeChecked();
-  await liveOnly.uncheck();
+  /*
+   * Hide No Drop is off by default; turning it on can only remove rows.
+   *
+   * There was a second checkbox here, "Live content only", checked by default,
+   * and this block unchecked it and expected the list to grow. It could not:
+   * out-of-era content is quarantined out of the build rather than shipped and
+   * hidden, so the control was removed. Hide No Drop is the surviving checkbox
+   * and it is asserted in the direction it actually moves.
+   */
+  const hideNoDrop = page.locator('.modal .checkline input');
+  await expect(hideNoDrop).toHaveCount(1);
+  await expect(hideNoDrop).not.toBeChecked();
+  await hideNoDrop.check();
   await page.waitForTimeout(400);
-  expect(await rows()).toBeGreaterThanOrEqual(base);
-  await liveOnly.check();
+  expect(await rows()).toBeLessThanOrEqual(base);
+  await hideNoDrop.uncheck();
+  await page.waitForTimeout(400);
+  expect(await rows()).toBe(base);
 
   await page.locator('.modal input[aria-label="Filter by source text"]').fill('zzzzz');
   await expect(page.locator('.results .empty-state h2')).toHaveText(/no matching items/i);

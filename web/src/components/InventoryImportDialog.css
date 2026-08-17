@@ -71,6 +71,7 @@
 }
 
 .invimport-count-value {
+  font-family: var(--font-num);
   font-size: var(--fs-mid);
   font-weight: var(--fw-num);
   color: var(--text-strong);
@@ -126,6 +127,7 @@
 }
 
 .invimport-table thead th {
+  font-family: var(--font-num);
   font-size: var(--fs-small);
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
@@ -150,12 +152,31 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The tier ramp, so a column of 21 rows reads as a state and not as 21 chips. */
+/*
+ * The tier ramp, so a column of 21 rows reads as a state and not as 21 chips.
+ *
+ * The comment above said exactly that while the rule under it pinned every row
+ * to `--tier-5` — one fixed mid-ramp colour, which reads as "tier 5" to anyone
+ * who has learned the ramp and says nothing about the +N actually in the cell.
+ * `InventoryImportDialog.tsx` now hands the cell its `data-tier`, so the claim
+ * and the rule agree.
+ */
 .invimport-tier {
-  color: var(--tier-5);
+  color: var(--tier-0);
   font-weight: var(--fw-emph);
   white-space: nowrap;
 }
+
+.invimport-tier[data-tier='1'] { color: var(--tier-1); }
+.invimport-tier[data-tier='2'] { color: var(--tier-2); }
+.invimport-tier[data-tier='3'] { color: var(--tier-3); }
+.invimport-tier[data-tier='4'] { color: var(--tier-4); }
+.invimport-tier[data-tier='5'] { color: var(--tier-5); }
+.invimport-tier[data-tier='6'] { color: var(--tier-6); }
+.invimport-tier[data-tier='7'] { color: var(--tier-7); }
+.invimport-tier[data-tier='8'] { color: var(--tier-8); }
+.invimport-tier[data-tier='9'] { color: var(--tier-9); }
+.invimport-tier[data-tier='10'] { color: var(--tier-10); }
 
 .invimport-donors {
   color: var(--text-dim);

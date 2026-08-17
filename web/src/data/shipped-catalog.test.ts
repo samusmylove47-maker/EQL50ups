@@ -92,7 +92,6 @@ describe.skipIf(!published)('shipped catalog', () => {
       context: activeContext(character),
       weights: { RATIO: 40, STR: 1, AC: 0.3, HP: 0.1 },
       upgrade: tier(0),
-      includeUnreleased: true,
     });
     const elapsed = performance.now() - started;
 

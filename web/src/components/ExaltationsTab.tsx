@@ -219,7 +219,12 @@ function ExaltRow({
           <span className="cell-glyph" aria-hidden="true">
             <SlotGlyph slot={entry.positionId} size={20} />
           </span>
-          {entry.item.n}
+          {/* The name needs its own box: `.exalt-row-name` is a flex container,
+              so a bare text node here is an anonymous flex item and
+              `text-overflow: ellipsis` has nothing to apply to. Below 860px
+              this column is the one that absorbs the row's shortfall, so a long
+              name truncated to a hard cut mid-word rather than to an ellipsis. */}
+          <span className="exalt-row-label">{entry.item.n}</span>
         </span>
         <UpgradeStepper
           value={entry.state}

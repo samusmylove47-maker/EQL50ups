@@ -17,8 +17,10 @@
  * costs less than the cap did.
  *
  * Every filter and the preview tier drive the list through a deferred copy of
- * their state, so the re-rank they cause runs at transition priority and never
- * blocks the control that asked for it.
+ * their state, so the work they cause runs at transition priority and never
+ * blocks the control that asked for it. Only the preview tier can re-rank; the
+ * filters narrow an already-ranked array, which is why none of them is in the
+ * rank cache key.
  *
  * Keyboard: ↑/↓ move, PgUp/PgDn jump, Home/End, Enter equips, Escape closes
  * (handled by the modal shell). Rows are `tabindex="-1"`, as the ARIA listbox
@@ -42,7 +44,7 @@ import { pickerFilterDefaults } from '../lib/pickerDefaults';
 // The same predicate Auto-fill applies, so the two surfaces on this screen can
 // never disagree about what the set's own filters mean.
 import { matchesSource, type SourceFilter } from '../lib/setFilters';
-import { displayFlags, eraLabel, isLive, itemNameColor, sourceSummary } from '../lib/itemStyle';
+import { displayFlags, eraLabel, itemNameColor, sourceSummary } from '../lib/itemStyle';
 import {
   rankSlotItems,
   scoreContextFrom,
@@ -152,7 +154,6 @@ export function ItemPicker({
   const defaults = pickerFilterDefaults();
   const [era, setEra] = useState<string>(defaults.era);
   const [source, setSource] = useState<SourceFilter>(defaults.source);
-  const [liveOnly, setLiveOnly] = useState(true);
   const [hideNoDrop, setHideNoDrop] = useState(defaults.hideNoDrop);
   const [preview, setPreview] = useState<UpgradeState>(currentUpgrade ?? BASE_STATE);
   const [active, setActive] = useState<ActiveRow>({ index: 0, name: null });
@@ -161,11 +162,11 @@ export function ItemPicker({
   const unweighted = !Object.values(weights ?? {}).some((w) => Number.isFinite(w) && w !== 0);
 
   /*
-   * Every filter change re-ranks or re-filters up to 1,800 candidates. Each
-   * one therefore drives the list from a *deferred* copy of its state: the
-   * control commits instantly at normal priority, and the expensive re-render
-   * it causes runs at transition priority — interruptible, and abandoned
-   * outright if you change your mind before it lands.
+   * Every filter change re-filters up to 2,191 candidates — the size of the
+   * Any Slot pool. Each one therefore drives the list from a *deferred* copy of
+   * its state: the control commits instantly at normal priority, and the
+   * expensive re-render it causes runs at transition priority — interruptible,
+   * and abandoned outright if you change your mind before it lands.
    *
    * Deferring the value rather than wrapping the setter in `startTransition`
    * is deliberate. These are all controlled inputs, and React restores a
@@ -183,7 +184,6 @@ export function ItemPicker({
   const deferredZone = useDeferredValue(zoneQuery);
   const deferredEra = useDeferredValue(era);
   const deferredSource = useDeferredValue(source);
-  const deferredLiveOnly = useDeferredValue(liveOnly);
   const deferredHideNoDrop = useDeferredValue(hideNoDrop);
   const rankPreview = useDeferredValue(preview);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -199,16 +199,15 @@ export function ItemPicker({
   const existing = useMemo(() => scoreContextFrom(contextTotals), [contextTotals]);
 
   /*
-   * Ranked over *every* candidate, released or not, and never re-ranked for the
-   * live-only checkbox.
+   * Ranked over every candidate the slot holds, once.
    *
-   * `includeUnreleased` is part of the rank cache key, so driving the checkbox
-   * through it meant the first press in each direction re-scored the whole slot
-   * — 194 ms on an Any Slot at 4x throttle — while the second press read a warm
-   * cache and measured 0 ms. A benchmark that toggles twice sees the 0; a user
-   * sees the 194. Whether an item is live changes only which of the already
-   * sorted candidates are shown, so it belongs in the `rows` filter beside era,
-   * source and No Drop, all three of which have always been free.
+   * Nothing a filter control does may reach this call. A filter that joins the
+   * rank cache key costs a full re-score the first time it is pressed in each
+   * direction — 194 ms on an Any Slot at 4x throttle, which is what the old
+   * live-only checkbox measured — while the second press reads a warm cache and
+   * measures 0 ms. A benchmark that toggles twice sees the 0; a user sees the
+   * 194. Era, source and No Drop all narrow the already-sorted result in `rows`
+   * below instead, and all three are free.
    */
   const ranked = useMemo(
     () =>
@@ -218,7 +217,6 @@ export function ItemPicker({
         weights,
         upgrade: rankPreview,
         existing,
-        includeUnreleased: true,
       }),
     [catalog, position.type, context, weights, rankPreview, existing],
   );
@@ -255,7 +253,6 @@ export function ItemPicker({
     for (const entry of ranked) {
       const item = entry.item;
       if (matches && !matches.has(item)) continue;
-      if (deferredLiveOnly && !isLive(item)) continue;
       if (deferredEra !== 'any' && item.era !== deferredEra) continue;
       if (!matchesSource(item, deferredSource)) continue;
       if (deferredHideNoDrop && item.fl.includes('NO_DROP')) continue;
@@ -263,15 +260,7 @@ export function ItemPicker({
       out.push(entry);
     }
     return out;
-  }, [
-    ranked,
-    matches,
-    deferredLiveOnly,
-    deferredEra,
-    deferredSource,
-    deferredHideNoDrop,
-    deferredZone,
-  ]);
+  }, [ranked, matches, deferredEra, deferredSource, deferredHideNoDrop, deferredZone]);
 
   /*
    * Items this slot holds that the ranking refuses to rank, because the catalog
@@ -331,21 +320,14 @@ export function ItemPicker({
    * Keyed off the deferred values, so the active row returns to the top exactly
    * when the list it indexes into changes — not one render early.
    *
-   * These six change *membership*, so the item that was highlighted may not be
+   * These five change *membership*, so the item that was highlighted may not be
    * in the list any more and the top is the only honest answer. The preview
    * tier deliberately is not here: it changes only the *order*, and the
    * highlight follows the item through it.
    */
   useEffect(() => {
     setActive({ index: 0, name: null });
-  }, [
-    deferredQuery,
-    deferredZone,
-    deferredEra,
-    deferredSource,
-    deferredHideNoDrop,
-    deferredLiveOnly,
-  ]);
+  }, [deferredQuery, deferredZone, deferredEra, deferredSource, deferredHideNoDrop]);
 
   useEffect(() => {
     scrollToActive.current(activeIndex);
@@ -501,26 +483,14 @@ export function ItemPicker({
           <option value="vendor">Vendor</option>
           <option value="crafted">Crafted</option>
         </select>
-        {/* One group, so the second checkbox cannot wrap away on its own and
-            end up orphaned at the far left under its sibling. */}
-        <span className="checkgroup">
-          <label className="checkline">
-            <input
-              type="checkbox"
-              checked={liveOnly}
-              onChange={(e) => setLiveOnly(e.target.checked)}
-            />
-            Live content only
-          </label>
-          <label className="checkline">
-            <input
-              type="checkbox"
-              checked={hideNoDrop}
-              onChange={(e) => setHideNoDrop(e.target.checked)}
-            />
-            Hide No Drop
-          </label>
-        </span>
+        <label className="checkline">
+          <input
+            type="checkbox"
+            checked={hideNoDrop}
+            onChange={(e) => setHideNoDrop(e.target.checked)}
+          />
+          Hide No Drop
+        </label>
       </div>
 
       <div className="picker-meta">
@@ -571,7 +541,7 @@ export function ItemPicker({
             <h2>No matching items</h2>
             <p>
               {catalog.status === 'ready'
-                ? 'Try clearing filters, or allow content that is not yet live.'
+                ? 'Try clearing the filters — the search, zone, era, source or No Drop.'
                 : 'No catalog data is loaded yet.'}
             </p>
           </div>
@@ -646,7 +616,6 @@ export function ItemPicker({
                       {item.n}
                     </span>
                     {era2 ? <span className="tag tag-era">{era2}</span> : null}
-                    {!isLive(item) ? <span className="tag tag-locked">Not live</span> : null}
                     {displayFlags(item.fl)
                       .slice(0, 2)
                       .map((flag) => (
