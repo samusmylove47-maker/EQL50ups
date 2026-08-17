@@ -171,8 +171,18 @@ export function ItemPicker({
     [catalog, position.type, context, weights, rankPreview, existing, deferredLiveOnly],
   );
 
+  /*
+   * Built on the first keystroke, not on open. The trigram index covers every
+   * name in the catalog and is rebuilt whenever a slot shard lands, so opening
+   * a picker paid for one — twice — to answer an empty query with `null`. That
+   * was a third of the cost of opening the dialog, spent on a search nobody
+   * had typed yet.
+   */
   const matches = useMemo(
-    () => searchIndexFor(catalog.revision, catalog.items).search(deferredQuery),
+    () =>
+      deferredQuery.trim()
+        ? searchIndexFor(catalog.revision, catalog.items).search(deferredQuery)
+        : null,
     [catalog.revision, catalog.items, deferredQuery],
   );
 
@@ -238,6 +248,25 @@ export function ItemPicker({
 
   const shardStatus = catalog.shards[position.type];
   const loading = catalog.status === 'loading' || shardStatus === 'loading';
+
+  /*
+   * ...and warmed while the thread is idle, so the first keystroke does not
+   * pay for it either. Building it on open cost every open; building it purely
+   * on demand moved the same cost onto the first character typed. Idle time is
+   * the one moment nobody is waiting.
+   */
+  useEffect(() => {
+    if (loading) return;
+    const scope = globalThis as {
+      requestIdleCallback?: (callback: () => void) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    if (typeof scope.requestIdleCallback !== 'function') return;
+    const handle = scope.requestIdleCallback(() => {
+      searchIndexFor(catalog.revision, catalog.items);
+    });
+    return () => scope.cancelIdleCallback?.(handle);
+  }, [catalog.revision, catalog.items, loading]);
 
   /*
    * List navigation is layered over the filter controls, so it has to give the
