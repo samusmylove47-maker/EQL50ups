@@ -1373,6 +1373,16 @@ select {
   text-transform: uppercase;
   color: var(--text-dim);
   font-weight: var(--fw-emph);
+  /*
+    A single-column vitals strip at 390px is narrower than the widest label,
+    and the tile clips rather than scrolls — "ENDURANCE" arrived as
+    "ENDURANC". Letting it wrap costs a line on the narrowest layout only;
+    a silently truncated word is a defect at every width.
+  */
+  align-self: stretch;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
 }
 
 .stat-row.vital .v {

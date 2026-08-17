@@ -36,6 +36,7 @@ import { useCatalog } from '../data/catalog';
 import type { SlotCode } from '../data/normalize';
 import { searchIndexFor } from '../data/searchIndex';
 import { count, ep as epText, signed, signedDec } from '../lib/format';
+import { pickerFilterDefaults } from '../lib/pickerDefaults';
 import { displayFlags, eraLabel, isLive, itemNameColor, sourceSummary } from '../lib/itemStyle';
 import {
   rankSlotItems,
@@ -113,10 +114,18 @@ export function ItemPicker({
 
   const [query, setQuery] = useState('');
   const [zoneQuery, setZoneQuery] = useState('');
-  const [era, setEra] = useState<string>('any');
-  const [source, setSource] = useState<SourceFilter>('any');
+  /*
+   * Seeded from the set's configured default filters rather than from
+   * literals. A set created with, say, "raid drops only" should open every one
+   * of its slot pickers already filtered that way — that is the whole point of
+   * asking for defaults at creation time (UI-REFERENCE §A4). Read once on
+   * mount; changing them mid-picker would move the list under the cursor.
+   */
+  const defaults = pickerFilterDefaults();
+  const [era, setEra] = useState<string>(defaults.era);
+  const [source, setSource] = useState<SourceFilter>(defaults.source);
   const [liveOnly, setLiveOnly] = useState(true);
-  const [hideNoDrop, setHideNoDrop] = useState(false);
+  const [hideNoDrop, setHideNoDrop] = useState(defaults.hideNoDrop);
   const [preview, setPreview] = useState<UpgradeState>(currentUpgrade ?? BASE_STATE);
   const [active, setActive] = useState(0);
 
