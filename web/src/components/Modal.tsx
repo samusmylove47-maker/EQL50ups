@@ -111,7 +111,7 @@ export function Modal({ title, onClose, children, footer, headerExtra, titleHidd
         tabIndex={-1}
         style={width ? { width: `min(${width}px, 100%)` } : undefined}
       >
-        <div className="modal-head">
+        <div className={`modal-head${titleHidden ? ' bare' : ''}`}>
           <h2 id={titleId} className={titleHidden ? 'sr-only' : undefined}>
             {title}
           </h2>

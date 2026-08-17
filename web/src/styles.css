@@ -1272,6 +1272,13 @@ select {
   border-bottom: 1px solid var(--line);
 }
 
+/* A dialog whose body carries its own title bar needs no second one; the head
+   shrinks to the close control. */
+.modal-head.bare {
+  padding: var(--s1) var(--s2);
+  border-bottom: 0;
+}
+
 .modal-head h2 {
   font-size: 14px;
   font-weight: 800;
