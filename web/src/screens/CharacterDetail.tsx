@@ -13,7 +13,10 @@ import {
 } from '../engine/character';
 import { CLASSES, CLASS_NAMES, LEVEL_CAP, type ClassCode } from '../engine/constants';
 import { ClassPicker } from '../components/ClassPicker';
+import { InventoryImportDialog } from '../components/InventoryImportDialog';
 import { Modal } from '../components/Modal';
+import { queueImportNotice } from '../lib/importNotice';
+import { importedSetName, summarizeImport, toSlotMap } from '../lib/inventoryImport';
 import { href, navigate } from '../router';
 import { setsForCharacter, useApp } from '../state/store';
 
@@ -23,6 +26,7 @@ export function CharacterDetail({ id }: { id: string }) {
   const [editing, setEditing] = useState<Loadout | null>(null);
   const [draftClasses, setDraftClasses] = useState<ClassCode[]>([]);
   const [draftName, setDraftName] = useState('');
+  const [importing, setImporting] = useState(false);
 
   if (!character) {
     return (
@@ -55,6 +59,14 @@ export function CharacterDetail({ id }: { id: string }) {
           <a className="btn btn-sm btn-quiet" href={href.characters}>
             All characters
           </a>
+          {/*
+            The game writes the whole character out already. Building it by hand
+            is ~46 clicks and ~280 keystrokes before a single +N is set, so this
+            sits beside the character rather than buried in a set's menu.
+          */}
+          <button type="button" className="btn btn-sm" onClick={() => setImporting(true)}>
+            ⇩ Import from game
+          </button>
           {sets[0] ? (
             <a className="btn btn-sm btn-primary" href={href.set(sets[0].id)}>
               Open {sets[0].name}
@@ -164,6 +176,25 @@ export function CharacterDetail({ id }: { id: string }) {
           ))}
         </div>
       </section>
+
+      {importing ? (
+        <InventoryImportDialog
+          characterName={character.name}
+          newSetName={importedSetName(sets.map((s) => s.name))}
+          onCancel={() => setImporting(false)}
+          onImport={(result) => {
+            const created = state.createSet(
+              character.id,
+              importedSetName(sets.map((s) => s.name)),
+            );
+            state.applySlots(created.id, toSlotMap(result), true);
+            setImporting(false);
+            // The report travels to the set the reader is about to land on.
+            queueImportNotice(summarizeImport(result));
+            navigate(href.set(created.id));
+          }}
+        />
+      ) : null}
 
       {editing ? (
         <Modal

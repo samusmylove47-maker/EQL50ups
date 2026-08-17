@@ -731,6 +731,18 @@ export function toSlotMap(result: InventoryImport): Record<string, EquippedItem>
   return slots;
 }
 
+/** Name for the set an import creates, kept distinct from its siblings. */
+export function importedSetName(existing: readonly string[]): string {
+  const base = 'In-game gear';
+  const taken = new Set(existing.map((n) => n.trim().toLowerCase()));
+  if (!taken.has(base.toLowerCase())) return base;
+  for (let n = 2; n < 1000; n++) {
+    const candidate = `${base} ${n}`;
+    if (!taken.has(candidate.toLowerCase())) return candidate;
+  }
+  return base;
+}
+
 /** Donors landing on one position, for the preview table. */
 export function exaltationsByPosition(
   result: InventoryImport,

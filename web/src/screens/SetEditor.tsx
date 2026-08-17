@@ -3,6 +3,7 @@ import { useCatalog } from '../data/catalog';
 import type { WeightProfile } from '../engine/ep';
 import type { Item } from '../engine/types';
 import type { UpgradeState } from '../engine/upgrade';
+import { InventoryImportDialog, type ImportTarget } from '../components/InventoryImportDialog';
 import { Modal } from '../components/Modal';
 import { SetConfigDialog, type SetConfigValue } from '../components/SetConfigDialog';
 import { SetWorkspace } from '../components/SetWorkspace';
@@ -11,6 +12,10 @@ import { planFrom, shareUrl } from '../share/codec';
 import { characterFor, setsForCharacter, useApp } from '../state/store';
 import { downloadJson } from '../lib/download';
 import { publishPickerDefaults, resetPickerDefaults } from '../lib/pickerDefaults';
+import { queueImportNotice, takeImportNotice } from '../lib/importNotice';
+import {
+  importedSetName, summarizeImport, toSlotMap, type InventoryImport,
+} from '../lib/inventoryImport';
 import { filtersFor } from '../lib/setFilters';
 import {
   buildSetEnvelope, readEnvelopeText, setExportFilename, summarizeReport,
@@ -29,7 +34,9 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
   const catalog = useCatalog();
   const ensureAll = useCatalog((s) => s.ensureAll);
 
-  const [dialog, setDialog] = useState<'share' | 'edit' | 'create' | 'import' | null>(null);
+  const [dialog, setDialog] = useState<
+    'share' | 'edit' | 'create' | 'import' | 'inventory' | null
+  >(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [noticeHeld, setNoticeHeld] = useState(false);
@@ -39,8 +46,12 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
   const menuRef = useRef<HTMLDetailsElement>(null);
   const restoreMenuFocus = useRef(false);
 
+  /*
+   * Switching sets clears the notice — except when an import queued one for
+   * the set it just created, which is exactly the set being switched to.
+   */
   useEffect(() => {
-    setMessage(null);
+    setMessage(takeImportNotice());
   }, [id]);
 
   /*
@@ -165,6 +176,32 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
     } finally {
       setBusy(false);
     }
+  };
+
+  /*
+   * The one capability no other planner can have: the game writes this file,
+   * and nothing else does. Either it replaces this set wholesale — the reader
+   * asked for that explicitly in the dialog — or it lands in a new set beside
+   * it, which is the default because it destroys nothing.
+   */
+  const applyInventory = (result: InventoryImport, target: ImportTarget) => {
+    const slots = toSlotMap(result);
+    setDialog(null);
+    if (target === 'current') {
+      state.applySlots(gearSet.id, slots, true);
+      setMessage(summarizeImport(result));
+      return;
+    }
+    const created = state.createSet(
+      gearSet.characterId,
+      importedSetName(siblings.map((s) => s.name)),
+      gearSet.weights,
+      { filters },
+    );
+    state.applySlots(created.id, slots, true);
+    // The report belongs on the screen the reader lands on, not on this one.
+    queueImportNotice(summarizeImport(result));
+    navigate(href.set(created.id));
   };
 
   const copyLink = async () => {
@@ -330,6 +367,13 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
                 <button
                   type="button"
                   className="menu-item"
+                  onClick={() => setDialog('inventory')}
+                >
+                  Import from game (/outputfile inventory)…
+                </button>
+                <button
+                  type="button"
+                  className="menu-item"
                   onClick={() =>
                     downloadJson(setExportFilename(gearSet), buildSetEnvelope(gearSet, character))
                   }
@@ -475,6 +519,16 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
             setDialog(null);
             navigate(href.set(created.id));
           }}
+        />
+      ) : null}
+
+      {dialog === 'inventory' ? (
+        <InventoryImportDialog
+          {...(character ? { characterName: character.name } : {})}
+          currentSetName={gearSet.name}
+          newSetName={importedSetName(siblings.map((s) => s.name))}
+          onCancel={() => setDialog(null)}
+          onImport={applyInventory}
         />
       ) : null}
 

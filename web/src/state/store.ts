@@ -81,6 +81,14 @@ export interface AppState extends PersistedState {
   unequip: (setId: string, position: string) => void;
   setUpgrade: (setId: string, position: string, upgrade: UpgradeState) => void;
   setExaltation: (setId: string, position: string, kind: string, donor: string | null) => void;
+  /**
+   * Write a whole slot map in one mutation — what the `/outputfile inventory`
+   * importer produces. Twenty-two positions, each with its tier and its
+   * exaltation donors, arriving as forty-odd separate `equip`/`setUpgrade`/
+   * `setExaltation` calls would be forty renders and forty scheduled writes for
+   * something the reader experienced as pressing Import once.
+   */
+  applySlots: (setId: string, slots: Record<string, EquippedItem>, replace: boolean) => void;
   setWeights: (setId: string, weights: WeightProfile) => void;
   setNotes: (setId: string, notes: string) => void;
   adoptPlan: (plan: SharedPlan) => { characterId: string; setId: string };
@@ -345,6 +353,24 @@ export const useApp = create<AppState>((set, get) => {
         const next: EquippedItem = { ...current, exaltations };
         if (!Object.keys(exaltations).length) delete next.exaltations;
         return { ...s, slots: { ...s.slots, [position]: next } };
+      });
+    },
+
+    applySlots(setId, slots, replace) {
+      mutateSet(setId, (s) => {
+        const next: Record<string, EquippedItem | undefined> = replace ? {} : { ...s.slots };
+        for (const [position, equipped] of Object.entries(slots)) {
+          if (!equipped?.itemName) continue;
+          const item: EquippedItem = {
+            itemName: equipped.itemName,
+            upgrade: normalizeState(equipped.upgrade ?? BASE_STATE),
+          };
+          if (equipped.exaltations && Object.keys(equipped.exaltations).length) {
+            item.exaltations = { ...equipped.exaltations };
+          }
+          next[position] = item;
+        }
+        return { ...s, slots: next };
       });
     },
 

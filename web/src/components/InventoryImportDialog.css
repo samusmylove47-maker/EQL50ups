@@ -1,0 +1,237 @@
+/*
+ * The `/outputfile inventory` import dialog.
+ *
+ * Own stylesheet, own `invimport-` prefix, every value a token from
+ * `styles/tokens.css`. Nothing here hard-codes a colour or a size.
+ *
+ * The layout has one job: the preview must be readable at a glance and
+ * exhaustive on inspection. Counts first, the equipped table second, and the
+ * two "not imported" lists last — the gap is the part a reader must not be able
+ * to skim past, so it is typed at body size rather than as a footnote.
+ */
+
+.invimport-how {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.invimport-how code {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  background: var(--bg-inset);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0 var(--s1);
+  color: var(--text-strong);
+}
+
+.invimport-paste {
+  width: 100%;
+  min-height: 7em;
+  resize: vertical;
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.invimport-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  border-top: 1px solid var(--line);
+  padding-top: var(--s4);
+  min-width: 0;
+}
+
+.invimport-summary {
+  margin: 0;
+  font-size: var(--fs-body);
+  color: var(--text-strong);
+}
+
+/* ---- Counts -------------------------------------------------------------- */
+
+.invimport-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.invimport-count {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-inset);
+  padding: var(--s1) var(--s3);
+}
+
+.invimport-count-value {
+  font-size: var(--fs-mid);
+  font-weight: var(--fw-num);
+  color: var(--text-strong);
+}
+
+.invimport-count-label {
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+.invimport-count.is-good .invimport-count-value {
+  color: var(--gain);
+}
+
+/* A zero here is good news, so only a real gap takes the warning colour. */
+.invimport-count.is-bad {
+  border-color: var(--danger);
+}
+
+.invimport-count.is-bad .invimport-count-value {
+  color: var(--danger);
+}
+
+/* ---- The table ----------------------------------------------------------- */
+
+/*
+ * Four columns on a dialog that has to survive a narrow window: the wrapper
+ * scrolls sideways rather than letting the page do it.
+ */
+.invimport-tablewrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.invimport-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-body);
+}
+
+.invimport-table th,
+.invimport-table td {
+  text-align: left;
+  padding: var(--s1) var(--s3);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.invimport-table tbody tr:last-child th,
+.invimport-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.invimport-table thead th {
+  font-size: var(--fs-small);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: var(--fw-emph);
+  background: var(--bg-inset);
+  white-space: nowrap;
+}
+
+.invimport-table tbody th {
+  font-weight: var(--fw-body);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.invimport-table td {
+  color: var(--text);
+}
+
+.invimport-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The tier ramp, so a column of 21 rows reads as a state and not as 21 chips. */
+.invimport-tier {
+  color: var(--tier-5);
+  font-weight: var(--fw-emph);
+  white-space: nowrap;
+}
+
+.invimport-donors {
+  color: var(--text-dim);
+  font-size: var(--fs-small);
+}
+
+.invimport-drift {
+  color: var(--text-faint);
+  font-size: var(--fs-small);
+}
+
+/* ---- The two "not imported" lists ---------------------------------------- */
+
+.invimport-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-size: var(--fs-body);
+  color: var(--text);
+}
+
+.invimport-list li {
+  border-left: 2px solid var(--line-strong);
+  padding-left: var(--s3);
+}
+
+.invimport-list-bad li {
+  border-left-color: var(--danger);
+}
+
+/* ---- Where it goes ------------------------------------------------------- */
+
+.invimport-target {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s3);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.invimport-target legend {
+  padding: 0 var(--s1);
+}
+
+.invimport-radio {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: var(--fs-body);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.invimport-radio input {
+  flex: 0 0 auto;
+}
+
+.invimport-radio .hint {
+  display: inline;
+}
+
+.invimport-foot {
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+  text-align: left;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .invimport-table {
+    font-size: var(--fs-small);
+  }
+}
