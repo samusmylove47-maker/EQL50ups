@@ -6,7 +6,7 @@
  * migration must never lose a library written by the previous model.
  */
 
-import { createCharacter, expect, expectCleanText, test } from './helpers';
+import { createCharacter, expect, expectCleanText, pickerMatchCount, test } from './helpers';
 
 const V1_LIBRARY = {
   version: 1,
@@ -70,7 +70,7 @@ test('a second loadout re-ranks the pickers and re-titles the header, live', asy
   // How many head candidates does the plate trio see?
   await page.locator('.slot-wrap button.slot').nth(1).click();
   await page.locator('.results .result, .results .empty-state').first().waitFor();
-  const asPlate = await page.locator('.results .result').count();
+  const asPlate = await pickerMatchCount(page);
   await page.keyboard.press('Escape');
 
   // Build a caster loadout on the character page.
@@ -104,7 +104,7 @@ test('a second loadout re-ranks the pickers and re-titles the header, live', asy
 
   await page.locator('.slot-wrap button.slot').nth(1).click();
   await page.locator('.results .result, .results .empty-state').first().waitFor();
-  const asCaster = await page.locator('.results .result').count();
+  const asCaster = await pickerMatchCount(page);
   await page.keyboard.press('Escape');
 
   // A different trio must see a different pool — that is the whole feature.

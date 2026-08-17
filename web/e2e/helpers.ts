@@ -129,3 +129,17 @@ export async function openSlotPicker(page: Page, index: number): Promise<void> {
   await page.locator('.modal').waitFor();
   await page.locator('.results .result, .results .empty-state').first().waitFor();
 }
+
+/**
+ * How many candidates the open picker has, read from `1,720 matches`.
+ *
+ * The result list is windowed, so counting `.result` elements counts what is
+ * on screen rather than what is in the list. Anything reasoning about the size
+ * of a candidate pool asks for this.
+ */
+export async function pickerMatchCount(page: Page): Promise<number> {
+  const text = await page.locator('.picker-meta span').first().innerText();
+  const digits = text.replace(/,/g, '').match(/\d+/);
+  expect(digits, `no match count in "${text}"`).toBeTruthy();
+  return Number(digits?.[0]);
+}

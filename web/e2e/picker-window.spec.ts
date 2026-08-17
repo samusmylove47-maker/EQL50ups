@@ -7,15 +7,9 @@
  * legal candidates unreachable on an Any Slot.
  */
 
-import { createCharacter, expect, expectCleanText, openSlotPicker, test } from './helpers';
-
-/** The number in `1,720 matches`. */
-async function matchCount(page: import('@playwright/test').Page): Promise<number> {
-  const text = await page.locator('.picker-meta span').first().innerText();
-  const digits = text.replace(/,/g, '').match(/\d+/);
-  expect(digits, `no match count in "${text}"`).toBeTruthy();
-  return Number(digits?.[0]);
-}
+import {
+  createCharacter, expect, expectCleanText, openSlotPicker, pickerMatchCount as matchCount, test,
+} from './helpers';
 
 test('the list renders a small window of a long candidate list', async ({ page }) => {
   await createCharacter(page);

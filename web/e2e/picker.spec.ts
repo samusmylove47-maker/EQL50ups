@@ -1,21 +1,8 @@
 /** The slot picker: focus, keyboard, filters, and every way out of it. */
 
-import { createCharacter, expect, expectCleanText, openSlotPicker, test } from './helpers';
-import type { Page } from '@playwright/test';
-
-/**
- * How many candidates the open picker has, from `1,720 matches`.
- *
- * The list is windowed, so counting `.result` elements counts what is on
- * screen, not what is in the list. Everything that used to reason about list
- * length by counting rows asks for this instead.
- */
-async function matchCount(page: Page): Promise<number> {
-  const text = await page.locator('.picker-meta span').first().innerText();
-  const digits = text.replace(/,/g, '').match(/\d+/);
-  expect(digits, `no match count in "${text}"`).toBeTruthy();
-  return Number(digits?.[0]);
-}
+import {
+  createCharacter, expect, expectCleanText, openSlotPicker, pickerMatchCount as matchCount, test,
+} from './helpers';
 
 test('the search box takes focus on open, so typing searches immediately', async ({ page }) => {
   // Regression: Modal's setup effect depended on `onClose` (a fresh arrow each
