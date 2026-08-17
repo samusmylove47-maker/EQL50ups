@@ -23,7 +23,7 @@ import type { LoadoutContext } from '../engine/character';
 import { CLASS_NAMES, type ClassCode } from '../engine/constants';
 import { canUseClass, canUseRace, levelCheck } from '../engine/character';
 import type { Item } from '../engine/types';
-import type { UpgradeState } from '../engine/upgrade';
+import { scaleWeight, type UpgradeState } from '../engine/upgrade';
 import { dec, num, signed } from '../lib/format';
 import { displayFlags, eraLabel, isLive, itemNameColor, usabilityNote } from '../lib/itemStyle';
 import { ratioText, shortStatLabel, statLabel, statVector } from '../selectors/gear';
@@ -148,7 +148,15 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
           ) : null}
           <div>
             <i>Weight</i>
-            <span className="iwin-gold">{item.wt === undefined ? '—' : dec(item.wt, 1)}</span>
+            {/*
+              Weight is scaled like every other number in this window. The panel
+              is headed "Stats at +N", and the client itself drops Earthshaker
+              from 16 to 1.6 at +10, so printing the base here contradicted both
+              the heading beside it and the game.
+            */}
+            <span className="iwin-gold">
+              {item.wt === undefined ? '—' : dec(scaleWeight(item.wt, upgrade), 1)}
+            </span>
           </div>
           {item.sz ? (
             <div>
