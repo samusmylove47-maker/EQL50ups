@@ -120,7 +120,17 @@ export function SetConfigDialog({
     if (!name.trim()) list.push('Give the set a name.');
     for (const row of rows) {
       const text = row.text.trim();
-      if (text && !Number.isFinite(Number(text))) {
+      /*
+       * A blank row blocks rather than being dropped on save. A number input
+       * reports anything it cannot parse — `lots`, `1e`, a lone `-` — as the
+       * empty string, so "blank" is the shape every bad keystroke arrives in,
+       * and silently discarding the stat would lose a deliberate choice.
+       */
+      if (!text) {
+        list.push(`Give ${labelFor(row.key)} a weight, or remove it.`);
+        continue;
+      }
+      if (!Number.isFinite(Number(text))) {
         list.push(`The weight for ${labelFor(row.key)} is not a number.`);
       }
     }

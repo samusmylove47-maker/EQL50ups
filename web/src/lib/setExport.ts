@@ -211,12 +211,13 @@ function pruneSlots(gearSet: GearSet): GearSet {
 
 /** Validate a parsed JSON value as an export envelope. Never throws. */
 export function readEnvelope(raw: unknown): EnvelopeReport {
+  // Arrays are objects, so the array case has to be taken first or a v1-style
+  // positional tuple would be reported as "no format field".
+  if (Array.isArray(raw)) {
+    return fail('That file is a JSON array, not an EQL Upgrades export.');
+  }
   if (!isRecord(raw)) {
-    return fail(
-      Array.isArray(raw)
-        ? 'That file is a JSON array, not an EQL Upgrades export.'
-        : 'That file is not a JSON object, so it cannot be an EQL Upgrades export.',
-    );
+    return fail('That file is not a JSON object, so it cannot be an EQL Upgrades export.');
   }
   if (raw.format !== EXPORT_FORMAT) {
     return fail(
