@@ -158,6 +158,25 @@ test('a set exports to JSON and imports back losslessly', async ({ page }) => {
   const [first] = await twoSets(page);
   await page.goto(`/#/set/${first}`);
 
+  /*
+   * Saves are debounced by 200 ms, so the baseline has to be read once the
+   * write has actually landed — the same poll the imported side already does
+   * below. Without it this reads whatever storage held *before* Auto-fill, and
+   * the round trip is then compared against an empty slot map: the assertion
+   * only held while the app happened to be slow enough for the timer to fire
+   * first.
+   */
+  await expect
+    .poll(() =>
+      page.evaluate((id) => {
+        const set = JSON.parse(localStorage.getItem('eqlups.state.v1') ?? '{}').sets?.find(
+          (s: { id: string }) => s.id === id,
+        );
+        return Object.keys(set?.slots ?? {}).length;
+      }, first),
+    )
+    .toBeGreaterThan(0);
+
   const before = await page.evaluate((id) => {
     const set = JSON.parse(localStorage.getItem('eqlups.state.v1') ?? '{}').sets.find(
       (s: { id: string }) => s.id === id,
