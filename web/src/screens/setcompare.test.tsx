@@ -13,6 +13,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../App';
 import { useCatalog } from '../data/catalog';
 import { tier } from '../engine/upgrade';
+import { ep } from '../lib/format';
+import { diffSets } from '../lib/setDiff';
 import { href, parseHash } from '../router';
 import { emptyState } from '../state/persistence';
 import { useApp } from '../state/store';
@@ -221,6 +223,42 @@ describe('screen', () => {
     clean(back);
     expect(back).toContain('absorbed above the cap');
     expect(back).toContain('nothing lost to a ceiling');
+  });
+
+  /*
+   * The headline is `epBUnderLens - epALens`; its subtitle used to print `epA`,
+   * which is A under *its own* weights. Clearing a set's weights — which the
+   * Weights tab does whenever a field reaches 0 — therefore put two scales in
+   * one tile and rendered a red negative delta over an ascending pair.
+   */
+  it('keeps the EP headline and its from→to pair on one scale, and names the real lens', () => {
+    const state = useApp.getState();
+    state.setWeights(idA, {});
+    state.setWeights(idB, { AC: 2, STR: 1 });
+
+    const text = render(href.compare(idA, idB));
+    clean(text);
+
+    // The lens fell through to B, so B is the profile that must be named — in
+    // the weights banner and over the slot table alike.
+    expect(text).toContain("scored under Planned's weights");
+    expect(text).toContain("EP scored under Planned's weights, cap-aware");
+    expect(text).not.toContain("scored under Current's weights");
+    expect(text).toContain('Current carries no weights at all');
+
+    // A under the lens is not zero, so the tile cannot read "0.0 → …".
+    const diff = diffSets(
+      useApp.getState().sets.find((s) => s.id === idA)!,
+      useApp.getState().sets.find((s) => s.id === idB)!,
+      useCatalog.getState(),
+    );
+    expect(diff.lensOwner).toBe('b');
+    expect(diff.epA).toBe(0);
+    expect(diff.epALens).toBeGreaterThan(0);
+    expect(text).toContain(`${ep(diff.epALens)} → ${ep(diff.epBUnderLens)}`);
+    expect(text).not.toContain(`${ep(diff.epA)} → ${ep(diff.epBUnderLens)}`);
+    // Headline and subtitle agree about which way the set moved.
+    expect(Math.sign(diff.epDelta)).toBe(Math.sign(diff.epBUnderLens - diff.epALens));
   });
 
   it('offers a way out when there is only one set in the library', () => {

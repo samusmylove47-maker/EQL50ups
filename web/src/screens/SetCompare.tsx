@@ -298,6 +298,16 @@ export function SetCompare({ id, id2 }: { id: string; id2: string }) {
 
   const loading = catalog.status === 'loading' || catalog.status === 'idle';
 
+  /*
+   * Which set's weights every EP number on this screen is scored under. `lens`
+   * falls through to B when A carries no weight at all, so naming A here — as
+   * this screen used to, in two places — labelled the columns with a profile
+   * they were not scored under.
+   */
+  const lensSet = diff?.lensOwner === 'b' ? setB : setA;
+  const otherSet = diff?.lensOwner === 'b' ? setA : setB;
+  const otherOwnEp = diff?.lensOwner === 'b' ? diff.epA : (diff?.epB ?? 0);
+
   return (
     <div className="cmp">
       <header className="cmp-head">
@@ -359,8 +369,11 @@ export function SetCompare({ id, id2 }: { id: string; id2: string }) {
       {diff && diff.weightsDiffer ? (
         <p className="cmp-banner" role="status">
           The two sets carry different EP weights. Per-slot and total EP below are scored under{' '}
-          <strong>{setA.name}</strong>'s profile so the columns subtract on one scale;{' '}
-          <strong>{setB.name}</strong> is worth {epText(diff.epB)} EP under its own.
+          <strong>{lensSet.name}</strong>'s profile so the columns subtract on one scale;{' '}
+          <strong>{otherSet.name}</strong> is worth {epText(otherOwnEp)} EP under its own.
+          {diff.lensOwner === 'b'
+            ? ` ${setA.name} carries no weights at all, so its profile would score every item zero.`
+            : ''}
         </p>
       ) : null}
 
@@ -378,8 +391,12 @@ export function SetCompare({ id, id2 }: { id: string; id2: string }) {
               <strong className={`cmp-kpivalue ${deltaClass(diff.epDelta)}`}>
                 {signedDec(diff.epDelta)}
               </strong>
+              {/* Both ends of the headline's own subtraction, on the lens
+                  scale. Printing A under *its own* weights here put two scales
+                  in one tile: a set with cleared weights read "0.0 → 1427.5"
+                  under a red negative delta. */}
               <span className="hint">
-                {epText(diff.epA)} → {epText(diff.epBUnderLens)}
+                {epText(diff.epALens)} → {epText(diff.epBUnderLens)}
               </span>
             </div>
             <div className="cmp-kpi">
@@ -433,7 +450,8 @@ export function SetCompare({ id, id2 }: { id: string; id2: string }) {
             <header className="cmp-grouphead">
               <h2 className="section-label">Slot by slot</h2>
               <span className="hint">
-                EP scored under {setA.name}'s weights, cap-aware · unchanged slots dimmed
+                EP scored under {lensSet.name}'s weights, cap-aware against the rest of each set ·
+                unchanged slots dimmed
               </span>
             </header>
             <div className="cmp-slothead" aria-hidden="true">

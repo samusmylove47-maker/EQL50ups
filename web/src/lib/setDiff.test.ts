@@ -11,6 +11,7 @@ import type { CatalogState } from '../data/catalog';
 import { ATTRIBUTE_CAP, RESIST_CAP } from '../engine/constants';
 import { BASE_STATE, tier } from '../engine/upgrade';
 import type { GearSet, Item } from '../engine/types';
+import { rankSlotItems, scoreContextFrom, slotViews, totalsFor } from '../selectors/gear';
 import { creditableDelta, diffSets, type CapRow } from './setDiff';
 
 function item(name: string, patch: Partial<Item> = {}): Item {
@@ -24,6 +25,31 @@ function item(name: string, patch: Partial<Item> = {}): Item {
 function catalogOf(items: Item[]): CatalogState {
   return {
     byName: new Map(items.map((i) => [i.n.toLowerCase(), i])),
+  } as unknown as CatalogState;
+}
+
+/**
+ * A catalog complete enough for `rankSlotItems` too, so a test can put the
+ * diff's EP column and the picker's ranking side by side and require them to
+ * agree. `revision` is unique per call because the ranking is memoised on it.
+ */
+let revisionCounter = 90_000;
+function rankableCatalog(items: Item[]): CatalogState {
+  revisionCounter += 1;
+  const bySlot = new Map<string, Item[]>();
+  for (const item of items) {
+    for (const slot of item.sl) {
+      const bucket = bySlot.get(slot) ?? [];
+      bucket.push(item);
+      bySlot.set(slot, bucket);
+    }
+  }
+  return {
+    status: 'ready',
+    items,
+    byName: new Map(items.map((i) => [i.n.toLowerCase(), i])),
+    bySlot,
+    revision: revisionCounter,
   } as unknown as CatalogState;
 }
 
@@ -230,6 +256,132 @@ describe('diffSets', () => {
     expect(head?.a?.itemName).toBe('Ghost Item');
     expect(head?.a?.ep).toBe(0);
     expect(head?.status).toBe('removed');
+  });
+
+  /*
+   * The compare screen prints "EP scored under … weights, cap-aware" over this
+   * column. It said so while scoring every item in isolation, which is how the
+   * same item, tier and profile came to read 130.0 EP on the diff and 80.0 EP
+   * in the picker one screen away.
+   */
+  describe('per-slot EP is cap-aware, like every other surface', () => {
+    const girdle = item('Girdle of 500', { sl: ['WAIST'], st: { STR: 500 } });
+    const helm = item('Helm of 50', { sl: ['HEAD'], st: { STR: 50 } });
+    const weights = { STR: 1 };
+
+    it('charges the rest of the set against the ceiling before crediting a slot', () => {
+      const loaded = set({ slots: { WAIST: equipped('Girdle of 500'), HEAD: equipped('Helm of 50') }, weights });
+      const diff = diffSets(loaded, loaded, rankableCatalog([girdle, helm]));
+      const head = diff.slots.find((s) => s.position.id === 'HEAD');
+
+      // 500 of the 510 ceiling is already spent by the girdle, so only ten of
+      // the helm's fifty points are worth anything. Scored in isolation it read
+      // the full fifty.
+      expect(head?.a?.ep).toBe(10);
+    });
+
+    it('agrees to the point with what the picker would score in that slot', () => {
+      const catalog = rankableCatalog([girdle, helm]);
+      const loaded = set({ slots: { WAIST: equipped('Girdle of 500'), HEAD: equipped('Helm of 50') }, weights });
+      const diff = diffSets(loaded, loaded, catalog);
+      const views = slotViews(loaded, catalog);
+
+      const ranked = rankSlotItems(catalog, {
+        slot: 'HEAD',
+        context: undefined,
+        weights,
+        upgrade: BASE_STATE,
+        existing: scoreContextFrom(totalsFor(views, 'HEAD')),
+        includeUnreleased: true,
+      });
+      const inPicker = ranked.find((entry) => entry.item.n === 'Helm of 50')?.score;
+
+      expect(inPicker).toBe(10);
+      expect(diff.slots.find((s) => s.position.id === 'HEAD')?.a?.ep).toBe(inPicker);
+    });
+
+    it('refuses weapon value in an Any Slot, exactly as the ranking does', () => {
+      // An Any Slot is a worn position, not a hand: `computeTotals` reports no
+      // weapon from it, so the diff must not print EP the stat panel disowns.
+      const blade = item('Sharp Thing', {
+        sl: ['PRIMARY'], st: {}, wp: { dmg: 20, dly: 20, skill: '1H Slashing' },
+      });
+      const catalog = rankableCatalog([blade]);
+      const ratio = { RATIO: 100 };
+      const inHand = set({ slots: { PRIMARY: equipped('Sharp Thing') }, weights: ratio });
+      const worn = set({ slots: { ANY_1: equipped('Sharp Thing') }, weights: ratio });
+
+      const hand = diffSets(inHand, inHand, catalog).slots.find((s) => s.position.id === 'PRIMARY');
+      const any = diffSets(worn, worn, catalog).slots.find((s) => s.position.id === 'ANY_1');
+      expect(hand?.a?.ep).toBe(100);
+      expect(any?.a?.ep).toBe(0);
+    });
+  });
+
+  /*
+   * The KPI headline is `epBUnderLens - epALens`, so its subtitle has to be the
+   * two ends of that same subtraction. Printing A under its own weights instead
+   * rendered "−1860" in red above an ascending "0.0 → 1,427.5" for any set
+   * whose weights had been cleared — which the Weights tab does on a 0.
+   */
+  describe('the lens when set A carries no weights at all', () => {
+    const helm = item('Helm', { st: { AC: 8 } });
+    const crown = item('Crown', { st: { AC: 20 } });
+    const catalog = catalogOf([helm, crown]);
+
+    it('names B as the lens owner rather than silently borrowing its profile', () => {
+      const a = set({ slots: { HEAD: equipped('Helm') }, weights: {} });
+      const b = set({ slots: { HEAD: equipped('Crown') }, weights: { AC: 2 } });
+      const diff = diffSets(a, b, catalog);
+
+      expect(diff.lensOwner).toBe('b');
+      expect(diff.lens).toBe(b.weights);
+    });
+
+    it('reports both ends of the headline on the lens scale', () => {
+      const a = set({ slots: { HEAD: equipped('Helm') }, weights: {} });
+      const b = set({ slots: { HEAD: equipped('Crown') }, weights: { AC: 2 } });
+      const diff = diffSets(a, b, catalog);
+
+      // A is worth nothing under its own empty profile, and 16 under the lens.
+      expect(diff.epA).toBe(0);
+      expect(diff.epALens).toBe(16);
+      expect(diff.epBUnderLens).toBe(40);
+      expect(diff.epDelta).toBe(24);
+      // The headline and the from→to pair must never disagree about direction.
+      expect(Math.sign(diff.epDelta)).toBe(Math.sign(diff.epBUnderLens - diff.epALens));
+      expect(diff.epDelta).toBe(diff.epBUnderLens - diff.epALens);
+    });
+
+    it('still reads as a loss when the cleared-weight set was the better one', () => {
+      const a = set({ slots: { HEAD: equipped('Crown') }, weights: {} });
+      const b = set({ slots: { HEAD: equipped('Helm') }, weights: { AC: 2 } });
+      const diff = diffSets(a, b, catalog);
+
+      expect(diff.epALens).toBe(40);
+      expect(diff.epBUnderLens).toBe(16);
+      expect(diff.epDelta).toBe(-24);
+      expect(diff.epALens).toBeGreaterThan(diff.epBUnderLens);
+    });
+
+    it('keeps A as the lens owner whenever A weighs anything', () => {
+      const a = set({ slots: { HEAD: equipped('Helm') }, weights: { AC: 1 } });
+      const b = set({ slots: { HEAD: equipped('Crown') }, weights: { AC: 10 } });
+      const diff = diffSets(a, b, catalog);
+      expect(diff.lensOwner).toBe('a');
+      expect(diff.epALens).toBe(diff.epA);
+    });
+
+    it('falls through to B even when B is empty too, without NaN', () => {
+      const a = set({ slots: { HEAD: equipped('Helm') }, weights: {} });
+      const b = set({ slots: { HEAD: equipped('Crown') }, weights: {} });
+      const diff = diffSets(a, b, catalog);
+      expect(diff.lensOwner).toBe('b');
+      expect(diff.epALens).toBe(0);
+      expect(diff.epBUnderLens).toBe(0);
+      expect(diff.epDelta).toBe(0);
+      expect(diff.weightsDiffer).toBe(false);
+    });
   });
 
   it('covers all twenty-three positions, empty or not', () => {

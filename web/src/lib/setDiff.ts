@@ -25,8 +25,8 @@ import type { GearSet, Item } from '../engine/types';
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
 import type { CatalogState } from '../data/catalog';
 import {
-  resolvedEntries, slotViews, statDeltas, totalsFor,
-  type SlotView, type StatDelta,
+  resolvedEntries, scoreContextFrom, slotViews, statDeltas, totalsFor,
+  type ScoreExisting, type SlotView, type StatDelta,
 } from '../selectors/gear';
 import { finite } from './format';
 
@@ -120,12 +120,22 @@ export interface SetDiff {
   totalsA: StatTotals;
   totalsB: StatTotals;
   capSummary: CapSummary;
-  /** EP of each set under its own weights, and of B under A's lens. */
+  /** EP of each set under its own weights, and of both under the lens. */
   epA: number;
   epB: number;
+  epALens: number;
   epBUnderLens: number;
+  /** `epBUnderLens - epALens`: both ends on the lens scale, never mixed. */
   epDelta: number;
   lens: WeightProfile;
+  /**
+   * Whose weight profile the lens is.
+   *
+   * A carries it whenever A has any weight at all; an all-zero A falls through
+   * to B's profile, and a view that hard-codes "scored under A's weights" then
+   * names the wrong set. Derived here so no caller has to re-derive it.
+   */
+  lensOwner: 'a' | 'b';
   weightsDiffer: boolean;
   counts: Record<SlotDiffStatus, number>;
   filledA: number;
@@ -140,7 +150,19 @@ export function creditableDelta(a: number, b: number, cap: number): number {
   return Math.min(b, cap) - Math.min(a, cap);
 }
 
-function sideFor(view: SlotView, lens: WeightProfile): DiffSide | null {
+/**
+ * One side of one slot row.
+ *
+ * `existing` is what the *rest of that side's set* already contributes, so the
+ * EP printed here is scored exactly the way `rankSlotItems` scores the same
+ * item in the same position: cap-aware, and with weapon value credited only
+ * where a weapon is actually swung. Scoring the item in isolation instead made
+ * this column the one surface in the app that disagreed with the app's own
+ * numbers — the same item, tier and profile read 130.0 EP here and 80.0 EP in
+ * the picker, because 50 points of it were above a ceiling the picker knew
+ * about and the diff did not.
+ */
+function sideFor(view: SlotView, lens: WeightProfile, existing: ScoreExisting): DiffSide | null {
   if (!view.equipped) return null;
   const upgrade = normalizeState(view.equipped.upgrade ?? BASE_STATE);
   const donors = Object.entries(view.equipped.exaltations ?? {})
@@ -152,7 +174,14 @@ function sideFor(view: SlotView, lens: WeightProfile): DiffSide | null {
     item: view.item,
     upgrade,
     unresolved: view.unresolved,
-    ep: view.item ? finite(scoreItem(view.item, upgrade, lens).total) : 0,
+    ep: view.item
+      ? finite(
+          scoreItem(view.item, upgrade, lens, {
+            existing,
+            weaponCounts: view.position.type !== 'ANY',
+          }).total,
+        )
+      : 0,
     donors,
   };
 }
@@ -292,20 +321,31 @@ function weightsMatch(a: WeightProfile, b: WeightProfile): boolean {
  * Diff two sets.
  *
  * `a` is the baseline and `b` the candidate, so every delta reads "what
- * changing to B does". Per-slot EP uses A's weights as a single lens, because
- * scoring each side under its own profile would put two different scales in one
- * subtraction column; when the profiles differ the caller is told, and B's
- * score under its own weights is reported alongside.
+ * changing to B does". Per-slot EP uses one profile as a single lens, because
+ * scoring each side under its own would put two different scales in one
+ * subtraction column; when the profiles differ the caller is told, and each
+ * set's score under its own weights is reported alongside.
+ *
+ * The lens is A's profile, unless A carries no weight at all — a set whose
+ * weights were all cleared — in which case it falls through to B's. Which one
+ * it landed on is published as `lensOwner`, because the totals and every banner
+ * that names the profile have to name the set the numbers actually came from.
+ * `epALens` and `epBUnderLens` are the two ends of that one scale; `epA` and
+ * `epB` are each set under its own, and the two pairs must never be mixed in a
+ * single tile.
  */
 export function diffSets(a: GearSet, b: GearSet, catalog: CatalogState): SetDiff {
   const viewsA = slotViews(a, catalog);
   const viewsB = slotViews(b, catalog);
-  const lens = hasWeights(a.weights) ? a.weights : b.weights;
+  const lensOwner: 'a' | 'b' = hasWeights(a.weights) ? 'a' : 'b';
+  const lens = lensOwner === 'a' ? a.weights : b.weights;
 
   const slots: SlotDiff[] = viewsA.map((viewA, index) => {
     const viewB = viewsB[index] ?? viewA;
-    const sideA = sideFor(viewA, lens);
-    const sideB = sideFor(viewB, lens);
+    // What the rest of each set contributes, exactly as the picker computes it
+    // from `totalsFor(views, position)` before opening (`gear.ts`).
+    const sideA = sideFor(viewA, lens, scoreContextFrom(totalsFor(viewsA, viewA.position.id)));
+    const sideB = sideFor(viewB, lens, scoreContextFrom(totalsFor(viewsB, viewB.position.id)));
     const status = statusFor(sideA, sideB);
     const stats =
       sideB?.item
@@ -353,9 +393,11 @@ export function diffSets(a: GearSet, b: GearSet, catalog: CatalogState): SetDiff
     capSummary: summarizeCaps(groups),
     epA,
     epB,
+    epALens,
     epBUnderLens,
     epDelta: epBUnderLens - epALens,
     lens,
+    lensOwner,
     weightsDiffer: !weightsMatch(a.weights, b.weights),
     counts,
     filledA: viewsA.filter((v) => v.equipped).length,
