@@ -216,40 +216,75 @@ const PLAYER_REPORT_2026_08_17 =
  * `set` overwrites, `clear` deletes. Anything not named is left exactly as the
  * sources had it.
  */
+const PLAYER_REPORT_2026_08_17_ERA =
+  'Tier 0 player report, 2026-08-17: "None of those sets exist in EQ legends. The only one ' +
+  'that does is shadow rage. [...] Only items from classic should be included for now. ' +
+  '[...] If the stat block that you have for it is from out of Era, do not include it until ' +
+  'I tell you and supply you with correct stats for every item."';
+
+/**
+ * Names the player has confirmed exist in EverQuest Legends, which ship no
+ * matter what era any wiki assigns them.
+ *
+ * This list is deliberately tiny, and it is the *only* override of the era purge
+ * below. An earlier session read the wiki's `FearHateRevamp` tag, decided its
+ * five sets (Legionnaire Scale, Greenmist, of the Righteous, of the Untamed, of
+ * Harmony) were planar class gear EQL had added, and reported that reading as
+ * structural confirmation. It was an inference, and it was wrong: FearHateRevamp
+ * is an original-EverQuest content patch and none of those sets are in this game.
+ * Shadow Rage is the Berserker set, and the player is the source for it.
+ *
+ * No era is asserted for these. The player placed the set in the Planes of Fear
+ * and Hate, but not piece by piece, so claiming `Fear` or `Hate` on any single
+ * item would be another inference dressed as data.
+ */
+const EQL_CONFIRMED_NAMES = [
+  'Shadow Rage Helm', 'Shadow Rage Sleeves', 'Shadow Rage Wristguard',
+  'Shadow Rage Gloves', 'Shadow Rage Boots', 'Shadow Rage Leggings',
+];
+
+/**
+ * The stat blocks the wiki carries for three Shadow Rage pieces.
+ *
+ * Parked, not deleted, and deliberately unused. They came from the same scrape
+ * that supplied ~7,700 items from expansions this game does not have, so there
+ * is no way to show they describe the Legends item rather than an original-EQ
+ * one of the same name. The player's instruction is explicit: do not include an
+ * out-of-era stat block until verified numbers are supplied.
+ *
+ * To restore: confirm against the client, then set `SHADOW_RAGE_STATS_VERIFIED`.
+ */
+const SHADOW_RAGE_STATS_VERIFIED = false;
+
+/**
+ * Per-item field corrections applied to records the sources DID produce.
+ *
+ * `set` overwrites, `clear` deletes. Anything not named is left exactly as the
+ * sources had it.
+ */
 const TIER0_CORRECTIONS = [
-  // The `FearHateRevamp` era holds the planar class sets EQL added to Fear and
-  // Hate: Legionnaire Scale (WAR), Greenmist (SHD), of the Righteous (PAL), of
-  // the Untamed (RNG), of Harmony (DRU). Shadow Rage is the Berserker sibling.
-  // The wiki never tagged it: the wiki has Leggings as `Classic` and Sleeves and
-  // Wristguard with no era at all. The player who plays the game says otherwise,
-  // and Tier 0 supersedes the wiki.
-  //
-  // Consequence, stated rather than hidden: FearHateRevamp ranks after Sky in
-  // the chronology below, so these three flip from `av: true` to `av: false`
-  // exactly like the other 53 items of that era. The five pieces observed in the
-  // live client export are un-gated by name in the app's own TIER0_LIVE_ITEMS
-  // list. See research/validation/TIER0-PLAYER-REPORTS.md.
-  {
-    n: 'Shadow Rage Leggings',
-    set: { era: 'FearHateRevamp' },
-    clear: ['eraUnknown'],
-    source: PLAYER_REPORT_2026_08_17,
-    was: 'era: Classic',
-  },
-  {
-    n: 'Shadow Rage Sleeves',
-    set: { era: 'FearHateRevamp' },
-    clear: ['eraUnknown'],
-    source: PLAYER_REPORT_2026_08_17,
-    was: 'no era in any source (eraUnknown)',
-  },
-  {
-    n: 'Shadow Rage Wristguard',
-    set: { era: 'FearHateRevamp' },
-    clear: ['eraUnknown'],
-    source: PLAYER_REPORT_2026_08_17,
-    was: 'no era in any source (eraUnknown)',
-  },
+  // Three Shadow Rage pieces have wiki pages, and all three carry stats of
+  // unverifiable provenance. They keep shipping — the set is confirmed to exist —
+  // but with the numbers withheld rather than scored, which is what
+  // `statsUnknown` is for. `st`/`sv`/`wp`/`fx` are cleared so nothing downstream
+  // can rank, auto-fill or total them.
+  ...['Shadow Rage Leggings', 'Shadow Rage Sleeves', 'Shadow Rage Wristguard'].map((n) => ({
+    n,
+    set: {
+      statsUnknown: true,
+      eraUnknown: true,
+      evidence:
+        'Confirmed to exist by player report; the wiki stat block for it is of unverified ' +
+        'provenance and is withheld rather than shown. ' + PLAYER_REPORT_2026_08_17_ERA,
+    },
+    // `era` is cleared, not corrected. The wiki calls Leggings `Classic` and has
+    // nothing for the other two; the player places the whole set in the Planes
+    // of Fear and Hate. Rather than pick one of those or split the difference,
+    // the set ships with its era stated as unknown — which is what it is.
+    clear: ['era', 'st', 'sv', 'wp', 'fx'],
+    source: PLAYER_REPORT_2026_08_17 + ' ' + PLAYER_REPORT_2026_08_17_ERA,
+    was: 'wiki stats, shipped as scoreable data',
+  })),
 ];
 
 /**
@@ -276,7 +311,6 @@ const TIER0_KNOWN_ITEMS = [
     id: 55601,
     sl: ['HEAD'],
     cl: ['BER'],
-    era: 'FearHateRevamp',
     evidence:
       'Confirmed to exist: worn in the Head position of the live client inventory export ' +
       '(research/validation/tier0-inventory-Avenrae.txt, item #55601). No wiki catalog has a ' +
@@ -287,7 +321,6 @@ const TIER0_KNOWN_ITEMS = [
     id: 55605,
     sl: ['HANDS'],
     cl: ['BER'],
-    era: 'FearHateRevamp',
     evidence:
       'Confirmed to exist: held in the live client inventory export ' +
       '(research/validation/tier0-inventory-Avenrae.txt, item #55605). No wiki catalog has a ' +
@@ -298,7 +331,6 @@ const TIER0_KNOWN_ITEMS = [
     id: 55607,
     sl: ['FEET'],
     cl: ['BER'],
-    era: 'FearHateRevamp',
     evidence:
       'Confirmed to exist: held in the live client inventory export ' +
       '(research/validation/tier0-inventory-Avenrae.txt, item #55607). No wiki catalog has a ' +
@@ -1279,7 +1311,7 @@ for (const spec of TIER0_KNOWN_ITEMS) {
     n: spec.n,
     sl: spec.sl,
     cl: spec.cl,
-    ...(spec.era ? { era: spec.era } : {}),
+    ...(spec.era ? { era: spec.era } : { eraUnknown: true }),
     av,
     // No `st`, `sv` or `wp`: nothing observed them, and a zero is not a
     // measurement. `statsUnknown` is the positive assertion that this record is
@@ -1297,6 +1329,90 @@ for (const spec of TIER0_KNOWN_ITEMS) {
 }
 
 records.sort((a, b) => a.key.localeCompare(b.key));
+
+// ---------------------------------------------------------------------------
+// The era purge
+// ---------------------------------------------------------------------------
+
+/**
+ * Drop everything that is not confirmed to be in the game.
+ *
+ * EverQuest Legends reimplements **classic-era EverQuest only** — pre-Kunark.
+ * The wiki this catalog is built from does not: its item tables are, in the
+ * words of the project's own sourcing standard, "a Project 1999 import,
+ * sometimes word for word", and they carry the full original-EverQuest corpus.
+ * Ruins of Kunark, Scars of Velious, Shadows of Luclin, the Fear/Hate revamp,
+ * the Chardok revamp and the epic quests are all in there, and none of it is in
+ * this game.
+ *
+ * Until now those items shipped with `av: false` and were hidden behind a UI
+ * toggle. That is not good enough. A planner that will happily rank an item the
+ * player can never obtain is worse than one with a smaller catalog, because the
+ * player cannot tell which is which. So they are removed from what ships.
+ *
+ * An item survives if any of:
+ *   1. its era is pre-Kunark — rank at or before CURRENT_ERA;
+ *   2. it appears in the live client inventory export, which is Tier 0 proof it
+ *      exists in this game whatever the wiki claims about its era;
+ *   3. the player has named it directly (EQL_CONFIRMED_NAMES).
+ *
+ * Note what is *not* on that list: an item with no era at all. Era-less is
+ * unconfirmed, not presumed classic. Roughly 2,400 records have no era in any
+ * source, and shipping them on the assumption they are in-era is the same class
+ * of mistake as the one that put the Velious corpus in front of a player.
+ *
+ * Nothing is deleted from disk. The quarantine is written out in full so that
+ * any of it can be restored by name once a Tier 0 or Tier 1 source places it.
+ */
+const EQL_CONFIRMED_KEYS = new Set(EQL_CONFIRMED_NAMES.map((n) => nameKey(n)));
+
+function shipDecision(rec) {
+  if (EQL_CONFIRMED_KEYS.has(rec.key)) return { ship: true, why: 'player-confirmed' };
+  // The wiki's own "this page is not in Legends" flag. It outranks the live
+  // export only because nothing flagged this way appears in the export anyway;
+  // if that ever changes, the player wins and this line needs revisiting.
+  if (rec.ur === 'non_legends') return { ship: false, why: 'wiki flags non_legends' };
+  if (idByKey.has(rec.key)) return { ship: true, why: 'in-live-inventory' };
+  if (rec.era == null) return { ship: false, why: 'no era in any source' };
+  const rank = ERA_RANK.get(rec.era);
+  if (rank == null) return { ship: false, why: `unrecognised era: ${rec.era}` };
+  if (rank <= CURRENT_ERA_RANK) return { ship: true, why: `era:${rec.era}` };
+  return { ship: false, why: `era:${rec.era}` };
+}
+
+const quarantined = [];
+const shipReasons = new Map();
+const quarantineReasons = new Map();
+{
+  const keep = [];
+  for (const rec of records) {
+    const { ship, why } = shipDecision(rec);
+    const tally = ship ? shipReasons : quarantineReasons;
+    tally.set(why, (tally.get(why) ?? 0) + 1);
+    if (ship) keep.push(rec);
+    else quarantined.push({ key: rec.key, n: rec.n, era: rec.era ?? null, sl: rec.sl ?? [], why });
+  }
+  const before = records.length;
+  records.splice(0, records.length, ...keep);
+  report.purge = {
+    before,
+    shipped: records.length,
+    quarantined: quarantined.length,
+    shipReasons: Object.fromEntries([...shipReasons].sort((a, b) => b[1] - a[1])),
+    quarantineReasons: Object.fromEntries([...quarantineReasons].sort((a, b) => b[1] - a[1])),
+  };
+}
+
+/*
+ * Every surviving record is in era by construction, so the old `av: false`
+ * gating has nothing left to express. Leaving a stale `av: false` behind would
+ * hide an item the purge just decided to keep — which is exactly how a Tier 0
+ * item that the wiki mis-tagged would disappear.
+ */
+for (const rec of records) {
+  rec.av = true;
+  delete rec.ur;
+}
 
 // ---------------------------------------------------------------------------
 // Weapon-skill reliability: the wiki contradicts the live client on fist weapons
@@ -1477,6 +1593,25 @@ const ATTRIBUTION =
   'this project is unaffiliated with Daybreak or Game Jawn.';
 
 writeOut('items-index.json', { v: SCHEMA_VERSION, count: records.length, items: records.map(indexRecord) });
+
+/*
+ * The quarantine, written in full to the repository rather than to the shipped
+ * bundle. Nothing here reaches a player, but every dropped item stays named and
+ * attributed so that restoring one is a table entry rather than a re-scrape.
+ */
+writeFileSync(
+  join(ROOT, 'pipeline', 'quarantine.json'),
+  JSON.stringify(
+    {
+      generated: 'pipeline/build.mjs',
+      rule: 'ships iff pre-Kunark era, or present in the live client export, or player-confirmed',
+      counts: report.purge,
+      items: quarantined,
+    },
+    null,
+    1,
+  ) + '\n',
+);
 
 const shardCounts = new Counter();
 for (const slot of SLOTS) {

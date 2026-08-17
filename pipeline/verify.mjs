@@ -278,21 +278,45 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
   for (const it of items) {
     if (it.era != null && !ERA_RANK.has(it.era)) badEra.push(`${it.n}: ${it.era}`);
     if (typeof it.av !== 'boolean') badAv.push(`${it.n}: av=${JSON.stringify(it.av)}`);
-    if (it.era && ERA_RANK.has(it.era) && ERA_RANK.get(it.era) > cur && it.av === true) {
-      badAv.push(`${it.n}: era ${it.era} is past ${CURRENT_ERA} but av=true`);
-    }
+    if (it.av !== true) badAv.push(`${it.n}: shipped with av=${JSON.stringify(it.av)}`);
     if (it.era == null && it.eraUnknown !== true) badUnknown.push(`${it.n}: no era but eraUnknown not set`);
-    // An era-less item must ship available UNLESS something other than the era
-    // gate excluded it (the wiki marks a few pages as not present in Legends).
-    if (it.eraUnknown === true && it.av !== true) {
-      const ur = detailByKey.get(nameKey(it.n))?.ur;
-      if (!ur || /^era:/.test(ur)) badUnknown.push(`${it.n}: eraUnknown, av=false, reason=${ur ?? '(none)'}`);
-    }
   }
   assert('era values are in the chronology', badEra.length === 0, `${badEra.length} unknown era labels`, badEra);
-  assert('availability is consistent with the era gate', badAv.length === 0, `${badAv.length} inconsistent availability flags`, badAv);
-  assert('items with no era are shipped available and flagged eraUnknown',
+  assert('everything that ships is available', badAv.length === 0, `${badAv.length} inconsistent availability flags`, badAv);
+  assert('items with no era are flagged eraUnknown',
     badUnknown.length === 0, `${badUnknown.length} mis-flagged unknown-era items`, badUnknown);
+
+  /*
+   * The era purge, re-derived here rather than trusted.
+   *
+   * EQ Legends is classic-era only, but the wiki this catalog is built from
+   * carries the whole original-EverQuest corpus — Kunark, Velious, Luclin, the
+   * Fear/Hate and Chardok revamps, epic quests. Shipping any of it puts items in
+   * front of a player that they can never obtain.
+   *
+   * An item may ship only if it is pre-Kunark, or the live client export proves
+   * it exists whatever the wiki says, or the player named it directly. Anything
+   * else — including an item with no era at all, which is unconfirmed rather
+   * than presumed classic — must have been quarantined.
+   */
+  const observed = new Set();
+  for (const line of readFileSync(TIER0, 'utf8').split(/\r?\n/).slice(1)) {
+    const name = line.split('\t')[1];
+    if (!name || name === 'Empty') continue;
+    observed.add(nameKey(name.replace(/\s*\(Exaltation\)\s*/g, ' ').replace(/\s*\+\d+\s*/g, ' ').trim()));
+  }
+  const confirmed = new Set(['Shadow Rage Helm', 'Shadow Rage Sleeves', 'Shadow Rage Wristguard',
+    'Shadow Rage Gloves', 'Shadow Rage Boots', 'Shadow Rage Leggings'].map(nameKey));
+
+  const contraband = [];
+  for (const it of items) {
+    const key = nameKey(it.n);
+    if (confirmed.has(key) || observed.has(key)) continue;
+    if (it.era == null) { contraband.push(`${it.n}: no era, not in the live export`); continue; }
+    if (ERA_RANK.get(it.era) > cur) contraband.push(`${it.n}: era ${it.era} is past ${CURRENT_ERA}`);
+  }
+  assert('nothing out of era reaches the shipped catalog', contraband.length === 0,
+    `${contraband.length} out-of-era items still shipping`, contraband.slice(0, 25));
 }
 
 // ---------------------------------------------------------------------------
@@ -528,30 +552,55 @@ if (!existsSync(TIER0)) {
 // no-op. See research/validation/TIER0-PLAYER-REPORTS.md.
 {
   const byKeyIdx = new Map(items.map((i) => [nameKey(i.n), i]));
+  /*
+   * All six pieces ship, all six carry no stats.
+   *
+   * Three of them do have wiki pages, and those pages have stat blocks. They are
+   * withheld anyway: they come from the same scrape that supplied ~7,700 items
+   * from expansions this game does not have, so there is no way to show they
+   * describe the Legends item rather than an original-EverQuest one of the same
+   * name. The player's instruction was explicit — no out-of-era stat block ships
+   * until verified numbers are supplied.
+   *
+   * No era is asserted either. The player placed the set in the Planes of Fear
+   * and Hate, but not piece by piece, so naming an era for any one item would be
+   * an inference dressed as data — which is the mistake this whole correction
+   * exists to undo.
+   */
   const expected = [
-    ['Shadow Rage Helm', 'HEAD', 55601, false],
-    ['Shadow Rage Sleeves', 'ARMS', 55603, true],
-    ['Shadow Rage Wristguard', 'WRIST', 55604, true],
-    ['Shadow Rage Gloves', 'HANDS', 55605, false],
-    ['Shadow Rage Boots', 'FEET', 55607, false],
-    ['Shadow Rage Leggings', 'LEGS', null, true],
+    ['Shadow Rage Helm', 'HEAD', 55601],
+    ['Shadow Rage Sleeves', 'ARMS', 55603],
+    ['Shadow Rage Wristguard', 'WRIST', 55604],
+    ['Shadow Rage Gloves', 'HANDS', 55605],
+    ['Shadow Rage Boots', 'FEET', 55607],
+    ['Shadow Rage Leggings', 'LEGS', null],
   ];
   const bad = [];
-  for (const [name, slot, id, statted] of expected) {
+  for (const [name, slot, id] of expected) {
     const it = byKeyIdx.get(nameKey(name));
     if (!it) { bad.push(`${name}: absent from catalog`); continue; }
-    if (it.era !== 'FearHateRevamp') bad.push(`${name}: era ${it.era} != FearHateRevamp`);
-    if (it.eraUnknown) bad.push(`${name}: still flagged eraUnknown`);
+    if (it.av !== true) bad.push(`${name}: not shipping (av=${JSON.stringify(it.av)})`);
     if (!(it.cl ?? []).includes('BER')) bad.push(`${name}: classes ${(it.cl ?? []).join(',')} lack BER`);
     if (!(it.sl ?? []).includes(slot)) bad.push(`${name}: slots ${(it.sl ?? []).join(',')} lack ${slot}`);
     if (id != null && it.id !== id) bad.push(`${name}: id ${it.id} != ${id}`);
-    const hasStats = Object.keys(it.st ?? {}).length > 0;
-    if (statted && !hasStats) bad.push(`${name}: expected wiki stats, found none`);
-    if (!statted && (hasStats || it.statsUnknown !== true)) {
-      bad.push(`${name}: expected a statsUnknown record with no stats`);
-    }
+    if (it.statsUnknown !== true) bad.push(`${name}: statsUnknown is not set`);
+    if (Object.keys(it.st ?? {}).length > 0) bad.push(`${name}: ships stats of unverified provenance`);
+    if (!it.evidence) bad.push(`${name}: no evidence string`);
   }
-  assert('the Shadow Rage set carries the Tier 0 player correction', bad.length === 0,
+  /*
+   * And the sets a previous session wrongly inferred were EQL content.
+   *
+   * Checked by era, not by name. The five sets are Legionnaire Scale, Greenmist,
+   * of the Righteous, of the Untamed and of Harmony, but three of those names
+   * are ordinary English: `Spear of Harmony` is a legitimate Sky-era Bard weapon
+   * and matching on the substring flags it. The era tag is the exact signal, and
+   * it is what the purge actually acts on.
+   */
+  const revamp = items.filter((i) => i.era === 'FearHateRevamp');
+  if (revamp.length) {
+    bad.push(`${revamp.length} FearHateRevamp item(s) still ship: ${revamp.slice(0, 5).map((i) => i.n).join(', ')}`);
+  }
+  assert('Shadow Rage ships unstatted, and the sets that do not exist are gone', bad.length === 0,
     `${bad.length} Shadow Rage discrepancies`, bad);
 }
 

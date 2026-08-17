@@ -130,45 +130,52 @@ describe.skipIf(!published)('shipped catalog', () => {
       ]);
     });
 
-    it('tags every piece FearHateRevamp and BER, with no era left unknown', () => {
+    /*
+     * The set claims no era at all.
+     *
+     * A previous build tagged it `FearHateRevamp`, on the reasoning that the
+     * wiki's five sets under that era were EQL planar class gear and Shadow Rage
+     * was their Berserker sibling. That was an inference reported as
+     * confirmation, and it was wrong twice over: FearHateRevamp is an
+     * original-EverQuest patch, and none of those five sets are in this game.
+     *
+     * What the player actually said is that Shadow Rage comes from the Planes of
+     * Fear and Hate — two planes, six pieces, no mapping between them. So the
+     * set ships on player authority with its era left unknown, because that is
+     * the true state of the evidence.
+     */
+    it('claims no era, and says so rather than guessing one', () => {
       for (const piece of shadowRage) {
-        expect(piece.era, piece.n).toBe('FearHateRevamp');
-        expect(piece.eraUnknown, piece.n).toBeUndefined();
+        expect(piece.era, piece.n).toBeUndefined();
+        expect(piece.eraUnknown, piece.n).toBe(true);
         expect(piece.cl, piece.n).toEqual(['BER']);
       }
     });
 
-    it('invents no stats for the three pieces no wiki has ever carried', () => {
-      const invented = shadowRage.filter(
-        (piece) =>
-          piece.statsUnknown === true &&
-          (Object.keys(piece.st).length > 0 || Object.keys(piece.sv).length > 0 || piece.wp),
-      );
-      expect(invented).toEqual([]);
-
-      const unstatted = shadowRage.filter((piece) => piece.statsUnknown);
-      expect(unstatted.map((piece) => [piece.n, piece.id]).sort()).toEqual([
-        ['Shadow Rage Boots', 55607],
-        ['Shadow Rage Gloves', 55605],
-        ['Shadow Rage Helm', 55601],
-      ]);
-      // Each one says what proves it exists, in words a reader can check.
-      for (const piece of unstatted) {
-        expect(piece.evidence ?? '', piece.n).toContain('tier0-inventory-Avenrae.txt');
+    /*
+     * Every piece ships unstatted — including the three the wiki does carry
+     * numbers for. Those numbers come from the same scrape that supplied ~7,700
+     * items from expansions this game does not have, so nothing shows they
+     * describe the Legends item rather than an original-EverQuest one of the
+     * same name. Withholding a number we cannot source beats showing one that
+     * would rank, auto-fill and total as though it were measured.
+     */
+    it('ships no stats for any piece, sourced or otherwise', () => {
+      for (const piece of shadowRage) {
+        expect(piece.statsUnknown, piece.n).toBe(true);
+        expect(Object.keys(piece.st), piece.n).toEqual([]);
+        expect(Object.keys(piece.sv), piece.n).toEqual([]);
+        expect(piece.wp, piece.n).toBeFalsy();
+        // Each one says what proves it exists, in words a reader can check.
+        expect(piece.evidence ?? '', piece.n).toMatch(/tier0-inventory-Avenrae\.txt|player report/i);
       }
     });
 
-    it('keeps the stats the wiki did carry for the other three', () => {
-      const statted = shadowRage.filter((piece) => !piece.statsUnknown);
-      expect(statted.map((piece) => piece.n).sort()).toEqual([
-        'Shadow Rage Leggings',
-        'Shadow Rage Sleeves',
-        'Shadow Rage Wristguard',
-      ]);
-      // The correction touched the era and nothing else: these numbers are the
-      // wiki's, unchanged.
-      const sleeves = statted.find((piece) => piece.n === 'Shadow Rage Sleeves');
-      expect(sleeves?.st).toEqual({ AC: 10, DEX: 5, ENDUR: 15, STA: 5, STR: 3 });
+    it('still carries the ids the live export proves', () => {
+      const ids = Object.fromEntries(shadowRage.map((piece) => [piece.n, piece.id]));
+      expect(ids['Shadow Rage Helm']).toBe(55601);
+      expect(ids['Shadow Rage Gloves']).toBe(55605);
+      expect(ids['Shadow Rage Boots']).toBe(55607);
     });
   });
 

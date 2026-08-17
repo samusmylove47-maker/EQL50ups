@@ -68,6 +68,24 @@ function loadCatalog(): Item[] {
   return items;
 }
 
+/**
+ * Every item name anywhere in the export — worn, bagged, banked, keyring.
+ *
+ * The era purge treats the whole export as Tier 0 proof of existence, not just
+ * the worn positions: an item sitting in a bag is no less in the game than one
+ * on the character. This is the set that lets a Kunark-tagged Batskull Earring
+ * ship while the other 1,457 Kunark records do not.
+ */
+function ownedItemNames(): Set<string> {
+  const out = new Set<string>();
+  for (const line of readFileSync(INVENTORY, 'utf8').split('\n').slice(1)) {
+    const raw = line.split('\t')[1];
+    if (!raw || raw === 'Empty') continue;
+    out.add(raw.replace(/\s*\(Exaltation\)\s*/g, ' ').replace(/\s*\+\d+\s*/g, ' ').replace(/\s+/g, ' ').trim());
+  }
+  return out;
+}
+
 /** Reads the worn block only — everything before the KeyRing section. */
 function wornPositions(): WornEntry[] {
   const out: WornEntry[] = [];
@@ -121,6 +139,7 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
   for (const item of items) if (item.id) byId.set(item.id, item);
   const byName = state.byName;
   const worn = wornPositions();
+  const ownedNames = ownedItemNames();
 
   const resolve = (entry: WornEntry): Item | undefined =>
     byId.get(entry.id) ?? byName.get(entry.name.toLowerCase());
@@ -145,7 +164,10 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     expect(helm?.id).toBe(55601);
     expect(helm?.sl).toEqual(['HEAD']);
     expect(helm?.cl).toEqual(['BER']);
-    expect(helm?.era).toBe('FearHateRevamp');
+    // No era: the player placed the set in two planes, not one, so naming an
+    // era for any single piece would be an inference dressed as data.
+    expect(helm?.era).toBeUndefined();
+    expect(helm?.eraUnknown).toBe(true);
     // The whole point: existence is asserted, stats are not.
     expect(helm?.statsUnknown).toBe(true);
     expect(helm?.st).toEqual({});
@@ -258,63 +280,72 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     }
   });
 
-  it('hides content that is not live until the filter is lifted', () => {
-    const live = rankSlotItems(state, {
-      slot: 'PRIMARY', context: AVENRAE_CTX, weights: { AC: 1 },
-      upgrade: tier(0), includeUnreleased: false,
-    });
-    const all = rankSlotItems(state, {
-      slot: 'PRIMARY', context: AVENRAE_CTX, weights: { AC: 1 },
-      upgrade: tier(0), includeUnreleased: true,
-    });
-    expect(all.length).toBeGreaterThan(live.length);
-    expect(live.every((row) => isLive(row.item))).toBe(true);
+  /*
+   * There is no unreleased content left to hide.
+   *
+   * These four tests used to describe a catalog that shipped all 11,252 wiki
+   * items and hid the out-of-era ones behind a toggle. The player's verdict on
+   * that design was blunt: a planner that will rank an item you can never obtain
+   * "poisons and ruins this entire project". EQ Legends is classic-era only, and
+   * the wiki it was built from carries the whole original-EverQuest corpus, so
+   * ~7,700 records were quarantined out of the build entirely.
+   *
+   * What is asserted now is the purge itself: everything shipped is obtainable,
+   * so the live filter has nothing left to remove.
+   */
+  it('ships nothing that is not obtainable, so the live filter is a no-op', () => {
+    for (const slot of ['PRIMARY', 'CHEST', 'WAIST'] as SlotCode[]) {
+      const live = rankSlotItems(state, {
+        slot, context: AVENRAE_CTX, weights: { AC: 1 },
+        upgrade: tier(0), includeUnreleased: false,
+      });
+      const all = rankSlotItems(state, {
+        slot, context: AVENRAE_CTX, weights: { AC: 1 },
+        upgrade: tier(0), includeUnreleased: true,
+      });
+      expect(all.length, slot).toBe(live.length);
+    }
+    expect(items.every((item) => isLive(item))).toBe(true);
   });
 
-  it('keeps items of unknown era visible, which is the deliberate choice', () => {
-    const unknown = items.filter((item) => item.eraUnknown && item.av !== false);
-    expect(unknown.length).toBeGreaterThan(100);
-    expect(unknown.every((item) => isLive(item))).toBe(true);
-  });
-
-  it('un-gates exactly the items Tier 0 proves are obtainable, and nothing else', () => {
-    const overridden = items.filter((item) => item.av === false && isLive(item));
-    expect(overridden.map((item) => item.n).sort()).toEqual([
-      'Batskull Earring',
-      'Crystalline Spear',
-      'Dragon Bone Bracelet',
-      'Gauntlets of Fiery Might',
-      'Gold Plated Koshigatana',
-      "Hamed's Ring of Tears",
-      'Hierophant`s Crook',
-      'McVaxius` Horn of War',
-      'Orb of Tishan',
-      'Selo`s Drums of the March',
-      // The six Shadow Rage pieces. The wiki's `FearHateRevamp` era ranks after
-      // Sky, so re-tagging them to their real era gated them out — while the
-      // player is wearing one. Five are in this export; the Leggings rest on
-      // the player's statement that Shadow Rage is one set.
-      'Shadow Rage Boots',
-      'Shadow Rage Gloves',
-      'Shadow Rage Helm',
-      'Shadow Rage Leggings',
-      'Shadow Rage Sleeves',
-      'Shadow Rage Wristguard',
-      "Tobrin's Mystical Eyepatch",
-      'Warhammer of Divine Grace',
-      'White Satin Gloves',
-    ]);
-  });
-
-  it('leaves the rest of the FearHateRevamp era gated, having no evidence for it', () => {
-    // The finding this guards: the era is under-covered by the wiki, not
-    // proven live. Un-gating the other 53 of its 59 items on the strength of
-    // one set would be exactly the inference this project refuses to make.
-    const stillGated = items.filter(
-      (item) => item.era === 'FearHateRevamp' && !isLive(item),
+  it('carries no item from an expansion this game does not have', () => {
+    const OUT_OF_ERA = ['Kunark', 'Velious', 'Luclin', 'FearHateRevamp', 'Chardok Revamp', 'Epic Quests'];
+    // ...unless the player is carrying it, which proves the wiki's era wrong
+    // rather than the item unobtainable.
+    const contraband = items.filter(
+      (item) => OUT_OF_ERA.includes(item.era ?? '') && !ownedNames.has(item.n),
     );
-    expect(stillGated.length).toBe(53);
-    expect(stillGated.some((item) => /^Shadow Rage/.test(item.n))).toBe(false);
+    expect(contraband.map((item) => `${item.n} [${item.era}]`)).toEqual([]);
+  });
+
+  /*
+   * The one exception, and the reason it is an exception rather than a hole in
+   * the rule: an item the player is demonstrably carrying exists in this game,
+   * whatever era the wiki assigned it. Tier 0 outranks the wiki.
+   */
+  it('keeps the items the live export proves, whatever the wiki called them', () => {
+    for (const name of ['Batskull Earring', 'Crystalline Spear', 'Dragon Bone Bracelet']) {
+      const item = items.find((entry) => entry.n === name);
+      expect(item, name).toBeDefined();
+      expect(isLive(item!), name).toBe(true);
+    }
+  });
+
+  /*
+   * And era-less is not classic. ~2,300 records carry no era in any source;
+   * shipping them on the assumption they are in-era is the same mistake in a
+   * quieter form, so they are quarantined too. Shadow Rage survives only because
+   * the player named it directly.
+   */
+  it('quarantines era-less items rather than presuming them classic', () => {
+    // ~2,300 records carry no era in any source and were dropped. What survives
+    // is only what Tier 0 vouches for: the Shadow Rage set the player named, and
+    // era-less items the export shows in their bags.
+    const unvouched = items.filter(
+      (item) => item.eraUnknown && !ownedNames.has(item.n) && !/^Shadow Rage /.test(item.n),
+    );
+    expect(unvouched.map((item) => item.n)).toEqual([]);
+    expect(items.filter((item) => /^Shadow Rage /.test(item.n) && item.eraUnknown)).toHaveLength(6);
   });
 
   it('scores every candidate in every slot to a finite number', () => {
