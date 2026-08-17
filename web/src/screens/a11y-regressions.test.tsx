@@ -145,6 +145,32 @@ describe('destructive controls keep focus in the document', () => {
     expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^Head: empty/);
   });
 
+  it('lands focus on the destination heading after a set is deleted', async () => {
+    const confirm = window.confirm;
+    window.confirm = () => true;
+    try {
+      const menu = container.querySelector<HTMLElement>('summary[aria-label="More set actions"]');
+      click(menu);
+      const remove = [...container.querySelectorAll<HTMLElement>('.menu-item')].find(
+        (el) => el.textContent === 'Delete set',
+      );
+      remove!.focus();
+      click(remove);
+      // `hashchange` is a task, so the destination has not mounted yet.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Deleting navigates to the character list, so the control *and* its whole
+      // screen are gone. Landing on `<body>` costs a full re-traversal.
+      expect(window.location.hash).toBe('#/characters');
+      expect(document.activeElement).not.toBe(document.body);
+      expect(document.activeElement?.className).toContain('page-title');
+    } finally {
+      window.confirm = confirm;
+    }
+  });
+
   it('returns focus to the menu after Clear all slots', () => {
     const menu = container.querySelector<HTMLElement>('summary[aria-label="More set actions"]');
     expect(menu).toBeTruthy();

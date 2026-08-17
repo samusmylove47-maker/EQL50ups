@@ -420,6 +420,22 @@ test('no destructive control drops focus to <body>', async ({ page }) => {
   await page.getByRole('tab', { name: 'Weights' }).click();
   await page.getByRole('button', { name: /^clear all$/i }).click();
   expect((await active()).tag).not.toBe('BODY');
+
+  // 5. Delete set, which destroys the control *and* the screen it was on. The
+  //    destination has to take focus, or the reader lands at the top of a new
+  //    document with focus nowhere.
+  await page.getByRole('tab', { name: 'Gear' }).click();
+  await overflow.click();
+  await page.locator('.menu-body.right .menu-item', { hasText: 'Delete set' }).click();
+  await page.waitForURL(/#\/characters$/);
+  const afterDeleteSet = await active();
+  expect(afterDeleteSet.tag, 'focus after Delete set').not.toBe('BODY');
+
+  // 6. Delete character, which unmounts the card the button sits in.
+  await page.getByRole('button', { name: /delete character/i }).click();
+  await expect(page.locator('.card')).toHaveCount(0);
+  const afterDeleteCharacter = await active();
+  expect(afterDeleteCharacter.tag, 'focus after Delete character').not.toBe('BODY');
 });
 
 test('an unresolvable equipped item is flagged rather than hidden', async ({ page }) => {

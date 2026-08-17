@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { activeRace, describeCharacter } from '../engine/character';
 import { href, navigate } from '../router';
 import { DEFAULT_WEIGHTS, setsForCharacter, useApp } from '../state/store';
@@ -24,8 +24,22 @@ export function Characters() {
     importEnvelope,
   } = state;
   const fileRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const [report, setReport] = useState<EnvelopeReport | null>(null);
   const [creatingFor, setCreatingFor] = useState<string | null>(null);
+
+  /*
+   * This screen is where `Delete set` and `Delete character` land, and both
+   * destroy the control that was pressed, so a keyboard user arrives with focus
+   * on `<body>` and has to re-traverse the document to get anywhere. Only when
+   * focus is genuinely nowhere: arriving by nav link or by a link in a card
+   * leaves focus on that control, and stealing it would be worse than the bug.
+   */
+  useEffect(() => {
+    if (document.activeElement === document.body) {
+      titleRef.current?.focus({ preventScroll: true });
+    }
+  }, []);
 
   /**
    * Import reports what it dropped rather than failing silently. A file that is
@@ -41,7 +55,11 @@ export function Characters() {
   return (
     <div>
       <div className="page-head">
-        <h1 className="page-title">Characters</h1>
+        {/* `tabIndex={-1}` so the page has a landing point for focus after a
+            destruction, without becoming a tab stop of its own. */}
+        <h1 className="page-title" tabIndex={-1} ref={titleRef}>
+          Characters
+        </h1>
         <div className="rowline">
           <button
             type="button"
@@ -230,6 +248,8 @@ export function Characters() {
                       )
                     ) {
                       deleteCharacter(character.id);
+                      // The card carrying this button is about to unmount.
+                      titleRef.current?.focus({ preventScroll: true });
                     }
                   }}
                 >
