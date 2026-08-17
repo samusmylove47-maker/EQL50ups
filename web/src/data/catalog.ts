@@ -177,14 +177,40 @@ export function reindexShard(prev: CatalogIndex, items: Item[], incoming: Item[]
 /**
  * Merge detail entries over index entries by name. Detail wins field by field
  * so a shard can enrich an index entry without discarding what it already had.
+ *
+ * `incoming` is de-duplicated against **itself** as well as against `existing`.
+ * There used to be a fast path returning `incoming` verbatim when `existing`
+ * was empty, which was sound only while this was called once per shard: an item
+ * that ships in two shards — `Dagas` is in both `PRIMARY.json` and
+ * `SECONDARY.json` — arrives twice in one concatenated batch, and adopting that
+ * array wholesale put two rows in the catalog for one item. A search narrowed
+ * to "1 match" then left six rows on screen. The guard bought one array copy of
+ * an empty list; it cost duplicate catalog entries whenever a cold `ensureAll`
+ * won the race against the index load.
  */
-function mergeItems(existing: Item[], incoming: Item[]): Item[] {
-  if (!existing.length) return incoming;
+interface MergeResult {
+  /** The whole catalog, one entry per name. */
+  items: Item[];
+  /**
+   * The resulting record for each name `incoming` touched — merged, not raw,
+   * and one per name however many payloads carried it. This is what the index
+   * has to be pointed at: indexing the raw shard record instead left `byName`
+   * holding a record that `items` and `bySlot` had already superseded, so the
+   * equipped-item lookup and the ranking read two different objects for one
+   * item.
+   */
+  touched: Item[];
+}
+
+function mergeItems(existing: Item[], incoming: Item[]): MergeResult {
   const position = new Map<string, number>();
   existing.forEach((item, i) => position.set(item.n.toLowerCase(), i));
   const merged = existing.slice();
+  const keys = new Set<string>();
+
   for (const item of incoming) {
     const key = item.n.toLowerCase();
+    keys.add(key);
     const at = position.get(key);
     if (at === undefined) {
       position.set(key, merged.length);
@@ -202,7 +228,13 @@ function mergeItems(existing: Item[], incoming: Item[]): Item[] {
       };
     }
   }
-  return merged;
+
+  const touched: Item[] = [];
+  for (const key of keys) {
+    const at = position.get(key);
+    if (at !== undefined) touched.push(merged[at] as Item);
+  }
+  return { items: merged, touched };
 }
 
 interface LoadedShard {
@@ -253,12 +285,15 @@ function commitShards(
   // builds a name→index map of the whole catalog before it starts, so calling
   // it nineteen times built that map nineteen times over 11,249 items. Merging
   // the shards in order gives the same result, because a later shard still
-  // lands on whatever an earlier one already merged.
-  const items = mergeItems(before.items, incoming);
+  // lands on whatever an earlier one already merged — and it de-duplicates
+  // within the batch, which matters here because an item can ship in two
+  // shards at once.
+  const { items, touched } = mergeItems(before.items, incoming);
 
   set({
     items,
-    ...reindexShard({ byName: before.byName, bySlot: before.bySlot }, items, incoming),
+    // `touched`, not `incoming`: the index must name the merged record.
+    ...reindexShard({ byName: before.byName, bySlot: before.bySlot }, items, touched),
     shards,
     status: 'ready',
     revision: before.revision + 1,

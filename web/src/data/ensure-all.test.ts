@@ -13,6 +13,7 @@
  * number this defect leaves untouched.
  */
 
+import { existsSync, readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SLOT_TYPES } from '../engine/constants';
 import type { Item } from '../engine/types';
@@ -20,21 +21,20 @@ import { useCatalog } from './catalog';
 
 const SHARD_COUNT = SLOT_TYPES.length + 1; // every slot type, plus OTHER
 
+/**
+ * A two-handed weapon ships in both hand shards, exactly as `Dagas` does in the
+ * real corpus: one item, two files, one entry.
+ */
+const SHARED = 'Two-Handed Thing';
+
 function shardPayload(slot: string): Item[] {
-  return [
-    {
-      id: null,
-      n: `${slot} Thing`,
-      sl: [slot === 'OTHER' ? 'HEAD' : slot],
-      cl: ['ALL'],
-      ra: ['ALL'],
-      st: { AC: 5 },
-      sv: {},
-      fl: [],
-      av: true,
-      era: 'Classic',
-    },
-  ];
+  const item = (n: string, sl: string[], st: Record<string, number>): Item => ({
+    id: null, n, sl, cl: ['ALL'], ra: ['ALL'], st, sv: {}, fl: [], av: true, era: 'Classic',
+  });
+  const out = [item(`${slot} Thing`, [slot === 'OTHER' ? 'HEAD' : slot], { AC: 5 })];
+  if (slot === 'PRIMARY') out.push(item(SHARED, ['PRIMARY', 'SECONDARY'], { AC: 9, STR: 3 }));
+  if (slot === 'SECONDARY') out.push(item(SHARED, ['PRIMARY', 'SECONDARY'], { AC: 9, HP: 20 }));
+  return out;
 }
 
 let fetched: string[] = [];
@@ -54,6 +54,23 @@ function stubFetch(missing: ReadonlySet<string> = new Set()): void {
       return new Response(JSON.stringify(shardPayload(slot)), { status: 200 });
     }),
   );
+}
+
+/** Serve the real published shards through the store's own loading path. */
+function stubRealFetch(): void {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input).replace(/^https?:\/\/[^/]+/, '');
+      const path = `public${url.startsWith('/') ? url : `/${url}`}`;
+      if (!existsSync(path)) return new Response('not found', { status: 404 });
+      return new Response(readFileSync(path, 'utf8'), { status: 200 });
+    }),
+  );
+}
+
+function names(items: readonly Item[]): string[] {
+  return items.map((item) => item.n.toLowerCase());
 }
 
 function reset(): void {
@@ -126,7 +143,8 @@ describe('ensureAll', () => {
     expect(state.shards.AMMO).toBe('missing');
     expect(state.shards.RANGE).toBe('missing');
     expect(state.shards.HEAD).toBe('ready');
-    expect(state.items).toHaveLength(SHARD_COUNT - 2);
+    // One per shard that landed, plus the two-handed item the two hand shards share.
+    expect(state.items).toHaveLength(SHARD_COUNT - 2 + 1);
     expect(state.byName.get('head thing')?.st.AC).toBe(5);
     expect(state.bySlot.get('CHEST')?.map((i) => i.n)).toEqual(['CHEST Thing']);
     // OTHER's payload claims HEAD, so both land in the same bucket.
@@ -147,4 +165,88 @@ describe('ensureAll', () => {
     expect(useCatalog.getState().shards.HEAD).toBe('ready');
     expect(useCatalog.getState().byName.get('head thing')).toBeTruthy();
   });
+});
+
+/*
+ * Batching the shard loads into one commit made the merge see all nineteen
+ * payloads at once, and `mergeItems` used to adopt `incoming` verbatim whenever
+ * the catalog it was merging into was empty — which a cold `ensureAll` that
+ * wins the race against the index load is. An item shipping in two shards
+ * (`Dagas` is in both PRIMARY and SECONDARY) then landed twice, and a search
+ * narrowed to "1 match" left six rows on screen. Uniqueness is the invariant to
+ * hold, not the symptom to patch.
+ */
+describe('the catalog holds one entry per item', () => {
+  it('de-duplicates a shared item when the starting catalog is empty', async () => {
+    // The exact race: no index has landed, so `items` is empty when the batch
+    // of shards is merged.
+    expect(useCatalog.getState().items).toHaveLength(0);
+    await useCatalog.getState().ensureAll();
+
+    const state = useCatalog.getState();
+    const shared = state.items.filter((item) => item.n === SHARED);
+    expect(shared).toHaveLength(1);
+
+    // Both shards' fields survive on the one entry, exactly as a sequential
+    // per-shard merge produced.
+    expect(shared[0]?.st).toEqual({ AC: 9, STR: 3, HP: 20 });
+    expect(state.byName.get(SHARED.toLowerCase())).toBe(shared[0]);
+
+    // And every bucket it claims lists it once.
+    for (const slot of ['PRIMARY', 'SECONDARY'] as const) {
+      const bucket = state.bySlot.get(slot) ?? [];
+      expect(bucket.filter((item) => item.n === SHARED)).toHaveLength(1);
+      expect(bucket).toContain(shared[0]);
+    }
+  });
+
+  it('holds the no-duplicates invariant after a cold ensureAll', async () => {
+    await useCatalog.getState().ensureAll();
+    const { items, byName, bySlot } = useCatalog.getState();
+
+    expect(items).toHaveLength(new Set(names(items)).size);
+    expect(byName.size).toBe(items.length);
+    for (const [slot, bucket] of bySlot) {
+      expect(new Set(names(bucket)).size, `${slot} bucket lists an item twice`).toBe(bucket.length);
+      for (const item of bucket) expect(byName.get(item.n.toLowerCase())).toBe(item);
+    }
+  });
+
+  it('holds it when the index landed first, too', async () => {
+    await useCatalog.getState().load();
+    await useCatalog.getState().ensureAll();
+    const { items, byName } = useCatalog.getState();
+    expect(items).toHaveLength(new Set(names(items)).size);
+    expect(byName.size).toBe(items.length);
+  });
+
+  /**
+   * Both orders against the real files. `ensureAll` first is the losing side of
+   * the race the defect needed — a cold Any Slot picker, or Auto-fill, firing
+   * before `items-index.json` has landed.
+   */
+  for (const indexFirst of [false, true]) {
+    it(`holds it against the real published shards, index ${indexFirst ? 'first' : 'last'}`, async () => {
+      vi.unstubAllGlobals();
+      if (!existsSync('public/data/items-index.json')) return;
+      stubRealFetch();
+
+      if (indexFirst) await useCatalog.getState().load();
+      await useCatalog.getState().ensureAll();
+      if (!indexFirst) await useCatalog.getState().load();
+
+      const { items, byName, bySlot } = useCatalog.getState();
+      expect(items.length).toBeGreaterThan(1000);
+      expect(items).toHaveLength(new Set(names(items)).size);
+      expect(byName.size).toBe(items.length);
+      // A real two-hander that ships in both PRIMARY.json and SECONDARY.json.
+      expect(items.filter((item) => item.n === 'Dagas')).toHaveLength(1);
+      expect(byName.get('dagas')).toBe(items.find((item) => item.n === 'Dagas'));
+      for (const [slot, bucket] of bySlot) {
+        expect(new Set(names(bucket)).size, `${slot} bucket lists an item twice`).toBe(
+          bucket.length,
+        );
+      }
+    });
+  }
 });
