@@ -223,6 +223,26 @@ export function normalizeItem(raw: unknown, fallbackName?: string): Item | null 
 
   if (typeof raw.parsed === 'string') item.parsed = raw.parsed;
 
+  /*
+   * "Real item, no stats anywhere." Carried through verbatim rather than
+   * inferred: `Object.keys(st).length === 0` is true of thousands of ordinary
+   * records (food, containers, quest turn-ins) and says nothing about whether
+   * the item is missing data. Only the pipeline's Tier 0 table sets this.
+   *
+   * If a payload ever claims both, the claim of ignorance wins and the numbers
+   * are dropped — a record that says "nothing measured this" while carrying
+   * stats would score off values it has just disowned.
+   */
+  if (raw.statsUnknown === true) {
+    item.statsUnknown = true;
+    item.st = {};
+    item.sv = {};
+    delete item.wp;
+    if (typeof raw.evidence === 'string' && raw.evidence.trim()) {
+      item.evidence = raw.evidence.trim();
+    }
+  }
+
   return item;
 }
 
@@ -260,4 +280,16 @@ export function normalizeCatalog(raw: unknown): Item[] {
 /** Does this item have any stat worth showing? Used to rank empties last. */
 export function hasStats(item: Item): boolean {
   return Boolean(item.wp) || Object.keys(item.st).length > 0 || Object.keys(item.sv).length > 0;
+}
+
+/**
+ * Confirmed to exist in the game, with no stats known for it.
+ *
+ * Distinct from `!hasStats(item)`, which is also true of every meal and every
+ * container in the corpus. This one means the data is *missing*, and it is the
+ * predicate every ranking, scoring and auto-fill path checks before deciding
+ * whether an item may be compared with another.
+ */
+export function statsAreUnknown(item: Item): boolean {
+  return item.statsUnknown === true;
 }

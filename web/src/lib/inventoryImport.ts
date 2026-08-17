@@ -39,6 +39,20 @@
  *   Equipment entries are for classes the character cannot even use; importing
  *   them would poison every class filter in the app.
  *
+ * ## Three outcomes, not two
+ *
+ * A row that does not become equipped gear lands in one of two places, and the
+ * difference is the whole point of telling the reader anything:
+ *
+ * - **`unmatched`** — nothing in this build has ever heard of it. It may be a
+ *   spelling the wiki records differently, or an item no catalog has.
+ * - **`unstatted`** — we know exactly what it is, and we have no numbers for
+ *   it. `Shadow Rage Helm` is real, it is in the catalog, its item id matches;
+ *   no wiki page for it exists, so the planner cannot say what it does. It is
+ *   reported by name and left out of the set, because equipping a slot that
+ *   contributes zero to every total would show a complete-looking set whose
+ *   numbers are those of a naked head.
+ *
  * ## Two rules this module will not break
  *
  * 1. **Never invent an item.** The join is by numeric id first and by exact
@@ -52,6 +66,7 @@
 import { SLOT_POSITIONS, type SlotPosition } from '../engine/constants';
 import { EXALTATION_LADDER, type ExaltationKind } from '../engine/exaltation';
 import type { EquippedItem, Item } from '../engine/types';
+import { statsAreUnknown } from '../data/normalize';
 import { clampTier, type UpgradeState } from '../engine/upgrade';
 
 /* ------------------------------------------------------------- vocabulary */
@@ -199,6 +214,32 @@ export interface UnmatchedEntry {
   reason: string;
 }
 
+/**
+ * A row naming an item this build knows is real and has no stats for.
+ *
+ * Deliberately not an `UnmatchedEntry`: "we have never heard of this" and "we
+ * know precisely what this is and cannot tell you what it does" are different
+ * facts about the catalog, and only the second one is actionable — the reader
+ * can go and read the numbers off their own client.
+ */
+export interface UnstattedEntry {
+  kind: 'item' | 'exaltation';
+  positionId: string;
+  positionLabel: string;
+  /** Present for exaltations: which socket the donor was in. */
+  socketLabel?: string;
+  line: number;
+  rawName: string;
+  exportName: string;
+  /** The catalog's own spelling, which is how it was found. */
+  itemName: string;
+  tier: number;
+  exportId: number | null;
+  matchedBy: 'id' | 'name';
+  /** What the catalog does know about why it exists, where it says so. */
+  evidence?: string;
+}
+
 export interface InventoryImport {
   /** Worn positions that resolved, ready to equip at their exported tier. */
   positions: ImportedPosition[];
@@ -206,6 +247,11 @@ export interface InventoryImport {
   exaltations: ImportedExaltation[];
   /** Everything the file named that could not be placed, with the reason. */
   unmatched: UnmatchedEntry[];
+  /**
+   * Rows naming a known item with no stat data. Found, named, and deliberately
+   * not equipped — see the module header.
+   */
+  unstatted: UnstattedEntry[];
   /** Bag, bank and keyring rows — the collection, not the equipped set. */
   ignored: IgnoredRow[];
   /** Worn positions the export printed as empty. */
@@ -221,8 +267,10 @@ export interface InventoryImport {
     wornRows: number;
     /** Worn positions the export said were occupied. */
     filledPositions: number;
-    /** Of those, how many resolved to a catalog item. */
+    /** Of those, how many resolved to a catalog item that can be equipped. */
     matchedPositions: number;
+    /** Rows that named a known item the catalog has no stats for. */
+    unstattedRows: number;
     /** Exaltation donor rows the export carried, in worn positions. */
     donorRows: number;
     matchedExaltations: number;
@@ -358,6 +406,7 @@ function emptyImport(notes: string[] = []): InventoryImport {
     positions: [],
     exaltations: [],
     unmatched: [],
+    unstatted: [],
     ignored: [],
     empty: [],
     notes,
@@ -367,6 +416,7 @@ function emptyImport(notes: string[] = []): InventoryImport {
       wornRows: 0,
       filledPositions: 0,
       matchedPositions: 0,
+      unstattedRows: 0,
       donorRows: 0,
       matchedExaltations: 0,
       renamed: 0,
@@ -490,6 +540,32 @@ function parseInto(text: string, catalog: InventoryCatalog, out: InventoryImport
         continue;
       }
 
+      /*
+       * Found, and unusable. Reported by name and left out of the set: it would
+       * occupy a position, contribute nothing to any total, and make a set look
+       * fully geared while its numbers said otherwise. `slot.entry` stays null,
+       * so any exaltation socketed into it is reported against the same gap
+       * rather than silently dropped.
+       */
+      if (statsAreUnknown(match.item)) {
+        const held: UnstattedEntry = {
+          kind: 'item',
+          positionId: position.id,
+          positionLabel: position.label,
+          line: i + 1,
+          rawName,
+          exportName: name,
+          itemName: match.item.n,
+          tier,
+          exportId,
+          matchedBy: match.by,
+          ...(match.item.evidence ? { evidence: match.item.evidence } : {}),
+        };
+        out.unstatted.push(held);
+        out.stats.unstattedRows++;
+        continue;
+      }
+
       const entry: ImportedPosition = {
         positionId: position.id,
         positionLabel: position.label,
@@ -565,9 +641,7 @@ function parseInto(text: string, catalog: InventoryCatalog, out: InventoryImport
         exportName: bareName,
         tier: 0,
         exportId,
-        reason: host.unresolved
-          ? `its host item, ${host.unresolved.exportName}, is not in the catalog`
-          : `the ${host.position.label} position is empty in this export`,
+        reason: hostGapReason(host, out),
       });
       continue;
     }
@@ -586,6 +660,27 @@ function parseInto(text: string, catalog: InventoryCatalog, out: InventoryImport
         exportId,
         reason: reasonFor(exportId),
       });
+      continue;
+    }
+
+    // A donor whose own stats are unknown is held back for the same reason a
+    // worn item is: the socket would look filled and add nothing.
+    if (statsAreUnknown(match.item)) {
+      out.unstatted.push({
+        kind: 'exaltation',
+        positionId: host.position.id,
+        positionLabel: host.position.label,
+        socketLabel: socket.label,
+        line: i + 1,
+        rawName,
+        exportName: bareName,
+        itemName: match.item.n,
+        tier: 0,
+        exportId,
+        matchedBy: match.by,
+        ...(match.item.evidence ? { evidence: match.item.evidence } : {}),
+      });
+      out.stats.unstattedRows++;
       continue;
     }
 
@@ -655,6 +750,25 @@ function reasonFor(exportId: number | null): string {
     : `no item of that name or id (${exportId}) is in the catalog`;
 }
 
+/**
+ * Why a donor has nothing to sit in. Three distinct gaps, and naming the wrong
+ * one sends the reader looking for the wrong problem: an unknown host is a
+ * catalog hole, an unstatted host is a data hole in an item we do have, and an
+ * empty position is just an empty position.
+ */
+function hostGapReason(host: OpenPosition, out: InventoryImport): string {
+  if (host.unresolved) {
+    return `its host item, ${host.unresolved.exportName}, is not in the catalog`;
+  }
+  const held = out.unstatted.find(
+    (entry) => entry.kind === 'item' && entry.positionId === host.position.id,
+  );
+  if (held) {
+    return `its host item, ${held.itemName}, has no stat data, so nothing was equipped there`;
+  }
+  return `the ${host.position.label} position is empty in this export`;
+}
+
 /* --------------------------------------------------------------- reporting */
 
 /** Group the ignored rows for a report that names places rather than rows. */
@@ -697,6 +811,18 @@ export function summarizeImport(result: InventoryImport): string {
       : '') +
     ' matched the catalog.';
   const tail: string[] = [];
+  if (result.unstatted.length) {
+    // Named, and named differently from the unmatched list below: this reader
+    // owns the item, and the honest thing to tell them is that the gap is ours.
+    const named = result.unstatted.slice(0, 3).map((u) => u.itemName);
+    const more = result.unstatted.length - named.length;
+    const one = result.unstatted.length === 1;
+    tail.push(
+      `${named.join(', ')}${more ? ` and ${more} more` : ''} ` +
+        `${one ? 'is a known item with no stats in any catalog' : 'are known items with no stats in any catalog'}, ` +
+        `so ${one ? 'it was' : 'they were'} left out rather than scored as ${one ? 'a zero' : 'zeroes'}.`,
+    );
+  }
   if (result.unmatched.length) {
     // Name them. This sentence is also the toast on the screen the reader
     // lands on after importing, where there is no list underneath to point at,

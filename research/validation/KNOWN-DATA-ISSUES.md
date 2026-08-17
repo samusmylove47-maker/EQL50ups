@@ -57,12 +57,43 @@ No catalog source carries it. It is probably derived from character level and
 weapon type rather than stored per item, but it is currently absent from the
 planner's weapon display.
 
-## 5. Upstream issues inherited from the pipeline
+## 5. The wiki's `FearHateRevamp` coverage is class-incomplete — MEDIUM impact
+
+Corrected on a Tier 0 player report, 2026-08-17. Full write-up, with the quoted
+report and the evidence for every field: **`TIER0-PLAYER-REPORTS.md`**.
+
+The `FearHateRevamp` era holds the planar class sets EQL added to Fear and Hate.
+The wiki has complete 7–8 piece sets for **five** classes only — Legionnaire
+Scale (WAR), Greenmist (SHD), of the Righteous (PAL), of the Untamed (RNG), of
+Harmony (DRU) — and for everyone else it has scattered singles or nothing:
+
+| Class | Class-exclusive armour in the era |
+|---|---|
+| WAR 8 · SHD 7 · PAL 7 · RNG 7 · DRU 7 | complete sets |
+| BER 6 | Shadow Rage — recovered by the player report, not by any scrape |
+| BRD 1 | one shoulder piece |
+| CLR, ENC, MAG, MNK, NEC, ROG, SHM, WIZ, BST | **none at all** |
+
+Shadow Rage is the proof this is a scrape gap rather than a design fact: the
+wiki had three of its six pieces, on unrelated pages, with the era wrong on one
+and absent on two, and had never recorded them as a set. Nine classes showing
+zero planar armour in a revamp built around class sets is very unlikely to be
+the game's actual content.
+
+**Consequence:** an empty result for a class in this era means "we do not have
+this data", not "this content does not exist". Nothing has been added on the
+strength of that reasoning — see the write-up for what was deliberately not
+changed, and for the open question of whether the whole era is live.
+
+## 6. Upstream issues inherited from the pipeline
 
 Carried over from the build report, all documented in `pipeline/README.md`:
-- **11 live items exist in no wiki catalog** (Shadow Rage Helm/Gloves/Boots,
-  Heretic Insurrection Orders, Essence of Wind, the two Velium Gemmed Runes,
-  Lightweight Bag, `Backpack*`, and two spelling drifts).
+- **8 live items exist in no wiki catalog** (Heretic Insurrection Orders,
+  Essence of Wind, the two Velium Gemmed Runes, Lightweight Bag, `Backpack*`,
+  and two spelling drifts). This was 11 until the Shadow Rage Helm, Gloves and
+  Boots were recovered from the player report above; they now ship as records
+  with `statsUnknown: true` — real items, no stats invented — and are excluded
+  from all ranking, scoring and auto-fill.
 - **`ALL except <list>` is unrecoverable on 8 items**, which ship as `ALL` and
   are therefore too permissive.
 - **`ERA_OVERRIDE` is empty upstream** — the list of Kunark/Velious items EQL
@@ -78,3 +109,10 @@ More Tier 0 item screenshots, ideally a spread across armor and weapons, would
 let us measure how systematic the flag and skill divergence is. Right now the
 sample is two items — enough to prove a problem exists, not enough to correct it
 safely.
+
+**Player reports close them fastest.** One sentence from the player resolved
+§5 outright: it named a set the wiki had never assembled, corrected the era on
+three items, and explained three of the eleven "in no catalog at all" gaps. A
+client screenshot of any Shadow Rage piece would go further still and give us
+the stats. Reports are logged in `TIER0-PLAYER-REPORTS.md` with the evidence for
+each field recorded beside it.

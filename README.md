@@ -85,8 +85,19 @@ does not:
 - **Item flags are unreliable.** The catalog still uses classic EverQuest's
   `NO DROP` where the client says `No Trade`, conflates Lore with Lore-Equipped,
   and barely records Placeable. Do not trust a flag filter for a loot decision.
-- **Eleven items in a sampled inventory exist in no wiki catalog** at all,
-  including the Shadow Rage set. The importer names them rather than guessing.
+- **Eight items in a sampled inventory exist in no wiki catalog** at all. The
+  importer names them rather than guessing.
+- **Some items are known to exist with no stats at all.** The Berserker planar
+  set Shadow Rage is one: the player told us what it is, three of its six pieces
+  are in no wiki catalog, and nothing anywhere records their numbers. They ship
+  as real catalog entries flagged `statsUnknown` — never ranked, never scored,
+  never auto-filled, and never shown as a row of zeroes beside items whose zeroes
+  were actually measured. Inventing the numbers was rejected.
+- **The wiki's Fear/Hate revamp coverage is incomplete for most classes.** It has
+  full planar sets for Warrior, Shadow Knight, Paladin, Ranger and Druid, and
+  scattered single pieces or nothing for the other eleven. That is a gap in the
+  catalog, not proof the gear does not exist — see
+  `research/validation/TIER0-PLAYER-REPORTS.md`.
 - **Some content is era-gated that may be obtainable.** The list of Kunark and
   Velious items released early was never recovered upstream; items observed in a
   live inventory are un-gated by name, and the rest stay hidden behind a toggle.
@@ -99,9 +110,10 @@ does not:
 
 ## Data
 
-11,249 items, ~850 KiB gzipped, built by `pipeline/build.mjs` from community
-wiki scrapes pinned to specific commits. Coverage against a real inventory
-export: **96.3%**.
+11,252 items, ~850 KiB gzipped, built by `pipeline/build.mjs` from community
+wiki scrapes pinned to specific commits, plus a small, fully enumerated set of
+Tier 0 corrections where the running game contradicts the wiki. Coverage against
+a real inventory export: **97.3%**.
 
 Item data derives from the **EverQuest Legends Wiki**, used under **CC BY-SA
 4.0**; derived data is shared alike. EverQuest is a trademark of Daybreak Game
@@ -116,7 +128,7 @@ cd web
 npm install
 npm run dev          # local dev server
 npm run build        # production build
-npx vitest run       # 546 unit tests
+npx vitest run       # 621 unit tests
 npx playwright test  # browser tests — see BROWSER-TESTING.md first
 ```
 

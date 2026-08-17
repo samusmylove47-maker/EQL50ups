@@ -15,6 +15,7 @@
 import type { LoadoutContext } from '../engine/character';
 import type { Item } from '../engine/types';
 import type { UpgradeState } from '../engine/upgrade';
+import { statsAreUnknown } from '../data/normalize';
 import { sourceSummary } from '../lib/itemStyle';
 import { Modal } from './Modal';
 import { ItemWindow } from './ItemWindow';
@@ -46,6 +47,14 @@ export function ItemDetail({
   onClose,
 }: ItemDetailProps) {
   const source = sourceSummary(item);
+  /*
+   * An item with no stats has nothing to contribute to a set's totals, so
+   * equipping it would fill a slot on the paper doll and add exactly zero to
+   * every number beside it — a set that looks complete and totals as though the
+   * slot were empty. The window above already explains the gap; the buttons
+   * that would act on it are withdrawn rather than left to produce that.
+   */
+  const unstatted = statsAreUnknown(item);
 
   return (
     <Modal title={item.n} titleHidden onClose={onClose} width={640}>
@@ -65,7 +74,15 @@ export function ItemDetail({
           </p>
         ) : null}
 
-        {equipTargets.length && onEquip ? (
+        {unstatted ? (
+          <p className="hint">
+            No stats are known for this item, so it cannot be equipped here: a slot filled with it
+            would add nothing to your totals while looking as though it had. It stays in the catalog
+            because it is real — hiding it would be its own kind of wrong answer.
+          </p>
+        ) : null}
+
+        {!unstatted && equipTargets.length && onEquip ? (
           <div>
             <h3 className="section-label">Equip in {setName ?? 'your set'}</h3>
             <div className="chip-row">

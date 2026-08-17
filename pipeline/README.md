@@ -49,6 +49,8 @@ user opens a slot.
   "era": "Classic",
   "av": true,                       // available on the live server right now
   "eraUnknown": true,               // (only when set) no source knows this item's era
+  "statsUnknown": true,             // (only when set) the item is real and NO source has its stats
+  "evidence": "Confirmed to exist: worn in the Head position of …",  // why, for statsUnknown items
   "an": 1,                          // (only when set) eligible for an "Any Slot" position
   "src": { "z": ["The Hole"], "m": ["Master Yael"], "q": [], "v": [], "c": 1 },
 
@@ -65,6 +67,13 @@ user opens a slot.
 
 Empty fields are omitted entirely, never emitted as `null`/`[]`/`{}` — except `id`, which is
 always present so the UI can tell "no id known" from "field missing".
+
+**`statsUnknown` is not the same as having no stats.** Thousands of ordinary records — food,
+containers, tradeskill components — carry no `st` and are fully described that way. `statsUnknown`
+is a positive assertion that the data is *missing*: the item is confirmed to exist and nothing
+anywhere recorded its numbers. It is the stats-side twin of `eraUnknown`, it is set only by the
+Tier 0 table below, and a consumer **must not score, rank or recommend one** — treating its absent
+stats as zero would put a fabricated comparison beside real ones. 3 items currently carry it.
 
 ### Vocabularies
 
@@ -112,7 +121,7 @@ eqlwiki carries it on 1 item, the raw wiki text on many more).
 | `fx` effects | union of eqlwiki `effects{}` (typed) and jmoyers `effects[].kind`, deduped on kind+name | | | |
 | `fl` flags | union of eqlwiki `tags`, jmoyers `flags`+`extras`, nathan-bates `flags`, statsBlock header — filtered to the flag vocabulary | | | |
 | `wt` / `sz` | eqlwiki `wt` / `size` | jmoyers | statsBlock | nathan-bates |
-| `era`, `av` | eqlwiki `available_from` | eqlwiki `era` | min of eqlwiki `eras` | jmoyers `eraTag` → nathan-bates `era` |
+| `era`, `av` | **Tier 0 correction table** | eqlwiki `available_from` | eqlwiki `era` → min of eqlwiki `eras` | jmoyers `eraTag` → nathan-bates `era` |
 | `src.z/m` | eqlwiki `zones` + `drops[]` | jmoyers `dropsFrom[]` | EQBuddy `DropZones` | |
 | `src.q` | eqlwiki `quests` | EQBuddy `Quests` | jmoyers `questUses[]` | |
 | `src.v` | eqlwiki `vendors` (flat zone/vendor alternation, kept verbatim) | | | |
@@ -170,18 +179,52 @@ so an item is available when its era rank is **≤ Sky**.
   correctly gated out.
 - `non_legends` and `out_of_era` (26 items, the same set) force `av: false` regardless of era.
   The reason is recorded in `ur`; `gb` carries eqlwiki's gating reason (`zone` or `recipe`).
-- **Items with no era anywhere are shipped `av: true` with `eraUnknown: true`.** 2,414 items
+- **Items with no era anywhere are shipped `av: true` with `eraUnknown: true`.** 2,412 items
   (21 %) are in this state. Hiding them would be the worse failure: they are mostly ordinary
   Classic-era goods whose wiki page simply lacks a category. The build report calls this the
   `flagged` count; the UI should surface it as "availability unverified", not as a hard filter.
-- `eraUnknown` describes the *absence of information* and is independent of `av`. Eleven items are
+- `eraUnknown` describes the *absence of information* and is independent of `av`. Fifteen items are
   both era-less and `non_legends`, so they ship `eraUnknown: true, av: false, ur: "non_legends"`.
 
-Current split: **5,401 gated out**, 2,414 unknown-era, the rest live.
+Current split: **5,407 gated out**, 2,412 unknown-era, the rest live. (The Tier 0 correction below
+moved six Shadow Rage pieces into `FearHateRevamp`, which ranks after Sky — so the era gate now
+hides a set the player is demonstrably wearing, and the app un-gates those six by name.)
 
 **Not modelled:** the `ERA_OVERRIDE` list — Kunark/Velious items EQL made available early. The
 mechanism is documented upstream but the list was never filled in, and inventing one is exactly
 the failure mode this project guards against. Some gated-out items are therefore likely obtainable.
+The app carries the observed half of that list by name in `TIER0_LIVE_ITEMS`
+(`web/src/engine/constants.ts`): 18 items seen in a live client export, plus 1 named by the player.
+
+---
+
+## Tier 0 corrections
+
+Two tables at the top of `build.mjs` — `TIER0_CORRECTIONS` (fields the sources got wrong) and
+`TIER0_KNOWN_ITEMS` (items no source has at all) — are the **only** place this pipeline overrides
+its inputs. They exist because the project ranks the running game above every community source, and
+they are kept tiny, fully enumerated and individually cited so that "Tier 0 says so" can never
+become a licence to guess. `verify.mjs` §9b re-asserts their outcome against the shipped payload
+independently, so a table that stops matching the catalog fails the build rather than silently
+doing nothing.
+
+Currently applied — all from one player report on 2026-08-17, written up in full with the evidence
+for every field in `research/validation/TIER0-PLAYER-REPORTS.md`:
+
+| Item | Correction |
+|---|---|
+| Shadow Rage Leggings | `era: Classic` → `FearHateRevamp` |
+| Shadow Rage Sleeves | no era anywhere → `FearHateRevamp` |
+| Shadow Rage Wristguard | no era anywhere → `FearHateRevamp` |
+| Shadow Rage Helm (#55601, HEAD) | added; `statsUnknown` |
+| Shadow Rage Gloves (#55605, HANDS) | added; `statsUnknown` |
+| Shadow Rage Boots (#55607, FEET) | added; `statsUnknown` |
+
+Shadow Rage is the Berserker member of the `FearHateRevamp` planar class sets, alongside
+Legionnaire Scale (WAR), Greenmist (SHD), of the Righteous (PAL), of the Untamed (RNG) and of
+Harmony (DRU). The wiki never scraped it as a set. The three added records carry **name, id, slot,
+class and era and nothing else** — no stat, weight, size, flag or icon was invented, and the
+absence is stated in the data rather than filled with zeroes.
 
 ---
 
@@ -196,8 +239,10 @@ The one real source is `research/validation/tier0-inventory-Avenrae.txt`, a live
 with no name or id collisions. It confirms that neither the `+N` upgrade suffix nor the
 `(Exaltation)` suffix changes an item's ID.
 
-286 of those 297 are bound to catalog rows (282 exact, 4 via an unambiguous punctuation-insensitive
-match). The rest are unbound because the wiki has no page for them. Binding is deliberately
+289 of those 297 are bound to catalog rows (285 exact, 4 via an unambiguous punctuation-insensitive
+match). Three of those exact matches are the Shadow Rage pieces the Tier 0 table adds — the record
+is created *because* the game has the item, so it is the right home for the id printed beside it.
+The remaining 8 are unbound because the wiki has no page for them. Binding is deliberately
 conservative — a loose match is only accepted when it resolves to exactly one catalog row that no
 other export name has claimed. `Backpack` (#17005) and `Backpack*` (#32601) are two different items
 that both appear in that inventory; an earlier draft of this pipeline merged them and shipped the
@@ -303,12 +348,17 @@ actually printed it. Recorded in `meta.dataReliability.dmgBonus`.
 
 Everything here is a property of the upstream sources, not of the pipeline.
 
-1. **11 live items are absent from every wiki catalog** (3.7 % of the Tier 0 sample): the Shadow
-   Rage armour set (Helm/Gloves/Boots — the wiki has only Leggings/Sleeves/Wristguard), Heretic
+1. **8 live items are absent from every wiki catalog** (2.7 % of the Tier 0 sample): Heretic
    Insurrection Orders, Essence of Wind, Velium Gemmed Rune, Complex Velium Gemmed Rune,
    Lightweight Bag, `Backpack*`, and two spelling drifts the client and wiki disagree on
    (`Deterioriated`/`Deteriorated Ancient Faydark Longbow`, `Griffon Wing Spaulders`/`Spauldors`).
    `verify.mjs` prints the closest catalog name for each; nothing is auto-bound.
+   This was 11 until the Shadow Rage Helm, Gloves and Boots were recovered from a player report;
+   they now ship as `statsUnknown` records — see "Tier 0 corrections" above.
+   **The wiki's coverage of the whole `FearHateRevamp` era is class-incomplete**: full 7–8 piece
+   sets for WAR/SHD/PAL/RNG/DRU only, one shoulder piece for BRD, and nothing at all for the other
+   nine classes. That is a scrape gap, not evidence the gear does not exist —
+   `research/validation/TIER0-PLAYER-REPORTS.md` measures it.
 2. **15 items where eqlwiki and jmoyers disagree** on AC (5), DMG (9) or delay (1). eqlwiki's value
    is kept and both are recorded on the item as `cf`. Spot-checking the raw wiki text shows
    jmoyers' *structured* extraction is at fault in 10 of them (Greenmist's `Bane DMG: Shissar +6`
@@ -331,7 +381,7 @@ Everything here is a property of the upstream sources, not of the pipeline.
    page). The richer record wins. A further 162 are byte-identical duplicates inside jmoyers.
 9. **`src.v` (vendors) is a flat alternating list** of zone and vendor names in the upstream data.
    It is kept verbatim rather than guessed into pairs.
-10. **Non-equipment dominates the catalog by count**: 4,343 of 11,249 items have no worn slot.
+10. **Non-equipment dominates the catalog by count**: 4,343 of 11,252 items have no worn slot.
 11. **Exaltation socket contents are not in any source and never will be** — sockets are a function
     of item level, not an item property. Derive them from the chosen `+N`; do not look for a field.
 12. **Flags and Monk fist-weapon skills contradict the live client** — see the section above and
@@ -368,7 +418,7 @@ SHA-256 prefix, so any shipped record can be traced back to an exact upstream re
 
 ## What `verify.mjs` checks
 
-33 assertions over the *shipped payload only* — it re-declares its own vocabularies rather than
+37 assertions over the *shipped payload only* — it re-declares its own vocabularies rather than
 importing the build's, so a mistake in `build.mjs` cannot validate itself.
 
 Structure (files present, schema versions agree, meta counts match, provenance SHAs well-formed,
@@ -380,8 +430,11 @@ differs from the normalized skill · era values are in the chronology
 and `av` agrees with the gate · `eraUnknown` implies `av` unless another reason is recorded ·
 shard integrity (every item filed under a slot it actually has, index and shard records agree,
 every item reachable from some shard) · effects/sizes/weights well-formed · icon and item IDs are
-positive integers · no numeric ID assigned twice · **Tier 0 coverage** · Tier 0 spot-checks
-(Earthshaker DMG 37 / delay 70 / id 5667, Cloak of Flames id 11621, Fishbone Earring id 10313).
+positive integers · no numeric ID assigned twice · **`statsUnknown` records carry evidence and no
+stats, and keep the marker into the shards** · **Tier 0 coverage** · Tier 0 spot-checks
+(Earthshaker DMG 37 / delay 70 / id 5667, Cloak of Flames id 11621, Fishbone Earring id 10313) ·
+**the Shadow Rage set carries the Tier 0 player correction** (all six pieces, `FearHateRevamp`,
+BER, right slots and ids, and no stats on the three the wiki never had).
 
-Tier 0 coverage is the headline metric: **286 / 297 = 96.3 %**, with 286 IDs correct and 0 wrong.
+Tier 0 coverage is the headline metric: **289 / 297 = 97.3 %**, with 289 IDs correct and 0 wrong.
 The build fails below 90 %.

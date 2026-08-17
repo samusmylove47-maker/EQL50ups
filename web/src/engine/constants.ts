@@ -179,32 +179,62 @@ export function isEraLive(era: string | null | undefined): boolean {
  * `pipeline/README.md` records that EQL's `ERA_OVERRIDE` list — the Kunark and
  * Velious items released early — was never recovered, so items tagged after
  * Sky are gated out wholesale and some of them are wrong. This is that list,
- * as far as it can be *observed* rather than guessed: every name below appears
- * in `research/validation/tier0-inventory-Avenrae.txt`, a live
- * `/outputfile inventory` export, so the character possesses it in the running
- * game. `Hamed's Ring of Tears` is worn on a finger; `Tobrin's Mystical
- * Eyepatch` and `Selo`s Drums of the March` are socketed into worn gear.
+ * as far as Tier 0 — the running game — can attest.
  *
- * Nothing is inferred from an item's neighbours, its zone or its era — only
- * from having been seen in a client export. Extend it the same way: with
- * evidence, never with a guess.
+ * Nothing is inferred from an item's neighbours, its zone or its era. Every
+ * name is grouped below by the evidence that put it there, so a reader can see
+ * exactly what each one rests on. Extend it the same way: with evidence, never
+ * with a guess.
  */
+
+/**
+ * Seen in `research/validation/tier0-inventory-Avenrae.txt`, a live
+ * `/outputfile inventory` export: the character possesses these in the running
+ * game. `Hamed's Ring of Tears` is worn on a finger; `Tobrin's Mystical
+ * Eyepatch` and `Selo`s Drums of the March` are socketed into worn gear;
+ * `Shadow Rage Helm` is worn on the head and the other three Shadow Rage pieces
+ * are banked.
+ */
+const TIER0_OBSERVED_IN_EXPORT = [
+  'Batskull Earring',
+  'Crystalline Spear',
+  'Dragon Bone Bracelet',
+  'Gauntlets of Fiery Might',
+  'Gold Plated Koshigatana',
+  "Hamed's Ring of Tears",
+  'Hierophant`s Crook',
+  'McVaxius` Horn of War',
+  'Orb of Tishan',
+  'Selo`s Drums of the March',
+  'Shadow Rage Boots',
+  'Shadow Rage Gloves',
+  'Shadow Rage Helm',
+  'Shadow Rage Sleeves',
+  'Shadow Rage Wristguard',
+  "Tobrin's Mystical Eyepatch",
+  'Warhammer of Divine Grace',
+  'White Satin Gloves',
+];
+
+/**
+ * Named by the player who plays the game, which is the same Tier 0 authority as
+ * a client screenshot and outranks any wiki page.
+ *
+ * > "Shadow rage is the berserker set from plane of fear and plane of hate that
+ * > was added for EQ legends, to be in line with the other planar class gear
+ * > sets."   — player report, 2026-08-17
+ *
+ * That places the whole set in the live game, so the one piece of it the export
+ * does not happen to contain is un-gated on the report rather than left as the
+ * only hidden member of a set whose other five are visible. This is the
+ * weakest evidence in this file and it is deliberately quarantined here rather
+ * than blended into the list above. It does **not** extend to the other 53
+ * `FearHateRevamp` items: see research/validation/TIER0-PLAYER-REPORTS.md.
+ */
+const TIER0_REPORTED_BY_PLAYER = ['Shadow Rage Leggings'];
+
 export const TIER0_LIVE_ITEMS: ReadonlySet<string> = new Set(
-  [
-    'Batskull Earring',
-    'Crystalline Spear',
-    'Dragon Bone Bracelet',
-    'Gauntlets of Fiery Might',
-    'Gold Plated Koshigatana',
-    "Hamed's Ring of Tears",
-    'Hierophant`s Crook',
-    'McVaxius` Horn of War',
-    'Orb of Tishan',
-    'Selo`s Drums of the March',
-    "Tobrin's Mystical Eyepatch",
-    'Warhammer of Divine Grace',
-    'White Satin Gloves',
-  ].map((name) => name.toLowerCase()),
+  [...TIER0_OBSERVED_IN_EXPORT, ...TIER0_REPORTED_BY_PLAYER].map((name) => name.toLowerCase()),
 );
 
 /** Was this exact item seen in a live client inventory export? */

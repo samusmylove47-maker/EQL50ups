@@ -21,7 +21,7 @@ import { PRESET_PROFILES, scoreItem, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, tier, type UpgradeState } from '../engine/upgrade';
 import type { Item } from '../engine/types';
 import { useCatalog } from '../data/catalog';
-import type { SlotCode } from '../data/normalize';
+import { statsAreUnknown, type SlotCode } from '../data/normalize';
 import { searchIndexFor } from '../data/searchIndex';
 import { UpgradeStepper } from '../components/UpgradeStepper';
 import { count, ep as epText } from '../lib/format';
@@ -110,7 +110,8 @@ export function ItemBrowser() {
    * Sorting now reads an already-scored array.
    */
   const scored = useMemo(() => {
-    const out: Array<{ item: Item; score: number; stats: string }> = [];
+    // `score: null` means "not scorable", which is not the same as scoring 0.
+    const out: Array<{ item: Item; score: number | null; stats: string }> = [];
     for (const item of catalog.items) {
       if (matches && !matches.has(item)) continue;
       if (slot !== 'any' && !item.sl.includes(slot)) continue;
@@ -123,23 +124,35 @@ export function ItemBrowser() {
        * produce a string that depends only on the item and the preview tier —
        * neither of which a sort changes.
        */
+      /*
+       * An item whose stats nobody recorded is listed — this screen is the
+       * catalog, and leaving it out would deny an item the game has — but it is
+       * not given a score. `scoreItem` would return a perfectly real-looking
+       * `0.0` computed over stats that do not exist, in a column the reader is
+       * sorting by. `null` prints as an em dash instead.
+       */
+      const unstatted = statsAreUnknown(item);
       out.push({
         item,
-        score: scoreItem(item, upgrade, weights).total,
-        stats: statVector(item, upgrade).slice(0, 6).map((v) => statChip(v.key, v.value)).join(' · '),
+        score: unstatted ? null : scoreItem(item, upgrade, weights).total,
+        stats: unstatted
+          ? ''
+          : statVector(item, upgrade).slice(0, 6).map((v) => statChip(v.key, v.value)).join(' · '),
       });
     }
     return out;
   }, [catalog.items, matches, slot, era, liveOnly, filterContext, weights, upgrade]);
 
   const { rows, total } = useMemo(() => {
-    type Row = { item: Item; score: number; stats: string };
+    type Row = { item: Item; score: number | null; stats: string };
     const eraIndex = (row: Row) =>
       ERA_ORDER.indexOf((row.item.era ?? '') as (typeof ERA_ORDER)[number]);
     // Ascending comparators only; direction is applied once, and the name
     // tiebreaker stays ascending in both so the order is stable and readable.
     const compare: Record<SortKey, (a: Row, b: Row) => number> = {
-      ep: (a, b) => a.score - b.score,
+      // An unscorable row sorts as the bottom of the EP column in either
+      // direction rather than borrowing 0's position among real scores.
+      ep: (a, b) => (a.score ?? -Infinity) - (b.score ?? -Infinity),
       name: (a, b) => a.item.n.localeCompare(b.item.n),
       era: (a, b) => eraIndex(a) - eraIndex(b),
       slot: (a, b) => (a.item.sl[0] ?? '').localeCompare(b.item.sl[0] ?? ''),
@@ -453,6 +466,9 @@ export function ItemBrowser() {
                       </button>
                     </span>
                     {!isLive(item) ? <span className="tag tag-locked">Not live</span> : null}
+                    {statsAreUnknown(item) ? (
+                      <span className="tag tag-locked">No stat data</span>
+                    ) : null}
                   </td>
                   <td className="dim">{item.sl.join(' / ') || '—'}</td>
                   <td className="dim">{item.cl.join(' ') || 'ALL'}</td>
@@ -460,7 +476,9 @@ export function ItemBrowser() {
                   <td>
                     {eraLabel(item) ? <span className="era-label">{eraLabel(item)}</span> : <span className="dim">—</span>}
                   </td>
-                  <td className="num">{epText(score)}</td>
+                  <td className="num">
+                    {score === null ? <span className="dim">—</span> : epText(score)}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -412,6 +412,125 @@ describe('readInventory — joining to the catalog', () => {
   });
 });
 
+/* ------------------------------------------ known items with no stat data */
+
+/**
+ * "We have never heard of this" and "we know exactly what this is and have no
+ * numbers for it" are different failures with different remedies, and the
+ * importer's job is to tell them apart rather than lump both under "missing".
+ */
+describe('readInventory — a known item with no stat data', () => {
+  const unstatted = (n: string, id: number, slots: string[]): Item => ({
+    ...item(n, id, slots),
+    statsUnknown: true,
+    evidence: 'Seen in a live client export; no wiki page carries its stats.',
+  });
+
+  const CATALOG = catalogOf([
+    unstatted('Shadow Rage Helm', 55601, ['HEAD']),
+    item('Darkbrood Mask', 1544, ['FACE']),
+  ]);
+
+  it('reports it separately from an item it has never heard of', () => {
+    const result = readInventory(
+      sheet([
+        ['Head', 'Shadow Rage Helm +5', 55601],
+        ['Face', 'Darkbrood Mask +4', 1544],
+        ['Chest', 'Nonexistent Breastplate +2', 99999],
+      ]),
+      CATALOG,
+    );
+
+    expect(result.unstatted.map((u) => u.itemName)).toEqual(['Shadow Rage Helm']);
+    expect(result.unmatched.map((u) => u.exportName)).toEqual(['Nonexistent Breastplate']);
+    // The one that does have stats is imported exactly as before.
+    expect(result.positions.map((p) => p.itemName)).toEqual(['Darkbrood Mask']);
+  });
+
+  it('records how it was found, and does not count it as an import', () => {
+    const result = readInventory(sheet([['Head', 'Shadow Rage Helm +5', 55601]]), CATALOG);
+    expect(result.unstatted[0]).toMatchObject({
+      kind: 'item',
+      positionId: 'HEAD',
+      positionLabel: 'Head',
+      itemName: 'Shadow Rage Helm',
+      exportName: 'Shadow Rage Helm',
+      rawName: 'Shadow Rage Helm +5',
+      tier: 5,
+      exportId: 55601,
+      matchedBy: 'id',
+    });
+    expect(result.unstatted[0]?.evidence).toContain('no wiki page');
+    expect(result.stats.unstattedRows).toBe(1);
+    expect(result.stats.filledPositions).toBe(1);
+    expect(result.stats.matchedPositions).toBe(0);
+  });
+
+  it('keeps it out of the set entirely, rather than equipping a zero', () => {
+    const result = readInventory(sheet([['Head', 'Shadow Rage Helm +5', 55601]]), CATALOG);
+    expect(result.positions).toEqual([]);
+    expect(toSlotMap(result)).toEqual({});
+  });
+
+  it('holds back an exaltation donor with no stats for the same reason', () => {
+    const catalog = catalogOf([
+      item('Earthshaker', 5667, ['PRIMARY']),
+      unstatted('Unrecorded Bauble', 424242, ['EAR']),
+    ]);
+    const result = readInventory(
+      sheet([
+        ['Primary', 'Earthshaker +10', 5667],
+        ['Primary-Slot7', 'Unrecorded Bauble (Exaltation)', 424242],
+      ]),
+      catalog,
+    );
+    expect(result.exaltations).toEqual([]);
+    expect(result.unstatted.map((u) => [u.kind, u.itemName])).toEqual([
+      ['exaltation', 'Unrecorded Bauble'],
+    ]);
+    expect(result.unstatted[0]?.socketLabel).toContain('Focus');
+    // The host is untouched — one unusable donor does not cost you the weapon.
+    expect(result.positions.map((p) => p.itemName)).toEqual(['Earthshaker']);
+  });
+
+  it('blames the right gap when a donor sits on an unstatted host', () => {
+    const catalog = catalogOf([
+      unstatted('Shadow Rage Helm', 55601, ['HEAD']),
+      item('Fishbone Earring', 10313, ['EAR']),
+    ]);
+    const result = readInventory(
+      sheet([
+        ['Head', 'Shadow Rage Helm +5', 55601],
+        ['Head-Slot9', 'Fishbone Earring (Exaltation)', 10313],
+      ]),
+      catalog,
+    );
+    // Not "its host is not in the catalog" — it is, and saying otherwise would
+    // send the reader hunting for the wrong problem.
+    expect(result.unmatched[0]?.reason).toBe(
+      'its host item, Shadow Rage Helm, has no stat data, so nothing was equipped there',
+    );
+  });
+
+  it('says so in the summary, in different words from the unknown case', () => {
+    const line = summarizeImport(
+      readInventory(
+        sheet([
+          ['Head', 'Shadow Rage Helm +5', 55601],
+          ['Chest', 'Nonexistent Breastplate +2', 99999],
+        ]),
+        CATALOG,
+      ),
+    );
+    expect(line).toContain(
+      'Shadow Rage Helm is a known item with no stats in any catalog, so it was left out rather than scored as a zero',
+    );
+    expect(line).toContain(
+      'Nonexistent Breastplate is in no catalog this build has, so it was left out',
+    );
+  });
+});
+
 /* --------------------------------------------------------------- reporting */
 
 describe('summarizeImport', () => {
@@ -538,15 +657,29 @@ describe.skipIf(!available)('the real Avenrae export', () => {
     expect(result.positions).toHaveLength(21);
   });
 
-  it('leaves only Shadow Rage Helm unmatched, and names it', () => {
-    expect(result.unmatched).toHaveLength(1);
-    expect(result.unmatched[0]).toMatchObject({
+  it('has nothing left it cannot name at all', () => {
+    expect(result.unmatched).toEqual([]);
+  });
+
+  it('holds back Shadow Rage Helm as known-but-unstatted, not as unknown', () => {
+    // The catalog has this item — right id, right slot, right class — and has
+    // no stats for it. Reporting it as "no such item" would be false, and
+    // equipping it would put a zero-contribution item on the head.
+    expect(result.unstatted).toHaveLength(1);
+    expect(result.unstatted[0]).toMatchObject({
       kind: 'item',
       positionId: 'HEAD',
       exportName: 'Shadow Rage Helm',
+      itemName: 'Shadow Rage Helm',
       tier: 5,
       exportId: 55601,
+      matchedBy: 'id',
     });
+    expect(result.unstatted[0]?.evidence ?? '').toContain('no stats are known');
+    expect(result.stats.unstattedRows).toBe(1);
+    // And it is nowhere near the equipped set.
+    expect(result.positions.some((p) => p.positionId === 'HEAD')).toBe(false);
+    expect(toSlotMap(result).HEAD).toBeUndefined();
   });
 
   it('carries every exported tier through', () => {
@@ -648,7 +781,9 @@ describe.skipIf(!available)('the real Avenrae export', () => {
     const line = summarizeImport(result);
     expect(line).toContain('21 of 22');
     expect(line).toContain('12 exaltation donors');
-    expect(line).toContain('Shadow Rage Helm is in no catalog this build has, so it was left out');
+    expect(line).toContain(
+      'Shadow Rage Helm is a known item with no stats in any catalog, so it was left out rather than scored as a zero',
+    );
     expect(line).toContain('412 bag, bank and keyring rows');
   });
 });

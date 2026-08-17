@@ -367,6 +367,42 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
 }
 
 // ---------------------------------------------------------------------------
+// 7b. `statsUnknown` — records that exist on Tier 0 authority with no stats
+// ---------------------------------------------------------------------------
+//
+// The marker's whole value is that it is honest, so the payload must not be
+// able to carry it and a stat at the same time: a record that says "nothing
+// measured this" while shipping numbers is worse than either state alone.
+{
+  const bad = [];
+  const flagged = items.filter((it) => it.statsUnknown === true);
+  for (const it of flagged) {
+    if (Object.keys(it.st ?? {}).length) bad.push(`${it.n}: statsUnknown but carries st`);
+    if (Object.keys(it.sv ?? {}).length) bad.push(`${it.n}: statsUnknown but carries sv`);
+    if (it.wp) bad.push(`${it.n}: statsUnknown but carries wp`);
+    if (typeof it.evidence !== 'string' || it.evidence.trim().length < 20) {
+      bad.push(`${it.n}: statsUnknown with no evidence string`);
+    }
+    if (!(it.sl ?? []).length) bad.push(`${it.n}: statsUnknown with no slot`);
+    if (!(it.cl ?? []).length) bad.push(`${it.n}: statsUnknown with no class list`);
+  }
+  assert('statsUnknown records carry evidence and no fabricated stats', bad.length === 0,
+    `${bad.length} malformed statsUnknown records`, bad);
+  assert('meta counts the statsUnknown records it shipped',
+    meta.counts?.statsUnknown === flagged.length,
+    `meta=${meta.counts?.statsUnknown} payload=${flagged.length}`);
+  // `evidence` exists to be read by a human in the app. It has to survive into
+  // the index, because the picker and the browser rank off the index alone.
+  const detailOnly = flagged.filter((it) => {
+    const d = detailByKey.get(nameKey(it.n));
+    return d && d.statsUnknown !== true;
+  });
+  assert('statsUnknown survives into the detail shards', detailOnly.length === 0,
+    `${detailOnly.length} records lose the marker between index and shard`,
+    detailOnly.map((i) => i.n));
+}
+
+// ---------------------------------------------------------------------------
 // 8. Tier 0 ground truth — the coverage metric
 // ---------------------------------------------------------------------------
 let coverage = null;
@@ -481,6 +517,42 @@ if (!existsSync(TIER0)) {
     if (exp.dly != null && it.wp?.dly !== exp.dly) bad.push(`${name}: dly ${it.wp?.dly} != ${exp.dly}`);
   }
   assert('documented Tier 0 spot-checks reproduce', bad.length === 0, `${bad.length} spot-check failures`, bad);
+}
+
+// ---------------------------------------------------------------------------
+// 9b. The Shadow Rage set — the Tier 0 player correction, re-asserted here
+// ---------------------------------------------------------------------------
+//
+// Restated independently of `build.mjs`'s own correction table, so a table that
+// silently stops matching the catalog fails the build instead of becoming a
+// no-op. See research/validation/TIER0-PLAYER-REPORTS.md.
+{
+  const byKeyIdx = new Map(items.map((i) => [nameKey(i.n), i]));
+  const expected = [
+    ['Shadow Rage Helm', 'HEAD', 55601, false],
+    ['Shadow Rage Sleeves', 'ARMS', 55603, true],
+    ['Shadow Rage Wristguard', 'WRIST', 55604, true],
+    ['Shadow Rage Gloves', 'HANDS', 55605, false],
+    ['Shadow Rage Boots', 'FEET', 55607, false],
+    ['Shadow Rage Leggings', 'LEGS', null, true],
+  ];
+  const bad = [];
+  for (const [name, slot, id, statted] of expected) {
+    const it = byKeyIdx.get(nameKey(name));
+    if (!it) { bad.push(`${name}: absent from catalog`); continue; }
+    if (it.era !== 'FearHateRevamp') bad.push(`${name}: era ${it.era} != FearHateRevamp`);
+    if (it.eraUnknown) bad.push(`${name}: still flagged eraUnknown`);
+    if (!(it.cl ?? []).includes('BER')) bad.push(`${name}: classes ${(it.cl ?? []).join(',')} lack BER`);
+    if (!(it.sl ?? []).includes(slot)) bad.push(`${name}: slots ${(it.sl ?? []).join(',')} lack ${slot}`);
+    if (id != null && it.id !== id) bad.push(`${name}: id ${it.id} != ${id}`);
+    const hasStats = Object.keys(it.st ?? {}).length > 0;
+    if (statted && !hasStats) bad.push(`${name}: expected wiki stats, found none`);
+    if (!statted && (hasStats || it.statsUnknown !== true)) {
+      bad.push(`${name}: expected a statsUnknown record with no stats`);
+    }
+  }
+  assert('the Shadow Rage set carries the Tier 0 player correction', bad.length === 0,
+    `${bad.length} Shadow Rage discrepancies`, bad);
 }
 
 // ---------------------------------------------------------------------------

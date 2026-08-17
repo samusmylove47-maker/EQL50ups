@@ -248,6 +248,11 @@ export function InventoryImportDialog({
                   label="not matched"
                   tone={result.unmatched.length ? 'bad' : 'quiet'}
                 />
+                <Count
+                  value={result.unstatted.length}
+                  label="no stat data"
+                  tone={result.unstatted.length ? 'bad' : 'quiet'}
+                />
                 <Count value={result.ignored.length} label="rows skipped" tone="quiet" />
               </div>
             ) : null}
@@ -291,6 +296,40 @@ export function InventoryImportDialog({
                     </tbody>
                   </table>
                 </div>
+              </>
+            ) : null}
+
+            {/*
+              Above the unmatched list, and worded differently on purpose. These
+              are items we can name, whose ids we know and whose numbers we do
+              not have — the reader can read those off their own client, which
+              is not true of anything in the list below.
+            */}
+            {result.unstatted.length ? (
+              <>
+                <h3 className="section-label">
+                  Not imported — known items, but no stats in any catalog
+                </h3>
+                <ul className="invimport-list invimport-list-bad">
+                  {result.unstatted.map((entry) => (
+                    <li key={`${entry.line}-${entry.rawName}`}>
+                      <strong>{entry.rawName}</strong>
+                      {' — '}
+                      {entry.positionLabel}
+                      {entry.socketLabel ? ` · ${entry.socketLabel}` : ''}
+                      {` · line ${entry.line} · `}
+                      this item is real and in the catalog
+                      {entry.exportId ? ` (id ${entry.exportId})` : ''}, but no wiki page records
+                      its stats
+                    </li>
+                  ))}
+                </ul>
+                <p className="hint">
+                  These are left out rather than equipped. A slot filled with an item whose stats
+                  nobody has recorded adds nothing to your totals while making the set look
+                  complete, and inventing numbers for it would be worse still. Everything else in
+                  your export imported normally.
+                </p>
               </>
             ) : null}
 

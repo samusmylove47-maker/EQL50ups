@@ -23,6 +23,7 @@ import type { LoadoutContext } from '../engine/character';
 import { CLASS_NAMES, type ClassCode } from '../engine/constants';
 import { canUseClass, canUseRace, levelCheck } from '../engine/character';
 import type { Item } from '../engine/types';
+import { statsAreUnknown } from '../data/normalize';
 import { scaleWeight, type UpgradeState } from '../engine/upgrade';
 import { dec, num, signed } from '../lib/format';
 import { displayFlags, eraLabel, isLive, itemNameColor, usabilityNote } from '../lib/itemStyle';
@@ -76,6 +77,26 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
             {!isLive(item) ? <div className="iwin-warn">Not live in this era</div> : null}
           </div>
         </div>
+
+        {/*
+          An item we know is real and have no numbers for. Said in words, in the
+          place the numbers would have been: the alternative is this panel
+          printing nothing between the slot line and Requirements, which reads
+          as an item with no stats rather than as stats nobody recorded.
+        */}
+        {statsAreUnknown(item) ? (
+          <>
+            <div className="iwin-group">Stats</div>
+            <div className="iwin-unstatted">
+              <p>
+                <b>Not known.</b> This item exists in the game, but no catalog carries its stats.
+                Nothing is shown here because there is nothing to show — and it cannot be ranked,
+                scored or auto-filled, since a zero would be an invention rather than a measurement.
+              </p>
+              {item.evidence ? <p className="iwin-dim">{item.evidence}</p> : null}
+            </div>
+          </>
+        ) : null}
 
         {headline.length || weapon ? (
           <div className="iwin-headline">

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { activeContext, buildCharacter, type Character } from '../engine/character';
 import { SLOT_POSITIONS } from '../engine/constants';
 import { tier } from '../engine/upgrade';
-import type { GearSet } from '../engine/types';
+import type { GearSet, Item } from '../engine/types';
 import { useCatalog, type CatalogState } from '../data/catalog';
 import { DEFAULT_SET_FILTERS, type SetFilters } from '../lib/setFilters';
 import {
@@ -15,6 +15,7 @@ import {
   summarizeItem,
   totalsFor,
   ratioText,
+  unstattedForSlot,
 } from './gear';
 
 const WARRIOR: Character = buildCharacter({
@@ -398,6 +399,126 @@ describe('auto-fill and the set default filters', () => {
     });
     expect(b.assigned).toEqual(a.assigned);
     expect(a.excludedByFilters).toEqual([]);
+  });
+});
+
+/*
+ * An item the game has and no catalog has stats for.
+ *
+ * Every scorer in this app reads a missing stat as zero, which is the right
+ * answer for an item that has none and a fabrication for one nobody recorded.
+ * These tests pin the consequence: such an item is refused by the ranking, and
+ * therefore by Auto-fill, the picker and the browser above them — while staying
+ * reachable, by name, through `unstattedForSlot`.
+ */
+describe('items with no stat data', () => {
+  /** A HEAD slot holding one real item and one we know nothing about. */
+  function withUnstattedHead(): CatalogState {
+    const base = catalog();
+    const ghost: Item = {
+      id: 55601,
+      n: '[Fixture] Unrecorded Helm',
+      sl: ['HEAD'],
+      cl: ['ALL'],
+      ra: ['ALL'],
+      st: {},
+      sv: {},
+      fl: ['FIXTURE'],
+      av: true,
+      era: 'Classic',
+      statsUnknown: true,
+      evidence: 'Seen in a live client export; no wiki page carries its stats.',
+    };
+    const items = [...base.items, ghost];
+    const bySlot = new Map(base.bySlot);
+    bySlot.set('HEAD', [...(bySlot.get('HEAD') ?? []), ghost]);
+    return {
+      ...base,
+      items,
+      byName: new Map(base.byName).set(ghost.n.toLowerCase(), ghost),
+      bySlot,
+      // Every memoised selector keys off this; a stale rank cache would hide
+      // the very thing under test.
+      revision: base.revision + 1000,
+    };
+  }
+
+  it('never ranks one, at any tier, with or without the era filter', () => {
+    const state = withUnstattedHead();
+    for (const includeUnreleased of [true, false]) {
+      for (const at of [tier(0), tier(10)]) {
+        const ranked = rankSlotItems(state, {
+          slot: 'HEAD',
+          context: WARRIOR_CTX,
+          weights: { AC: 2, STR: 1, HP: 0.2 },
+          upgrade: at,
+          includeUnreleased,
+        });
+        expect(ranked.some((row) => row.item.n === '[Fixture] Unrecorded Helm')).toBe(false);
+        // The real HEAD items are still all there — this excludes one item, not
+        // every item that happens to score nothing.
+        expect(ranked.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('never ranks one in an Any Slot either, where the pool is built differently', () => {
+    const ranked = rankSlotItems(withUnstattedHead(), {
+      slot: 'ANY',
+      context: WARRIOR_CTX,
+      weights: { AC: 2 },
+      upgrade: tier(0),
+      includeUnreleased: true,
+    });
+    expect(ranked.some((row) => row.item.statsUnknown)).toBe(false);
+  });
+
+  it('never auto-fills one, even into a slot nothing else can fill', () => {
+    const state = withUnstattedHead();
+    // Weight only AC: the fixture head items all carry some, so this is not a
+    // "nothing scored" run — HEAD has real competition and the ghost loses by
+    // being ineligible rather than by scoring low.
+    const result = autoFill(state, slotViews(gearSet(), state), WARRIOR_CTX, { AC: 2 }, {
+      includeUnreleased: true,
+      keepFilled: false,
+      filters: DEFAULT_SET_FILTERS,
+    });
+    expect(result.assigned.map((a) => a.itemName)).not.toContain('[Fixture] Unrecorded Helm');
+
+    // And when it is the *only* candidate the slot has, the slot stays empty
+    // rather than taking it: a filled slot worth nothing is the failure mode.
+    const base = catalog();
+    const ghost = state.byName.get('[fixture] unrecorded helm') as Item;
+    const onlyGhost: CatalogState = {
+      ...base,
+      items: [ghost],
+      byName: new Map([[ghost.n.toLowerCase(), ghost]]),
+      bySlot: new Map([['HEAD', [ghost]]]),
+      revision: base.revision + 2000,
+    };
+    const lonely = autoFill(onlyGhost, slotViews(gearSet(), onlyGhost), WARRIOR_CTX, { AC: 2 }, {
+      includeUnreleased: true,
+      keepFilled: false,
+      filters: DEFAULT_SET_FILTERS,
+    });
+    expect(lonely.assigned).toEqual([]);
+    expect(lonely.skipped).toContain('Head');
+    // Not the filters' doing — there was simply nothing rankable.
+    expect(lonely.excludedByFilters).toEqual([]);
+  });
+
+  it('hands it back by name instead, so a surface can admit to withholding it', () => {
+    const state = withUnstattedHead();
+    expect(unstattedForSlot(state, 'HEAD', WARRIOR_CTX).map((i) => i.n)).toEqual([
+      '[Fixture] Unrecorded Helm',
+    ]);
+    // Nothing statted leaks into that list, and other slots are unaffected.
+    expect(unstattedForSlot(state, 'PRIMARY', WARRIOR_CTX)).toEqual([]);
+  });
+
+  it('says the stats are unavailable rather than that the item has none', () => {
+    const ghost = withUnstattedHead().byName.get('[fixture] unrecorded helm') as Item;
+    expect(summarizeItem(ghost, tier(0), { AC: 2 })).toBe('Stats unavailable');
   });
 });
 

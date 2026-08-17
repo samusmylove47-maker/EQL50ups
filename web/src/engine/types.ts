@@ -48,6 +48,20 @@ export interface Item {
   era?: string | null;
   av: boolean;
   eraUnknown?: boolean;
+  /**
+   * The item is confirmed to exist in the game and **no source carries its
+   * stats**. Set only by the pipeline's Tier 0 table, never inferred.
+   *
+   * This is the stats-side twin of `eraUnknown`: a positive statement that the
+   * record is incomplete, as opposed to an item that simply has no stats to
+   * carry (food, a container, a quest turn-in), which ships with an empty `st`
+   * and no marker. Nothing may score, rank, recommend or auto-fill one of
+   * these — its absent stats are unknown, not zero, and scoring it as zero
+   * would put a fabricated comparison next to real ones.
+   */
+  statsUnknown?: boolean;
+  /** Why we know a `statsUnknown` item exists, in the reader's own words. */
+  evidence?: string;
   src?: ItemSource;
   /** Set when stats were recovered by text-parsing rather than structured data. */
   parsed?: string;

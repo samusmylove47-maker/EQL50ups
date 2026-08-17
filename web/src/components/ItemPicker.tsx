@@ -50,6 +50,7 @@ import {
   statDeltas,
   statVector,
   statChip,
+  unstattedForSlot,
   type ScoredItem,
 } from '../selectors/gear';
 import { useVirtualList } from '../lib/useVirtualList';
@@ -271,6 +272,25 @@ export function ItemPicker({
     deferredHideNoDrop,
     deferredZone,
   ]);
+
+  /*
+   * Items this slot holds that the ranking refuses to rank, because the catalog
+   * has no stats for them at all.
+   *
+   * They are kept out of `rows` entirely — an unrankable row wearing `0.0 EP`
+   * beside real candidates is the comparison this app exists not to make — but
+   * they are named underneath, because a player searching for the helm on their
+   * own head deserves better than "No matching items". Filtered by the same
+   * name search as the list, so the note is about what you were looking for.
+   */
+  const withheld = useMemo(
+    () => unstattedForSlot(catalog, position.type as SlotCode, context),
+    [catalog, position.type, context],
+  );
+  const withheldShown = useMemo(
+    () => (matches ? withheld.filter((item) => matches.has(item)) : withheld),
+    [withheld, matches],
+  );
 
   /*
    * Derived during render, never in an effect: `rows` and the highlight have to
@@ -524,6 +544,18 @@ export function ItemPicker({
               : `Ranked by EP against this set's weights, cap-aware.`}
         </span>
       </div>
+
+      {withheldShown.length ? (
+        <p className="picker-note picker-note-warn picker-unstatted">
+          {withheldShown.length === 1 ? 'One item is' : `${count(withheldShown.length)} items are`}{' '}
+          missing from this list on purpose:{' '}
+          <strong>{withheldShown.map((item) => item.n).join(', ')}</strong>.{' '}
+          {withheldShown.length === 1 ? 'It exists' : 'They exist'} in the game, but no catalog
+          carries {withheldShown.length === 1 ? 'its' : 'their'} stats, so{' '}
+          {withheldShown.length === 1 ? 'it cannot' : 'they cannot'} be scored or compared. Ranking{' '}
+          {withheldShown.length === 1 ? 'it' : 'them'} at zero would be a made-up answer.
+        </p>
+      ) : null}
 
       <div
         className="results"

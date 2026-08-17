@@ -185,6 +185,128 @@ function normEra(raw) {
 }
 
 // ---------------------------------------------------------------------------
+// Tier 0 corrections — the running game overrules the community wiki
+// ---------------------------------------------------------------------------
+
+/**
+ * The project's sourcing model puts **Tier 0 — the running game and its files —
+ * above every community source**. Two tables below carry the only corrections
+ * this pipeline applies on that authority. Both are deliberately tiny, entirely
+ * enumerated, and every entry cites the evidence that produced it, because the
+ * standing rule everywhere else in this file is that nothing is invented.
+ *
+ * What a Tier 0 correction may carry:
+ *   - a field the game demonstrates and the wiki gets wrong or omits;
+ *   - never a stat, a weight, a flag or an id that was not directly observed.
+ *
+ * `verify.mjs` re-asserts the outcome of both tables against the shipped
+ * payload, so a table that stops matching the catalog fails the build rather
+ * than becoming a silent no-op.
+ */
+
+/** The one player report these tables rest on, quoted so it can be audited. */
+const PLAYER_REPORT_2026_08_17 =
+  'Tier 0 player report, 2026-08-17: "Shadow rage is the berserker set from ' +
+  'plane of fear and plane of hate that was added for EQ legends, to be in ' +
+  'line with the other planar class gear sets."';
+
+/**
+ * Per-item field corrections applied to records the sources DID produce.
+ *
+ * `set` overwrites, `clear` deletes. Anything not named is left exactly as the
+ * sources had it.
+ */
+const TIER0_CORRECTIONS = [
+  // The `FearHateRevamp` era holds the planar class sets EQL added to Fear and
+  // Hate: Legionnaire Scale (WAR), Greenmist (SHD), of the Righteous (PAL), of
+  // the Untamed (RNG), of Harmony (DRU). Shadow Rage is the Berserker sibling.
+  // The wiki never tagged it: the wiki has Leggings as `Classic` and Sleeves and
+  // Wristguard with no era at all. The player who plays the game says otherwise,
+  // and Tier 0 supersedes the wiki.
+  //
+  // Consequence, stated rather than hidden: FearHateRevamp ranks after Sky in
+  // the chronology below, so these three flip from `av: true` to `av: false`
+  // exactly like the other 53 items of that era. The five pieces observed in the
+  // live client export are un-gated by name in the app's own TIER0_LIVE_ITEMS
+  // list. See research/validation/TIER0-PLAYER-REPORTS.md.
+  {
+    n: 'Shadow Rage Leggings',
+    set: { era: 'FearHateRevamp' },
+    clear: ['eraUnknown'],
+    source: PLAYER_REPORT_2026_08_17,
+    was: 'era: Classic',
+  },
+  {
+    n: 'Shadow Rage Sleeves',
+    set: { era: 'FearHateRevamp' },
+    clear: ['eraUnknown'],
+    source: PLAYER_REPORT_2026_08_17,
+    was: 'no era in any source (eraUnknown)',
+  },
+  {
+    n: 'Shadow Rage Wristguard',
+    set: { era: 'FearHateRevamp' },
+    clear: ['eraUnknown'],
+    source: PLAYER_REPORT_2026_08_17,
+    was: 'no era in any source (eraUnknown)',
+  },
+];
+
+/**
+ * Items the game demonstrably has that **no wiki catalog carries at all**.
+ *
+ * These ship as records with `statsUnknown: true` and no `st`, `sv` or `wp`.
+ * That is the whole point: the app can then say "this item is real and we have
+ * no numbers for it" instead of either pretending it does not exist or filling
+ * a row with zeroes that would rank and score like real data.
+ *
+ * Only fields with direct evidence appear here:
+ *   - `n` and `id` are read off the live client export line-for-line;
+ *   - `sl` is unambiguous from the item's own name (Helm/Gloves/Boots) and is
+ *     the slot every sibling planar set uses for that piece;
+ *   - `cl` and `era` come from the player report quoted above.
+ * Weight, size, flags, icon, races and every stat are simply absent, because
+ * nothing observed them. `ra` is therefore left off and the app's documented
+ * default (ALL) applies, exactly as it does for the ~4,300 other records with
+ * no race data.
+ */
+const TIER0_KNOWN_ITEMS = [
+  {
+    n: 'Shadow Rage Helm',
+    id: 55601,
+    sl: ['HEAD'],
+    cl: ['BER'],
+    era: 'FearHateRevamp',
+    evidence:
+      'Confirmed to exist: worn in the Head position of the live client inventory export ' +
+      '(research/validation/tier0-inventory-Avenrae.txt, item #55601). No wiki catalog has a ' +
+      'page for it, so no stats are known. ' + PLAYER_REPORT_2026_08_17,
+  },
+  {
+    n: 'Shadow Rage Gloves',
+    id: 55605,
+    sl: ['HANDS'],
+    cl: ['BER'],
+    era: 'FearHateRevamp',
+    evidence:
+      'Confirmed to exist: held in the live client inventory export ' +
+      '(research/validation/tier0-inventory-Avenrae.txt, item #55605). No wiki catalog has a ' +
+      'page for it, so no stats are known. ' + PLAYER_REPORT_2026_08_17,
+  },
+  {
+    n: 'Shadow Rage Boots',
+    id: 55607,
+    sl: ['FEET'],
+    cl: ['BER'],
+    era: 'FearHateRevamp',
+    evidence:
+      'Confirmed to exist: held in the live client inventory export ' +
+      '(research/validation/tier0-inventory-Avenrae.txt, item #55607). No wiki catalog has a ' +
+      'page for it, so no stats are known. ' + PLAYER_REPORT_2026_08_17,
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
 
@@ -605,7 +727,14 @@ const TIER0_IDS = loadTier0Ids();
  */
 const idByKey = new Map();
 const idStats = { exact: 0, loose: 0, unmatched: [] };
-const known = (k) => byW.has(k) || byJ.has(k) || byN.has(k) || byE.has(k);
+/**
+ * `TIER0_KNOWN_ITEMS` names count as catalog names here even though no source
+ * carries them: the build creates a record for each below, and that record is
+ * the right home for the id the export printed beside it. Leaving them out
+ * would report them as "unmatched id" while simultaneously shipping the item.
+ */
+const KNOWN_ITEM_KEYS = new Set(TIER0_KNOWN_ITEMS.map((s) => nameKey(s.n)));
+const known = (k) => byW.has(k) || byJ.has(k) || byN.has(k) || byE.has(k) || KNOWN_ITEM_KEYS.has(k);
 const pendingLoose = [];
 for (const [name, id] of TIER0_IDS) {
   const k = nameKey(name);
@@ -1099,6 +1228,74 @@ for (const key of allKeys) {
   records.push(rec);
 }
 
+// ---------------------------------------------------------------------------
+// Apply the Tier 0 corrections declared at the top of this file
+// ---------------------------------------------------------------------------
+
+/** Recompute availability after an era override, by the same rule as the loop. */
+function gateFor(era, rec) {
+  if (rec.ur === 'non_legends' || rec.ur === 'out_of_era') return { av: false, ur: rec.ur };
+  if (era != null && ERA_RANK.get(era) > CURRENT_ERA_RANK) return { av: false, ur: `era:${era}` };
+  return { av: true, ur: null };
+}
+
+const recordByKey = new Map(records.map((r) => [r.key, r]));
+const tier0Applied = [];
+const tier0Missed = [];
+
+for (const fix of TIER0_CORRECTIONS) {
+  const key = nameKey(fix.n);
+  const rec = recordByKey.get(key);
+  if (!rec) { tier0Missed.push(`correction targets "${fix.n}", which is in no source`); continue; }
+  for (const field of fix.clear ?? []) delete rec[field];
+  for (const [field, value] of Object.entries(fix.set)) rec[field] = value;
+  if ('era' in fix.set) {
+    const { av, ur } = gateFor(rec.era, rec);
+    rec.av = av;
+    if (ur) rec.ur = ur; else delete rec.ur;
+    rec.es = 'tier0.player-report';
+    report.eras.add(`${rec.era} (tier0 correction)`);
+  }
+  tier0Applied.push(`${fix.n}: ${fix.was} -> ${JSON.stringify(fix.set)}`);
+}
+
+for (const spec of TIER0_KNOWN_ITEMS) {
+  const key = nameKey(spec.n);
+  if (recordByKey.has(key)) {
+    // A wiki page appeared for it upstream. That is good news, not a conflict:
+    // drop the placeholder rather than shadowing real data with a stub.
+    tier0Missed.push(`known-item stub for "${spec.n}" is now redundant — a source carries it`);
+    continue;
+  }
+  const id = idByKey.get(key) ?? null;
+  if (spec.id != null && id != null && id !== spec.id) {
+    tier0Missed.push(`known-item "${spec.n}" declares id ${spec.id} but the export says ${id}`);
+  }
+  const { av, ur } = gateFor(spec.era, {});
+  const rec = {
+    key,
+    // The export is the source of the id; the table's value is a cross-check.
+    id: id ?? spec.id ?? null,
+    n: spec.n,
+    sl: spec.sl,
+    cl: spec.cl,
+    ...(spec.era ? { era: spec.era } : {}),
+    av,
+    // No `st`, `sv` or `wp`: nothing observed them, and a zero is not a
+    // measurement. `statsUnknown` is the positive assertion that this record is
+    // incomplete on purpose — the stats side of what `eraUnknown` says about era.
+    statsUnknown: true,
+    evidence: spec.evidence,
+    an: 1,
+    es: 'tier0.player-report',
+    ...(ur ? { ur } : {}),
+  };
+  records.push(rec);
+  recordByKey.set(key, rec);
+  report.eras.add(`${spec.era} (tier0 known item)`);
+  tier0Applied.push(`${spec.n}: added as a known item with no stat data (id ${rec.id ?? 'none'})`);
+}
+
 records.sort((a, b) => a.key.localeCompare(b.key));
 
 // ---------------------------------------------------------------------------
@@ -1175,9 +1372,14 @@ const skillSuspects = records
 // restores saved sets from the index alone, so omitting weight made Equipped
 // Weight read 0 after every reload, and omitting races made race-restricted
 // items pass an eligibility check that had nothing to check against.
+//
+// `statsUnknown` and `evidence` are in the index for the same reason `wt` is:
+// the picker ranks straight off the index before any shard has loaded, and a
+// record whose incompleteness only arrives with the shard would be scored as a
+// real zero-stat item for as long as that fetch takes.
 const INDEX_FIELDS = [
   'id', 'n', 'ic', 'sl', 'cl', 'ra', 'st', 'sv', 'wp', 'wt', 'fl',
-  'era', 'av', 'eraUnknown', 'an',
+  'era', 'av', 'eraUnknown', 'statsUnknown', 'evidence', 'an',
 ];
 const DETAIL_OMIT = new Set(['key']);
 
@@ -1297,6 +1499,7 @@ writeOut('focus-effects.json', { v: SCHEMA_VERSION, count: focus.length, effects
 
 const eraGatedOut = records.filter((r) => !r.av).length;
 const eraUnknownCount = records.filter((r) => r.eraUnknown).length;
+const statsUnknownCount = records.filter((r) => r.statsUnknown).length;
 const withId = records.filter((r) => r.id != null).length;
 
 const meta = {
@@ -1375,6 +1578,27 @@ const meta = {
       confidence: 'high-but-sparse',
       note: `Only ${withId} of ${records.length} items have a numeric id; they come from a live client export, not from any wiki source.`,
     },
+    /**
+     * Records that exist on Tier 0 authority but carry no stats at all.
+     *
+     * `statsUnknown: true` says "this item is real and nothing measured it".
+     * It is NOT the same as an item that genuinely has no stats (food, a
+     * container, a quest turn-in), which simply ships with no `st` key and no
+     * marker. A consumer must not score, rank or recommend a `statsUnknown`
+     * record: there is nothing to compare, and treating its absent stats as
+     * zero would present a fabricated comparison as a real one.
+     */
+    unstattedKnownItems: {
+      confidence: 'existence-certain-stats-absent',
+      count: statsUnknownCount,
+      marker: 'statsUnknown',
+      policy:
+        'exists in the game, no source carries stats; never scored, ranked or auto-filled. ' +
+        'Each record carries an `evidence` string naming what proves it exists.',
+      items: records
+        .filter((r) => r.statsUnknown)
+        .map((r) => ({ n: r.n, id: r.id, sl: r.sl, cl: r.cl, era: r.era ?? null })),
+    },
   },
   counts: {
     items: records.length,
@@ -1385,6 +1609,7 @@ const meta = {
     withAcquisition: records.filter((r) => r.src).length,
     eraGatedOut,
     eraUnknown: eraUnknownCount,
+    statsUnknown: statsUnknownCount,
     flagged: eraUnknownCount,
     perSlot: Object.fromEntries(shardCounts.entries({ sort: 'key' })),
     perEffectKind: Object.fromEntries(report.effectKinds.entries({ sort: 'key' })),
@@ -1455,6 +1680,12 @@ if (!QUIET) {
   for (const [k, v] of report.unavailReasons.entries({ sort: 'value' })) L(`    ${k.padEnd(22)} ${String(v).padStart(6)}`);
   L(`  unknown era (flagged, still shipped): ${eraUnknownCount}`);
   if (report.unknownEraTags.size) L(`  unrecognised era tags: ${report.unknownEraTags.entries({ limit: 10 }).map(([k, v]) => `${k}=${v}`).join(', ')}`);
+  L('');
+  L('-- Tier 0 corrections (the running game overrules the wiki) --');
+  for (const line of tier0Applied) L(`  ${line}`);
+  if (!tier0Applied.length) L('  (none)');
+  L(`  records shipped with statsUnknown (real item, no stats anywhere): ${statsUnknownCount}`);
+  for (const line of tier0Missed) L(`  !! ${line}`);
   L('');
   L('-- effects --');
   for (const [k, v] of report.effectKinds.entries({ sort: 'value' })) L(`  ${k.padEnd(10)} ${String(v).padStart(6)}`);

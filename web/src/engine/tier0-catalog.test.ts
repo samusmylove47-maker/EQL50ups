@@ -23,7 +23,7 @@ import type { Item } from '../engine/types';
 import { itemsForSlot, type CatalogState } from '../data/catalog';
 import { normalizeCatalog, type SlotCode } from '../data/normalize';
 import { isLive } from '../lib/itemStyle';
-import { rankSlotItems } from '../selectors/gear';
+import { rankSlotItems, unstattedForSlot } from '../selectors/gear';
 import { tier } from './upgrade';
 import { SLOT_TYPES } from './constants';
 
@@ -130,11 +130,28 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     expect(worn.filter((w) => w.slot === 'ANY')).toHaveLength(2);
   });
 
-  it('has a catalog row for every worn item but the one the wiki never had', () => {
+  it('has a catalog row for every single worn item', () => {
     const missing = worn.filter((entry) => !resolve(entry)).map((entry) => entry.name);
-    // Shadow Rage Helm is one of the 11 live items absent from every wiki
-    // scrape — pipeline/README.md "Known data problems" §1.
-    expect(missing).toEqual(['Shadow Rage Helm']);
+    // Shadow Rage Helm was the last hold-out: no wiki scrape has a page for it,
+    // and the pipeline now ships it on Tier 0 authority (the player's own
+    // report plus its id in this very export). See
+    // research/validation/TIER0-PLAYER-REPORTS.md.
+    expect(missing).toEqual([]);
+  });
+
+  it('ships the wiki-less Shadow Rage Helm without inventing a single number', () => {
+    const helm = resolve(worn.find((w) => w.name === 'Shadow Rage Helm') as WornEntry);
+    expect(helm).toBeDefined();
+    expect(helm?.id).toBe(55601);
+    expect(helm?.sl).toEqual(['HEAD']);
+    expect(helm?.cl).toEqual(['BER']);
+    expect(helm?.era).toBe('FearHateRevamp');
+    // The whole point: existence is asserted, stats are not.
+    expect(helm?.statsUnknown).toBe(true);
+    expect(helm?.st).toEqual({});
+    expect(helm?.sv).toEqual({});
+    expect(helm?.wp).toBeUndefined();
+    expect(helm?.evidence ?? '').toContain('tier0-inventory-Avenrae.txt');
   });
 
   it('files every worn item under the slot the client put it in', () => {
@@ -169,7 +186,7 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     expect(gated).toEqual([]);
   });
 
-  it('offers every worn item in the picker for its own position', () => {
+  it('offers every worn item the picker can score, and only withholds the unscorable', () => {
     const absent: string[] = [];
     for (const entry of worn) {
       const item = resolve(entry);
@@ -185,7 +202,28 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
         absent.push(`${item.n} missing from ${entry.slot}`);
       }
     }
-    expect(absent).toEqual([]);
+    // One exception, and it is the deliberate one: an item with no stats has
+    // nothing to rank. It is not hidden — `unstattedForSlot` hands it to the
+    // picker to name underneath the list.
+    expect(absent).toEqual(['Shadow Rage Helm missing from HEAD']);
+    expect(unstattedForSlot(state, 'HEAD', AVENRAE_CTX).map((i) => i.n)).toEqual([
+      'Shadow Rage Helm',
+    ]);
+  });
+
+  it('never lets an unstatted item into a ranking, however the slot is asked for', () => {
+    for (const slot of ['HEAD', 'HANDS', 'FEET', 'ANY'] as SlotCode[]) {
+      for (const includeUnreleased of [true, false]) {
+        const ranked = rankSlotItems(state, {
+          slot,
+          context: AVENRAE_CTX,
+          weights: { AC: 1, STR: 1, HP: 0.2 },
+          upgrade: tier(0),
+          includeUnreleased,
+        });
+        expect(ranked.filter((row) => row.item.statsUnknown)).toEqual([]);
+      }
+    }
   });
 
   it('never offers a candidate the character cannot use', () => {
@@ -239,7 +277,7 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     expect(unknown.every((item) => isLive(item))).toBe(true);
   });
 
-  it('un-gates the 13 items the export proves are obtainable', () => {
+  it('un-gates exactly the items Tier 0 proves are obtainable, and nothing else', () => {
     const overridden = items.filter((item) => item.av === false && isLive(item));
     expect(overridden.map((item) => item.n).sort()).toEqual([
       'Batskull Earring',
@@ -252,10 +290,31 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
       'McVaxius` Horn of War',
       'Orb of Tishan',
       'Selo`s Drums of the March',
+      // The six Shadow Rage pieces. The wiki's `FearHateRevamp` era ranks after
+      // Sky, so re-tagging them to their real era gated them out — while the
+      // player is wearing one. Five are in this export; the Leggings rest on
+      // the player's statement that Shadow Rage is one set.
+      'Shadow Rage Boots',
+      'Shadow Rage Gloves',
+      'Shadow Rage Helm',
+      'Shadow Rage Leggings',
+      'Shadow Rage Sleeves',
+      'Shadow Rage Wristguard',
       "Tobrin's Mystical Eyepatch",
       'Warhammer of Divine Grace',
       'White Satin Gloves',
     ]);
+  });
+
+  it('leaves the rest of the FearHateRevamp era gated, having no evidence for it', () => {
+    // The finding this guards: the era is under-covered by the wiki, not
+    // proven live. Un-gating the other 53 of its 59 items on the strength of
+    // one set would be exactly the inference this project refuses to make.
+    const stillGated = items.filter(
+      (item) => item.era === 'FearHateRevamp' && !isLive(item),
+    );
+    expect(stillGated.length).toBe(53);
+    expect(stillGated.some((item) => /^Shadow Rage/.test(item.n))).toBe(false);
   });
 
   it('scores every candidate in every slot to a finite number', () => {

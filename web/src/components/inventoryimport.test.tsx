@@ -160,14 +160,36 @@ describe.skipIf(!available)('InventoryImportDialog', () => {
     expect(onImport).not.toHaveBeenCalled();
   });
 
-  it('names the item it could not match instead of dropping it', () => {
+  it('names the item it knows but cannot score, and says which kind of gap it is', () => {
     open();
     paste(text);
-    const bad = document.querySelector('.invimport-list-bad');
-    expect(bad?.textContent).toContain('Shadow Rage Helm +5');
-    expect(bad?.textContent).toContain('Head');
+    const held = document.querySelector('.invimport-list-bad');
+    expect(held?.textContent).toContain('Shadow Rage Helm +5');
+    expect(held?.textContent).toContain('Head');
+    // The distinction the reader needs: this is our data missing, not their
+    // item missing. The heading has to carry it, because the list beneath the
+    // other heading says the opposite thing.
+    expect(bodyText()).toContain('known items, but no stats in any catalog');
+    expect(bodyText()).toContain('this item is real and in the catalog');
+    expect(bodyText()).toContain('id 55601');
     // And it is nowhere in the "will be equipped" table.
     expect(document.querySelector('.invimport-table')?.textContent).not.toContain('Shadow Rage');
+  });
+
+  it('does not report a known-but-unstatted item as one it has never heard of', () => {
+    open();
+    paste(text);
+    // Nothing in this export is genuinely unknown any more, so the "no such
+    // item" heading must not be on screen at all.
+    expect(bodyText()).not.toContain('no such item in this catalog');
+    const counts = Object.fromEntries(
+      [...document.querySelectorAll('.invimport-count')].map((tile) => [
+        tile.querySelector('.invimport-count-label')?.textContent ?? '',
+        tile.querySelector('.invimport-count-value')?.textContent ?? '',
+      ]),
+    );
+    expect(counts['not matched']).toBe('0');
+    expect(counts['no stat data']).toBe('1');
   });
 
   it('shows the exaltation donors that will be socketed', () => {

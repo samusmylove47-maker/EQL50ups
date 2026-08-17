@@ -23,7 +23,7 @@ import {
 } from '../lib/setFilters';
 import type { CatalogState } from '../data/catalog';
 import { itemsForSlot } from '../data/catalog';
-import type { SlotCode } from '../data/normalize';
+import { statsAreUnknown, type SlotCode } from '../data/normalize';
 
 export interface StatEntry {
   key: string;
@@ -136,6 +136,10 @@ export function summarizeItem(
   weights: WeightProfile,
   limit = 4,
 ): string {
+  // "No stats" is a statement about the item; this is a statement about the
+  // data, and conflating them told a reader an armour piece was worthless when
+  // in fact nobody had ever written its numbers down.
+  if (statsAreUnknown(item)) return 'Stats unavailable';
   const entries = statVector(item, upgrade).filter((e) => e.key !== 'DLY');
   if (!entries.length) return 'No stats';
 
@@ -299,6 +303,18 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
   const score = rankScorer(weights, { weaponCounts, ...(existing ? { existing } : {}) });
   const scored: ScoredItem[] = [];
   for (const item of pool) {
+    /*
+     * An item nobody has measured cannot be ranked, and must not be ranked
+     * anyway. Every scorer in this app reads an absent stat as zero, which is
+     * right for an item that genuinely has none and a fabrication for one whose
+     * numbers simply were never recorded — it would sit at the bottom of the
+     * list wearing a real-looking `0.0 EP` beside items whose zero was
+     * measured. Withheld here rather than filtered in the picker so that
+     * Auto-fill, the browser's rankings and every future consumer of
+     * `rankSlotItems` inherit the same refusal. `unstattedForSlot` below is how
+     * a surface says out loud that it is holding one back.
+     */
+    if (statsAreUnknown(item)) continue;
     if (!includeUnreleased && !isLive(item)) continue;
     if (context && !canUse({ classes: item.cl, races: item.ra, ...(item.rl ? { rl: item.rl } : {}) }, context)) {
       continue;
@@ -313,6 +329,32 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
   }
   rankCache.set(key, scored);
   return scored;
+}
+
+/**
+ * The candidates `rankSlotItems` refused to rank, for a surface that wants to
+ * admit to holding them back.
+ *
+ * The alternative — dropping them silently — turns a player searching their
+ * own helm into "No matching items", which reads as "that item does not exist"
+ * about an item they are wearing. Same eligibility rules as the ranking, minus
+ * the era gate: whether a piece is live has no bearing on whether we know its
+ * stats, and the reader is being told about a gap in our data either way.
+ */
+export function unstattedForSlot(
+  catalog: CatalogState,
+  slot: SlotCode,
+  context: LoadoutContext | undefined,
+): Item[] {
+  const out: Item[] = [];
+  for (const item of itemsForSlot(catalog, slot)) {
+    if (!statsAreUnknown(item)) continue;
+    if (context && !canUse({ classes: item.cl, races: item.ra, ...(item.rl ? { rl: item.rl } : {}) }, context)) {
+      continue;
+    }
+    out.push(item);
+  }
+  return out.sort((a, b) => a.n.localeCompare(b.n));
 }
 
 export interface StatDelta {

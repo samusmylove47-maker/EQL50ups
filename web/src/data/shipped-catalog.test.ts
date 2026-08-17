@@ -104,6 +104,74 @@ describe.skipIf(!published)('shipped catalog', () => {
     expect(elapsed).toBeLessThan(500);
   });
 
+  /*
+   * The Tier 0 correction, checked where it actually has to be true: in the
+   * payload the browser downloads. The pipeline has its own assertions, but the
+   * app has to be able to read the result through its own normaliser, and this
+   * is the only place both halves meet.
+   *
+   * Source: research/validation/TIER0-PLAYER-REPORTS.md — the player's report
+   * that Shadow Rage is the Berserker planar set EQL added to Fear and Hate.
+   */
+  describe('the Shadow Rage set, corrected on Tier 0 authority', () => {
+    const shadowRage = index.filter((entry) => /^Shadow Rage /.test(entry.n));
+
+    it('ships all six known pieces, one per armour slot', () => {
+      expect(shadowRage.map((entry) => entry.n).sort()).toEqual([
+        'Shadow Rage Boots',
+        'Shadow Rage Gloves',
+        'Shadow Rage Helm',
+        'Shadow Rage Leggings',
+        'Shadow Rage Sleeves',
+        'Shadow Rage Wristguard',
+      ]);
+      expect(shadowRage.flatMap((entry) => entry.sl).sort()).toEqual([
+        'ARMS', 'FEET', 'HANDS', 'HEAD', 'LEGS', 'WRIST',
+      ]);
+    });
+
+    it('tags every piece FearHateRevamp and BER, with no era left unknown', () => {
+      for (const piece of shadowRage) {
+        expect(piece.era, piece.n).toBe('FearHateRevamp');
+        expect(piece.eraUnknown, piece.n).toBeUndefined();
+        expect(piece.cl, piece.n).toEqual(['BER']);
+      }
+    });
+
+    it('invents no stats for the three pieces no wiki has ever carried', () => {
+      const invented = shadowRage.filter(
+        (piece) =>
+          piece.statsUnknown === true &&
+          (Object.keys(piece.st).length > 0 || Object.keys(piece.sv).length > 0 || piece.wp),
+      );
+      expect(invented).toEqual([]);
+
+      const unstatted = shadowRage.filter((piece) => piece.statsUnknown);
+      expect(unstatted.map((piece) => [piece.n, piece.id]).sort()).toEqual([
+        ['Shadow Rage Boots', 55607],
+        ['Shadow Rage Gloves', 55605],
+        ['Shadow Rage Helm', 55601],
+      ]);
+      // Each one says what proves it exists, in words a reader can check.
+      for (const piece of unstatted) {
+        expect(piece.evidence ?? '', piece.n).toContain('tier0-inventory-Avenrae.txt');
+      }
+    });
+
+    it('keeps the stats the wiki did carry for the other three', () => {
+      const statted = shadowRage.filter((piece) => !piece.statsUnknown);
+      expect(statted.map((piece) => piece.n).sort()).toEqual([
+        'Shadow Rage Leggings',
+        'Shadow Rage Sleeves',
+        'Shadow Rage Wristguard',
+      ]);
+      // The correction touched the era and nothing else: these numbers are the
+      // wiki's, unchanged.
+      const sleeves = statted.find((piece) => piece.n === 'Shadow Rage Sleeves');
+      expect(sleeves?.st).toEqual({ AC: 10, DEX: 5, ENDUR: 15, STA: 5, STR: 3 });
+    });
+  });
+
   it('builds a search index over the whole catalog quickly', () => {
     const started = performance.now();
     const built = new SearchIndex(index);
