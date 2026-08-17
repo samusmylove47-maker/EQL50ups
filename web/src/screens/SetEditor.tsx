@@ -17,7 +17,7 @@ import {
   type EnvelopeReport,
 } from '../lib/setExport';
 import './SetEditor.css';
-import { autoFillSteps, slotViews } from '../selectors/gear';
+import { autoFillSteps, describeAutoFill, slotViews } from '../selectors/gear';
 import { nextFrame, runSliced } from '../lib/frames';
 import { activeContext, activeLoadout, describeLoadout } from '../engine/character';
 import { shareDictionary } from '../data/shareDictionary';
@@ -148,6 +148,9 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
         autoFillSteps(fresh, views, character ? activeContext(character) : undefined, gearSet.weights, {
           includeUnreleased: false,
           keepFilled,
+          // The same filters the pickers open with. Without them Auto-fill drew
+          // from a pool this set's own pickers refuse to offer.
+          filters,
         }),
       );
       for (const entry of result.assigned) {
@@ -155,13 +158,9 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
       }
       const openSlots = views.length - Object.keys(gearSet.slots).length;
       setMessage(
-        result.assigned.length
-          ? `Auto-fill placed ${result.assigned.length} item${result.assigned.length === 1 ? '' : 's'}${
-              result.skipped.length ? `; nothing scored above zero for ${result.skipped.join(', ')}.` : '.'
-            }`
-          : keepFilled && openSlots === 0
-            ? 'Every slot is already filled. Run Auto-fill again and confirm to replace what is equipped.'
-            : 'Auto-fill found nothing to place — check that item data is loaded and your weights are not all zero.',
+        !result.assigned.length && keepFilled && openSlots === 0
+          ? 'Every slot is already filled. Run Auto-fill again and confirm to replace what is equipped.'
+          : describeAutoFill(result),
       );
     } finally {
       setBusy(false);

@@ -39,6 +39,9 @@ import type { SlotCode } from '../data/normalize';
 import { searchIndexFor } from '../data/searchIndex';
 import { count, ep as epText, signed, signedDec } from '../lib/format';
 import { pickerFilterDefaults } from '../lib/pickerDefaults';
+// The same predicate Auto-fill applies, so the two surfaces on this screen can
+// never disagree about what the set's own filters mean.
+import { matchesSource, type SourceFilter } from '../lib/setFilters';
 import { displayFlags, eraLabel, isLive, itemNameColor, sourceSummary } from '../lib/itemStyle';
 import {
   rankSlotItems,
@@ -61,8 +64,6 @@ import { UpgradeStepper } from './UpgradeStepper';
  */
 const ROW_ESTIMATE = 74;
 
-type SourceFilter = 'any' | 'drop' | 'quest' | 'vendor' | 'crafted';
-
 export interface ItemPickerProps {
   position: SlotPosition;
   context: LoadoutContext | undefined;
@@ -79,16 +80,6 @@ export interface ItemPickerProps {
   onSelect: (item: Item, upgrade: UpgradeState) => void;
   onClear: () => void;
   onClose: () => void;
-}
-
-function matchesSource(item: Item, filter: SourceFilter): boolean {
-  if (filter === 'any') return true;
-  const src = item.src;
-  if (!src) return false;
-  if (filter === 'drop') return Boolean(src.m?.length || src.z?.length);
-  if (filter === 'quest') return Boolean(src.q?.length);
-  if (filter === 'vendor') return Boolean(src.v?.length);
-  return src.c === true;
 }
 
 function zoneText(item: Item): string {

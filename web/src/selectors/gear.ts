@@ -18,6 +18,9 @@ import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade
 import type { EquippedItem, GearSet, Item } from '../engine/types';
 import { dec, finite, signed } from '../lib/format';
 import { isLive } from '../lib/itemStyle';
+import {
+  describeActiveFilters, isDefaultFilters, matchesFilters, type SetFilters,
+} from '../lib/setFilters';
 import type { CatalogState } from '../data/catalog';
 import { itemsForSlot } from '../data/catalog';
 import type { SlotCode } from '../data/normalize';
@@ -343,9 +346,61 @@ export function ratioText(damage: number, delay: number): string {
   return dec(finite(damage) / d, 3);
 }
 
+export interface AutoFillOptions {
+  includeUnreleased: boolean;
+  keepFilled: boolean;
+  /**
+   * The set's own default filters, honoured exactly as its pickers honour them.
+   *
+   * Required, not optional. `SetConfigDialog` promises in so many words that
+   * "every item picker in this set opens with these already applied", and
+   * Auto-fill used to accept no era, source or No Drop setting at all — so a
+   * set configured for Sky-era, No-Drop-hidden filled itself with items its own
+   * HEAD picker reported zero matches for. A default here would have let the
+   * same omission ship silently a second time.
+   */
+  filters: SetFilters;
+}
+
 export interface AutoFillResult {
   assigned: Array<{ position: string; itemName: string }>;
+  /** Every position left empty, by label. */
   skipped: string[];
+  /**
+   * The subset of `skipped` where the set's filters, not the scoring, emptied
+   * the slot: something would have scored here, and the filter excluded it.
+   * Reaching past the filter to fill those anyway is the behaviour this
+   * replaces.
+   */
+  excludedByFilters: string[];
+  /** What was applied, so the caller can say so rather than guess. */
+  filters: SetFilters;
+}
+
+/**
+ * What an auto-fill run did, in one sentence a notice can carry.
+ *
+ * Built here rather than in the screen because the interesting half is what the
+ * *filters* did, and the screen has no way to tell a slot nothing scored for
+ * from a slot the filters emptied.
+ */
+export function describeAutoFill(result: AutoFillResult): string {
+  const applied = describeActiveFilters(result.filters);
+  const scope = applied ? ` (${applied})` : '';
+  const count = result.assigned.length;
+
+  if (!count) {
+    return result.excludedByFilters.length
+      ? `Auto-fill placed nothing${scope}. Every candidate was excluded by this set's filters — widen them in Edit, or clear them for this run.`
+      : `Auto-fill placed nothing${scope} — check that item data is loaded and your weights are not all zero.`;
+  }
+
+  const parts = [`Auto-fill placed ${count} item${count === 1 ? '' : 's'}${scope}`];
+  if (result.skipped.length) {
+    const missed = result.skipped.length;
+    parts.push(`${missed} slot${missed === 1 ? '' : 's'} had no match: ${result.skipped.join(', ')}`);
+  }
+  return `${parts.join(' · ')}.`;
 }
 
 export interface AutoFillProgress {
@@ -369,6 +424,13 @@ export interface AutoFillProgress {
  * costs 23x more work for a difference that rarely changes the outcome; two
  * passes keep the button under a blink.
  *
+ * The set's own default filters narrow the candidates at both passes, so what
+ * Auto-fill places is drawn from exactly the pool its pickers offer. A slot the
+ * filters empty comes back in `excludedByFilters` and stays empty — filling it
+ * from outside the filter would put an item on the doll that the picker one
+ * click away refuses to show, and No Drop in particular is a hard constraint a
+ * fresh alt cannot buy or trade its way around.
+ *
  * It yields after every slot ranking so a caller can hand the main thread back
  * between them. Ranking 23 slots twice took 2.6 seconds of unbroken block on a
  * throttled machine with nothing on screen to say so; the work is the same
@@ -380,7 +442,7 @@ export function* autoFillSteps(
   views: readonly SlotView[],
   context: LoadoutContext | undefined,
   weights: WeightProfile,
-  options: { includeUnreleased: boolean; keepFilled: boolean },
+  options: AutoFillOptions,
 ): Generator<AutoFillProgress, AutoFillResult, void> {
   const kept = new Map<string, { item: Item; upgrade: UpgradeState }>();
   for (const view of views) {
@@ -405,21 +467,37 @@ export function* autoFillSteps(
   const total = pending.length * 2;
   let done = 0;
 
+  /*
+   * The ranking is shared with the picker, so the set's filters are applied to
+   * its *result* rather than folded into its cache key — same answer, and
+   * Auto-fill keeps warming the same cache the pickers read. The list is EP
+   * ordered, so `[0]` is enough to know whether anything was left standing.
+   */
+  const narrow = isDefaultFilters(options.filters)
+    ? (list: ScoredItem[]) => list
+    : (list: ScoredItem[]) => list.filter((entry) => matchesFilters(entry.item, options.filters));
+
+  /** Positions where the filters, not the scoring, left nothing to pick. */
+  let emptiedByFilters = new Set<string>();
+
   for (let pass = 0; pass < 2; pass++) {
     const capContext = scoreContextFrom(totalsOf(chosen));
     const ranked: Array<{ view: SlotView; list: ScoredItem[] }> = [];
+    emptiedByFilters = new Set<string>();
     for (const view of pending) {
-      ranked.push({
-        view,
-        list: rankSlotItems(catalog, {
-          slot: view.position.type as SlotCode,
-          context,
-          weights,
-          upgrade: upgradeFor(view),
-          existing: capContext,
-          includeUnreleased: options.includeUnreleased,
-        }),
+      const all = rankSlotItems(catalog, {
+        slot: view.position.type as SlotCode,
+        context,
+        weights,
+        upgrade: upgradeFor(view),
+        existing: capContext,
+        includeUnreleased: options.includeUnreleased,
       });
+      const list = narrow(all);
+      if (!(list[0] && list[0].score > 0) && all[0] && all[0].score > 0) {
+        emptiedByFilters.add(view.position.id);
+      }
+      ranked.push({ view, list });
       done++;
       yield { done, total };
     }
@@ -440,12 +518,17 @@ export function* autoFillSteps(
 
   const assigned: AutoFillResult['assigned'] = [];
   const skipped: string[] = [];
+  const excludedByFilters: string[] = [];
   for (const view of pending) {
     const pick = chosen.get(view.position.id);
-    if (pick) assigned.push({ position: view.position.id, itemName: pick.item.n });
-    else skipped.push(view.position.label);
+    if (pick) {
+      assigned.push({ position: view.position.id, itemName: pick.item.n });
+      continue;
+    }
+    skipped.push(view.position.label);
+    if (emptiedByFilters.has(view.position.id)) excludedByFilters.push(view.position.label);
   }
-  return { assigned, skipped };
+  return { assigned, skipped, excludedByFilters, filters: options.filters };
 }
 
 /** `autoFillSteps` run to completion in one go. */
@@ -454,7 +537,7 @@ export function autoFill(
   views: readonly SlotView[],
   context: LoadoutContext | undefined,
   weights: WeightProfile,
-  options: { includeUnreleased: boolean; keepFilled: boolean },
+  options: AutoFillOptions,
 ): AutoFillResult {
   const work = autoFillSteps(catalog, views, context, weights, options);
   let step = work.next();

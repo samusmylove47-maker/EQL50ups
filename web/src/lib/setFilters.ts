@@ -13,7 +13,7 @@
  */
 
 import { ERA_ORDER } from '../engine/constants';
-import type { GearSet } from '../engine/types';
+import type { GearSet, Item } from '../engine/types';
 
 export const SOURCE_FILTERS = ['any', 'drop', 'quest', 'vendor', 'crafted'] as const;
 export type SourceFilter = (typeof SOURCE_FILTERS)[number];
@@ -118,4 +118,58 @@ export function describeFilters(filters: SetFilters): string {
   ];
   if (filters.hideNoDrop) parts.push('No Drop hidden');
   return parts.join(' · ');
+}
+
+/**
+ * Only the parts that are actually narrowing anything, for a sentence.
+ *
+ * `describeFilters` names all three fields because a settings chip has to show
+ * what is set; a completion notice has to name what it *did*, and "Any era, Any
+ * source" did nothing.
+ */
+export function describeActiveFilters(filters: SetFilters): string {
+  const parts: string[] = [];
+  if (filters.era !== 'any') parts.push(`${filters.era} era`);
+  if (filters.source !== 'any') parts.push(`${SOURCE_LABELS[filters.source]} only`);
+  if (filters.hideNoDrop) parts.push('No Drop hidden');
+  return parts.join(', ');
+}
+
+/* ------------------------------------------------------- the predicate */
+
+/**
+ * Does an item come from the kind of place this filter asks for?
+ *
+ * `any` is not "has a source" — an item the corpus knows nothing about still
+ * passes, because the filter is a narrowing, not a data-quality assertion.
+ */
+export function matchesSource(item: Item, filter: SourceFilter): boolean {
+  if (filter === 'any') return true;
+  const src = item.src;
+  if (!src) return false;
+  if (filter === 'drop') return Boolean(src.m?.length || src.z?.length);
+  if (filter === 'quest') return Boolean(src.q?.length);
+  if (filter === 'vendor') return Boolean(src.v?.length);
+  return src.c === true;
+}
+
+/**
+ * The one candidate predicate the set's default filters mean.
+ *
+ * Lives here rather than in the picker because the picker is no longer the only
+ * surface that has to honour it: Auto-fill accepted no filters at all, so a set
+ * configured for "Sky era, No Drop hidden" filled itself with No Drop items
+ * from other eras — items its own pickers would refuse to offer, and that a
+ * fresh alt can never obtain. Two surfaces on one screen disagreeing about the
+ * set's own rules is worse than either rule being wrong, so there is now one
+ * predicate and both call it.
+ *
+ * "Live content only" is deliberately not part of this: it is a picker-session
+ * toggle, not a stored per-set filter, and Auto-fill takes it separately.
+ */
+export function matchesFilters(item: Item, filters: SetFilters): boolean {
+  if (filters.era !== 'any' && item.era !== filters.era) return false;
+  if (!matchesSource(item, filters.source)) return false;
+  if (filters.hideNoDrop && item.fl.includes('NO_DROP')) return false;
+  return true;
 }

@@ -4,8 +4,10 @@ import { SLOT_POSITIONS } from '../engine/constants';
 import { tier } from '../engine/upgrade';
 import type { GearSet } from '../engine/types';
 import { useCatalog, type CatalogState } from '../data/catalog';
+import { DEFAULT_SET_FILTERS, type SetFilters } from '../lib/setFilters';
 import {
   autoFill,
+  describeAutoFill,
   rankSlotItems,
   slotViews,
   statDeltas,
@@ -262,6 +264,7 @@ describe('auto-fill', () => {
     const result = autoFill(catalog(), views, WARRIOR_CTX, { AC: 2, STR: 1, HP: 0.2, RATIO: 20 }, {
       includeUnreleased: false,
       keepFilled: false,
+      filters: DEFAULT_SET_FILTERS,
     });
     expect(result.assigned.length).toBeGreaterThan(0);
     const names = result.assigned.map((a) => a.itemName);
@@ -277,6 +280,7 @@ describe('auto-fill', () => {
     const result = autoFill(catalog(), views, WARRIOR_CTX, { AC: 2 }, {
       includeUnreleased: false,
       keepFilled: true,
+      filters: DEFAULT_SET_FILTERS,
     });
     expect(result.assigned.some((a) => a.position === 'HEAD')).toBe(false);
   });
@@ -286,8 +290,153 @@ describe('auto-fill', () => {
     const result = autoFill(catalog(), views, WARRIOR_CTX, {}, {
       includeUnreleased: false,
       keepFilled: false,
+      filters: DEFAULT_SET_FILTERS,
     });
     expect(result.assigned).toEqual([]);
     expect(result.skipped.length).toBe(23);
+    // Nothing scored, so nothing was excluded — the two reasons a slot can be
+    // empty are not interchangeable.
+    expect(result.excludedByFilters).toEqual([]);
+  });
+});
+
+/*
+ * The set-creation dialog states, verbatim, "Every item picker in this set
+ * opens with these already applied." Auto-fill accepted no era, source or No
+ * Drop setting at all, so a set configured for Sky-era / No-Drop-hidden filled
+ * itself with a byte-identical answer to the unfiltered run — including items
+ * its own HEAD picker reported "1 match" for. Two surfaces on one screen
+ * disagreeing about the set's own rules is the defect; these pin both halves.
+ */
+describe('auto-fill and the set default filters', () => {
+  const WEIGHTS = { AC: 2, STR: 1, HP: 0.2, RATIO: 20 };
+  const fill = (filters: SetFilters, keepFilled = false) =>
+    autoFill(catalog(), slotViews(gearSet(), catalog()), WARRIOR_CTX, WEIGHTS, {
+      includeUnreleased: false,
+      keepFilled,
+      filters,
+    });
+
+  const nameAt = (result: ReturnType<typeof fill>, position: string) =>
+    result.assigned.find((a) => a.position === position)?.itemName;
+
+  it('places only items from the era the set asks for', () => {
+    const unfiltered = fill(DEFAULT_SET_FILTERS);
+    const sky = fill({ ...DEFAULT_SET_FILTERS, era: 'Sky' });
+
+    // The fixture's only Sky items are the Boots and the caster-only Mace.
+    expect(nameAt(unfiltered, 'FEET')).toBe('[Fixture] Boots of the Swift');
+    expect(sky.assigned.map((a) => a.itemName)).toEqual(['[Fixture] Boots of the Swift']);
+    // Everything else is left empty rather than filled from outside the filter.
+    expect(sky.skipped).toContain('Head');
+    expect(sky.skipped).toContain('Primary');
+  });
+
+  it('reports a slot the filter emptied as excluded, not as unscorable', () => {
+    const sky = fill({ ...DEFAULT_SET_FILTERS, era: 'Sky' });
+
+    // Head has a candidate that scores; the era filter is what removed it.
+    expect(sky.skipped).toContain('Head');
+    expect(sky.excludedByFilters).toContain('Head');
+    // Feet was filled, so it is in neither list.
+    expect(sky.skipped).not.toContain('Feet');
+    expect(sky.excludedByFilters).not.toContain('Feet');
+    expect(sky.excludedByFilters.every((label) => sky.skipped.includes(label))).toBe(true);
+  });
+
+  it('never reaches past a No Drop filter to fill a slot', () => {
+    const bound = {
+      ...catalog().byName.get('[fixture] iron helm')!,
+      n: '[Fixture] Bound Helm',
+      st: { AC: 40 },
+      fl: ['FIXTURE', 'NO_DROP'],
+    };
+    const items = [...catalog().items, bound];
+    useCatalog.setState({
+      items,
+      byName: new Map(items.map((i) => [i.n.toLowerCase(), i])),
+      bySlot: new Map([
+        ...catalog().bySlot,
+        ['HEAD', [...(catalog().bySlot.get('HEAD') ?? []), bound]],
+      ] as never),
+      revision: catalog().revision + 1,
+    });
+
+    // It out-scores everything in the slot, so an unfiltered run wears it.
+    const unfiltered = fill(DEFAULT_SET_FILTERS);
+    expect(unfiltered.assigned.map((a) => a.itemName)).toContain('[Fixture] Bound Helm');
+
+    // With No Drop hidden it is not worn anywhere — not on the head, and not
+    // pushed into an Any Slot instead. No Drop is a hard raid-planning
+    // constraint: a fresh alt cannot buy or trade its way to one.
+    const filtered = fill({ ...DEFAULT_SET_FILTERS, hideNoDrop: true });
+    expect(filtered.assigned.map((a) => a.itemName)).not.toContain('[Fixture] Bound Helm');
+    for (const entry of filtered.assigned) {
+      expect(catalog().byName.get(entry.itemName.toLowerCase())?.fl).not.toContain('NO_DROP');
+    }
+    // The next-best helm is still worn — the filter narrows the pool, it does
+    // not stop the fill.
+    expect(filtered.assigned.map((a) => a.itemName)).toContain('[Fixture] Iron Helm');
+  });
+
+  it('honours the filters on both passes, so cap-awareness sees the same pool', () => {
+    // Pass two re-ranks against pass one's totals. If only one pass filtered,
+    // the second could reintroduce an excluded item.
+    const sky = fill({ ...DEFAULT_SET_FILTERS, era: 'Sky' });
+    const skyNames = new Set(sky.assigned.map((a) => a.itemName));
+    for (const name of skyNames) {
+      expect(catalog().byName.get(name.toLowerCase())?.era).toBe('Sky');
+    }
+  });
+
+  it('changes nothing when the filters are the defaults', () => {
+    const a = fill(DEFAULT_SET_FILTERS);
+    const b = autoFill(catalog(), slotViews(gearSet(), catalog()), WARRIOR_CTX, WEIGHTS, {
+      includeUnreleased: false,
+      keepFilled: false,
+      filters: { era: 'any', source: 'any', hideNoDrop: false },
+    });
+    expect(b.assigned).toEqual(a.assigned);
+    expect(a.excludedByFilters).toEqual([]);
+  });
+});
+
+describe('describeAutoFill', () => {
+  const base = { assigned: [], skipped: [], excludedByFilters: [], filters: DEFAULT_SET_FILTERS };
+
+  it('names the filters it applied and the slots they emptied', () => {
+    const text = describeAutoFill({
+      ...base,
+      assigned: Array.from({ length: 21 }, (_, i) => ({ position: `P${i}`, itemName: `I${i}` })),
+      skipped: ['Face', 'Range'],
+      excludedByFilters: ['Face', 'Range'],
+      filters: { era: 'Sky', source: 'any', hideNoDrop: true },
+    });
+    expect(text).toBe('Auto-fill placed 21 items (Sky era, No Drop hidden) · 2 slots had no match: Face, Range.');
+  });
+
+  it('says nothing about filters that are not narrowing anything', () => {
+    const text = describeAutoFill({
+      ...base,
+      assigned: [{ position: 'HEAD', itemName: 'Helm' }],
+    });
+    expect(text).toBe('Auto-fill placed 1 item.');
+  });
+
+  it('blames the filters when they are what emptied the run', () => {
+    const text = describeAutoFill({
+      ...base,
+      skipped: ['Head'],
+      excludedByFilters: ['Head'],
+      filters: { era: 'Sky', source: 'quest', hideNoDrop: false },
+    });
+    expect(text).toContain('(Sky era, Quest only)');
+    expect(text).toContain("excluded by this set's filters");
+  });
+
+  it('blames the weights when the filters are not the reason', () => {
+    const text = describeAutoFill({ ...base, skipped: ['Head'] });
+    expect(text).toContain('weights are not all zero');
+    expect(text).not.toContain('filters');
   });
 });

@@ -13,6 +13,7 @@ import { useCatalog } from '../data/catalog';
 import { tier } from '../engine/upgrade';
 import type { GearSet } from '../engine/types';
 import { runSliced } from '../lib/frames';
+import { DEFAULT_SET_FILTERS } from '../lib/setFilters';
 import { autoFill, autoFillSteps, slotViews, type AutoFillProgress } from './gear';
 
 const WARRIOR = buildCharacter({ id: 'c', name: 'Test', classes: ['WAR', 'BRD', 'BER'], level: 50 });
@@ -33,7 +34,7 @@ describe('chunked auto-fill', () => {
   it('produces exactly the result the single-shot run does', async () => {
     const catalog = useCatalog.getState();
     const views = slotViews(gearSet(), catalog);
-    const options = { includeUnreleased: false, keepFilled: false };
+    const options = { includeUnreleased: false, keepFilled: false, filters: DEFAULT_SET_FILTERS };
 
     const oneShot = autoFill(catalog, views, CONTEXT, WEIGHTS, options);
     const chunked = await runSliced(autoFillSteps(catalog, views, CONTEXT, WEIGHTS, options), 0);
@@ -48,7 +49,7 @@ describe('chunked auto-fill', () => {
       gearSet({ HEAD: { itemName: '[Fixture] Iron Helm', upgrade: tier(2) } }),
       catalog,
     );
-    const options = { includeUnreleased: false, keepFilled: true };
+    const options = { includeUnreleased: false, keepFilled: true, filters: DEFAULT_SET_FILTERS };
 
     const oneShot = autoFill(catalog, views, CONTEXT, WEIGHTS, options);
     const chunked = await runSliced(autoFillSteps(catalog, views, CONTEXT, WEIGHTS, options), 0);
@@ -63,6 +64,7 @@ describe('chunked auto-fill', () => {
     const work = autoFillSteps(catalog, views, CONTEXT, WEIGHTS, {
       includeUnreleased: false,
       keepFilled: false,
+      filters: DEFAULT_SET_FILTERS,
     });
 
     const progress: AutoFillProgress[] = [];
