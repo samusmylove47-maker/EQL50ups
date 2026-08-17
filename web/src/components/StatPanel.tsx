@@ -127,15 +127,23 @@ function Group({
 export function Vitals({ totals }: { totals: StatTotals }) {
   return (
     <div className="vitals">
-      <StatRow className="vital" label="Hit Points" value={totals.hp} />
+      {/*
+        The client's own abbreviations: its inventory window prints HP, Mana,
+        End, AC and Attack. Using them is both more authentic and materially
+        shorter, which is what the narrowest tile needs. Spelling "Endurance"
+        out cost the tile more width than it had, and an earlier attempt to let
+        it wrap only traded a truncated "ENDURANC" for a mid-word "ENDURA/NCE".
+        A label that fits beats a label that breaks.
+      */}
+      <StatRow className="vital" label="HP" value={totals.hp} />
       <StatRow className="vital" label="Mana" value={totals.mana} />
-      <StatRow className="vital" label="Endurance" value={totals.endurance} />
+      <StatRow className="vital" label="End" value={totals.endurance} />
       <StatRow className="vital" label="AC" value={totals.ac} />
       <StatRow className="vital" label="Attack" value={totals.attack} />
-      <StatRow className="vital" label="Attack Speed" value={totals.haste} suffix="%" />
+      <StatRow className="vital" label="Atk Speed" value={totals.haste} suffix="%" />
       {/* One decimal: rounding printed the same weight as 1.7 in one place and
           2 in the other. */}
-      <StatRow className="vital" label="Equipped Weight" value={totals.weight} places={1} />
+      <StatRow className="vital" label="Equipped Wt" value={totals.weight} places={1} />
     </div>
   );
 }

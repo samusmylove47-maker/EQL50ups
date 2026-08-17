@@ -1380,8 +1380,7 @@ select {
     a silently truncated word is a defect at every width.
   */
   align-self: stretch;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
   line-height: 1.25;
 }
 
