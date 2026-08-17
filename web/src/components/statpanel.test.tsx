@@ -84,11 +84,11 @@ describe('the stat panel prints the Tier 0 numbers', () => {
     // Rounding the row to a whole number printed the same weight as 1.7 and 2.
     render(totals);
     const shown = [...container.querySelectorAll('.stat-row')]
-      .filter((row) => row.textContent?.includes('Equipped Weight'))
+      .filter((row) => row.textContent?.includes('Equipped Wt'))
       .map((row) => row.textContent);
     expect(shown).toHaveLength(1);
     expect(shown[0]).toContain("1.6");
-    expect(shown[0]).not.toContain("Weight2");
+    expect(shown[0]).not.toContain("Wt2");
   });
 
   it('renders zeros rather than blanks on an empty set', () => {

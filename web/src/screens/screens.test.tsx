@@ -114,7 +114,7 @@ describe('screens render without throwing or printing NaN', () => {
     const gearSet = useApp.getState().createSet(character.id, 'Nothing');
     const html = render(`#/set/${gearSet.id}`);
     expect(html).not.toMatch(/NaN/);
-    expect(html).toContain('Hit Points');
+    expect(html).toContain('HP');
   });
 
   it('exaltations and weights tabs', () => {
