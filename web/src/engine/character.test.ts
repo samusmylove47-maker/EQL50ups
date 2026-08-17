@@ -12,7 +12,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   activeContext, activeLoadout, activeRace, armorTier, canUse, canUseClass, canUseRace,
-  contextForLoadout, describeCharacter, describeLoadout, levelCheck, makeContext, makeLevels,
+  contextFor, contextForLoadout, describeCharacter, describeFor, describeLoadout, levelCheck,
+  loadoutFor, makeContext, makeLevels,
   meetsLevel, primaryLevel, qualifyingClasses, validateClasses,
   type Character, type LoadoutContext,
 } from './character';
@@ -218,5 +219,63 @@ describe('level requirements are checked against the qualifying class', () => {
   it('judges an unrestricted item against the best class in the loadout', () => {
     expect(meetsLevel({ classes: ['ALL'], races: ['ALL'], rl: 50 }, ctx)).toBe(true);
     expect(meetsLevel({ classes: ['ALL'], races: ['ALL'], rl: 51 }, ctx)).toBe(false);
+  });
+});
+
+/**
+ * A saved plan belongs to a loadout, not to a character in the abstract.
+ *
+ * Resolving eligibility against whichever loadout happened to be *active* meant
+ * switching loadouts silently re-judged every saved set, and a compare of two
+ * plans built for two different trios named the same trio on both sides.
+ */
+describe('a plan resolves against its own loadout', () => {
+  it('finds the named loadout rather than the active one', () => {
+    expect(loadoutFor(AVENRAE, 'l0')?.classes).toEqual(['BRD', 'SHD', 'DRU']);
+    expect(loadoutFor(AVENRAE, 'l1')?.classes).toEqual(['WAR', 'PAL', 'BER']);
+    // The active loadout is l2; naming another must not return it.
+    expect(activeLoadout(AVENRAE)?.id).toBe('l2');
+  });
+
+  it('judges eligibility by the plan\'s loadout, not the active one', () => {
+    const asBard = contextFor(AVENRAE, 'l0');
+    const asWarrior = contextFor(AVENRAE, 'l1');
+    expect(canUseClass({ classes: ['DRU'] }, asBard)).toBe(true);
+    expect(canUseClass({ classes: ['DRU'] }, asWarrior)).toBe(false);
+    expect(canUseClass({ classes: ['PAL'] }, asWarrior)).toBe(true);
+  });
+
+  it('names each plan\'s own trio, so two can be compared side by side', () => {
+    expect(describeFor(AVENRAE, 'l0')).toBe('50 BRD/SHD/DRU');
+    expect(describeFor(AVENRAE, 'l1')).toBe('50 WAR/PAL/BER');
+    expect(describeFor(AVENRAE, 'l0')).not.toBe(describeFor(AVENRAE, 'l1'));
+  });
+
+  it('falls back to the active loadout for a plan that names none', () => {
+    // Sets saved before loadouts were tracked. The fallback is the behaviour
+    // those sets already had, so nothing is re-judged by upgrading.
+    expect(loadoutFor(AVENRAE, undefined)?.id).toBe('l2');
+    expect(describeFor(AVENRAE, undefined)).toBe(describeCharacter(AVENRAE));
+    expect(contextFor(AVENRAE, undefined)).toEqual(activeContext(AVENRAE));
+  });
+
+  it('falls back rather than throwing when the plan\'s loadout was deleted', () => {
+    expect(loadoutFor(AVENRAE, 'deleted')?.id).toBe('l2');
+    expect(describeFor(AVENRAE, 'deleted')).toBe('50 BRD/WAR/BER');
+    expect(contextFor(AVENRAE, 'deleted')).toEqual(activeContext(AVENRAE));
+  });
+
+  it('carries a loadout race override into the plan context', () => {
+    const withRace: Character = {
+      ...AVENRAE,
+      race: 'HFL',
+      loadouts: [
+        { id: 'p0', name: 'Ogre run', classes: ['WAR'], race: 'OGR' },
+        { id: 'p1', name: 'Home', classes: ['BRD'] },
+      ],
+      activeLoadoutId: 'p1',
+    };
+    expect(contextFor(withRace, 'p0').race).toBe('OGR');
+    expect(contextFor(withRace, 'p1').race).toBe('HFL');
   });
 });

@@ -123,6 +123,47 @@ export function contextForLoadout(character: Character, loadout: Loadout): Loado
   };
 }
 
+/**
+ * The loadout a saved plan belongs to.
+ *
+ * A gear set is a plan for one class combination, not for a character in the
+ * abstract: a Berserker-only breastplate belongs to the BER trio and is dead
+ * weight under a CLR/DRU/SHM one. Binding eligibility to whichever loadout
+ * happened to be *active* meant switching loadouts silently re-judged every
+ * saved set, and a compare of two sets built for two different trios printed
+ * the same trio on both sides.
+ *
+ * `loadoutId` is optional because sets saved before this existed carry none,
+ * and because a set whose loadout has since been deleted must still open. Both
+ * fall back to the active loadout, which is what those sets were implicitly
+ * scored against all along — so the fallback is the old behaviour exactly,
+ * not a guess.
+ */
+export function loadoutFor(character: Character, loadoutId?: string): Loadout | undefined {
+  if (loadoutId) {
+    const named = character.loadouts.find((l) => l.id === loadoutId);
+    if (named) return named;
+  }
+  return activeLoadout(character);
+}
+
+/** Eligibility context for a saved plan, by the loadout it was planned for. */
+export function contextFor(character: Character, loadoutId?: string): LoadoutContext {
+  const loadout = loadoutFor(character, loadoutId);
+  return loadout ? contextForLoadout(character, loadout) : activeContext(character);
+}
+
+/**
+ * How a saved plan's class combination reads in a header: `50 BRD/WAR/BER`.
+ *
+ * Distinct from `describeCharacter`, which always speaks for the active
+ * loadout. Two sets side by side must each name their own.
+ */
+export function describeFor(character: Character, loadoutId?: string): string {
+  const loadout = loadoutFor(character, loadoutId);
+  return loadout ? describeLoadout(character, loadout) : describeCharacter(character);
+}
+
 export function levelOf(levels: ClassLevels, code: ClassCode): number {
   return levels[code] ?? DEFAULT_CLASS_LEVEL;
 }

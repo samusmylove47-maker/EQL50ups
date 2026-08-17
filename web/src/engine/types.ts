@@ -65,6 +65,11 @@ export interface GearSet {
   id: string;
   name: string;
   characterId: string;
+  /**
+   * The loadout this plan is for. Optional: sets saved before loadouts were
+   * tracked carry none and fall back to the character's active one.
+   */
+  loadoutId?: string;
   /** Position id (e.g. `EAR_1`, `ANY_2`) to equipped item. */
   slots: Record<string, EquippedItem | undefined>;
   /** Equivalency point weights, by stat key. */
