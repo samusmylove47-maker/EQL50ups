@@ -11,6 +11,7 @@
  * and no fill beyond a couple of solid accents.
  */
 
+import { memo } from 'react';
 import type { CSSProperties, ReactElement } from 'react';
 
 export type GlyphKey =
@@ -191,7 +192,7 @@ function keyFor(slot: string): GlyphKey {
   return (base in PATHS ? base : 'ANY') as GlyphKey;
 }
 
-export function SlotGlyph({ slot, size = 28, tone, title, className, style }: SlotGlyphProps) {
+function Glyph({ slot, size = 28, tone, title, className, style }: SlotGlyphProps) {
   const key = keyFor(slot);
   return (
     <svg
@@ -215,5 +216,11 @@ export function SlotGlyph({ slot, size = 28, tone, title, className, style }: Sl
     </svg>
   );
 }
+
+/*
+ * Memoised: the doll draws 46 of these (23 rows plus 23 grid cells) and the
+ * picker up to 150, and none of them change when a sibling slot does.
+ */
+export const SlotGlyph = memo(Glyph);
 
 export const GLYPH_KEYS = Object.keys(PATHS) as GlyphKey[];

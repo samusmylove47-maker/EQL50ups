@@ -19,6 +19,11 @@ export interface ModalProps {
   footer?: ReactNode;
   /** Extra header content, right-aligned. */
   headerExtra?: ReactNode;
+  /**
+   * Keep the title for assistive tech but not on screen — for a dialog whose
+   * body already carries its own title bar, such as the item window.
+   */
+  titleHidden?: boolean;
   width?: number;
 }
 
@@ -34,7 +39,7 @@ function focusableWithin(root: HTMLElement): HTMLElement[] {
   );
 }
 
-export function Modal({ title, onClose, children, footer, headerExtra, width }: ModalProps) {
+export function Modal({ title, onClose, children, footer, headerExtra, titleHidden, width }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<Element | null>(null);
   const closeRef = useRef(onClose);
@@ -107,7 +112,9 @@ export function Modal({ title, onClose, children, footer, headerExtra, width }: 
         style={width ? { width: `min(${width}px, 100%)` } : undefined}
       >
         <div className="modal-head">
-          <h2 id={titleId}>{title}</h2>
+          <h2 id={titleId} className={titleHidden ? 'sr-only' : undefined}>
+            {title}
+          </h2>
           <div className="grow" />
           {headerExtra}
           <button type="button" className="btn btn-quiet" onClick={onClose} aria-label="Close dialog">

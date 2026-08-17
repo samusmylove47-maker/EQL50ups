@@ -103,22 +103,34 @@ export function SlotCard({
       </button>
       {equipped ? (
         <div className="slot-foot">
-          <UpgradeStepper
-            value={equipped.upgrade}
-            label={item?.n ?? equipped.itemName}
-            disabled={readOnly}
-            onChange={(next) => onUpgrade(position.id, next)}
-          />
-          {readOnly ? null : (
-            <button
-              type="button"
-              className="btn btn-quiet btn-icon"
-              onClick={() => onClear(position.id)}
-              aria-label={`Remove ${item?.n ?? equipped.itemName} from ${position.label}`}
-              title="Remove from this slot"
-            >
-              <span aria-hidden="true">✕</span>
-            </button>
+          {/*
+           * A shared set is somebody else's plan. It used to render 23 disabled
+           * steppers a viewer can never use; now the tier is simply stated, and
+           * only when there is one.
+           */}
+          {readOnly ? (
+            equipped.upgrade.full > 0 ? (
+              <span className="tier-chip" title={`Upgraded to +${equipped.upgrade.full}`}>
+                +{equipped.upgrade.full}
+              </span>
+            ) : null
+          ) : (
+            <>
+              <UpgradeStepper
+                value={equipped.upgrade}
+                label={item?.n ?? equipped.itemName}
+                onChange={(next) => onUpgrade(position.id, next)}
+              />
+              <button
+                type="button"
+                className="btn btn-quiet btn-icon"
+                onClick={() => onClear(position.id)}
+                aria-label={`Remove ${item?.n ?? equipped.itemName} from ${position.label}`}
+                title="Remove from this slot"
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
+            </>
           )}
         </div>
       ) : null}

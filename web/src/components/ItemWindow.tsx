@@ -21,7 +21,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties }
 import { createPortal } from 'react-dom';
 import type { LoadoutContext } from '../engine/character';
 import { CLASS_NAMES, type ClassCode } from '../engine/constants';
-import { levelCheck } from '../engine/character';
+import { canUseClass, canUseRace, levelCheck } from '../engine/character';
 import type { Item } from '../engine/types';
 import type { UpgradeState } from '../engine/upgrade';
 import { dec, num, signed } from '../lib/format';
@@ -51,6 +51,8 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
   const headline = stats.filter((s) => HEADLINE.has(s.key));
   const rest = stats.filter((s) => !HEADLINE.has(s.key) && s.key !== 'DMG' && s.key !== 'DLY');
   const level = context ? levelCheck({ classes: item.cl, races: item.ra, ...(item.rl ? { rl: item.rl } : {}) }, context) : null;
+  const classOk = context ? canUseClass({ classes: item.cl }, context) : true;
+  const raceOk = context ? canUseRace({ races: item.ra }, context) : true;
   const note = usabilityNote(item, context);
   const era = eraLabel(item);
   const flags = displayFlags(item.fl);
@@ -119,9 +121,11 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
 
         <div className="iwin-group">Requirements</div>
         <div className="iwin-req">
+          {/* A requirement that fails is the reason the name is red, so it says
+              so where the reader is looking rather than only at the bottom. */}
           <div>
             <i>Class</i>
-            <span>
+            <span className={context && !classOk ? 'iwin-bad' : undefined}>
               {item.cl.includes('ALL')
                 ? 'ALL'
                 : item.cl.map((c) => (wide ? (CLASS_NAMES[c as ClassCode] ?? c) : c)).join(' ') || 'ALL'}
@@ -129,7 +133,9 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
           </div>
           <div>
             <i>Race</i>
-            <span>{item.ra.includes('ALL') ? 'ALL' : item.ra.join(' ') || 'ALL'}</span>
+            <span className={context && !raceOk ? 'iwin-bad' : undefined}>
+              {item.ra.includes('ALL') ? 'ALL' : item.ra.join(' ') || 'ALL'}
+            </span>
           </div>
           {item.rl ? (
             <div>
@@ -153,7 +159,7 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
         </div>
 
         {note ? (
-          <div className={`iwin-verdict ${item ? '' : ''}`} style={{ color: itemNameColor(item, context) }}>
+          <div className="iwin-verdict" style={{ color: itemNameColor(item, context) }}>
             {note}
           </div>
         ) : null}
@@ -174,7 +180,26 @@ interface HoverTarget {
 
 let current: HoverTarget | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
+let anchor: Element | null = null;
 const listeners = new Set<() => void>();
+
+/*
+ * Chromium dispatches a synthetic pointer event at the *unchanged* coordinates
+ * after a scroll, so that hover state follows the content moving under a
+ * stationary cursor. In a keyboard-driven list that is wrong twice over: it
+ * pops an item window nobody asked for, and — in the picker, which uses the
+ * same guard — it used to drag the active row out from under the arrow keys.
+ * A pointer that has not moved is not a pointer that is pointing at anything.
+ */
+let lastX = Number.NaN;
+let lastY = Number.NaN;
+
+export function pointerMoved(event: { clientX: number; clientY: number }): boolean {
+  if (event.clientX === lastX && event.clientY === lastY) return false;
+  lastX = event.clientX;
+  lastY = event.clientY;
+  return true;
+}
 
 function emit(): void {
   for (const listener of listeners) listener();
@@ -191,6 +216,7 @@ function showItem(target: HoverTarget): void {
 }
 
 export function hideItemWindow(): void {
+  anchor = null;
   if (timer) {
     clearTimeout(timer);
     timer = null;
@@ -210,13 +236,14 @@ export function itemHoverProps(
   context: LoadoutContext | undefined,
   slot?: string,
 ): {
-  onPointerEnter: (e: React.PointerEvent) => void;
+  onPointerMove: (e: React.PointerEvent) => void;
   onPointerLeave: () => void;
   onFocus: (e: React.FocusEvent) => void;
   onBlur: () => void;
 } {
   const open = (element: Element | null, delay: number) => {
     if (!item || !element) return;
+    anchor = element;
     if (timer) clearTimeout(timer);
     const box = element.getBoundingClientRect();
     const rect = { top: box.top, bottom: box.bottom, left: box.left, right: box.right };
@@ -225,7 +252,12 @@ export function itemHoverProps(
     timer = setTimeout(() => showItem(target), delay);
   };
   return {
-    onPointerEnter: (event) => open(event.currentTarget, 140),
+    onPointerMove: (event) => {
+      // Already armed for this row, or the pointer never actually moved.
+      if (anchor === event.currentTarget) return;
+      if (!pointerMoved(event)) return;
+      open(event.currentTarget, 140);
+    },
     onPointerLeave: hideItemWindow,
     // Keyboard users get it immediately; there is no pointer to "rest".
     onFocus: (event) => open(event.currentTarget, 0),

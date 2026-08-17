@@ -53,9 +53,11 @@ test('keyboard navigation moves, jumps and equips', async ({ page }) => {
   await expect(active).toHaveAttribute('id', `picker-option-${count - 1}`);
   await page.keyboard.press('Control+Home');
 
+  // The row's icon is a drawn slot glyph now, not a two-letter monogram, so the
+  // name is the row's own `.iname` rather than the second line of its text.
   const name = (
-    await page.locator('.results .result').first().locator('.result-name').innerText()
-  ).split('\n')[1];
+    await page.locator('.results .result').first().locator('.result-name .iname').innerText()
+  ).trim();
   await page.keyboard.press('Enter');
   await expect(page.locator('.modal')).toHaveCount(0);
   await expect(page.locator('.slot-wrap').first().locator('.slot-item')).toHaveText(name ?? '');
@@ -221,8 +223,12 @@ test('re-picking the item already equipped is a no-op, and Clear empties the slo
   await expect(page.locator('.slot-wrap').first().locator('.slot-item')).toHaveText(equipped);
 
   await openSlotPicker(page, 0);
+  // §A1: the slot name *is* the empty state, so nothing is printed in its
+  // place. An emptied slot has no `.slot-item` at all and is marked `.empty`.
   await page.getByRole('button', { name: /clear slot/i }).click();
-  await expect(page.locator('.slot-wrap').first().locator('.slot-item')).toHaveText('Empty');
+  await expect(page.locator('.slot-wrap').first().locator('.slot-item')).toHaveCount(0);
+  await expect(page.locator('.slot-wrap').first().locator('.slot')).toHaveClass(/\bempty\b/);
+  await expect(page.locator('.slot-wrap').first()).toContainText('Ear 1');
 });
 
 test('every one of the 23 positions can be filled from its own picker', async ({ page }) => {

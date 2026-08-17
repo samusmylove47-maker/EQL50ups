@@ -40,13 +40,26 @@ test('a complex set survives the round trip byte for byte', async ({ page }) => 
   await page.getByRole('button', { name: /^save$/i }).click();
   await page.waitForTimeout(300);
 
+  /*
+   * Field by field rather than by row text: a shared set is read-only, so its
+   * rows carry a stated `+N` where an editable set carries the stepper and the
+   * clear control. Everything that describes the *plan* — slot, item, stat line
+   * and upgrade tier — has to survive the round trip exactly.
+   */
   const snapshot = async () => ({
     header: (await page.locator('.set-header').innerText()).replace(/\s+/g, ' ').replace(/ ▾$/, ''),
     notes: await page.locator('.set-notes').innerText(),
     stats: (await page.locator('.stats').innerText()).replace(/\s+/g, ' '),
-    // The shared view has no Clear button, which is the one intended difference.
-    slots: (await page.locator('.slot-wrap').allInnerTexts()).map((t) =>
-      t.replace(/\s+/g, ' ').replace(/\s*clear$/i, '').trim(),
+    slots: await page.locator('.slot-wrap').evaluateAll((rows) =>
+      rows.map((row) => {
+        const text = (sel: string) => row.querySelector(sel)?.textContent?.trim() ?? '';
+        return [
+          text('.slot-name'),
+          text('.slot-item'),
+          text('.slot-stats'),
+          text('.stepper .value') || text('.tier-chip') || '+0',
+        ].join(' | ');
+      }),
     ),
   });
   const before = await snapshot();

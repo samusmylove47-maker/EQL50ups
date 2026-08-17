@@ -33,7 +33,7 @@ import {
   type ScoredItem,
 } from '../selectors/gear';
 import { Modal } from './Modal';
-import { itemHoverProps } from './ItemWindow';
+import { itemHoverProps, pointerMoved } from './ItemWindow';
 import { SlotGlyph } from './SlotGlyph';
 import { UpgradeStepper } from './UpgradeStepper';
 
@@ -373,7 +373,12 @@ export function ItemPicker({
               data-active={index === active}
               role="option"
               aria-selected={index === active}
-              onMouseEnter={() => setActive(index)}
+              onMouseMove={(event) => {
+                // Not `onMouseEnter`: scrolling the list under a stationary
+                // cursor fires enter events, which dragged the active row away
+                // from wherever the arrow keys had just put it.
+                if (pointerMoved(event)) setActive(index);
+              }}
               onClick={() => onSelect(item, preview)}
               {...itemHoverProps(item, preview, context, position.type)}
             >

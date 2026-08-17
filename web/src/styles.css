@@ -678,7 +678,7 @@ select {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) 302px minmax(260px, 1fr);
   gap: var(--s4);
-  align-items: start;
+  align-items: stretch;
   margin-bottom: var(--s5);
 }
 
@@ -689,13 +689,15 @@ select {
   min-width: 0;
 }
 
-/* The character stays put while the two item columns scroll past it. */
+/*
+ * Full height, deliberately. This column is what makes the layout read as a
+ * character rather than as a form, and the previous build's substitute ended
+ * 592px short of the columns beside it — framing the largest single shape on
+ * the page in black.
+ */
 .doll-center {
-  position: sticky;
-  top: 66px;
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
   min-width: 0;
 }
 
@@ -711,7 +713,7 @@ select {
   display: flex;
   align-items: center;
   gap: var(--s1);
-  min-height: 54px;
+  min-height: 52px;
   min-width: 0;
   padding-right: var(--s2);
   border: 1px solid transparent;
@@ -737,8 +739,8 @@ select {
   grid-template-columns: 34px 1fr;
   gap: var(--s3);
   align-items: center;
-  padding: var(--s2);
-  min-height: 52px;
+  padding: var(--s1) var(--s2);
+  min-height: 50px;
   border: 0;
   border-radius: var(--radius);
   background: transparent;
@@ -877,6 +879,7 @@ select {
 /* --- 8b. The character panel -------------------------------------------- */
 
 .figure {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: var(--s3);
@@ -994,7 +997,7 @@ select {
   border-radius: var(--radius-pill);
   background: var(--bg-inset);
   overflow: hidden;
-  height: 28px;
+  height: 30px;
 }
 
 .stepper button {
@@ -1190,10 +1193,16 @@ select {
   overflow: hidden;
 }
 
+.figure > .vitals {
+  flex: 1;
+  align-content: stretch;
+}
+
 .stat-row.vital {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   gap: 0;
   background: var(--bg-inset);
   border: 0;
@@ -2636,6 +2645,11 @@ table.data tr.rowlink:focus-visible {
   font-size: var(--fs-body);
 }
 
+.iwin.wide .iwin-stats,
+.iwin.wide .iwin-req {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
 .iwin.wide .iwin-title-name {
   font-size: var(--fs-mid);
 }
@@ -2687,4 +2701,20 @@ table.data tr.rowlink:focus-visible {
 
 .stat-group.full-sheet > .stat-columns {
   padding: var(--s2);
+}
+
+/* A stated tier, where a read-only view used to render a dead stepper. */
+.tier-chip {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 24px;
+  padding: 0 var(--s2);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--amber-dim);
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
+  font-size: var(--fs-small);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }

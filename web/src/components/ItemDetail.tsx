@@ -48,7 +48,7 @@ export function ItemDetail({
   const source = sourceSummary(item);
 
   return (
-    <Modal title={item.n} onClose={onClose} width={640}>
+    <Modal title={item.n} titleHidden onClose={onClose} width={640}>
       <div className="modal-body stack">
         <ItemWindow item={item} upgrade={upgrade} context={context} wide />
 
