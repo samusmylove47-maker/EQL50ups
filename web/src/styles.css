@@ -135,6 +135,27 @@ ul {
   text-transform: uppercase;
   font-stretch: 87.5%;
   color: var(--text-strong);
+  /*
+    Player-supplied names go here, and a name has no spaces to wrap at if the
+    player did not put any there. A 40-character unbroken name measured 730px
+    against a 390px viewport, and 500 characters reached 8,981px — the only
+    horizontal page scroll left in the app. Break the word rather than the page.
+  */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Same rule for the places a name is embedded in a sentence or a button label:
+ * a call to action carrying an unwrapped 499-character set name measured
+ * 4,449px wide.
+ */
+.page-sub,
+.btn .name,
+.cta .name,
+.set-open-cta {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .section-label {

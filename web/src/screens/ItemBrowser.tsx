@@ -100,17 +100,40 @@ export function ItemBrowser() {
     [catalog.revision, catalog.items, deferredQuery],
   );
 
-  const { rows, total } = useMemo(() => {
-    const scored: Array<{ item: Item; score: number }> = [];
+  /*
+   * Filtering and scoring are memoised apart from sorting.
+   *
+   * They used to share one memo keyed on `sort` and `dir`, so clicking a column
+   * header re-scored all 5,861 candidates to reach a comparison that never
+   * looks at the weights — 255-348 ms of blocked main thread on every sort, and
+   * again on a second press of the same column because nothing was cached.
+   * Sorting now reads an already-scored array.
+   */
+  const scored = useMemo(() => {
+    const out: Array<{ item: Item; score: number; stats: string }> = [];
     for (const item of catalog.items) {
       if (matches && !matches.has(item)) continue;
       if (slot !== 'any' && !item.sl.includes(slot)) continue;
       if (era !== 'any' && item.era !== era) continue;
       if (liveOnly && !isLive(item)) continue;
       if (filterContext && !canUse({ classes: item.cl, races: item.ra }, filterContext)) continue;
-      scored.push({ item, score: scoreItem(item, upgrade, weights).total });
+      /*
+       * The stat line is resolved here, not in the row. Rendering it inline
+       * meant every sort and every page turn re-resolved a hundred items to
+       * produce a string that depends only on the item and the preview tier —
+       * neither of which a sort changes.
+       */
+      out.push({
+        item,
+        score: scoreItem(item, upgrade, weights).total,
+        stats: statVector(item, upgrade).slice(0, 6).map((v) => statChip(v.key, v.value)).join(' · '),
+      });
     }
-    type Row = { item: Item; score: number };
+    return out;
+  }, [catalog.items, matches, slot, era, liveOnly, filterContext, weights, upgrade]);
+
+  const { rows, total } = useMemo(() => {
+    type Row = { item: Item; score: number; stats: string };
     const eraIndex = (row: Row) =>
       ERA_ORDER.indexOf((row.item.era ?? '') as (typeof ERA_ORDER)[number]);
     // Ascending comparators only; direction is applied once, and the name
@@ -123,9 +146,11 @@ export function ItemBrowser() {
     };
     const sign = dir === 'asc' ? 1 : -1;
     const primary = compare[sort];
-    scored.sort((a, b) => sign * primary(a, b) || a.item.n.localeCompare(b.item.n));
-    return { rows: scored, total: scored.length };
-  }, [catalog.items, matches, slot, era, liveOnly, filterContext, weights, upgrade, sort, dir]);
+    // Copy before sorting: `scored` is another memo's value, not ours to reorder.
+    const ordered = scored.slice();
+    ordered.sort((a, b) => sign * primary(a, b) || a.item.n.localeCompare(b.item.n));
+    return { rows: ordered, total: ordered.length };
+  }, [scored, sort, dir]);
 
   // Narrowing the search should put you back at the top of the new results,
   // not on page 14 of a list that no longer has one.
@@ -390,7 +415,7 @@ export function ItemBrowser() {
                 result on screen, which is wrong data on the page rather than
                 merely untidy markup.
               */}
-              {pageRows.map(({ item, score }, index) => (
+              {pageRows.map(({ item, score, stats }, index) => (
                 <tr
                   key={`${start + index}:${item.n}`}
                   className="rowlink"
@@ -431,12 +456,7 @@ export function ItemBrowser() {
                   </td>
                   <td className="dim">{item.sl.join(' / ') || '—'}</td>
                   <td className="dim">{item.cl.join(' ') || 'ALL'}</td>
-                  <td className="cell-stats">
-                    {statVector(item, upgrade)
-                      .slice(0, 6)
-                      .map((s) => statChip(s.key, s.value))
-                      .join(' · ') || <span className="dim">—</span>}
-                  </td>
+                  <td className="cell-stats">{stats || <span className="dim">—</span>}</td>
                   <td>
                     {eraLabel(item) ? <span className="era-label">{eraLabel(item)}</span> : <span className="dim">—</span>}
                   </td>
