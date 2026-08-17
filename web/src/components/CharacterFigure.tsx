@@ -117,6 +117,88 @@ function move(from: Placed, key: string): string | null {
   return null;
 }
 
+/**
+ * A body drawn behind the grid.
+ *
+ * The cells were already placed anatomically, but placement alone was not
+ * enough: twenty-three identical tiles with holes between them read as a
+ * pegboard, and the critique pass called it exactly that. Nothing on the panel
+ * actually drew a figure — the silhouette existed only in the arrangement, and
+ * an arrangement is not a picture.
+ *
+ * So the shape is stated outright, underneath. The coordinate system is the
+ * layout's own — ten units per cell, so `x = 10·col + 5` is a column's centre
+ * and the same for rows — which is why the shoulders land on the shoulder row
+ * and the boots on the boots row without a magic number anywhere. It scales
+ * with the grid rather than to a fixed aspect, so it stays registered to the
+ * cells whatever the gap between them works out to.
+ *
+ * Decoration only: no hit area, no tab stop, nothing for a screen reader. It is
+ * drawn in `currentColor` at low alpha so it costs nothing in either theme and
+ * never competes with the item glyphs sitting on top of it.
+ */
+function Silhouette() {
+  const width = COLUMNS * 10;
+  const height = FIGURE_LAYOUT.length * 10;
+  return (
+    <svg
+      className="figure-silhouette"
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+      style={{
+        gridColumn: `1 / ${COLUMNS + 1}`,
+        gridRow: `1 / ${FIGURE_LAYOUT.length + 1}`,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+      }}
+    >
+      <g fill="currentColor" stroke="currentColor" strokeLinejoin="round">
+        {/* Head, centred on the HEAD cell and deep enough to reach FACE. */}
+        <circle
+          cx={25}
+          cy={9}
+          r={6.4}
+          fillOpacity={0.07}
+          strokeOpacity={0.2}
+          strokeWidth={0.7}
+        />
+        {/*
+         * Torso, arms and legs as one closed shape, symmetric about x=25: down
+         * the left flank to the hand, back up to the armpit, down to the hip
+         * and the left boot, across the crotch, then the mirror back up.
+         *
+         * Filled, never stroked. The cells cover most of this, so an outline
+         * survived only as specks in the four-pixel gaps between them — which
+         * read as dirt on the panel rather than as a body. A fill degrades
+         * gracefully instead: hidden where a cell sits over it, a soft mass
+         * where it shows.
+         */}
+        <path
+          d="M22 15 L22 20 L12 23 L7 27 L5 43 L5 49 L10 49 L11 43 L13 29 L16 30
+             L18 48 L17 52 L18 68 L23 68 L25 52 L27 68 L32 68 L33 52 L32 48
+             L34 30 L37 29 L39 43 L40 49 L45 49 L45 43 L43 27 L38 23 L28 20 L28 15 Z"
+          fillOpacity={0.07}
+          stroke="none"
+        />
+        {/*
+         * The shoulder yoke, drawn as a line because it is the one contour that
+         * falls in open space — the gaps either side of the neck at row 3 — and
+         * so the one that can actually be seen. It carries most of the read.
+         */}
+        <path
+          d="M12 23 L22 20 L28 20 L38 23"
+          fill="none"
+          strokeOpacity={0.28}
+          strokeWidth={0.9}
+        />
+      </g>
+    </svg>
+  );
+}
+
 export interface CharacterFigureProps {
   views: readonly SlotView[];
   totals: StatTotals;
@@ -172,6 +254,8 @@ export function CharacterFigure({
         aria-label="Equipment map — arrow keys to move"
         ref={grid}
       >
+        {/* First child, so it paints under every cell without a z-index. */}
+        <Silhouette />
         {PLACED.map((place) => {
           const view = byId.get(place.id);
           if (!view) return null;

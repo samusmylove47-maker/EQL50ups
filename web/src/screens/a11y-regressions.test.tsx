@@ -237,6 +237,32 @@ describe('the equipment map is shaped like a body', () => {
     expect(extent(ordered[ordered.length - 1]!), 'feet').toBeLessThan(widest);
     expect(rows.get(ordered[ordered.length - 1]!)!.sort()).toEqual([2, 3, 4]);
   });
+
+  /*
+   * Placement alone was not enough: twenty-three identical tiles with holes
+   * between them read as a pegboard, so the body is now drawn behind them. It
+   * has to stay pure decoration — the grid is one composite widget with a
+   * single tab stop, and a stray focusable or a second accessible name would
+   * undo the thing this panel was rebuilt to fix.
+   */
+  it('draws a body behind the cells without adding anything to read or focus', () => {
+    const silhouette = container.querySelector<SVGElement>('.figure-silhouette');
+    expect(silhouette).not.toBeNull();
+    expect(silhouette!.getAttribute('aria-hidden')).toBe('true');
+    expect(silhouette!.getAttribute('focusable')).toBe('false');
+    expect(silhouette!.hasAttribute('tabindex')).toBe(false);
+    expect(silhouette!.querySelector('button,a,input')).toBeNull();
+
+    // Registered to the whole grid, so it cannot drift off the cells it shapes.
+    expect(silhouette!.style.gridColumn).toBe('1 / 6');
+    expect(silhouette!.style.gridRow).toBe('1 / 8');
+
+    // Painted first, so no z-index is needed to keep it under the cells.
+    expect(silhouette!.parentElement?.firstElementChild).toBe(silhouette);
+
+    // And it is still exactly 23 cells, not 24.
+    expect(container.querySelectorAll('.figure-body button')).toHaveLength(23);
+  });
 });
 
 /*
