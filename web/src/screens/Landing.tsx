@@ -118,10 +118,19 @@ export function Landing() {
               </div>
             ))}
           </div>
+          {/*
+            The rule is stated where it actually applies. Browsing the catalog,
+            green and red separate what this trio can equip from what it cannot,
+            exactly as the client tints item names. On a gear set the question
+            is already settled — every slot holds something you can wear — so
+            the doll spends its colour on upgrade tier instead of repeating an
+            answer you have. Claiming a green doll here would teach a rule the
+            rest of the app no longer follows.
+          */}
           <p className="hero-art-note">
-            <span style={{ color: 'var(--item-usable)' }}>Green</span> is what this trio can equip.{' '}
-            <span style={{ color: 'var(--item-blocked)' }}>Red</span> is what it cannot — the same
-            rule the client uses.
+            Browsing items, <span style={{ color: 'var(--item-usable)' }}>green</span> is what this
+            trio can equip and <span style={{ color: 'var(--item-blocked)' }}>red</span> is what it
+            cannot — the same rule the client uses.
           </p>
         </div>
       </section>
