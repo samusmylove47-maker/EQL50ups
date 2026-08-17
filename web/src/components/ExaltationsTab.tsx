@@ -28,7 +28,9 @@ import { useCatalog } from '../data/catalog';
 import { itemNameColor } from '../lib/itemStyle';
 import { exaltationPlan, type ExaltedItem, type SocketView } from '../selectors/exaltations';
 import type { SlotView } from '../selectors/gear';
+import { itemHoverProps } from './ItemWindow';
 import { Modal } from './Modal';
+import { SlotGlyph } from './SlotGlyph';
 import { UpgradeStepper } from './UpgradeStepper';
 
 export interface ExaltationsTabProps {
@@ -207,7 +209,16 @@ function ExaltRow({
     <div className="exalt-row">
       <div className="exalt-row-head">
         <span className="slot-name">{entry.positionLabel}</span>
-        <span className="exalt-row-name" style={{ color: itemNameColor(entry.item, context) }}>
+        {/* The same glyph and the same window as the doll, the picker and the
+            browser: one rendering of one entity across the whole product. */}
+        <span
+          className="exalt-row-name"
+          style={{ color: itemNameColor(entry.item, context) }}
+          {...itemHoverProps(entry.item, entry.state, context, entry.positionId)}
+        >
+          <span className="cell-glyph" aria-hidden="true">
+            <SlotGlyph slot={entry.positionId} size={20} />
+          </span>
           {entry.item.n}
         </span>
         <UpgradeStepper

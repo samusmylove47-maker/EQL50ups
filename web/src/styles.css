@@ -1748,10 +1748,16 @@ table.data tbody tr:hover {
 
 /* --- 14. Weights & exaltations ------------------------------------------- */
 
+/*
+ * Six groups on one row, each only as tall as its own content. Every card used
+ * to be stretched to the height of ATTRIBUTES, so CASTING was a card holding
+ * one input above ~250px of nothing, with ~300px more dead space beneath.
+ */
 .weights-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--s3);
+  align-items: start;
 }
 
 .weight-row {
@@ -2401,11 +2407,15 @@ table.data tr.rowlink:focus-visible {
 }
 
 .exalt-row-name {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--fs-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .exalt-row-state {

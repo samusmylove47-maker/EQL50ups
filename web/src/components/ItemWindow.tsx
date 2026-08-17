@@ -310,7 +310,17 @@ export function ItemWindowLayer() {
     const drop = () => hideItemWindow();
     window.addEventListener('scroll', drop, true);
     window.addEventListener('resize', drop);
+    /*
+     * `pointerleave` never fires for an element that is removed under the
+     * cursor, so navigating away from a hovered slot used to leave its window
+     * floating over the next screen. Watch the anchor instead of trusting the
+     * pointer, but only while something is open.
+     */
+    const watch = setInterval(() => {
+      if (anchor && !anchor.isConnected) hideItemWindow();
+    }, 200);
     return () => {
+      clearInterval(watch);
       window.removeEventListener('scroll', drop, true);
       window.removeEventListener('resize', drop);
     };
