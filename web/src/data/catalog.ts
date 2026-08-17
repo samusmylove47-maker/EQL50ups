@@ -113,10 +113,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function indexItems(items: Item[]): {
+interface CatalogIndex {
   byName: Map<string, Item>;
   bySlot: Map<SlotCode, Item[]>;
-} {
+}
+
+export function indexItems(items: Item[]): CatalogIndex {
   const byName = new Map<string, Item>();
   const bySlot = new Map<SlotCode, Item[]>();
   for (const slot of SLOT_TYPES) bySlot.set(slot, []);
@@ -129,6 +131,46 @@ function indexItems(items: Item[]): {
       if (bucket) bucket.push(item);
     }
   }
+  return { byName, bySlot };
+}
+
+/**
+ * Fold one loaded shard into an existing index.
+ *
+ * A shard replaces index-level records with richer ones for a single slot, but
+ * the previous implementation re-ran the full `indexItems` over the whole
+ * catalog each time — rebuilding all nineteen buckets across 11,249 items on
+ * every shard load, eighteen times over a session. That was the largest single
+ * block left on opening a slot picker.
+ *
+ * Only the buckets an incoming item can appear in are rebuilt: the slots it
+ * claims, plus the slots of whatever record it displaces, in case the two
+ * disagree. Everything else keeps its existing array.
+ */
+export function reindexShard(prev: CatalogIndex, items: Item[], incoming: Item[]): CatalogIndex {
+  const byName = new Map(prev.byName);
+  const touched = new Set<SlotCode>();
+
+  for (const item of incoming) {
+    const key = item.n.toLowerCase();
+    const displaced = prev.byName.get(key);
+    byName.set(key, item);
+    for (const slot of item.sl) touched.add(slot as SlotCode);
+    if (displaced) for (const slot of displaced.sl) touched.add(slot as SlotCode);
+  }
+
+  const bySlot = new Map(prev.bySlot);
+  if (touched.size) {
+    const rebuilt = new Map<SlotCode, Item[]>();
+    for (const slot of touched) rebuilt.set(slot, []);
+    for (const item of items) {
+      for (const slot of item.sl) {
+        rebuilt.get(slot as SlotCode)?.push(item);
+      }
+    }
+    for (const [slot, bucket] of rebuilt) bySlot.set(slot, bucket);
+  }
+
   return { byName, bySlot };
 }
 
@@ -232,10 +274,11 @@ export const useCatalog = create<CatalogState>((set, get) => ({
         set({ shards: { ...get().shards, [slot]: 'missing' } });
         return;
       }
-      const items = mergeItems(get().items, incoming);
+      const before = get();
+      const items = mergeItems(before.items, incoming);
       set({
         items,
-        ...indexItems(items),
+        ...reindexShard({ byName: before.byName, bySlot: before.bySlot }, items, incoming),
         shards: { ...get().shards, [slot]: 'ready' },
         status: 'ready',
         revision: get().revision + 1,

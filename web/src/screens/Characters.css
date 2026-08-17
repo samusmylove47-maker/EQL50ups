@@ -1,0 +1,29 @@
+/*
+ * Characters screen additions.
+ *
+ * Scoped under `.card` so these beat the shared `.set-line*` rules regardless
+ * of bundle order, without editing the shared stylesheet.
+ */
+
+/*
+ * The set row grew a fourth action when per-set export arrived, and
+ * `.set-line-actions` is `flex: none` with no wrapping — so at 390px the group
+ * became one unbreakable 358px block inside a 330px row and clipped its last
+ * button. They are four peers, not a unit: let them wrap.
+ */
+.card .set-line-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  /*
+   * `flex: none` is `0 0 auto`, so the group kept its 346px max-content width
+   * even after wrapping onto its own 330px line. It has to be allowed to
+   * shrink before its own children will wrap.
+   */
+  flex-shrink: 1;
+  max-width: 100%;
+}
+
+/* The filter summary is a second sentence on the meta line, not a second line. */
+.card .set-line .meta {
+  overflow-wrap: anywhere;
+}

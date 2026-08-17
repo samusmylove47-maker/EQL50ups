@@ -4,8 +4,12 @@ import { href, navigate } from '../router';
 import { DEFAULT_WEIGHTS, setsForCharacter, useApp } from '../state/store';
 import { SetConfigDialog, type SetConfigValue } from '../components/SetConfigDialog';
 import { downloadJson } from '../lib/download';
-import { readEnvelopeText, summarizeReport, type EnvelopeReport } from '../lib/setExport';
-import { buildSetEnvelope, setExportFilename } from '../lib/setExport';
+import { describeFilters, filtersFor } from '../lib/setFilters';
+import {
+  buildSetEnvelope, readEnvelopeText, setExportFilename, summarizeReport,
+  type EnvelopeReport,
+} from '../lib/setExport';
+import './Characters.css';
 
 export function Characters() {
   const state = useApp();
@@ -153,6 +157,12 @@ export function Characters() {
                       <div className="meta">
                         {Object.keys(gearSet.slots).length} equipped · edited{' '}
                         {new Date(gearSet.updatedAt).toLocaleDateString()}
+                        {/* A set's own filter lens, shown only when it is not
+                            the default — otherwise every card repeats the same
+                            three words and none of them mean anything. */}
+                        {gearSet.defaultFilters
+                          ? ` · filters: ${describeFilters(filtersFor(gearSet))}`
+                          : ''}
                       </div>
                     </div>
                     <div className="set-line-actions">
