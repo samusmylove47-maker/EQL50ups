@@ -84,7 +84,14 @@ export function InventoryImportDialog({
   const ignoredGroups = useMemo(() => (result ? summarizeIgnored(result.ignored) : []), [result]);
 
   const catalogReady = catalogStatus === 'ready';
-  const canImport = Boolean(result?.recognized) && (result?.positions.length ?? 0) > 0;
+  /*
+   * Nothing is importable until the catalog can answer. A half-loaded index
+   * would resolve a fraction of the file and present the shortfall as the
+   * player's problem — "9 of 22 matched" — when it is the data layer's.
+   */
+  const catalogBroken = catalogStatus === 'missing' || catalogStatus === 'error';
+  const canImport =
+    catalogReady && Boolean(result?.recognized) && (result?.positions.length ?? 0) > 0;
   const renamed = result
     ? [...result.positions.filter((p) => p.renamedFrom), ...result.exaltations.filter((e) => e.renamedFrom)]
     : [];
@@ -208,6 +215,15 @@ export function InventoryImportDialog({
         {fileError ? (
           <p className="hint bad" role="alert">
             {fileError}
+          </p>
+        ) : null}
+
+        {catalogBroken ? (
+          <p className="hint bad" role="alert">
+            {catalogStatus === 'missing'
+              ? 'No item data is published in this build, so nothing in your export can be matched against a catalog.'
+              : 'The item catalog could not be loaded, so nothing in your export can be matched against it.'}{' '}
+            Reload the page and try again — importing now would report every item as missing.
           </p>
         ) : null}
 

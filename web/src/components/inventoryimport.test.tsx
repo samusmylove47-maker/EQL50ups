@@ -230,6 +230,21 @@ describe.skipIf(!available)('InventoryImportDialog', () => {
     expect(document.querySelector('.invimport-foot')?.textContent).toContain('In-game gear');
   });
 
+  it('refuses to import while the catalog cannot answer, and says why', () => {
+    open();
+    paste(text);
+    expect(buttonLabelled('Import 21 items')?.disabled).toBe(false);
+    act(() => {
+      useCatalog.setState({ status: 'missing' });
+    });
+    expect(document.body.textContent).toContain('No item data is published in this build');
+    // The label falls back too: there is no count to promise any more.
+    expect(buttonLabelled('Import 21 items')).toBeUndefined();
+    expect((document.querySelector('.modal-foot .btn-primary') as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+  });
+
   it('refuses text that is not an inventory export, and says so', () => {
     const { onImport } = open();
     paste('dear diary, today I killed a rat');
