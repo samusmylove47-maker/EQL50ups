@@ -22,7 +22,9 @@
  *
  * Keyboard: ↑/↓ move, PgUp/PgDn jump, Home/End, Enter equips, Escape closes
  * (handled by the modal shell). Rows are `tabindex="-1"`, as the ARIA listbox
- * pattern requires: the widget is one tab stop, not one per candidate.
+ * pattern requires: the widget is one tab stop, not one per candidate. The
+ * highlight is held as an item identity rather than a row number, so a re-rank
+ * moves it with the item instead of leaving it on whatever arrives underneath.
  */
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
@@ -97,6 +99,39 @@ function zoneText(item: Item): string {
     .toLowerCase();
 }
 
+/**
+ * The keyboard-active row, held as an item identity as well as a row number.
+ *
+ * A row number alone is only stable while the list is: the preview tier
+ * re-*sorts* the same candidates rather than changing which of them are
+ * present, so the row under the highlight changed while the highlight did not.
+ * ArrowDown onto row 1, five presses of the preview stepper, Enter — and the
+ * set received the item that had since arrived at row 1, which the player had
+ * never looked at. That is the only path in this app that writes an item the
+ * user did not choose.
+ */
+interface ActiveRow {
+  index: number;
+  /** Item name at the moment the row was chosen; `null` before any choice. */
+  name: string | null;
+}
+
+/**
+ * Where the held identity sits in the list as it stands now.
+ *
+ * The common case costs one comparison — the row number is still right, which
+ * it is on every render that is not a re-rank. Only when the item has moved is
+ * the list scanned, and only then is it O(n).
+ */
+function resolveActive(active: ActiveRow, rows: readonly ScoredItem[]): number {
+  if (!rows.length) return 0;
+  if (active.name !== null && rows[active.index]?.item.n !== active.name) {
+    const found = rows.findIndex((entry) => entry.item.n === active.name);
+    if (found >= 0) return found;
+  }
+  return Math.min(Math.max(0, active.index), rows.length - 1);
+}
+
 export function ItemPicker({
   position,
   context,
@@ -127,7 +162,7 @@ export function ItemPicker({
   const [liveOnly, setLiveOnly] = useState(true);
   const [hideNoDrop, setHideNoDrop] = useState(defaults.hideNoDrop);
   const [preview, setPreview] = useState<UpgradeState>(currentUpgrade ?? BASE_STATE);
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState<ActiveRow>({ index: 0, name: null });
 
   /*
    * Every filter change re-ranks or re-filters up to 1,800 candidates. Each
@@ -221,12 +256,30 @@ export function ItemPicker({
     return out;
   }, [ranked, matches, deferredEra, deferredSource, deferredHideNoDrop, deferredZone]);
 
+  /*
+   * Derived during render, never in an effect: `rows` and the highlight have to
+   * agree in the very frame the re-rank lands, because Enter reads them both.
+   * An effect would leave one commit in which the highlight names one item and
+   * the row number points at another.
+   */
+  const activeIndex = useMemo(() => resolveActive(active, rows), [active, rows]);
+
+  /** Move the highlight, and remember what it landed on. */
+  const moveActive = (to: number | ((from: number) => number)) => {
+    setActive((prev) => {
+      const from = resolveActive(prev, rows);
+      const wanted = typeof to === 'function' ? to(from) : to;
+      const index = Math.max(0, Math.min(rows.length - 1, wanted));
+      return { index, name: rows[index]?.item.n ?? null };
+    });
+  };
+
   const virtual = useVirtualList({
     count: rows.length,
     estimate: ROW_ESTIMATE,
     // The active row stays mounted wherever it is, so `aria-activedescendant`
     // always names an element that exists.
-    pinned: rows.length ? Math.min(active, rows.length - 1) : null,
+    pinned: rows.length ? activeIndex : null,
   });
   /*
    * Read through a ref rather than depending on it: `scrollToIndex` closes over
@@ -238,10 +291,17 @@ export function ItemPicker({
   const scrollToActive = useRef(virtual.scrollToIndex);
   scrollToActive.current = virtual.scrollToIndex;
 
-  // Keyed off the deferred values, so the active row returns to the top exactly
-  // when the list it indexes into changes — not one render early.
+  /*
+   * Keyed off the deferred values, so the active row returns to the top exactly
+   * when the list it indexes into changes — not one render early.
+   *
+   * These six change *membership*, so the item that was highlighted may not be
+   * in the list any more and the top is the only honest answer. The preview
+   * tier deliberately is not here: it changes only the *order*, and the
+   * highlight follows the item through it.
+   */
   useEffect(() => {
-    setActive(0);
+    setActive({ index: 0, name: null });
   }, [
     deferredQuery,
     deferredZone,
@@ -252,8 +312,8 @@ export function ItemPicker({
   ]);
 
   useEffect(() => {
-    scrollToActive.current(active);
-  }, [active, rows]);
+    scrollToActive.current(activeIndex);
+  }, [activeIndex, rows]);
 
   const shardStatus = catalog.shards[position.type];
   const loading = catalog.status === 'loading' || shardStatus === 'loading';
@@ -295,7 +355,7 @@ export function ItemPicker({
 
     const move = (delta: number) => {
       event.preventDefault();
-      setActive((i) => Math.max(0, Math.min(rows.length - 1, i + delta)));
+      moveActive((from) => from + delta);
     };
     switch (event.key) {
       case 'ArrowDown':
@@ -313,15 +373,15 @@ export function ItemPicker({
       case 'Home':
         if (!jumpsList) return;
         event.preventDefault();
-        setActive(0);
+        moveActive(0);
         break;
       case 'End':
         if (!jumpsList) return;
         event.preventDefault();
-        setActive(rows.length - 1);
+        moveActive(rows.length - 1);
         break;
       case 'Enter': {
-        const pick = rows[active];
+        const pick = rows[activeIndex];
         if (pick) {
           event.preventDefault();
           onSelect(pick.item, rankPreview);
@@ -369,7 +429,7 @@ export function ItemPicker({
           role="combobox"
           aria-expanded={rows.length > 0}
           aria-controls="picker-results"
-          aria-activedescendant={rows.length ? `picker-option-${active}` : undefined}
+          aria-activedescendant={rows.length ? `picker-option-${activeIndex}` : undefined}
         />
         <input
           type="search"
@@ -499,10 +559,10 @@ export function ItemPicker({
                 key={`${item.n}-${index}`}
                 id={`picker-option-${index}`}
                 ref={virtual.rowRef(index)}
-                className={`result${index === active ? ' active' : ''}${isEquipped ? ' equipped-now' : ''}`}
-                data-active={index === active}
+                className={`result${index === activeIndex ? ' active' : ''}${isEquipped ? ' equipped-now' : ''}`}
+                data-active={index === activeIndex}
                 role="option"
-                aria-selected={index === active}
+                aria-selected={index === activeIndex}
                 aria-setsize={rows.length}
                 aria-posinset={index + 1}
                 /*
@@ -516,7 +576,7 @@ export function ItemPicker({
                   // Not `onMouseEnter`: scrolling the list under a stationary
                   // cursor fires enter events, which dragged the active row away
                   // from wherever the arrow keys had just put it.
-                  if (pointerMoved(event)) setActive(index);
+                  if (pointerMoved(event)) moveActive(index);
                 }}
                 onClick={() => onSelect(item, rankPreview)}
                 {...itemHoverProps(item, rankPreview, context, position.type)}
