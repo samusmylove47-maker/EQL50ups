@@ -84,6 +84,15 @@ figure {
   margin: 0;
 }
 
+/*
+ * The user-agent's `bolder` is 700, which is not one of the three weights this
+ * app has. Two nodes in the meter strip were still reaching it.
+ */
+b,
+strong {
+  font-weight: var(--fw-emph);
+}
+
 button,
 input,
 select,
@@ -713,7 +722,8 @@ select {
  * tinted by tier — see `.stepper .value[data-tier]` below.
  */
 .doll,
-.results {
+.results,
+.exalt-rows {
   --item-usable: var(--text-strong);
 }
 
@@ -1075,7 +1085,8 @@ select {
 
 .figure-meter-row b {
   color: var(--text-strong);
-  font-size: var(--fs-body);
+  font-size: var(--fs-mid);
+  font-weight: var(--fw-num);
 }
 
 .figure-meter-row i {
@@ -1554,6 +1565,10 @@ select {
   stroke: var(--text-dim);
 }
 
+.exalt-row-name .cell-glyph .slot-glyph {
+  stroke: var(--ink-quiet);
+}
+
 .result-line {
   display: block;
   font-size: var(--fs-small);
@@ -1963,15 +1978,31 @@ table.data tbody tr:hover {
 /* --- 14. Weights & exaltations ------------------------------------------- */
 
 /*
- * Six groups on one row, each only as tall as its own content. Every card used
- * to be stretched to the height of ATTRIBUTES, so CASTING was a card holding
- * one input above ~250px of nothing, with ~300px more dead space beneath.
+ * One surface with thin rules between its columns (§A6), not six boxes.
+ *
+ * Six bordered cards over lists of 1, 3, 3, 4, 6 and 7 fields ended at six
+ * different heights across 276px of variance, with a 90px CASTING box beside a
+ * 280px ATTRIBUTES — which reads as a rendering error. Stretching the cards was
+ * the previous attempt and was worse: CASTING became one input floating above
+ * 250px of framed nothing. Take the frames away and the same space is simply
+ * the panel, the way a stat sheet's columns work.
  */
 .weights-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--s3);
-  align-items: start;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.weights-grid > .panel {
+  border: 0;
+  border-right: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+  border-radius: 0;
+  background: transparent;
 }
 
 .weight-row {

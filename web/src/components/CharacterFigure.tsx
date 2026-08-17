@@ -30,7 +30,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 import type { LoadoutContext } from '../engine/character';
 import type { StatTotals } from '../engine/stats';
 import type { SlotView } from '../selectors/gear';
@@ -63,11 +63,19 @@ interface Placed {
   id: string;
   row: number;
   col: number;
+  /*
+   * Built once, at module scope. A fresh `{gridColumn, gridRow}` object per
+   * render would make React re-apply two style properties on all 23 cells every
+   * time — and Auto-fill renders the doll once per slot it places.
+   */
+  style: CSSProperties;
 }
 
 /** Row-major reading order, which is also the DOM order. */
 const PLACED: readonly Placed[] = FIGURE_LAYOUT.flatMap((row, r) =>
-  row.flatMap((id, c) => (id ? [{ id, row: r, col: c }] : [])),
+  row.flatMap((id, c) =>
+    id ? [{ id, row: r, col: c, style: { gridColumn: c + 1, gridRow: r + 1 } }] : [],
+  ),
 );
 
 /**
@@ -122,7 +130,13 @@ export function CharacterFigure({
   const byId = new Map(views.map((v) => [v.position.id, v]));
   const filled = views.filter((v) => Boolean(v.item)).length;
 
-  const cells = useRef(new Map<string, HTMLButtonElement>());
+  /*
+   * One ref on the container, and the cells are found by `data-pos`. A ref
+   * callback per cell would be a fresh closure on every render, so React would
+   * detach and reattach all 23 of them each time a slot changed — and during
+   * Auto-fill that is 23 renders of the whole doll.
+   */
+  const grid = useRef<HTMLDivElement>(null);
   /*
    * Roving tabindex: exactly one cell is reachable by Tab, and the arrow keys
    * move focus within the widget. `null` means "the first one", so the grid
@@ -136,7 +150,7 @@ export function CharacterFigure({
     if (!next) return;
     event.preventDefault();
     setFocused(next);
-    cells.current.get(next)?.focus();
+    grid.current?.querySelector<HTMLButtonElement>(`[data-pos="${next}"]`)?.focus();
   }, []);
 
   return (
@@ -146,7 +160,12 @@ export function CharacterFigure({
        * cell names that read as *status* ("Head, Indicolite Helm, plus 8")
        * rather than repeating the item column's "Change item." verbatim.
        */}
-      <div className="figure-body" role="group" aria-label="Equipment map — arrow keys to move">
+      <div
+        className="figure-body"
+        role="group"
+        aria-label="Equipment map — arrow keys to move"
+        ref={grid}
+      >
         {PLACED.map((place) => {
           const view = byId.get(place.id);
           if (!view) return null;
@@ -166,10 +185,6 @@ export function CharacterFigure({
             <button
               type="button"
               key={place.id}
-              ref={(node) => {
-                if (node) cells.current.set(place.id, node);
-                else cells.current.delete(place.id);
-              }}
               className={[
                 'figure-cell',
                 item ? 'on' : '',
@@ -178,7 +193,7 @@ export function CharacterFigure({
               ]
                 .filter(Boolean)
                 .join(' ')}
-              style={{ gridColumn: place.col + 1, gridRow: place.row + 1 }}
+              style={place.style}
               data-pos={place.id}
               tabIndex={place.id === active ? 0 : -1}
               onKeyDown={(event) => onKeyDown(event, place)}
