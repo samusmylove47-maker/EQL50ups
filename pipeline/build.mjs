@@ -1050,10 +1050,15 @@ for (const key of allKeys) {
     (e?.Recipes ?? []).length,
   );
   const src = {};
-  if (zones.size) src.z = uniqSorted([...zones]);
-  if (mobs.size) src.m = uniqSorted([...mobs]);
-  if (quests.size) src.q = uniqSorted([...quests]);
-  if (vendors.size) src.v = uniqSorted([...vendors]);
+  // Acquisition text arrives as raw wiki markup; see cleanSourceList.
+  const zoneList = cleanSourceList([...zones]);
+  const mobList = cleanSourceList([...mobs]);
+  const questList = cleanSourceList([...quests]);
+  const vendorList = cleanSourceList([...vendors]);
+  if (zoneList.length) src.z = zoneList;
+  if (mobList.length) src.m = mobList;
+  if (questList.length) src.q = questList;
+  if (vendorList.length) src.v = vendorList;
   if (crafted) src.c = 1;
 
   // ---- provenance of the structured parse
@@ -1175,6 +1180,57 @@ const INDEX_FIELDS = [
   'era', 'av', 'eraUnknown', 'an',
 ];
 const DETAIL_OMIT = new Set(['key']);
+
+/**
+ * Strip wiki markup out of an acquisition string.
+ *
+ * The upstream pages are hand-written MediaWiki, and their zone/mob/quest lists
+ * carry raw `<br>`, `<ul>`/`<li>`, `<u>` and `<strike>` tags plus `{{template}}`
+ * and `[[link]]` syntax. Splitting those lists on the markup left fragments that
+ * shipped as data: `"</li></ul>"` was published as a **zone name**, so the
+ * planner offered a player a zone that does not exist. Cosmetic leakage in a
+ * label is untidy; a fabricated zone is wrong data.
+ *
+ * Returns `null` for anything that is only markup, so the caller can drop it
+ * rather than ship an empty string.
+ */
+function cleanSourceText(value) {
+  if (typeof value !== 'string') return null;
+  let out = value
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/?(?:ul|ol|li|u|b|i|em|strong|strike|s|small|span|div|p)\b[^>]*>/gi, ' ')
+    .replace(/<[^>]{0,80}>/g, ' ')
+    .replace(/\{\{[^{}]*\}\}/g, ' ')
+    // Templates nest, so one pass leaves the outer braces behind.
+    .replace(/\{\{[^{}]*\}\}/g, ' ')
+    .replace(/\{\{|\}\}/g, ' ')
+    .replace(/\[\[([^\]|]*\|)?([^\]]*)\]\]/g, '$2')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^[-*:;,.\s]+|[-*:;,\s]+$/g, '')
+    .trim();
+  if (!out) return null;
+  // A fragment that is only punctuation or a bare colon-label carries nothing.
+  if (!/[a-z0-9]/i.test(out)) return null;
+  return out;
+}
+
+/** Clean every entry of an acquisition list, dropping what cleans to nothing. */
+function cleanSourceList(values) {
+  const seen = new Set();
+  const out = [];
+  for (const raw of values) {
+    const cleaned = cleanSourceText(raw);
+    if (!cleaned) continue;
+    const key = cleaned.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(cleaned);
+  }
+  return out.sort((a, b) => a.localeCompare(b));
+}
 
 function indexRecord(r) {
   const o = {};
