@@ -2340,6 +2340,18 @@ table.data tbody tr:hover {
   white-space: nowrap;
 }
 
+/*
+ * The read-only header prints the set name as a bare span rather than through
+ * the switcher, so the rule above never reached it: an 80-character set name
+ * arriving on a share link measured 591px inside a 390px viewport and took the
+ * whole page sideways with it. A shared plan is somebody else's name — it wraps
+ * rather than being cut, the same way `.identity h1` does.
+ */
+.set-identity > .name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 /* Pills never wrap, so cap them at their container instead of overflowing it. */
 .btn {
   max-width: 100%;
