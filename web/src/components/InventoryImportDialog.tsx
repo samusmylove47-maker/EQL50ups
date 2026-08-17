@@ -306,11 +306,13 @@ export function InventoryImportDialog({
                 <ul className="invimport-list">
                   {renamed.map((entry) => (
                     <li key={`${entry.line}-${entry.exportName}`}>
+                      <span className="dim">
+                        {entry.positionLabel}
+                        {'socketLabel' in entry ? ` · ${entry.socketLabel}` : ''}:{' '}
+                      </span>
                       <strong>{entry.renamedFrom}</strong> in your client is{' '}
-                      <strong>
-                        {'itemName' in entry ? entry.itemName : entry.donorName}
-                      </strong>{' '}
-                      in the catalog — joined on item id {entry.exportId}, not on the name.
+                      <strong>{'itemName' in entry ? entry.itemName : entry.donorName}</strong> in
+                      the catalog — joined on item id {entry.exportId}, not on the name.
                     </li>
                   ))}
                 </ul>

@@ -122,6 +122,16 @@ describe('rankScorer', () => {
       // Guard against the loop silently degenerating to nothing.
       expect(compared).toBeGreaterThan(100_000);
     },
+    /*
+     * ~450k comparisons against the shipped catalog take a little over three
+     * seconds unloaded, which fits the 5s default only while nothing else is
+     * running — so the whole suite went red on a busy machine. This is the
+     * guard `ep.ts` cites as the reason the fast ranker can never drift from
+     * `scoreItem`; a guard that times out proves nothing, and thinning the
+     * sample to fit would trade the guarantee for the appearance of one. It
+     * gets the room it needs instead.
+     */
+    60_000,
   );
 
   it('agrees on hand-built edge cases the catalog may not contain', () => {

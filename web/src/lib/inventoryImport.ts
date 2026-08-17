@@ -698,10 +698,15 @@ export function summarizeImport(result: InventoryImport): string {
     ' matched the catalog.';
   const tail: string[] = [];
   if (result.unmatched.length) {
+    // Name them. This sentence is also the toast on the screen the reader
+    // lands on after importing, where there is no list underneath to point at,
+    // so "1 entry could not be matched" would leave them nothing to act on.
+    const named = result.unmatched.slice(0, 3).map((u) => u.exportName);
+    const more = result.unmatched.length - named.length;
     tail.push(
-      `${result.unmatched.length} entr${result.unmatched.length === 1 ? 'y' : 'ies'} could not be matched and ${
-        result.unmatched.length === 1 ? 'is' : 'are'
-      } listed below.`,
+      `${named.join(', ')}${more ? ` and ${more} more` : ''} ` +
+        `${result.unmatched.length === 1 ? 'is' : 'are'} in no catalog this build has, so ` +
+        `${result.unmatched.length === 1 ? 'it was' : 'they were'} left out.`,
     );
   }
   if (result.ignored.length) {

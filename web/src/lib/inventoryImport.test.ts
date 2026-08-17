@@ -17,6 +17,7 @@ import { normalizeCatalog } from '../data/normalize';
 import {
   MAX_ROWS,
   exaltationsByPosition,
+  importedSetName,
   itemIdIndex,
   positionsInDollOrder,
   readInventory,
@@ -411,6 +412,46 @@ describe('readInventory — joining to the catalog', () => {
   });
 });
 
+/* --------------------------------------------------------------- reporting */
+
+describe('summarizeImport', () => {
+  it('names what it could not match, because the toast has no list under it', () => {
+    const result = readInventory(
+      sheet([
+        ['Head', 'Shadow Rage Helm +5', 55601],
+        ['Hands', 'Shadow Rage Gloves +5', 55602],
+      ]),
+      EMPTY_CATALOG,
+    );
+    const line = summarizeImport(result);
+    expect(line).toContain('Shadow Rage Helm, Shadow Rage Gloves');
+    expect(line).toContain('are in no catalog this build has, so they were left out');
+  });
+
+  it('caps the naming rather than printing twenty items into a toast', () => {
+    const places = ['Head', 'Face', 'Neck', 'Arms', 'Back', 'Chest', 'Legs', 'Feet'];
+    const rows = places.map((place, i): [string, string, number] => [
+      place,
+      `Ghost ${i}`,
+      900 + i,
+    ]);
+    const line = summarizeImport(readInventory(sheet(rows), EMPTY_CATALOG));
+    expect(line).toContain('Ghost 0, Ghost 1, Ghost 2 and 5 more');
+  });
+});
+
+describe('importedSetName', () => {
+  it('names the first import plainly', () => {
+    expect(importedSetName([])).toBe('In-game gear');
+    expect(importedSetName(['Main Set', 'Raid'])).toBe('In-game gear');
+  });
+
+  it('never collides with a set that is already there', () => {
+    expect(importedSetName(['In-game gear'])).toBe('In-game gear 2');
+    expect(importedSetName(['in-game GEAR', 'In-game gear 2'])).toBe('In-game gear 3');
+  });
+});
+
 /* ---------------------------------------------------------------- totality */
 
 describe('readInventory — never throws, whatever it is fed', () => {
@@ -607,7 +648,7 @@ describe.skipIf(!available)('the real Avenrae export', () => {
     const line = summarizeImport(result);
     expect(line).toContain('21 of 22');
     expect(line).toContain('12 exaltation donors');
-    expect(line).toContain('1 entry could not be matched');
+    expect(line).toContain('Shadow Rage Helm is in no catalog this build has, so it was left out');
     expect(line).toContain('412 bag, bank and keyring rows');
   });
 });

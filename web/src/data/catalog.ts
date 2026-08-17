@@ -336,12 +336,28 @@ export const useCatalog = create<CatalogState>((set, get) => ({
         return;
       }
 
+      /*
+       * A shard can beat the index to the finish line — the index is ~2 MB and
+       * a slot shard is ~60 KB, so on a slow connection the shard lands first
+       * and merges into an empty catalog. Replacing `items` wholesale here
+       * then threw that detail away, and because `shards[slot]` still read
+       * 'ready' it was never fetched again: the picker silently lost every
+       * `src`, `fx` and `rl` it had, and `rl` gates eligibility.
+       *
+       * So the index is folded in as the *base* and anything a shard already
+       * enriched wins over it. `indexNames` still comes from the index alone,
+       * because the share dictionary must be identical between two clients
+       * that happen to have loaded different shards.
+       */
+      const prior = get().items;
+      const merged = prior.length ? mergeItems(items, prior).items : items;
+
       set({
         status: 'ready',
         meta: normalizeMeta(metaRaw),
-        items,
+        items: merged,
         indexNames: items.map((item) => item.n),
-        ...indexItems(items),
+        ...indexItems(merged),
         revision: get().revision + 1,
       });
     } catch (error) {
