@@ -16,22 +16,16 @@
  * *which* 150 were reachable. Windowing makes the whole list reachable and
  * costs less than the cap did.
  *
- * Filter changes are transitions and the preview tier is deferred, so a
- * re-rank never blocks the control that asked for it.
+ * Every filter and the preview tier drive the list through a deferred copy of
+ * their state, so the re-rank they cause runs at transition priority and never
+ * blocks the control that asked for it.
  *
  * Keyboard: ↑/↓ move, PgUp/PgDn jump, Home/End, Enter equips, Escape closes
  * (handled by the modal shell). Rows are `tabindex="-1"`, as the ARIA listbox
  * pattern requires: the widget is one tab stop, not one per candidate.
  */
 
-import {
-  startTransition,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { LoadoutContext } from '../engine/character';
 import { ERA_ORDER, type SlotPosition } from '../engine/constants';
 import { scoreItem, type WeightProfile } from '../engine/ep';
@@ -126,14 +120,31 @@ export function ItemPicker({
   const [preview, setPreview] = useState<UpgradeState>(currentUpgrade ?? BASE_STATE);
   const [active, setActive] = useState(0);
 
+  /*
+   * Every filter change re-ranks or re-filters up to 1,800 candidates. Each
+   * one therefore drives the list from a *deferred* copy of its state: the
+   * control commits instantly at normal priority, and the expensive re-render
+   * it causes runs at transition priority — interruptible, and abandoned
+   * outright if you change your mind before it lands.
+   *
+   * Deferring the value rather than wrapping the setter in `startTransition`
+   * is deliberate. These are all controlled inputs, and React restores a
+   * controlled input's DOM state to its last rendered props after the event:
+   * with the state update inside a transition there is no render to restore
+   * from, so the checkbox visibly snapped back to checked before flipping
+   * again a frame later. Deferring keeps the control honest and moves only the
+   * list behind it.
+   *
+   * Rows are scored, rendered and equipped at `rankPreview` for the same
+   * reason, so the numbers on screen and the tier that gets equipped always
+   * agree.
+   */
   const deferredQuery = useDeferredValue(query);
   const deferredZone = useDeferredValue(zoneQuery);
-  /*
-   * The stepper is a control, so it answers instantly; the re-rank it triggers
-   * is the expensive part and rides a transition. Rows are scored, rendered
-   * and equipped at `rankPreview` so the numbers on screen and the tier that
-   * gets equipped are always the same tier.
-   */
+  const deferredEra = useDeferredValue(era);
+  const deferredSource = useDeferredValue(source);
+  const deferredLiveOnly = useDeferredValue(liveOnly);
+  const deferredHideNoDrop = useDeferredValue(hideNoDrop);
   const rankPreview = useDeferredValue(preview);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -155,9 +166,9 @@ export function ItemPicker({
         weights,
         upgrade: rankPreview,
         existing,
-        includeUnreleased: !liveOnly,
+        includeUnreleased: !deferredLiveOnly,
       }),
-    [catalog, position.type, context, weights, rankPreview, existing, liveOnly],
+    [catalog, position.type, context, weights, rankPreview, existing, deferredLiveOnly],
   );
 
   const matches = useMemo(
@@ -182,14 +193,14 @@ export function ItemPicker({
     for (const entry of ranked) {
       const item = entry.item;
       if (matches && !matches.has(item)) continue;
-      if (era !== 'any' && item.era !== era) continue;
-      if (!matchesSource(item, source)) continue;
-      if (hideNoDrop && item.fl.includes('NO_DROP')) continue;
+      if (deferredEra !== 'any' && item.era !== deferredEra) continue;
+      if (!matchesSource(item, deferredSource)) continue;
+      if (deferredHideNoDrop && item.fl.includes('NO_DROP')) continue;
       if (zoneNeedle && !zoneText(item).includes(zoneNeedle)) continue;
       out.push(entry);
     }
     return out;
-  }, [ranked, matches, era, source, hideNoDrop, deferredZone]);
+  }, [ranked, matches, deferredEra, deferredSource, deferredHideNoDrop, deferredZone]);
 
   const virtual = useVirtualList({
     count: rows.length,
@@ -198,15 +209,32 @@ export function ItemPicker({
     // always names an element that exists.
     pinned: rows.length ? Math.min(active, rows.length - 1) : null,
   });
-  const { scrollToIndex } = virtual;
+  /*
+   * Read through a ref rather than depending on it: `scrollToIndex` closes over
+   * the measured offsets, so it is a new function every time a row reports its
+   * real height. As a dependency it dragged the list back to the active row —
+   * the top — every time you scrolled somewhere new and the rows there were
+   * measured. Only a move of the active row should move the viewport.
+   */
+  const scrollToActive = useRef(virtual.scrollToIndex);
+  scrollToActive.current = virtual.scrollToIndex;
 
+  // Keyed off the deferred values, so the active row returns to the top exactly
+  // when the list it indexes into changes — not one render early.
   useEffect(() => {
     setActive(0);
-  }, [deferredQuery, deferredZone, era, source, hideNoDrop, liveOnly]);
+  }, [
+    deferredQuery,
+    deferredZone,
+    deferredEra,
+    deferredSource,
+    deferredHideNoDrop,
+    deferredLiveOnly,
+  ]);
 
   useEffect(() => {
-    scrollToIndex(active);
-  }, [active, rows, scrollToIndex]);
+    scrollToActive.current(active);
+  }, [active, rows]);
 
   const shardStatus = catalog.shards[position.type];
   const loading = catalog.status === 'loading' || shardStatus === 'loading';
@@ -314,19 +342,11 @@ export function ItemPicker({
           style={{ flex: '0 1 190px' }}
           autoComplete="off"
         />
-        {/*
-         * Every filter re-ranks or re-filters up to 1,800 candidates, so each
-         * one is a transition: React keeps the old list on screen and stays
-         * responsive while the new one is built, and a second change abandons
-         * the first instead of queueing behind it. The controls themselves are
-         * native and update on their own, so nothing here feels deferred.
-         */}
+        {/* Each of these drives the list through a deferred copy of its state;
+            see the note where they are declared. */}
         <select
           value={era}
-          onChange={(e) => {
-            const value = e.target.value;
-            startTransition(() => setEra(value));
-          }}
+          onChange={(e) => setEra(e.target.value)}
           aria-label="Filter by era"
         >
           <option value="any">Any era</option>
@@ -338,10 +358,7 @@ export function ItemPicker({
         </select>
         <select
           value={source}
-          onChange={(e) => {
-            const value = e.target.value as SourceFilter;
-            startTransition(() => setSource(value));
-          }}
+          onChange={(e) => setSource(e.target.value as SourceFilter)}
           aria-label="Filter by source"
         >
           <option value="any">Any source</option>
@@ -357,10 +374,7 @@ export function ItemPicker({
             <input
               type="checkbox"
               checked={liveOnly}
-              onChange={(e) => {
-                const value = e.target.checked;
-                startTransition(() => setLiveOnly(value));
-              }}
+              onChange={(e) => setLiveOnly(e.target.checked)}
             />
             Live content only
           </label>
@@ -368,10 +382,7 @@ export function ItemPicker({
             <input
               type="checkbox"
               checked={hideNoDrop}
-              onChange={(e) => {
-                const value = e.target.checked;
-                startTransition(() => setHideNoDrop(value));
-              }}
+              onChange={(e) => setHideNoDrop(e.target.checked)}
             />
             Hide No Drop
           </label>

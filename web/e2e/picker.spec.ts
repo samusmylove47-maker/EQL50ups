@@ -1,6 +1,21 @@
 /** The slot picker: focus, keyboard, filters, and every way out of it. */
 
 import { createCharacter, expect, expectCleanText, openSlotPicker, test } from './helpers';
+import type { Page } from '@playwright/test';
+
+/**
+ * How many candidates the open picker has, from `1,720 matches`.
+ *
+ * The list is windowed, so counting `.result` elements counts what is on
+ * screen, not what is in the list. Everything that used to reason about list
+ * length by counting rows asks for this instead.
+ */
+async function matchCount(page: Page): Promise<number> {
+  const text = await page.locator('.picker-meta span').first().innerText();
+  const digits = text.replace(/,/g, '').match(/\d+/);
+  expect(digits, `no match count in "${text}"`).toBeTruthy();
+  return Number(digits?.[0]);
+}
 
 test('the search box takes focus on open, so typing searches immediately', async ({ page }) => {
   // Regression: Modal's setup effect depended on `onClose` (a fresh arrow each
@@ -49,8 +64,10 @@ test('keyboard navigation moves, jumps and equips', async ({ page }) => {
   await page.keyboard.press('Control+Home');
   await expect(active).toHaveAttribute('id', 'picker-option-0');
   await page.keyboard.press('Control+End');
-  const count = await page.locator('.results .result').count();
+  // End means the end of the *list*, not the end of the rendered window.
+  const count = await matchCount(page);
   await expect(active).toHaveAttribute('id', `picker-option-${count - 1}`);
+  await expect(active).toHaveAttribute('aria-setsize', String(count));
   await page.keyboard.press('Control+Home');
 
   // The row's icon is a drawn slot glyph now, not a two-letter monogram, so the
@@ -132,7 +149,7 @@ test('search survives regex metacharacters, padding and absurd length', async ({
   const search = page.locator('.modal input[aria-label="Search items by name"]');
   const meta = page.locator('.picker-meta span').first();
 
-  const all = await page.locator('.results .result').count();
+  const all = await matchCount(page);
   expect(all).toBeGreaterThan(0);
 
   for (const query of ['[', '*', '(', ')', '\\', '.*', '^$', 'x'.repeat(500)]) {
@@ -143,23 +160,24 @@ test('search survives regex metacharacters, padding and absurd length', async ({
 
   await search.fill('  ring  ');
   await page.waitForTimeout(300);
-  const padded = await page.locator('.results .result').count();
+  const padded = await matchCount(page);
   await search.fill('ring');
   await page.waitForTimeout(300);
-  expect(await page.locator('.results .result').count()).toBe(padded);
+  expect(await matchCount(page)).toBe(padded);
 
   await search.fill('zzzzzzzz');
   await expect(page.locator('.results .empty-state h2')).toHaveText(/no matching items/i);
 
   await search.fill('');
   await page.waitForTimeout(300);
-  expect(await page.locator('.results .result').count()).toBe(all);
+  expect(await matchCount(page)).toBe(all);
 });
 
 test('filters narrow the list and combine', async ({ page }) => {
   await createCharacter(page);
   await openSlotPicker(page, 0);
-  const rows = () => page.locator('.results .result').count();
+  // The whole list, not the windowed part of it that happens to be rendered.
+  const rows = () => matchCount(page);
   const base = await rows();
 
   await page.locator('.modal select[aria-label="Filter by source"]').selectOption('quest');
