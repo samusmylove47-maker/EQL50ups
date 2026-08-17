@@ -346,8 +346,15 @@ export interface AutoFillResult {
   skipped: string[];
 }
 
+export interface AutoFillProgress {
+  /** Slot rankings completed so far. */
+  done: number;
+  /** Slot rankings the whole fill will perform. */
+  total: number;
+}
+
 /**
- * Cap-aware best-in-slot fill.
+ * Cap-aware best-in-slot fill, one slot ranking at a time.
  *
  * Two passes rather than one greedy item at a time. Pass one ranks every open
  * slot against the set as it stands, then assigns in descending order of what
@@ -359,14 +366,20 @@ export interface AutoFillResult {
  * Re-ranking every slot after every single pick would be the exact answer and
  * costs 23x more work for a difference that rarely changes the outcome; two
  * passes keep the button under a blink.
+ *
+ * It yields after every slot ranking so a caller can hand the main thread back
+ * between them. Ranking 23 slots twice took 2.6 seconds of unbroken block on a
+ * throttled machine with nothing on screen to say so; the work is the same
+ * either way, but it no longer has to arrive as one frame. `autoFill` below
+ * drains it synchronously for callers that do not care.
  */
-export function autoFill(
+export function* autoFillSteps(
   catalog: CatalogState,
   views: readonly SlotView[],
   context: LoadoutContext | undefined,
   weights: WeightProfile,
   options: { includeUnreleased: boolean; keepFilled: boolean },
-): AutoFillResult {
+): Generator<AutoFillProgress, AutoFillResult, void> {
   const kept = new Map<string, { item: Item; upgrade: UpgradeState }>();
   for (const view of views) {
     if (options.keepFilled && view.item && view.equipped) {
@@ -387,20 +400,27 @@ export function autoFill(
     );
 
   let chosen = new Map(kept);
+  const total = pending.length * 2;
+  let done = 0;
 
   for (let pass = 0; pass < 2; pass++) {
     const capContext = scoreContextFrom(totalsOf(chosen));
-    const ranked = pending.map((view) => ({
-      view,
-      list: rankSlotItems(catalog, {
-        slot: view.position.type as SlotCode,
-        context,
-        weights,
-        upgrade: upgradeFor(view),
-        existing: capContext,
-        includeUnreleased: options.includeUnreleased,
-      }),
-    }));
+    const ranked: Array<{ view: SlotView; list: ScoredItem[] }> = [];
+    for (const view of pending) {
+      ranked.push({
+        view,
+        list: rankSlotItems(catalog, {
+          slot: view.position.type as SlotCode,
+          context,
+          weights,
+          upgrade: upgradeFor(view),
+          existing: capContext,
+          includeUnreleased: options.includeUnreleased,
+        }),
+      });
+      done++;
+      yield { done, total };
+    }
 
     const next = new Map(kept);
     const used = new Set([...kept.values()].map((e) => e.item.n.toLowerCase()));
@@ -424,4 +444,18 @@ export function autoFill(
     else skipped.push(view.position.label);
   }
   return { assigned, skipped };
+}
+
+/** `autoFillSteps` run to completion in one go. */
+export function autoFill(
+  catalog: CatalogState,
+  views: readonly SlotView[],
+  context: LoadoutContext | undefined,
+  weights: WeightProfile,
+  options: { includeUnreleased: boolean; keepFilled: boolean },
+): AutoFillResult {
+  const work = autoFillSteps(catalog, views, context, weights, options);
+  let step = work.next();
+  while (!step.done) step = work.next();
+  return step.value;
 }

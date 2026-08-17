@@ -8,7 +8,8 @@ import { SetWorkspace } from '../components/SetWorkspace';
 import { href, navigate, type SetTab } from '../router';
 import { planFrom, shareUrl } from '../share/codec';
 import { characterFor, setsForCharacter, useApp } from '../state/store';
-import { autoFill, slotViews } from '../selectors/gear';
+import { autoFillSteps, slotViews } from '../selectors/gear';
+import { nextFrame, runSliced } from '../lib/frames';
 import { activeContext, activeLoadout, describeLoadout } from '../engine/character';
 import { shareDictionary } from '../data/shareDictionary';
 
@@ -71,13 +72,19 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
     setBusy(true);
     setMessage(null);
     try {
+      // The busy state has to reach the screen before the work starts. Without
+      // this frame React commits it and the fill blocks the same frame, so the
+      // button sat unchanged and enabled through the whole freeze.
+      await nextFrame();
       await ensureAll();
       const fresh = useCatalog.getState();
       const views = slotViews(gearSet, fresh);
-      const result = autoFill(fresh, views, character ? activeContext(character) : undefined, gearSet.weights, {
-        includeUnreleased: false,
-        keepFilled,
-      });
+      const result = await runSliced(
+        autoFillSteps(fresh, views, character ? activeContext(character) : undefined, gearSet.weights, {
+          includeUnreleased: false,
+          keepFilled,
+        }),
+      );
       for (const entry of result.assigned) {
         state.equip(gearSet.id, entry.position, entry.itemName);
       }
@@ -200,6 +207,10 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
               className="btn btn-quiet btn-sm"
               onClick={() => void runAutoFill()}
               disabled={busy || catalog.status === 'missing' || catalog.status === 'error'}
+              // Three signals, not one: the control refuses a second press, the
+              // label says what is happening, and assistive tech is told the
+              // region is busy rather than finished and empty.
+              aria-busy={busy}
               title={
                 catalog.status === 'missing'
                   ? 'No item data published yet'

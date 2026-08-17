@@ -1,18 +1,37 @@
 /**
  * Slot item picker.
  *
- * Speed is the brand, so the work is split in two: an expensive pass that
- * scores and sorts every legal candidate for the slot (memoised on catalog
- * revision, class trio, weights, preview tier and cap context), and a cheap
- * pass that filters that already-sorted array through the trigram search
- * index, stopping once the render budget is full. Typing therefore never
- * rescores — it only re-filters an array that is already in EP order.
+ * Speed is the brand, so the work is split in three:
+ *
+ *  - an expensive pass that scores and sorts every legal candidate for the
+ *    slot (memoised on catalog revision, class trio, weights, preview tier and
+ *    cap context);
+ *  - a cheap pass that filters that already-sorted array through the trigram
+ *    search index — typing therefore never rescores;
+ *  - a windowed render that builds only the rows the viewport can show.
+ *
+ * The list is **not** truncated. It used to stop at 150 rows, which built
+ * ~1,500 DOM nodes to show about nine and silently hid 1,690 legal candidates
+ * on an Any Slot — and because the list is EP-ranked, changing weights changed
+ * *which* 150 were reachable. Windowing makes the whole list reachable and
+ * costs less than the cap did.
+ *
+ * Filter changes are transitions and the preview tier is deferred, so a
+ * re-rank never blocks the control that asked for it.
  *
  * Keyboard: ↑/↓ move, PgUp/PgDn jump, Home/End, Enter equips, Escape closes
- * (handled by the modal shell).
+ * (handled by the modal shell). Rows are `tabindex="-1"`, as the ARIA listbox
+ * pattern requires: the widget is one tab stop, not one per candidate.
  */
 
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { LoadoutContext } from '../engine/character';
 import { ERA_ORDER, type SlotPosition } from '../engine/constants';
 import { scoreItem, type WeightProfile } from '../engine/ep';
@@ -32,12 +51,18 @@ import {
   statVector,
   type ScoredItem,
 } from '../selectors/gear';
+import { useVirtualList } from '../lib/useVirtualList';
 import { Modal } from './Modal';
 import { itemHoverProps, pointerMoved } from './ItemWindow';
 import { SlotGlyph } from './SlotGlyph';
 import { UpgradeStepper } from './UpgradeStepper';
 
-const RENDER_LIMIT = 150;
+/**
+ * Height assumed for a row that has not been mounted yet. Real rows are
+ * measured; this only has to be close enough that the scrollbar is honest
+ * before you have scrolled there.
+ */
+const ROW_ESTIMATE = 74;
 
 type SourceFilter = 'any' | 'drop' | 'quest' | 'vendor' | 'crafted';
 
@@ -103,7 +128,13 @@ export function ItemPicker({
 
   const deferredQuery = useDeferredValue(query);
   const deferredZone = useDeferredValue(zoneQuery);
-  const listRef = useRef<HTMLDivElement>(null);
+  /*
+   * The stepper is a control, so it answers instantly; the re-rank it triggers
+   * is the expensive part and rides a transition. Rows are scored, rendered
+   * and equipped at `rankPreview` so the numbers on screen and the tier that
+   * gets equipped are always the same tier.
+   */
+  const rankPreview = useDeferredValue(preview);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -122,11 +153,11 @@ export function ItemPicker({
         slot: position.type as SlotCode,
         context,
         weights,
-        upgrade: preview,
+        upgrade: rankPreview,
         existing,
         includeUnreleased: !liveOnly,
       }),
-    [catalog, position.type, context, weights, preview, existing, liveOnly],
+    [catalog, position.type, context, weights, rankPreview, existing, liveOnly],
   );
 
   const matches = useMemo(
@@ -140,10 +171,14 @@ export function ItemPicker({
     [currentItem, currentUpgrade, weights, existing],
   );
 
-  const { rows, total } = useMemo(() => {
+  /**
+   * Every candidate that passes the filters, in EP order. No cap: the list is
+   * windowed, so length costs almost nothing and every candidate is reachable
+   * by scrolling or by End.
+   */
+  const rows = useMemo(() => {
     const out: ScoredItem[] = [];
     const zoneNeedle = deferredZone.trim().toLowerCase();
-    let seen = 0;
     for (const entry of ranked) {
       const item = entry.item;
       if (matches && !matches.has(item)) continue;
@@ -151,21 +186,27 @@ export function ItemPicker({
       if (!matchesSource(item, source)) continue;
       if (hideNoDrop && item.fl.includes('NO_DROP')) continue;
       if (zoneNeedle && !zoneText(item).includes(zoneNeedle)) continue;
-      seen++;
-      if (out.length < RENDER_LIMIT) out.push(entry);
+      out.push(entry);
     }
-    return { rows: out, total: seen };
+    return out;
   }, [ranked, matches, era, source, hideNoDrop, deferredZone]);
+
+  const virtual = useVirtualList({
+    count: rows.length,
+    estimate: ROW_ESTIMATE,
+    // The active row stays mounted wherever it is, so `aria-activedescendant`
+    // always names an element that exists.
+    pinned: rows.length ? Math.min(active, rows.length - 1) : null,
+  });
+  const { scrollToIndex } = virtual;
 
   useEffect(() => {
     setActive(0);
   }, [deferredQuery, deferredZone, era, source, hideNoDrop, liveOnly]);
 
   useEffect(() => {
-    const node = listRef.current?.querySelector<HTMLElement>('[data-active="true"]');
-    // Guarded: not every environment implements scrollIntoView.
-    if (typeof node?.scrollIntoView === 'function') node.scrollIntoView({ block: 'nearest' });
-  }, [active, rows]);
+    scrollToIndex(active);
+  }, [active, rows, scrollToIndex]);
 
   const shardStatus = catalog.shards[position.type];
   const loading = catalog.status === 'loading' || shardStatus === 'loading';
@@ -217,7 +258,7 @@ export function ItemPicker({
         const pick = rows[active];
         if (pick) {
           event.preventDefault();
-          onSelect(pick.item, preview);
+          onSelect(pick.item, rankPreview);
         }
         break;
       }
@@ -273,7 +314,21 @@ export function ItemPicker({
           style={{ flex: '0 1 190px' }}
           autoComplete="off"
         />
-        <select value={era} onChange={(e) => setEra(e.target.value)} aria-label="Filter by era">
+        {/*
+         * Every filter re-ranks or re-filters up to 1,800 candidates, so each
+         * one is a transition: React keeps the old list on screen and stays
+         * responsive while the new one is built, and a second change abandons
+         * the first instead of queueing behind it. The controls themselves are
+         * native and update on their own, so nothing here feels deferred.
+         */}
+        <select
+          value={era}
+          onChange={(e) => {
+            const value = e.target.value;
+            startTransition(() => setEra(value));
+          }}
+          aria-label="Filter by era"
+        >
           <option value="any">Any era</option>
           {ERA_ORDER.map((name) => (
             <option key={name} value={name}>
@@ -283,7 +338,10 @@ export function ItemPicker({
         </select>
         <select
           value={source}
-          onChange={(e) => setSource(e.target.value as SourceFilter)}
+          onChange={(e) => {
+            const value = e.target.value as SourceFilter;
+            startTransition(() => setSource(value));
+          }}
           aria-label="Filter by source"
         >
           <option value="any">Any source</option>
@@ -296,14 +354,24 @@ export function ItemPicker({
             end up orphaned at the far left under its sibling. */}
         <span className="checkgroup">
           <label className="checkline">
-            <input type="checkbox" checked={liveOnly} onChange={(e) => setLiveOnly(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={liveOnly}
+              onChange={(e) => {
+                const value = e.target.checked;
+                startTransition(() => setLiveOnly(value));
+              }}
+            />
             Live content only
           </label>
           <label className="checkline">
             <input
               type="checkbox"
               checked={hideNoDrop}
-              onChange={(e) => setHideNoDrop(e.target.checked)}
+              onChange={(e) => {
+                const value = e.target.checked;
+                startTransition(() => setHideNoDrop(value));
+              }}
             />
             Hide No Drop
           </label>
@@ -311,12 +379,9 @@ export function ItemPicker({
       </div>
 
       <div className="picker-meta">
+        {/* Nothing is capped, so this count is also the number you can reach. */}
         <span>
-          {loading
-            ? 'Loading item data…'
-            : `${count(total)} match${total === 1 ? '' : 'es'}${
-                total > rows.length ? ` · showing top ${count(rows.length)}` : ''
-              }`}
+          {loading ? 'Loading item data…' : `${count(rows.length)} match${rows.length === 1 ? '' : 'es'}`}
         </span>
         {currentName ? <span>Equipped: {currentName}</span> : null}
         {catalog.usingFixture ? <span className="era-label">Fixture data</span> : null}
@@ -330,7 +395,7 @@ export function ItemPicker({
       <div
         className="results"
         id="picker-results"
-        ref={listRef}
+        ref={virtual.containerRef}
         role="listbox"
         aria-label={`${position.label} candidates`}
         tabIndex={-1}
@@ -347,92 +412,118 @@ export function ItemPicker({
           </div>
         ) : null}
 
-        {rows.map((entry, index) => {
-          const item = entry.item;
-          const isEquipped = currentName?.toLowerCase() === item.n.toLowerCase();
-          /*
-           * The delta line is a *comparison*, so it only earns its place when
-           * there is something to compare against. With an empty slot the
-           * delta equalled the whole stat vector, and every row printed its
-           * stats twice — once plain, once green, in a different word order —
-           * on the first list every new user opens. And on the row that is
-           * already worn, the comparison is with itself.
-           */
-          const deltas =
-            currentItem && !isEquipped
-              ? statDeltas(item, preview, currentItem, currentUpgrade)
-              : [];
-          const era2 = eraLabel(item);
-          const source2 = sourceSummary(item);
-          return (
-            <button
-              type="button"
-              key={`${item.n}-${index}`}
-              id={`picker-option-${index}`}
-              className={`result${index === active ? ' active' : ''}${isEquipped ? ' equipped-now' : ''}`}
-              data-active={index === active}
-              role="option"
-              aria-selected={index === active}
-              onMouseMove={(event) => {
-                // Not `onMouseEnter`: scrolling the list under a stationary
-                // cursor fires enter events, which dragged the active row away
-                // from wherever the arrow keys had just put it.
-                if (pointerMoved(event)) setActive(index);
-              }}
-              onClick={() => onSelect(item, preview)}
-              {...itemHoverProps(item, preview, context, position.type)}
-            >
-              <span>
-                <span className="result-name">
-                  <span className="result-glyph" aria-hidden="true" style={{ color: itemNameColor(item, context) }}>
-                    <SlotGlyph slot={position.type} size={22} />
-                  </span>
-                  <span className="iname" style={{ color: itemNameColor(item, context) }}>
-                    {item.n}
-                  </span>
-                  {era2 ? <span className="tag tag-era">{era2}</span> : null}
-                  {!isLive(item) ? <span className="tag tag-locked">Not live</span> : null}
-                  {displayFlags(item.fl)
-                    .slice(0, 2)
-                    .map((flag) => (
-                      <span className="tag" key={flag}>
-                        {flag}
-                      </span>
-                    ))}
-                  {isEquipped ? <span className="tag tag-worn">Equipped</span> : null}
-                </span>
-                <span className="result-line">
-                  {statVector(item, preview)
-                    .slice(0, 8)
-                    .map((s) => `${shortStatLabel(s.key)} ${signed(s.value)}`)
-                    .join(' · ') || 'No stats'}
-                </span>
-                {deltas.length ? (
-                  <span className="result-deltas">
-                    {deltas.slice(0, 6).map((d) => (
-                      <span key={d.key} className={d.delta > 0 ? 'good' : 'bad'}>
-                        {signed(d.delta)} {shortStatLabel(d.key)}
-                      </span>
-                    ))}
-                  </span>
-                ) : null}
-                {source2 ? <span className="result-line dim">{source2}</span> : null}
-              </span>
-              <span className="result-score">
-                <span className="n">{epText(entry.score)}</span>
-                <span className="d dim"> EP</span>
-                {currentItem && !isEquipped ? (
-                  <>
-                    <br />
-                    <span className={`d ${entry.score >= wornScore ? 'good' : 'bad'}`}>
-                      {signedDec(entry.score - wornScore)} vs worn
+        {/*
+         * The canvas is the full height of every candidate, so the scrollbar
+         * tells the truth about how long the list is; the rows inside it are
+         * only the ones near the viewport. `role="presentation"` keeps the
+         * options direct children of the listbox as far as assistive tech is
+         * concerned, and `overflow-anchor` off stops Chrome fighting the
+         * scroll corrections the measurements make.
+         */}
+        <div
+          className="results-canvas"
+          role="presentation"
+          style={{ position: 'relative', height: virtual.totalHeight, overflowAnchor: 'none' }}
+        >
+          {virtual.indices.map((index) => {
+            const entry = rows[index];
+            if (!entry) return null;
+            const item = entry.item;
+            const isEquipped = currentName?.toLowerCase() === item.n.toLowerCase();
+            /*
+             * The delta line is a *comparison*, so it only earns its place when
+             * there is something to compare against. With an empty slot the
+             * delta equalled the whole stat vector, and every row printed its
+             * stats twice — once plain, once green, in a different word order —
+             * on the first list every new user opens. And on the row that is
+             * already worn, the comparison is with itself.
+             */
+            const deltas =
+              currentItem && !isEquipped
+                ? statDeltas(item, rankPreview, currentItem, currentUpgrade)
+                : [];
+            const era2 = eraLabel(item);
+            const source2 = sourceSummary(item);
+            return (
+              <button
+                type="button"
+                key={`${item.n}-${index}`}
+                id={`picker-option-${index}`}
+                ref={virtual.rowRef(index)}
+                className={`result${index === active ? ' active' : ''}${isEquipped ? ' equipped-now' : ''}`}
+                data-active={index === active}
+                role="option"
+                aria-selected={index === active}
+                aria-setsize={rows.length}
+                aria-posinset={index + 1}
+                /*
+                 * The listbox is one tab stop, per the ARIA pattern it already
+                 * implements. As plain tab stops these rows cost 157 Tab presses
+                 * to reach Cancel, and Shift-Tab walked back up through them.
+                 */
+                tabIndex={-1}
+                style={{ position: 'absolute', top: virtual.offsetOf(index), left: 0, right: 0 }}
+                onMouseMove={(event) => {
+                  // Not `onMouseEnter`: scrolling the list under a stationary
+                  // cursor fires enter events, which dragged the active row away
+                  // from wherever the arrow keys had just put it.
+                  if (pointerMoved(event)) setActive(index);
+                }}
+                onClick={() => onSelect(item, rankPreview)}
+                {...itemHoverProps(item, rankPreview, context, position.type)}
+              >
+                <span>
+                  <span className="result-name">
+                    <span className="result-glyph" aria-hidden="true" style={{ color: itemNameColor(item, context) }}>
+                      <SlotGlyph slot={position.type} size={22} />
                     </span>
-                  </>
-                ) : null}
-              </span>
-            </button>
-          );
-        })}
+                    <span className="iname" style={{ color: itemNameColor(item, context) }}>
+                      {item.n}
+                    </span>
+                    {era2 ? <span className="tag tag-era">{era2}</span> : null}
+                    {!isLive(item) ? <span className="tag tag-locked">Not live</span> : null}
+                    {displayFlags(item.fl)
+                      .slice(0, 2)
+                      .map((flag) => (
+                        <span className="tag" key={flag}>
+                          {flag}
+                        </span>
+                      ))}
+                    {isEquipped ? <span className="tag tag-worn">Equipped</span> : null}
+                  </span>
+                  <span className="result-line">
+                    {statVector(item, rankPreview)
+                      .slice(0, 8)
+                      .map((s) => `${shortStatLabel(s.key)} ${signed(s.value)}`)
+                      .join(' · ') || 'No stats'}
+                  </span>
+                  {deltas.length ? (
+                    <span className="result-deltas">
+                      {deltas.slice(0, 6).map((d) => (
+                        <span key={d.key} className={d.delta > 0 ? 'good' : 'bad'}>
+                          {signed(d.delta)} {shortStatLabel(d.key)}
+                        </span>
+                      ))}
+                    </span>
+                  ) : null}
+                  {source2 ? <span className="result-line dim">{source2}</span> : null}
+                </span>
+                <span className="result-score">
+                  <span className="n">{epText(entry.score)}</span>
+                  <span className="d dim"> EP</span>
+                  {currentItem && !isEquipped ? (
+                    <>
+                      <br />
+                      <span className={`d ${entry.score >= wornScore ? 'good' : 'bad'}`}>
+                        {signedDec(entry.score - wornScore)} vs worn
+                      </span>
+                    </>
+                  ) : null}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </Modal>
   );
