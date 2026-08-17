@@ -57,18 +57,30 @@ const DEFAULT_IMPORTANCE: Record<string, number> = {
 /** Compact labels for the one-line summaries, using EQ's own shorthand. */
 export const SHORT_LABELS: Record<string, string> = {
   AC: 'AC', HP: 'HP', MANA: 'MANA', ENDUR: 'END', HASTE: 'HASTE',
-  REGEN: 'REGEN', MANA_REGEN: 'MREGEN', END_REGEN: 'EREGEN', DMG: 'DMG',
+  REGEN: 'REGEN', MANA_REGEN: 'MREGEN', END_REGEN: 'EREGEN',
+  DMG: 'DMG', DLY: 'DLY', RATIO: 'RATIO',
   STR: 'STR', STA: 'STA', AGI: 'AGI', DEX: 'DEX', WIS: 'WIS', INT: 'INT', CHA: 'CHA',
   SV_MAGIC: 'MR', SV_FIRE: 'FR', SV_COLD: 'CR', SV_DISEASE: 'DR', SV_POISON: 'PR',
   SV_VOID: 'VR', ATTACK: 'ATK', BACKSTAB: 'BS',
+  BASH: 'BASH', DRAGON_PUNCH: 'DPUNCH', EAGLE_STRIKE: 'ESTRIKE', FLYING_KICK: 'FKICK',
+  FRENZY: 'FRENZY', KICK: 'KICK', ROUND_KICK: 'RKICK', TIGER_CLAW: 'TCLAW',
 };
 
 export function statLabel(key: string): string {
   return STAT_LABELS[key] ?? key.replace(/_/g, ' ');
 }
 
+/**
+ * Compact label for dense surfaces.
+ *
+ * Unmapped keys return the key itself rather than a truncation. Slicing four
+ * characters off the long name produced plausible-looking fictions — `Delay`
+ * became `DELA`, `Dragon Punch Mod` became `DRAG` — which read as real game
+ * vocabulary and are therefore worse than an obviously raw key. A missing
+ * mapping should look missing.
+ */
 export function shortStatLabel(key: string): string {
-  return SHORT_LABELS[key] ?? statLabel(key).slice(0, 4).toUpperCase();
+  return SHORT_LABELS[key] ?? key;
 }
 
 /** One item's resolved contribution, flattened into ordered stat entries. */

@@ -158,9 +158,28 @@ describe('sanitizeState', () => {
     expect(sanitizeState({ characters: {} })).toBeNull();
   });
 
-  it('accepts a saved payload from a storage round trip after tampering with the version', () => {
+  /*
+   * A payload from a newer build is set aside, not migrated. Running it through
+   * this version's sanitiser would drop every field this build does not know
+   * about, and the next save would write the reduced shape back — silently
+   * destroying a newer build's data for anyone who opened a stale tab.
+   */
+  it('sets aside a payload written by a newer version instead of downgrading it', () => {
     const storage = memoryStorage();
-    storage.setItem(STORAGE_KEY, JSON.stringify({ ...sampleState(), version: 99 }));
+    const future = JSON.stringify({ ...sampleState(), version: 99, somethingNew: 'keep me' });
+    storage.setItem(STORAGE_KEY, future);
+
+    const result = loadState(storage);
+    expect(result.status).toBe('future');
+    expect(result.state.characters).toHaveLength(0);
+
+    // The original payload survives somewhere recoverable, untouched.
+    expect(storage.getItem(`${STORAGE_KEY}.future`)).toBe(future);
+  });
+
+  it('still migrates a payload written by an older version', () => {
+    const storage = memoryStorage();
+    storage.setItem(STORAGE_KEY, JSON.stringify({ ...sampleState(), version: 1 }));
     const result = loadState(storage);
     expect(result.status).toBe('ok');
     expect(result.state.version).toBe(2);

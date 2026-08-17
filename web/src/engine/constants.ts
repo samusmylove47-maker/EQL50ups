@@ -61,7 +61,7 @@ function buildPositions(): SlotPosition[] {
   const labels: Record<SlotType, string> = {
     EAR: 'Ear', HEAD: 'Head', FACE: 'Face', NECK: 'Neck', SHOULDERS: 'Shoulders',
     ARMS: 'Arms', BACK: 'Back', WRIST: 'Wrist', RANGE: 'Range', HANDS: 'Hands',
-    PRIMARY: 'Primary', SECONDARY: 'Secondary', FINGERS: 'Ring', CHEST: 'Chest',
+    PRIMARY: 'Primary', SECONDARY: 'Secondary', FINGERS: 'Fingers', CHEST: 'Chest',
     LEGS: 'Legs', FEET: 'Feet', WAIST: 'Waist', AMMO: 'Ammo',
   };
   const out: SlotPosition[] = [];
@@ -92,7 +92,8 @@ export const TOTAL_POSITIONS = SLOT_POSITIONS.length; // 23
 export const ATTRIBUTE_CAP = 510;
 export const RESIST_CAP = 1000;
 
-export const ATTRIBUTES = ['STR', 'STA', 'AGI', 'DEX', 'WIS', 'INT', 'CHA'] as const;
+/** Ordered as the client's Stats window prints them. */
+export const ATTRIBUTES = ['STR', 'STA', 'INT', 'WIS', 'AGI', 'DEX', 'CHA'] as const;
 export type Attribute = (typeof ATTRIBUTES)[number];
 
 export const ATTRIBUTE_NAMES: Record<Attribute, string> = {

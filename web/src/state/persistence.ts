@@ -44,7 +44,7 @@ export interface StorageLike {
   removeItem(key: string): void;
 }
 
-export type LoadStatus = 'ok' | 'empty' | 'unavailable' | 'corrupt';
+export type LoadStatus = 'ok' | 'empty' | 'corrupt' | 'unavailable' | 'future';
 export type SaveStatus = 'ok' | 'unavailable' | 'quota' | 'error';
 
 export interface LoadResult {
@@ -297,20 +297,33 @@ export function loadState(storage: StorageLike | null = defaultStorage()): LoadR
     return { status: 'corrupt', state: emptyState() };
   }
 
+  const storedVersion =
+    isRecord(parsed) && typeof parsed.version === 'number' ? parsed.version : 0;
+
+  /*
+   * A payload from a *newer* build must not be run through this build's
+   * sanitiser. Sanitising drops every field this version does not know about
+   * and then the next save writes the reduced shape back, quietly destroying
+   * whatever the newer build stored — the worst outcome for someone who opened
+   * a stale tab. Park it and start clean instead; nothing is lost.
+   */
+  if (storedVersion > STATE_VERSION) {
+    quarantine(storage, text, 'future');
+    return { status: 'future', state: emptyState() };
+  }
+
   const state = sanitizeState(parsed);
   if (!state) {
     quarantine(storage, text);
     return { status: 'corrupt', state: emptyState() };
   }
-  const storedVersion =
-    isRecord(parsed) && typeof parsed.version === 'number' ? parsed.version : 0;
   return { status: 'ok', state, migrated: storedVersion !== STATE_VERSION };
 }
 
 /** Park an unreadable payload aside so a bug report can still recover it. */
-function quarantine(storage: StorageLike, text: string): void {
+function quarantine(storage: StorageLike, text: string, reason: 'corrupt' | 'future' = 'corrupt'): void {
   try {
-    storage.setItem(`${STORAGE_KEY}.corrupt`, text.slice(0, 200_000));
+    storage.setItem(`${STORAGE_KEY}.${reason}`, text.slice(0, 200_000));
   } catch {
     /* quarantine is best-effort; never let it break startup */
   }

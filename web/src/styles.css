@@ -2193,7 +2193,10 @@ table.data tbody tr:hover {
   }
 
   .slot.right .slot-icon {
-    order: 0;
+    /* The narrow layout gives column one a fixed 34px track. Leaving the icon
+       at order:0 put the *body* in that track, clipping 14 of 23 item names to
+       34px with no overflow — invisible to a scrollWidth check. */
+    order: -1;
   }
 
   .slot-wrap.right {
