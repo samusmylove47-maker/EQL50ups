@@ -8,8 +8,12 @@
  * slot by piling on a stat the character has already maxed.
  */
 
-import { ATTRIBUTE_CAP, RESIST_CAP, type Attribute, type Save } from './constants';
-import { resolveItem } from './stats';
+import {
+  ATTRIBUTES, ATTRIBUTE_CAP, RESIST_CAP, SAVES, SKILL_DAMAGE_MODS,
+  type Attribute, type Save,
+} from './constants';
+import { FLAT_KEYS, resolveItem, resolvedSave } from './stats';
+import { damageRatio, scaleDamage, scaleFlat, scalePrimary } from './upgrade';
 import type { Item, EquippedItem } from './types';
 
 export type WeightProfile = Record<string, number>;
@@ -92,6 +96,134 @@ export function scoreItem(
 
   parts.sort((a, b) => b.points - a.points);
   return { total, parts };
+}
+
+/* ------------------------------------------------- the ranking fast path */
+
+type PlanEntry =
+  | { kind: 'attr'; key: Attribute; weight: number; already: number }
+  | { kind: 'save'; key: Save; weight: number; already: number }
+  | { kind: 'scaled'; key: string; alt?: string; weight: number }
+  | { kind: 'flat'; key: string; weight: number }
+  | { kind: 'ratio'; weight: number }
+  | { kind: 'dmg'; weight: number };
+
+/** The four uncapped primaries, in the order `scoreItem` accumulates them. */
+const PRIMARY_KEYS: ReadonlyArray<{ key: string; alt?: string }> = [
+  { key: 'AC' }, { key: 'HP' }, { key: 'MANA' }, { key: 'ENDUR', alt: 'END' },
+];
+
+/**
+ * A scorer specialised to one weight profile and one cap context.
+ *
+ * `scoreItem` answers "why is this item worth what it is worth" — it resolves
+ * the whole item into six objects and returns a sorted breakdown. Ranking a
+ * slot asks a much narrower question seven thousand times over, and never reads
+ * the breakdown: what it needs is one number.
+ *
+ * So the profile is compiled once into a plan — the handful of stats that carry
+ * a non-zero weight, in the exact order `scoreItem` accumulates them — and each
+ * item is then walked against that plan with no intermediate objects at all. A
+ * profile weighing five stats does five lookups per item instead of resolving
+ * forty. The order is load-bearing: it makes the running sum float-identical to
+ * `scoreItem`'s, which `ep.test` asserts item for item across the shipped
+ * catalog so the two can never drift.
+ */
+export function rankScorer(
+  weights: WeightProfile,
+  ctx: ScoreContext = {},
+): (item: Item, upgrade: EquippedItem['upgrade']) => number {
+  const capAware = ctx.capAware ?? true;
+  const plan: PlanEntry[] = [];
+  const weightOf = (key: string) => {
+    const value = weights[key] ?? 0;
+    return Number.isFinite(value) ? value : 0;
+  };
+
+  for (const key of ATTRIBUTES) {
+    const weight = weightOf(key);
+    if (weight) plan.push({ kind: 'attr', key, weight, already: ctx.existing?.attributes?.[key] ?? 0 });
+  }
+  for (const key of SAVES) {
+    const weight = weightOf(`SV_${key}`);
+    if (weight) plan.push({ kind: 'save', key, weight, already: ctx.existing?.saves?.[key] ?? 0 });
+  }
+  for (const primary of PRIMARY_KEYS) {
+    const weight = weightOf(primary.key);
+    if (weight) plan.push({ kind: 'scaled', key: primary.key, ...(primary.alt ? { alt: primary.alt } : {}), weight });
+  }
+  for (const key of FLAT_KEYS) {
+    const weight = weightOf(key);
+    if (weight) plan.push({ kind: 'flat', key, weight });
+  }
+  for (const mod of SKILL_DAMAGE_MODS) {
+    const weight = weightOf(mod.key);
+    if (weight) plan.push({ kind: 'flat', key: mod.key, weight });
+  }
+  if (ctx.weaponCounts ?? true) {
+    const ratio = weightOf('RATIO');
+    if (ratio) plan.push({ kind: 'ratio', weight: ratio });
+    const dmg = weightOf('DMG');
+    if (dmg) plan.push({ kind: 'dmg', weight: dmg });
+  }
+
+  // Nothing is weighted: every item scores zero and no item need be read.
+  if (!plan.length) return () => 0;
+
+  const credit = (amount: number, already: number, cap: number) =>
+    capAware ? Math.min(already + amount, cap) - Math.min(already, cap) : amount;
+
+  return (item, upgrade) => {
+    const st: Record<string, number> = item.st ?? {};
+    const sv: Record<string, number> = item.sv ?? {};
+    let total = 0;
+
+    for (const entry of plan) {
+      switch (entry.kind) {
+        case 'attr': {
+          const base = st[entry.key];
+          if (!base) break;
+          const amount = scalePrimary(base, upgrade);
+          if (amount) total += credit(amount, entry.already, ATTRIBUTE_CAP) * entry.weight;
+          break;
+        }
+        case 'save': {
+          const amount = resolvedSave(st, sv, entry.key, upgrade);
+          if (amount) total += credit(amount, entry.already, RESIST_CAP) * entry.weight;
+          break;
+        }
+        case 'scaled': {
+          const base = st[entry.key] ?? (entry.alt ? st[entry.alt] : 0);
+          if (!base) break;
+          const amount = scalePrimary(base, upgrade);
+          if (amount) total += amount * entry.weight;
+          break;
+        }
+        case 'flat': {
+          const base = st[entry.key];
+          if (!base) break;
+          const amount = scaleFlat(base, upgrade);
+          if (amount) total += amount * entry.weight;
+          break;
+        }
+        case 'ratio': {
+          const wp = item.wp;
+          if (!wp) break;
+          const amount = damageRatio(scaleDamage(wp.dmg, upgrade), wp.dly);
+          if (amount) total += amount * entry.weight;
+          break;
+        }
+        case 'dmg': {
+          const wp = item.wp;
+          if (!wp) break;
+          const amount = scaleDamage(wp.dmg, upgrade);
+          if (amount) total += amount * entry.weight;
+          break;
+        }
+      }
+    }
+    return total;
+  };
 }
 
 /** Default weight profiles, offered as starting points rather than gospel. */

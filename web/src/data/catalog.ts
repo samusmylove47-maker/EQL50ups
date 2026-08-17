@@ -205,6 +205,66 @@ function mergeItems(existing: Item[], incoming: Item[]): Item[] {
   return merged;
 }
 
+interface LoadedShard {
+  slot: SlotCode;
+  items: Item[];
+}
+
+/** Fetch and normalise one shard. A failure is an empty shard, never a throw. */
+async function loadShard(slot: SlotCode): Promise<LoadedShard> {
+  try {
+    return { slot, items: normalizeCatalog(await fetchJson(`items/${slot}.json`)) };
+  } catch {
+    return { slot, items: [] };
+  }
+}
+
+/**
+ * Fold any number of loaded shards into the catalog in a single commit.
+ *
+ * One merge, one reindex, one revision bump, however many shards arrived. The
+ * revision is what every memoised selector keys off, so bumping it once per
+ * shard is what made an Any Slot picker re-rank nineteen times.
+ */
+function commitShards(
+  loaded: readonly LoadedShard[],
+  get: () => CatalogState,
+  set: (partial: Partial<CatalogState>) => void,
+): void {
+  const before = get();
+  const shards = { ...before.shards };
+  const incoming: Item[] = [];
+
+  for (const shard of loaded) {
+    if (!shard.items.length) {
+      shards[shard.slot] = 'missing';
+      continue;
+    }
+    shards[shard.slot] = 'ready';
+    for (const item of shard.items) incoming.push(item);
+  }
+
+  if (!incoming.length) {
+    set({ shards });
+    return;
+  }
+
+  // One merge over the concatenation rather than one per shard: `mergeItems`
+  // builds a name→index map of the whole catalog before it starts, so calling
+  // it nineteen times built that map nineteen times over 11,249 items. Merging
+  // the shards in order gives the same result, because a later shard still
+  // lands on whatever an earlier one already merged.
+  const items = mergeItems(before.items, incoming);
+
+  set({
+    items,
+    ...reindexShard({ byName: before.byName, bySlot: before.bySlot }, items, incoming),
+    shards,
+    status: 'ready',
+    revision: before.revision + 1,
+  });
+}
+
 export const useCatalog = create<CatalogState>((set, get) => ({
   status: 'idle',
   error: null,
@@ -267,32 +327,38 @@ export const useCatalog = create<CatalogState>((set, get) => ({
     }
     if (state.shards[slot]) return;
     set({ shards: { ...get().shards, [slot]: 'loading' } });
-    try {
-      const raw = await fetchJson(`items/${slot}.json`);
-      const incoming = normalizeCatalog(raw);
-      if (!incoming.length) {
-        set({ shards: { ...get().shards, [slot]: 'missing' } });
-        return;
-      }
-      const before = get();
-      const items = mergeItems(before.items, incoming);
-      set({
-        items,
-        ...reindexShard({ byName: before.byName, bySlot: before.bySlot }, items, incoming),
-        shards: { ...get().shards, [slot]: 'ready' },
-        status: 'ready',
-        revision: get().revision + 1,
-      });
-    } catch {
-      set({ shards: { ...get().shards, [slot]: 'missing' } });
-    }
+    const loaded = await loadShard(slot);
+    commitShards([loaded], get, set);
   },
 
+  /**
+   * Load every remaining shard as **one** state commit.
+   *
+   * This used to fan out to nineteen `ensureSlot` calls, each of which set its
+   * own revision bump when its fetch landed. Every bump invalidates the rank
+   * cache, so an Any Slot picker — which is what asks for `ensureAll` in the
+   * first place — re-scored roughly seven thousand candidates once per shard:
+   * twenty-one consecutive long tasks and 2.6 s of blocked main thread over
+   * three and a half seconds, all of it *after* the dialog had already painted
+   * rows. The work of loading is unchanged; only the number of times the
+   * consumers are told about it is.
+   *
+   * The fetches still run in parallel — they are network-bound and there are
+   * nineteen of them — and the merge and the single revision bump happen
+   * synchronously once they have all resolved, so a concurrent `ensureSlot`
+   * cannot interleave between reading the previous state and writing the new.
+   */
   async ensureAll() {
-    const state = get();
-    if (state.usingFixture) return;
-    const wanted = [...SLOT_TYPES, ...EXTRA_SHARDS] as SlotCode[];
-    await Promise.all(wanted.filter((s) => !state.shards[s]).map((s) => get().ensureSlot(s)));
+    if (get().usingFixture) return;
+    const wanted = ([...SLOT_TYPES, ...EXTRA_SHARDS] as SlotCode[]).filter((s) => !get().shards[s]);
+    if (!wanted.length) return;
+
+    const pending: Record<string, ShardStatus> = {};
+    for (const slot of wanted) pending[slot] = 'loading';
+    set({ shards: { ...get().shards, ...pending } });
+
+    const loaded = await Promise.all(wanted.map((slot) => loadShard(slot)));
+    commitShards(loaded, get, set);
   },
 
   async ensureEffects() {

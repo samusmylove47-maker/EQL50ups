@@ -210,7 +210,11 @@ export function ItemBrowser() {
   const header = (key: SortKey, label: string, className?: string) => {
     const activeSort = sort === key;
     return (
-      <th className={className} aria-sort={activeSort ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+      <th
+        scope="col"
+        className={className}
+        aria-sort={activeSort ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+      >
         <button
           type="button"
           onClick={() => sortBy(key)}
@@ -222,6 +226,27 @@ export function ItemBrowser() {
       </th>
     );
   };
+
+  /*
+   * What this table currently is, in one sentence.
+   *
+   * A `<caption>` is the table's accessible name, and the filters are the only
+   * thing that distinguishes `5,861 items` from `94 items`; without it a screen
+   * reader reaches a table called nothing, holding a number it cannot account
+   * for. Visually hidden because the same facts are on screen in the toolbar
+   * directly above it.
+   */
+  const caption = [
+    `${count(total)} item${total === 1 ? '' : 's'}`,
+    slot === 'any' ? 'any slot' : `slot ${slot}`,
+    classFilter === 'any' ? 'any class' : `usable by ${classFilter}`,
+    era === 'any' ? 'any era' : `${era} era`,
+    liveOnly ? 'live content only' : 'including content that is not yet live',
+    query.trim() ? `matching “${query.trim()}”` : null,
+    `scored with the ${PRESET_PROFILES.find((p) => p.id === profileId)?.label ?? 'preset'} weights at +${upgrade.full}`,
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   return (
     <div>
@@ -324,12 +349,17 @@ export function ItemBrowser() {
       {rows.length ? (
         <div className="table-wrap" ref={tableRef}>
           <table className="data">
+            <caption className="sr-only">
+              {caption}. Sorted by {sort === 'ep' ? 'EP' : sort},{' '}
+              {dir === 'asc' ? 'ascending' : 'descending'}. Showing {count(start + 1)} to{' '}
+              {count(Math.min(start + PAGE_SIZE, total))}.
+            </caption>
             <thead>
               <tr>
                 {header('name', 'Item')}
                 {header('slot', 'Slot')}
-                <th>Classes</th>
-                <th>Stats</th>
+                <th scope="col">Classes</th>
+                <th scope="col">Stats</th>
                 {header('era', 'Era')}
                 {header('ep', 'EP', 'num')}
               </tr>
@@ -341,13 +371,21 @@ export function ItemBrowser() {
                 100 rows cost 6,100px; both now live in the item window that
                 opens on hover and on click.
               */}
+              {/*
+                No `role="button"` and no `aria-label` on the `<tr>`.
+                `role="button"` removed the row from the table structure and
+                orphaned its six `<td>`s, and an `aria-label` on a button
+                *replaces* its contents as the accessible name — so the screen
+                built to expose SLOT / CLASSES / STATS / ERA / EP across 5,861
+                items announced exactly one thing per row. The activation
+                affordance is a real `<button>` in the first cell instead, which
+                names the row without eating it.
+              */}
               {pageRows.map(({ item, score }) => (
                 <tr
                   key={item.n}
                   className="rowlink"
                   tabIndex={0}
-                  role="button"
-                  aria-label={`Open ${item.n}`}
                   onClick={() => setDetail(item)}
                   onKeyDown={(event) => {
                     if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -361,9 +399,24 @@ export function ItemBrowser() {
                       <span className="cell-glyph" aria-hidden="true" style={{ color: itemNameColor(item, colorContext) }}>
                         <SlotGlyph slot={item.sl[0] ?? 'ANY'} size={20} />
                       </span>
-                      <span className="iname" style={{ color: itemNameColor(item, colorContext) }}>
+                      {/*
+                        `tabIndex={-1}`: the row is already a tab stop, and a
+                        second one per row would take the page from 100 stops to
+                        200. Pointer, screen reader and the row's own Enter/Space
+                        all reach it; only Tab skips it.
+                      */}
+                      <button
+                        type="button"
+                        className="cell-open iname"
+                        tabIndex={-1}
+                        style={{ color: itemNameColor(item, colorContext) }}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setDetail(item);
+                        }}
+                      >
                         {item.n}
-                      </span>
+                      </button>
                     </span>
                     {!isLive(item) ? <span className="tag tag-locked">Not live</span> : null}
                   </td>

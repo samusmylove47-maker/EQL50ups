@@ -230,6 +230,20 @@ ul {
 }
 
 /*
+ * An inset ring, because the nav clips.
+ *
+ * `overflow: hidden` above is what stops a 272px nav pushing the page 50px
+ * wide, and the app's ring is a 2px `box-shadow` spread — drawn entirely
+ * outside the link's border box, i.e. entirely outside this clipping parent.
+ * The top and bottom edges rendered nothing on every screen in the app, and the
+ * first and last link lost a third edge each. Same defect as
+ * `.stat-group > summary`, found by the same broadened walk.
+ */
+.topbar nav a:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/*
  * One active-state language. The nav used to mark its current item with a
  * filled blue pill while the tab row 120px below marked its current item with
  * a blue underline — two vocabularies for one idea. Both underline now.
@@ -497,6 +511,43 @@ select {
   color: var(--text-dim);
   font-size: var(--fs-body);
   margin-bottom: var(--s4);
+}
+
+/*
+ * A status object, out of flow.
+ *
+ * In flow this banner pushed `.set-header` from y=76 to y=144 at the moment the
+ * reader was about to click something — `elementFromPoint` at the original
+ * click position afterwards returned the header, so a reflexive second click
+ * landed on the character name. Chrome's CLS never saw it because
+ * `hadRecentInput` was true, which is how three rounds of automated checks
+ * missed a 68px jump. Fixed to the corner it changes nothing above it; the
+ * accent rule and the adjacent ✕ are what make it read as a notification
+ * rather than as a paragraph that appeared at the top of the page.
+ */
+.notice-toast {
+  position: fixed;
+  right: var(--s5);
+  bottom: var(--s5);
+  z-index: 60;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 2 * var(--s5)));
+  align-items: flex-start;
+  margin-bottom: 0;
+  border-left-color: var(--accent);
+  background: var(--bg-panel-raised);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 45%);
+}
+
+.notice-toast .grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The dismiss sat 1,560px from the words it dismissed on a wide viewport. */
+.notice-toast .btn-icon {
+  flex: none;
+  margin: -2px calc(-1 * var(--s2)) 0 0;
 }
 
 .notice-warn {
@@ -908,24 +959,46 @@ select {
   letter-spacing: 0.08em;
 }
 
+/*
+ * Two lines, wrapped at spaces, rather than one line cut mid-value.
+ *
+ * A row that fits renders exactly as it did — the second line is only taken
+ * when the first one runs out, so the column stays on its 60px pitch wherever
+ * the names are short. Where it does not fit, the alternative was an ellipsis
+ * that lands inside a numeral: `AC +8 · HP +50 · DR +10…` makes +10 and +100
+ * indistinguishable, and some rows ended on a dangling `·`. Measured with
+ * canvas `measureText` against the content box rather than
+ * `scrollWidth === clientWidth`, which cannot see a shrink that happens on an
+ * ancestor and is how 34px of clipping shipped twice.
+ *
+ * Wrapping, never `overflow-wrap: anywhere`: these break at spaces. A word
+ * broken mid-glyph fails visibly instead of invisibly, which is not the same
+ * thing as fitting.
+ */
 .slot-item {
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   font-size: var(--fs-body);
   line-height: 1.3;
   font-weight: var(--fw-emph);
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: normal;
 }
 
 .slot-stats {
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   font-size: var(--fs-small);
   line-height: 1.25;
   color: var(--text-faint);
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: normal;
   font-variant-numeric: tabular-nums;
 }
 
@@ -972,10 +1045,16 @@ select {
 /*
  * Five columns, seven rows, gaps where the body has none: ears flanking the
  * helm, shoulders and back at the collar, wrists and rings paired either side
- * of a chest-waist spine, weapons beside the legs, the two Any Slots offset
- * outboard at the bottom. The shape narrows at the head, widens at the
- * shoulders and narrows again at the feet — which is the whole point, and is
- * what a 5/5/5/5/3 block of identical tiles could never do.
+ * of a chest-waist spine, weapons beside the legs, and the two Any Slots
+ * flanking the feet. The shape narrows at the head, widens at the shoulders and
+ * narrows again at the feet — which is the whole point, and is what a 5/5/5/5/3
+ * block of identical tiles could never do.
+ *
+ * Measured row extents at `--cell: 48px`: **152 / 48 / 256 / 256 / 256 / 152 /
+ * 152**. The bottom row used to measure 256 because the two Any Slots sat in
+ * the outer columns at ankle level, so the claim above was false for three
+ * reviews; `e2e/visual-system.spec.ts` now measures the extents rather than
+ * taking the comment's word for it.
  */
 .figure-body {
   display: grid;
@@ -1075,9 +1154,18 @@ select {
   transition: width 0.18s ease;
 }
 
+/*
+ * Wrapping, because `space-between` on a track narrower than its two children
+ * does not shrink them — it pushes the second one out. At 320px the figure's
+ * two-column layout left this row 14px, so `776 EP` started at x=318 and dragged
+ * 29px of horizontal page scroll behind it on the app's main screen.
+ */
 .figure-meter-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 0 var(--s2);
+  min-width: 0;
   font-size: var(--fs-small);
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
@@ -1250,6 +1338,23 @@ select {
 
 .stat-group[open] > summary {
   border-bottom-color: var(--line);
+}
+
+/*
+ * The ring is drawn *inside* the summary's border box, not two pixels outside
+ * it.
+ *
+ * `.stat-group` sets `overflow: hidden` so its children take the group's
+ * rounded corners, and the app's ring is an `outline` at `outline-offset: 2px`
+ * — which places all four edges outside the clipping parent's padding box.
+ * Measured from pixels on the closed FULL CLIENT STAT SHEET, which is how the
+ * gear tab ships: zero accent pixels on all four edges, and with the group open
+ * three of the four are still gone. A negative offset is the whole fix, and it
+ * is why `e2e/visual-system.spec.ts` now walks every `<summary>` on the page
+ * rather than one search box and one checkbox.
+ */
+.stat-group > summary:focus-visible {
+  outline-offset: -2px;
 }
 
 .stat-group > summary::-webkit-details-marker {
@@ -1824,12 +1929,23 @@ table.data {
   font-size: var(--fs-body);
 }
 
+/*
+ * `font-weight` is declared, not inherited.
+ *
+ * These two rules and `.feature h3` set a token font-size and left the weight
+ * to the UA, so a `<th>` and a `<h3>` fell through to `bold` — a fourth,
+ * off-token weight shipping on the item browser and the landing page while
+ * tokens.css says there are three. The type-scale assertion only ran on the
+ * gear tab, which is the one screen where all three elements are absent, so it
+ * could never see it; it now runs on all three screens.
+ */
 table.data th {
   text-align: left;
   padding: var(--s2) var(--s3);
   background: var(--panel-2);
   border-bottom: 1px solid var(--line);
   font-size: var(--fs-micro);
+  font-weight: var(--fw-emph);
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   color: var(--muted);
@@ -1845,9 +1961,31 @@ table.data th button {
   padding: 0;
   color: inherit;
   font: inherit;
+  font-weight: var(--fw-emph);
   cursor: pointer;
   letter-spacing: inherit;
   text-transform: inherit;
+}
+
+/*
+ * The name is the row's activation affordance, so it is a real control rather
+ * than a span on a `role="button"` row that swallowed the other five columns.
+ * It is not a second tab stop: the row itself is already one, and doubling 100
+ * rows to 200 stops would trade one accessibility defect for another.
+ */
+table.data td .cell-open {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 table.data th button:hover {
@@ -1902,10 +2040,15 @@ table.data tbody tr:hover {
  * 360px, not 260px. A card pinned to ~320px with three inline buttons in it
  * had nowhere to put them, so the set row collapsed and painted "Set" over
  * "RENAME" — while 1,000px of the container sat empty beside it.
+ *
+ * `min(360px, 100%)`, because a bare 360px floor is a *minimum*, and a track
+ * minimum wider than the container is how the Characters card measured 360px
+ * inside a 320px viewport and pushed 52px of horizontal page scroll onto the
+ * two screens a returning user lands on.
  */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
   gap: var(--s3);
 }
 
@@ -2368,8 +2511,10 @@ table.data tbody tr:hover {
   background: var(--panel);
 }
 
+/* Declared, not inherited — see the note on `table.data th`. */
 .feature h3 {
   font-size: var(--fs-small);
+  font-weight: var(--fw-emph);
   letter-spacing: var(--label-spacing);
   text-transform: uppercase;
   margin-bottom: var(--s2);
@@ -2448,11 +2593,20 @@ table.data tbody tr:hover {
   }
 }
 
-@media (max-width: 720px) {
-  :root {
-    --gutter: var(--s3);
-  }
-
+/*
+ * The doll collapses at 900px, not at 720px.
+ *
+ * Between the two the doll kept two columns and each `.slot-body` measured
+ * 152px — *less than the 166px the same row gets on a 390px phone*, so tablet
+ * portrait was the worst breakpoint in the app: 6 item names ellipsised and 19
+ * stat lines cut, several of them inside a numeral, which makes `+10` and
+ * `+100` indistinguishable. One column at 768px gives the row ~600px and every
+ * one of those truncations disappears with no other change.
+ *
+ * The right column's reflow travels with the collapse, because "right column"
+ * means nothing once there is one column.
+ */
+@media (max-width: 900px) {
   .doll {
     grid-template-columns: 1fr;
   }
@@ -2471,6 +2625,12 @@ table.data tbody tr:hover {
 
   .slot-wrap.right {
     flex-direction: row;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --gutter: var(--s3);
   }
 
   .hero h1 {
@@ -2528,6 +2688,51 @@ table.data tbody tr:hover {
 
   .page-title {
     font-size: var(--fs-large);
+  }
+}
+
+/*
+ * The narrowest phones. The figure keeps its side-by-side map/numbers layout
+ * down to here; below it the map alone is 226px of a 264px panel, so the meter
+ * track resolved to 14px and pushed `776 EP` out to x=349 in a 320px viewport —
+ * 29px of horizontal page scroll on the app's main screen. Stacked, both halves
+ * get the whole panel.
+ */
+/*
+ * At 360px the row spends 46px of a 296px page on a decorative glyph, and the
+ * text is left with 96px against a 238px item name — two clamped lines still
+ * cannot hold it. The glyph is `aria-hidden` ornament and the slot's name is
+ * printed directly above it, so this is the one width where the mark gives way
+ * to the words. Above 360px it stays.
+ */
+@media (max-width: 360px) {
+  .slot {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .slot.right {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .slot-icon {
+    display: none;
+  }
+}
+
+@media (max-width: 430px) {
+  .figure {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      'map'
+      'meter'
+      'vitals';
+    justify-items: stretch;
+    gap: var(--s3);
+  }
+
+  .figure > .figure-body {
+    justify-self: center;
   }
 }
 

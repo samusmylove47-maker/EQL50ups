@@ -13,9 +13,15 @@
  * flank and back/range/ammo down the right, either side of a
  * neck-chest-waist-legs-feet spine; wrists and rings paired left and right;
  * weapons flanking the legs where a sheathed weapon hangs; and the two Any
- * Slots offset outboard at the bottom. The silhouette narrows at the head,
- * widens at the shoulders and narrows again at the feet, so the panel reads as
- * a body rather than as the 5/5/5/5/3 block of identical tiles it was.
+ * Slots flanking the feet. The silhouette narrows at the head, widens at the
+ * shoulders and narrows again at the feet, so the panel reads as a body rather
+ * than as the 5/5/5/5/3 block of identical tiles it was.
+ *
+ * That last clause was false until the Any Slots moved inboard: sitting in the
+ * outer columns at ankle level they made the bottom row exactly as wide as the
+ * shoulders (256px against 256px), so the figure ended in a straight edge while
+ * two comments said otherwise. Row extents are asserted in
+ * `e2e/visual-system.spec.ts` now, because a comment is not a measurement.
  *
  * **It is a summary, not a second control surface.** It used to duplicate all
  * 23 rows of the two item columns with byte-identical accessible names — 46
@@ -54,7 +60,7 @@ const FIGURE_LAYOUT: readonly (readonly (string | null)[])[] = [
   ['ARMS', 'WRIST_1', 'CHEST', 'WRIST_2', 'RANGE'],
   ['HANDS', 'FINGERS_1', 'WAIST', 'FINGERS_2', 'AMMO'],
   [null, 'PRIMARY', 'LEGS', 'SECONDARY', null],
-  ['ANY_1', null, 'FEET', null, 'ANY_2'],
+  [null, 'ANY_1', 'FEET', 'ANY_2', null],
 ];
 
 const COLUMNS = 5;

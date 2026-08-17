@@ -7,7 +7,7 @@
  *
  *  1. no console errors, page errors or unhandled rejections;
  *  2. no `NaN`, `undefined`, `[object Object]` or `Infinity` in visible text;
- *  3. no horizontal page scroll at 1600 / 1280 / 1024 / 768 px.
+ *  3. no horizontal page scroll at 1600 / 1280 / 1024 / 768 / 390 / 320 px.
  *
  * (2) and (3) are opt-in per assertion point because they need a settled page;
  * (1) is automatic and fails the test at teardown.
@@ -71,10 +71,17 @@ export async function expectCleanText(page: Page): Promise<void> {
   }
 }
 
-/** The page may never scroll sideways at any supported width. */
+/**
+ * The page may never scroll sideways at any supported width.
+ *
+ * 390 and 320 are in the default list because they were not, and the suite was
+ * therefore structurally blind to 29px of scroll on the set page and 52px on
+ * `#/characters` — the same blind spot that let a 34px name clip ship twice.
+ * A width nobody asserts is a width nobody has checked.
+ */
 export async function expectNoHorizontalScroll(
   page: Page,
-  widths: number[] = [1600, 1280, 1024, 768],
+  widths: number[] = [1600, 1280, 1024, 768, 390, 320],
 ): Promise<void> {
   const original = page.viewportSize();
   for (const width of widths) {

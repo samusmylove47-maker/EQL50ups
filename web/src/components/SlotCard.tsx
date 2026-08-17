@@ -25,6 +25,7 @@
  * 40px footer strip onto the row itself.
  */
 
+import { useEffect, useRef } from 'react';
 import type { LoadoutContext } from '../engine/character';
 import type { WeightProfile } from '../engine/ep';
 import type { UpgradeState } from '../engine/upgrade';
@@ -65,6 +66,22 @@ export function SlotCard({
 
   const summary = item && equipped ? summarizeItem(item, equipped.upgrade, weights) : null;
   const tone = item ? itemNameColor(item, context) : undefined;
+
+  /*
+   * The remove control unmounts itself, so focus had nowhere to go and landed
+   * on `<body>` — reproduced on rows 0, 1 and 2, and a keyboard user pruning
+   * five items paid five full re-traversals of an 89-stop document. The slot
+   * button is the row's own survivor and is exactly where the picker's
+   * Clear-slot path already restores to ("Face: empty. Choose an item."), so
+   * the two destructive paths now land in the same place.
+   */
+  const slotRef = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  useEffect(() => {
+    if (!restoreFocus.current) return;
+    restoreFocus.current = false;
+    slotRef.current?.focus();
+  }, [equipped]);
 
   const body = (
     <span className="slot-body">
@@ -118,6 +135,7 @@ export function SlotCard({
     <div className={`slot-wrap ${state}`}>
       <button
         type="button"
+        ref={slotRef}
         className={classes}
         onClick={() => onPick(position.id)}
         aria-label={
@@ -155,7 +173,12 @@ export function SlotCard({
               <button
                 type="button"
                 className="btn btn-quiet btn-icon"
-                onClick={() => onClear(position.id)}
+                onClick={() => {
+                  // Claimed before the state update, honoured in the effect
+                  // above once this button has stopped existing.
+                  restoreFocus.current = true;
+                  onClear(position.id);
+                }}
                 aria-label={`Remove ${item?.n ?? equipped.itemName} from ${position.label}`}
                 title="Remove from this slot"
               >

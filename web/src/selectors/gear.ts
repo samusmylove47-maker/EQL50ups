@@ -13,7 +13,7 @@ import {
 } from '../engine/constants';
 import { canUse, type LoadoutContext } from '../engine/character';
 import { computeTotals, resolveItem, type StatTotals } from '../engine/stats';
-import { scoreItem, type ScoreContext, type WeightProfile } from '../engine/ep';
+import { rankScorer, type ScoreContext, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
 import type { EquippedItem, GearSet, Item } from '../engine/types';
 import { dec, finite, signed } from '../lib/format';
@@ -276,14 +276,16 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
   // An "Any Slot" is a worn position, not a hand: `computeTotals` reports no
   // weapon from it, so scoring must not pay for damage or ratio there either.
   const weaponCounts = slot !== 'ANY';
+  // Compiled once for the whole pass rather than re-derived per item; see
+  // `rankScorer`. Identical to `scoreItem(...).total`, asserted in `ep.test`.
+  const score = rankScorer(weights, { weaponCounts, ...(existing ? { existing } : {}) });
   const scored: ScoredItem[] = [];
   for (const item of pool) {
     if (!includeUnreleased && !isLive(item)) continue;
     if (context && !canUse({ classes: item.cl, races: item.ra, ...(item.rl ? { rl: item.rl } : {}) }, context)) {
       continue;
     }
-    const breakdown = scoreItem(item, upgrade, weights, { weaponCounts, ...(existing ? { existing } : {}) });
-    scored.push({ item, score: finite(breakdown.total) });
+    scored.push({ item, score: finite(score(item, upgrade)) });
   }
   scored.sort((a, b) => b.score - a.score || a.item.n.localeCompare(b.item.n));
 

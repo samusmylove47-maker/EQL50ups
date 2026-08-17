@@ -305,6 +305,123 @@ test('auto-fill fills, asks before replacing, and explains a full set', async ({
   await expect(page.locator('.slot-wrap .slot.filled')).toHaveCount(23);
 });
 
+const ACCENT = 'rgb(59, 159, 232)';
+
+test('the auto-fill notice never moves the page, and clears itself', async ({ page }) => {
+  test.slow();
+  page.on('dialog', (d) => d.accept());
+  await createCharacter(page, { name: 'Filler' });
+
+  /*
+   * In flow this banner pushed `.set-header` from y=76 to y=144 at the exact
+   * moment the reader was about to click something, and `elementFromPoint` at
+   * the original click position then returned the header — so a reflexive
+   * second click landed on the character name. Chrome's CLS excluded it because
+   * `hadRecentInput` was true, which is why three rounds of automated checks
+   * missed a 68px jump.
+   */
+  const header = page.locator('.set-header');
+  const before = (await header.boundingBox())!;
+  const button = page.getByRole('button', { name: /auto-fill/i });
+  const target = (await button.boundingBox())!;
+  const cursor = { x: Math.round(target.x + target.width / 2), y: Math.round(target.y + target.height / 2) };
+
+  await button.click();
+  await expect(page.locator('.notice')).toContainText(/placed \d+ items?/i, { timeout: 60_000 });
+
+  const after = (await header.boundingBox())!;
+  expect(Math.round(after.y), 'the notice moved the page out from under the cursor').toBe(
+    Math.round(before.y),
+  );
+
+  const under = await page.evaluate(
+    ({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return el ? (el.closest('button')?.textContent ?? `${el.tagName}.${el.className}`) : 'nothing';
+    },
+    cursor,
+  );
+  expect(under, 'the control the reader just pressed is no longer under the cursor').toMatch(
+    /auto-fill|filling/i,
+  );
+
+  // Shape: out of flow, capped, accent-ruled, dismiss beside the words rather
+  // than 1,560px away at the far edge of the viewport.
+  const shape = await page.locator('.notice').evaluate((el) => {
+    const cs = getComputedStyle(el);
+    const text = el.querySelector('span')!.getBoundingClientRect();
+    const dismiss = el.querySelector('button')!.getBoundingClientRect();
+    return {
+      position: cs.position,
+      width: el.getBoundingClientRect().width,
+      borderLeftWidth: cs.borderLeftWidth,
+      borderLeftColor: cs.borderLeftColor,
+      dismissGap: Math.round(dismiss.left - text.right),
+    };
+  });
+  expect(shape.position).toBe('fixed');
+  expect(shape.width).toBeLessThanOrEqual(420);
+  expect(shape.borderLeftWidth).toBe('3px');
+  expect(shape.borderLeftColor).toBe(ACCENT);
+  expect(shape.dismissGap, 'the ✕ belongs next to the text').toBeLessThan(48);
+
+  // Reading holds it open; leaving lets it go. It used to have no timer at all
+  // and was still on screen after 11.5 seconds.
+  await page.locator('.notice').hover();
+  await page.waitForTimeout(7500);
+  await expect(page.locator('.notice'), 'hovering must pause the auto-dismiss').toBeVisible();
+  await page.mouse.move(4, 4);
+  await expect(page.locator('.notice')).toHaveCount(0, { timeout: 15_000 });
+});
+
+test('no destructive control drops focus to <body>', async ({ page }) => {
+  test.slow();
+  page.on('dialog', (d) => d.accept());
+  await createCharacter(page, { name: 'Pruner' });
+  await page.getByRole('button', { name: /auto-fill/i }).click();
+  await expect(page.locator('.slot-wrap .slot.filled')).toHaveCount(23, { timeout: 60_000 });
+
+  const active = () =>
+    page.evaluate(() => ({
+      tag: document.activeElement?.tagName ?? 'NONE',
+      label: document.activeElement?.getAttribute('aria-label') ?? '',
+    }));
+
+  // 1. The per-row remove control. Reproduced 3 of 3 on rows 0, 1 and 2: it
+  //    unmounted itself and nothing took focus, so a keyboard user pruning five
+  //    items paid five full re-traversals of an 89-stop document.
+  for (const row of [0, 1, 2]) {
+    await page.locator('.slot-wrap .slot-foot .btn-icon').first().click();
+    const focus = await active();
+    expect(focus.tag, `focus after removing row ${row}`).not.toBe('BODY');
+    expect(focus.label, `focus target after removing row ${row}`).toMatch(/empty\. Choose an item\./);
+  }
+
+  // 2. The picker's Clear slot — the path that already restored correctly, and
+  //    the pattern the other two now copy. It must stay working.
+  await page.locator('.slot-wrap .slot.filled').first().click();
+  await page.locator('.modal').waitFor();
+  await page.getByRole('button', { name: /^clear slot$/i }).click();
+  const afterPickerClear = await active();
+  expect(afterPickerClear.tag).not.toBe('BODY');
+  expect(afterPickerClear.label).toMatch(/empty\. Choose an item\./);
+
+  // 3. Clear all slots, from a menu that closes itself on selection — so the
+  //    button that was pressed is display:none by the time the state lands.
+  const overflow = page.locator('summary[aria-label="More set actions"]');
+  await overflow.click();
+  await page.locator('.menu-body.right .menu-item', { hasText: 'Clear all slots' }).click();
+  await expect(page.locator('.slot-wrap .slot.filled')).toHaveCount(0);
+  const afterClearAll = await active();
+  expect(afterClearAll.tag).not.toBe('BODY');
+  expect(afterClearAll.label).toBe('More set actions');
+
+  // 4. The weights editor's own bulk clear.
+  await page.getByRole('tab', { name: 'Weights' }).click();
+  await page.getByRole('button', { name: /^clear all$/i }).click();
+  expect((await active()).tag).not.toBe('BODY');
+});
+
 test('an unresolvable equipped item is flagged rather than hidden', async ({ page }) => {
   await createCharacter(page, { name: 'Ghosted' });
   await page.evaluate(() => {

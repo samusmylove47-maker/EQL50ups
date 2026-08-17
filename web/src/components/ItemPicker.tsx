@@ -202,6 +202,18 @@ export function ItemPicker({
 
   const existing = useMemo(() => scoreContextFrom(contextTotals), [contextTotals]);
 
+  /*
+   * Ranked over *every* candidate, released or not, and never re-ranked for the
+   * live-only checkbox.
+   *
+   * `includeUnreleased` is part of the rank cache key, so driving the checkbox
+   * through it meant the first press in each direction re-scored the whole slot
+   * — 194 ms on an Any Slot at 4x throttle — while the second press read a warm
+   * cache and measured 0 ms. A benchmark that toggles twice sees the 0; a user
+   * sees the 194. Whether an item is live changes only which of the already
+   * sorted candidates are shown, so it belongs in the `rows` filter beside era,
+   * source and No Drop, all three of which have always been free.
+   */
   const ranked = useMemo(
     () =>
       rankSlotItems(catalog, {
@@ -210,9 +222,9 @@ export function ItemPicker({
         weights,
         upgrade: rankPreview,
         existing,
-        includeUnreleased: !deferredLiveOnly,
+        includeUnreleased: true,
       }),
-    [catalog, position.type, context, weights, rankPreview, existing, deferredLiveOnly],
+    [catalog, position.type, context, weights, rankPreview, existing],
   );
 
   /*
@@ -247,6 +259,7 @@ export function ItemPicker({
     for (const entry of ranked) {
       const item = entry.item;
       if (matches && !matches.has(item)) continue;
+      if (deferredLiveOnly && !isLive(item)) continue;
       if (deferredEra !== 'any' && item.era !== deferredEra) continue;
       if (!matchesSource(item, deferredSource)) continue;
       if (deferredHideNoDrop && item.fl.includes('NO_DROP')) continue;
@@ -254,7 +267,15 @@ export function ItemPicker({
       out.push(entry);
     }
     return out;
-  }, [ranked, matches, deferredEra, deferredSource, deferredHideNoDrop, deferredZone]);
+  }, [
+    ranked,
+    matches,
+    deferredLiveOnly,
+    deferredEra,
+    deferredSource,
+    deferredHideNoDrop,
+    deferredZone,
+  ]);
 
   /*
    * Derived during render, never in an effect: `rows` and the highlight have to

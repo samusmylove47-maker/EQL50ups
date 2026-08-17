@@ -32,13 +32,41 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
   const [dialog, setDialog] = useState<'share' | 'edit' | 'create' | 'import' | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [noticeHeld, setNoticeHeld] = useState(false);
   const [copied, setCopied] = useState(false);
   const [report, setReport] = useState<EnvelopeReport | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDetailsElement>(null);
+  const restoreMenuFocus = useRef(false);
 
   useEffect(() => {
     setMessage(null);
   }, [id]);
+
+  /*
+   * The notice clears itself. It used to have no timer at all and was still
+   * on screen after 11.5 seconds in three separate sessions, so the one
+   * transient message in the app behaved like a permanent banner. Reading is
+   * the reason to keep it, so pointer or keyboard inside the toast holds it
+   * open indefinitely and the countdown restarts when they leave.
+   */
+  useEffect(() => {
+    if (!message || noticeHeld) return;
+    const timer = window.setTimeout(() => setMessage(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [message, noticeHeld]);
+
+  /*
+   * `Clear all slots` lives in a `<details>` menu that closes on selection, so
+   * the button that was clicked is display:none by the time the state update
+   * lands and focus falls to `<body>`. The summary is the survivor and the
+   * place the reader came from, so that is where focus goes back to.
+   */
+  useEffect(() => {
+    if (!restoreMenuFocus.current) return;
+    restoreMenuFocus.current = false;
+    menuRef.current?.querySelector('summary')?.focus();
+  });
 
   const filters = filtersFor(gearSet);
 
@@ -154,10 +182,15 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
 
   return (
     <div>
-      {/* The notice used to have no dismiss and shifted the whole page down 60px
-          until you navigated away. */}
       {message ? (
-        <div className="notice" role="status">
+        <div
+          className="notice notice-toast"
+          role="status"
+          onMouseEnter={() => setNoticeHeld(true)}
+          onMouseLeave={() => setNoticeHeld(false)}
+          onFocusCapture={() => setNoticeHeld(true)}
+          onBlurCapture={() => setNoticeHeld(false)}
+        >
           <span className="grow">{message}</span>
           <button
             type="button"
@@ -275,7 +308,7 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
             <button type="button" className="btn btn-quiet btn-sm" onClick={() => setDialog('edit')}>
               ⚙ Edit
             </button>
-            <details className="menu">
+            <details className="menu" ref={menuRef}>
               <summary className="btn btn-quiet btn-sm" aria-label="More set actions">
                 ⋯
               </summary>
@@ -321,6 +354,7 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
                   type="button"
                   className="menu-item"
                   onClick={() => {
+                    restoreMenuFocus.current = true;
                     for (const view of slotViews(gearSet, catalog)) {
                       if (view.equipped) state.unequip(gearSet.id, view.position.id);
                     }

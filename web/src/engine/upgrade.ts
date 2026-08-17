@@ -42,21 +42,36 @@ export function fractionDenominator(full: number): number {
   return 2 ** clampTier(full);
 }
 
+/**
+ * The banked fraction a state really has at an already-clamped tier.
+ *
+ * Split out so the scaling rules below can read a normalised tier and fraction
+ * without allocating a state object to throw away. Every one of them used to
+ * call `normalizeState` — `scalePrimary` twice, once directly and once through
+ * `effectiveLevel` — and resolving one item calls them up to twenty times, so
+ * ranking a slot spent most of its time building and discarding `{full,
+ * fraction}` pairs.
+ */
+function normalFraction(state: UpgradeState, full: number): number {
+  if (full >= MAX_TIER) return 0;
+  let fraction = Number.isFinite(state.fraction) ? Math.trunc(state.fraction) : 0;
+  if (fraction < 0) return 0;
+  const denom = fractionDenominator(full);
+  return fraction >= denom ? denom - 1 : fraction;
+}
+
 export function normalizeState(state: UpgradeState): UpgradeState {
   const full = clampTier(state.full);
-  const denom = fractionDenominator(full);
-  let fraction = Number.isFinite(state.fraction) ? Math.trunc(state.fraction) : 0;
-  if (fraction < 0) fraction = 0;
   // At max tier nothing can be banked — the client shows "cannot be upgraded".
   if (full >= MAX_TIER) return { full: MAX_TIER, fraction: 0 };
-  if (fraction >= denom) fraction = denom - 1;
-  return { full, fraction };
+  return { full, fraction: normalFraction(state, full) };
 }
 
 /** Continuous upgrade level used by the percentage-based rules. */
 export function effectiveLevel(state: UpgradeState): number {
-  const { full, fraction } = normalizeState(state);
-  return full + fraction / fractionDenominator(full);
+  const full = clampTier(state.full);
+  if (full >= MAX_TIER) return MAX_TIER;
+  return full + normalFraction(state, full) / fractionDenominator(full);
 }
 
 /** The client's headline number is the effective level times ten. */
@@ -105,7 +120,7 @@ function ceilToOneDecimal(x: number): number {
  */
 export function scalePrimary(base: number, state: UpgradeState): number {
   if (!Number.isFinite(base) || base === 0) return 0;
-  const { full } = normalizeState(state);
+  const full = clampTier(state.full);
   if (base < 0) return Math.min(0, base + full);
   if (base <= 10) return base + full;
   const eff = effectiveLevel(state);
@@ -128,7 +143,7 @@ export function scaleDamage(base: number, state: UpgradeState): number {
  */
 export function scaleFlat(base: number, state: UpgradeState): number {
   if (!Number.isFinite(base) || base === 0) return 0;
-  const { full } = normalizeState(state);
+  const full = clampTier(state.full);
   if (base < 0) return Math.min(0, base + full);
   return base + full;
 }
@@ -144,8 +159,8 @@ export function scaleFlat(base: number, state: UpgradeState): number {
  */
 export function scaleWeight(base: number, state: UpgradeState): number {
   if (!Number.isFinite(base) || base <= 0.1) return base;
-  const { full, fraction } = normalizeState(state);
-  const totalProgression = 2 ** full + fraction;
+  const full = clampTier(state.full);
+  const totalProgression = 2 ** full + normalFraction(state, full);
   const scaled = base * (1 - 0.09 * Math.log2(totalProgression));
   return Math.max(0, ceilToOneDecimal(scaled));
 }
@@ -172,7 +187,7 @@ export function voidBonus(
   presentKeys: Iterable<string>,
   state: UpgradeState,
 ): number {
-  const { full } = normalizeState(state);
+  const full = clampTier(state.full);
   if (full <= 0) return 0;
   let matches = 0;
   const seen = new Set<string>();

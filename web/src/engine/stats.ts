@@ -73,10 +73,18 @@ const SAVE_ALIASES: Readonly<Record<Save, readonly string[]>> = {
   VOID: ['SV VOID', 'SV_VOID', 'VOID'],
 };
 
-/** The one base value an item declares for a save, under any spelling. */
-function baseSave(merged: Record<string, number>, save: Save): number {
+/**
+ * The one base value an item declares for a save, under any spelling.
+ *
+ * Reads the two maps in place rather than through a merged copy. `st` wins over
+ * `sv` for the same spelling, which is what `{...sv, ...st}` meant — including
+ * for an explicit zero, which shadows the other map's value and sends the
+ * lookup on to the next alias exactly as before. Building that merged object
+ * cost two spreads per item, on every rank of every slot.
+ */
+function baseSave(st: Record<string, number>, sv: Record<string, number>, save: Save): number {
   for (const alias of SAVE_ALIASES[save]) {
-    const value = merged[alias];
+    const value = st[alias] ?? sv[alias];
     if (value) return value;
   }
   return 0;
@@ -87,7 +95,7 @@ function baseSave(merged: Record<string, number>, save: Save): number {
  * `ENDUR_REGEN` is the pipeline's vocabulary; `END_REGEN` is kept as an alias
  * so an older payload still resolves.
  */
-const FLAT_KEYS = [
+export const FLAT_KEYS = [
   'HASTE',
   'REGEN', 'HP_REGEN',
   'MANA REGEN', 'MANA_REGEN',
@@ -95,18 +103,59 @@ const FLAT_KEYS = [
   'ATTACK',
 ] as const;
 
-/** Which stat keys on an item can trigger the synthetic Void save. */
-function voidTriggerKeys(item: Item): string[] {
-  const st = item.st ?? {};
-  const sv = item.sv ?? {};
-  const merged: Record<string, number> = { ...sv, ...st };
+/**
+ * Which stat keys on an item can trigger the synthetic Void save.
+ *
+ * Stops at two, because that is where `voidBonus` stops counting: the rule is
+ * "at least two distinct qualifying fields", and every key this yields is
+ * already distinct by construction, so collecting all thirteen and de-duping
+ * them through a Set was work with no reader.
+ */
+function voidTriggerKeys(st: Record<string, number>, sv: Record<string, number>): string[] {
   const keys: string[] = [];
-  for (const a of ATTRIBUTES) if (st[a]) keys.push(a);
+  for (const a of ATTRIBUTES) {
+    if (st[a]) {
+      keys.push(a);
+      if (keys.length >= 2) return keys;
+    }
+  }
   for (const save of SAVES) {
     if (save === 'VOID') continue;
-    if (baseSave(merged, save)) keys.push(`SV_${save}`);
+    if (baseSave(st, sv, save)) {
+      keys.push(`SV_${save}`);
+      if (keys.length >= 2) return keys;
+    }
   }
-  return [...new Set(keys)];
+  return keys;
+}
+
+/**
+ * One save's resolved value, or `null` when the item declares nothing for it.
+ *
+ * SV Void is synthesised from the tier, and two catalog rows (Anthemion
+ * Armbands, Darkspun Shroud) also *print* a Void line — pipeline/README.md §6
+ * reads those two wiki pages as captures of already-upgraded items, and their
+ * printed values are exactly what the synthetic rule yields at the tier named
+ * in that note (+2 and +1). The two therefore describe one line, not two, so
+ * they are reconciled with `max` and never added together. Summing them
+ * overstated Anthemion's Void by 12 at +10.
+ *
+ * Exported so the ranking scorer resolves a save exactly the way the stat panel
+ * does, rather than carrying a second copy of this rule.
+ */
+export function resolvedSave(
+  st: Record<string, number>,
+  sv: Record<string, number>,
+  save: Save,
+  upgrade: EquippedItem['upgrade'],
+): number | null {
+  const base = baseSave(st, sv, save);
+  // `voidBonus` is zero below +1 and its trigger scan is the most expensive
+  // read in this file, so at +0 — where every catalog row starts — it is not
+  // run at all.
+  const bonus = save === 'VOID' && upgrade.full > 0 ? voidBonus(voidTriggerKeys(st, sv), upgrade) : 0;
+  if (!base && !bonus) return null;
+  return Math.max(base ? scalePrimary(base, upgrade) : 0, bonus);
 }
 
 /**
@@ -126,23 +175,10 @@ export function resolveItem(item: Item, upgrade: EquippedItem['upgrade']) {
   }
 
   const saves: Partial<Record<Save, number>> = {};
-  const merged: Record<string, number> = { ...sv, ...st };
   for (const save of SAVES) {
-    const base = baseSave(merged, save);
-    if (base) saves[save] = scalePrimary(base, upgrade);
+    const value = resolvedSave(st, sv, save, upgrade);
+    if (value !== null) saves[save] = value;
   }
-
-  /*
-   * SV Void is synthesised from the tier, and two catalog rows (Anthemion
-   * Armbands, Darkspun Shroud) also *print* a Void line — pipeline/README.md
-   * §6 reads those two wiki pages as captures of already-upgraded items, and
-   * their printed values are exactly what the synthetic rule yields at the
-   * tier named in that note (+2 and +1). The two therefore describe one line,
-   * not two, so they are reconciled with `max` and never added together.
-   * Summing them overstated Anthemion's Void by 12 at +10.
-   */
-  const bonus = voidBonus(voidTriggerKeys(item), upgrade);
-  if (bonus) saves.VOID = Math.max(saves.VOID ?? 0, bonus);
 
   const ac = st.AC ? scalePrimary(st.AC, upgrade) : 0;
   const hp = st.HP ? scalePrimary(st.HP, upgrade) : 0;

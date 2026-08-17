@@ -193,12 +193,74 @@ test('every item in the catalog is reachable, and rows open a detail window', as
   await expectCleanText(page);
 });
 
+test('the row stays a row: six columns, scoped headers, a caption that follows the filters', async ({
+  page,
+}) => {
+  await open(page);
+
+  /*
+   * `role="button"` removed the row from the table structure and orphaned its
+   * six `<td>`s; `aria-label` on a button then *replaces* its contents as the
+   * accessible name. Between them, the screen that exists to expose SLOT /
+   * CLASSES / STATS / ERA / EP across 5,861 items announced exactly one thing
+   * per row, for three consecutive reviews.
+   */
+  const semantics = await page.evaluate(() => {
+    const row = document.querySelector('table.data tbody tr')!;
+    return {
+      role: row.getAttribute('role'),
+      label: row.getAttribute('aria-label'),
+      cells: row.querySelectorAll('td').length,
+      cellText: [...row.querySelectorAll('td')].map((td) => (td.textContent ?? '').trim()),
+      scopes: [...document.querySelectorAll('table.data thead th')].map((th) => th.getAttribute('scope')),
+      rows: document.querySelectorAll('table.data tbody tr').length,
+      stops: [...document.querySelectorAll<HTMLElement>('table.data tbody tr, table.data tbody tr *')]
+        .filter((el) => el.tabIndex >= 0)
+        .map((el) => el.tagName),
+    };
+  });
+
+  expect(semantics.role, 'a row is a row').toBeNull();
+  expect(semantics.label, 'an aria-label on the row replaces all six cells').toBeNull();
+  expect(semantics.cells).toBe(6);
+  expect(semantics.cellText.filter(Boolean).length, 'every column carries text').toBeGreaterThanOrEqual(5);
+  expect(semantics.scopes).toEqual(['col', 'col', 'col', 'col', 'col', 'col']);
+
+  // The name is a real control now, and it is deliberately not a second tab
+  // stop: 100 rows must not cost 200 stops.
+  expect(new Set(semantics.stops)).toEqual(new Set(['TR']));
+  expect(semantics.stops).toHaveLength(semantics.rows);
+  await expect(page.locator('table.data tbody tr').first().locator('td button')).toHaveCount(1);
+
+  // A caption is the table's accessible name, and the filters are the only
+  // thing that separates "5,861 items" from "94 items".
+  const caption = page.locator('table.data caption');
+  await expect(caption).toHaveCount(1);
+  await expect(caption).toHaveClass(/sr-only/);
+  await expect(caption).toContainText(/any slot, any class, any era, live content only/i);
+  await expect(caption).toContainText(/sorted by ep, descending/i);
+
+  await page.locator('select[aria-label="Filter by slot"]').selectOption('HEAD');
+  await page.waitForTimeout(400);
+  await expect(caption).toContainText('slot HEAD');
+  await page.getByRole('button', { name: /^Item/ }).click();
+  await page.waitForTimeout(400);
+  await expect(caption).toContainText(/sorted by name, ascending/i);
+  await expectCleanText(page);
+});
+
 test('a row opens the item, by mouse and by keyboard, and can equip it', async ({ page }) => {
   await open(page);
 
   const first = page.locator('table.data tbody tr').first();
-  await expect(first).toHaveAttribute('role', 'button');
-  const name = (await first.locator('td:first-child span').first().innerText()).trim();
+  const name = (await first.locator('td:first-child button').first().innerText()).trim();
+
+  // The affordance in the first cell opens it too, without firing twice.
+  await first.locator('td:first-child button').click();
+  await expect(page.locator('.modal')).toHaveCount(1);
+  await expect(page.locator('.modal')).toContainText(name);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.modal')).toHaveCount(0);
 
   await first.click();
   await expect(page.locator('.modal')).toBeVisible();
