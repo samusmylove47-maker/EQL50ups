@@ -51,6 +51,16 @@ function change(select: HTMLSelectElement, value: string): void {
   });
 }
 
+function key(target: EventTarget, name: string, init: KeyboardEventInit = {}): void {
+  act(() => {
+    target.dispatchEvent(new KeyboardEvent('keydown', { key: name, bubbles: true, ...init }));
+  });
+}
+
+function seedCharacter(name = 'Avenrae'): string {
+  return useApp.getState().createCharacter({ name, level: 50, classes: ['WAR'], race: null }).id;
+}
+
 beforeEach(() => {
   useCatalog.getState().loadFixture();
   useApp.setState({ ...emptyState(), hydrated: true, storageStatus: 'ok' });
@@ -226,5 +236,150 @@ describe('the equipment map is shaped like a body', () => {
     // made the last row exactly as wide as the shoulders.
     expect(extent(ordered[ordered.length - 1]!), 'feet').toBeLessThan(widest);
     expect(rows.get(ordered[ordered.length - 1]!)!.sort()).toEqual([2, 3, 4]);
+  });
+});
+
+/*
+ * `Modal` used to read `document.activeElement` from an effect. React applies a
+ * child's `autoFocus` during commit and runs a child's effects before its
+ * parent's, so what it stored was never the opener — it was the dialog looking
+ * at itself, and closing left the reader on `<body>` with the whole document to
+ * re-traverse. Two dialogs are checked here because the two ways focus gets
+ * pulled inside, `autoFocus` and a child effect, both beat a parent effect.
+ */
+describe('a dialog hands focus back to the control that opened it', () => {
+  it('returns to New set after the set dialog is dismissed', () => {
+    seedCharacter();
+    mount('#/characters');
+
+    const opener = [...container.querySelectorAll<HTMLButtonElement>('.card-foot button')].find(
+      (button) => button.textContent === 'New set',
+    );
+    expect(opener).toBeTruthy();
+    opener!.focus();
+    click(opener);
+
+    // The name field claims focus with `autoFocus`, which is the commit-phase
+    // move that used to overwrite the opener before it could be recorded.
+    const name = container.querySelector<HTMLInputElement>('[role="dialog"] input[type="text"]');
+    expect(document.activeElement).toBe(name);
+
+    key(document, 'Escape');
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('returns to the socket button after the donor picker is dismissed', () => {
+    const characterId = seedCharacter();
+    const gearSet = useApp.getState().createSet(characterId, 'Main Set');
+    // +1 opens the Focus socket, which is what puts an Add button on the row.
+    useApp.getState().equip(gearSet.id, 'HEAD', '[Fixture] Iron Helm', { full: 1, fraction: 0 });
+    mount(`#/set/${gearSet.id}/exaltations`);
+
+    const opener = [...container.querySelectorAll<HTMLButtonElement>('.socket button')].find(
+      (button) => button.textContent === 'Add',
+    );
+    expect(opener).toBeTruthy();
+    opener!.focus();
+    click(opener);
+
+    // This one pulls focus in from a child effect rather than from `autoFocus`;
+    // both run before the parent's, so both used to erase the opener.
+    const search = container.querySelector<HTMLInputElement>(
+      '[aria-label="Search exaltation donors"]',
+    );
+    expect(document.activeElement).toBe(search);
+
+    key(document, 'Escape');
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('still traps Tab inside the dialog', () => {
+    seedCharacter();
+    mount('#/characters');
+    const opener = [...container.querySelectorAll<HTMLButtonElement>('.card-foot button')].find(
+      (button) => button.textContent === 'New set',
+    );
+    opener!.focus();
+    click(opener);
+
+    const dialog = container.querySelector<HTMLElement>('[role="dialog"]');
+    expect(dialog).toBeTruthy();
+    /*
+     * jsdom reports every element as zero-sized, so the trap's visibility
+     * filter finds no stops and parks focus on the dialog itself. What can be
+     * asserted here is the part that matters for the restore fix: Tab, in
+     * either direction, never leaves the dialog. Where it lands among the real
+     * stops is covered by the browser suite.
+     */
+    key(document, 'Tab');
+    expect(dialog!.contains(document.activeElement)).toBe(true);
+    key(document, 'Tab', { shiftKey: true });
+    expect(dialog!.contains(document.activeElement)).toBe(true);
+  });
+});
+
+/*
+ * Deleting a set destroys the row the reader is standing on. The page title is
+ * the right landing place when a whole card goes, but for one row of one card
+ * it is a thrown-away position; the list itself carries on.
+ */
+describe('deleting a set keeps the reader in the list', () => {
+  let confirmed: typeof window.confirm;
+
+  const rows = () => [...container.querySelectorAll<HTMLLIElement>('li.set-line')];
+  const deleteIn = (row: Element) => row.querySelector<HTMLButtonElement>('.btn-danger')!;
+  const newSet = () => container.querySelector<HTMLButtonElement>('.card-foot .btn-primary')!;
+
+  beforeEach(() => {
+    confirmed = window.confirm;
+    window.confirm = () => true;
+    const characterId = seedCharacter();
+    for (const name of ['Alpha', 'Beta', 'Gamma']) useApp.getState().createSet(characterId, name);
+    mount('#/characters');
+    expect(rows()).toHaveLength(3);
+  });
+
+  afterEach(() => {
+    window.confirm = confirmed;
+  });
+
+  it('moves to the row below the one that was deleted', () => {
+    const [first, second] = rows();
+    const gone = first!.querySelector('a')!.textContent;
+    const below = deleteIn(second!);
+
+    deleteIn(first!).focus();
+    click(deleteIn(first!));
+
+    expect(useApp.getState().sets.map((s) => s.name)).not.toContain(gone);
+    expect(rows()).toHaveLength(2);
+    expect(document.activeElement).toBe(below);
+  });
+
+  it('moves to the row above when the last one is deleted', () => {
+    const list = rows();
+    const above = deleteIn(list[1]!);
+    const last = list[2]!;
+
+    deleteIn(last).focus();
+    click(deleteIn(last));
+
+    expect(rows()).toHaveLength(2);
+    expect(document.activeElement).toBe(above);
+  });
+
+  it('lands on New set once the card has no sets left', () => {
+    const create = newSet();
+    for (let remaining = 3; remaining > 0; remaining -= 1) {
+      const row = rows()[0]!;
+      deleteIn(row).focus();
+      click(deleteIn(row));
+    }
+
+    expect(rows()).toHaveLength(0);
+    expect(container.textContent).toContain('No sets yet');
+    expect(document.activeElement).toBe(create);
   });
 });

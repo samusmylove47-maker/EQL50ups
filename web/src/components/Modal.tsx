@@ -8,9 +8,14 @@
  * and back onto the button that opened it, one render after the picker had
  * focused its search box. The handler reads the latest `onClose` through a ref
  * instead, so the dialog is set up exactly once per open.
+ *
+ * The opener is read during render, not from that effect. Everything that
+ * pulls focus into a dialog — `autoFocus`, a child's own effect — happens
+ * before a parent effect runs, so an effect here only ever sees the dialog
+ * looking at itself, and closing dropped the reader on `<body>`.
  */
 
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 export interface ModalProps {
   title: string;
@@ -41,13 +46,15 @@ function focusableWithin(root: HTMLElement): HTMLElement[] {
 
 export function Modal({ title, onClose, children, footer, headerExtra, titleHidden, width }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  const restoreRef = useRef<Element | null>(null);
+  // The control the reader was on when this dialog was rendered — a lazy
+  // initialiser, so it is read once, on the render that opens the dialog and
+  // before commit moves focus anywhere.
+  const [opener] = useState<Element | null>(() => document.activeElement);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
   const titleId = useId();
 
   useEffect(() => {
-    restoreRef.current = document.activeElement;
     // Move focus inside straight away — unless a child claimed it first with
     // `autoFocus`, which React applies during commit, before this effect runs.
     const dialog = dialogRef.current;
@@ -90,10 +97,16 @@ export function Modal({ title, onClose, children, footer, headerExtra, titleHidd
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = previousOverflow;
-      const restore = restoreRef.current;
-      if (restore instanceof HTMLElement && document.body.contains(restore)) restore.focus();
+      /*
+       * A real unmount has already taken the dialog out of the document by the
+       * time this runs; StrictMode's development-only remount has not, and
+       * restoring there would pull focus off whatever the dialog just gave it
+       * to and never give it back.
+       */
+      if (dialog?.isConnected) return;
+      if (opener instanceof HTMLElement && document.body.contains(opener)) opener.focus();
     };
-  }, []);
+  }, [opener]);
 
   return (
     <div

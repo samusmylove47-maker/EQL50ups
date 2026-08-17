@@ -41,6 +41,19 @@ export function Characters() {
     }
   }, []);
 
+  /*
+   * Deleting a *set* destroys only one row of one card, so the page title is
+   * the wrong landing place — a reader pruning three sets would be thrown back
+   * to the top of the document twice. The row's neighbour is where the list
+   * carries on, and every candidate below outlives the re-render that drops the
+   * row, so focus can be handed over in the click itself.
+   */
+  const landings = useRef(new Map<string, HTMLButtonElement>());
+  const landing = (key: string) => (el: HTMLButtonElement | null) => {
+    if (el) landings.current.set(key, el);
+    else landings.current.delete(key);
+  };
+
   /**
    * Import reports what it dropped rather than failing silently. A file that is
    * ours but carries junk imports the good part and lists the rest; a file that
@@ -168,7 +181,7 @@ export function Characters() {
               </div>
 
               <ul className="stack" style={{ gap: 6 }}>
-                {sets.map((gearSet) => (
+                {sets.map((gearSet, index) => (
                   <li className="set-line" key={gearSet.id}>
                     <div className="grow">
                       <a href={href.set(gearSet.id)}>{gearSet.name}</a>
@@ -217,8 +230,17 @@ export function Characters() {
                       <button
                         type="button"
                         className="btn btn-sm btn-quiet btn-danger"
+                        ref={landing(`set:${gearSet.id}`)}
                         onClick={() => {
-                          if (window.confirm(`Delete set "${gearSet.name}"?`)) deleteSet(gearSet.id);
+                          if (!window.confirm(`Delete set "${gearSet.name}"?`)) return;
+                          // The row below, the row above once this is the last
+                          // one, and New set when the card runs out of sets.
+                          const neighbour = sets[index + 1] ?? sets[index - 1];
+                          const next = landings.current.get(
+                            neighbour ? `set:${neighbour.id}` : `new:${character.id}`,
+                          );
+                          deleteSet(gearSet.id);
+                          next?.focus({ preventScroll: true });
                         }}
                       >
                         Delete
@@ -233,6 +255,7 @@ export function Characters() {
                 <button
                   type="button"
                   className="btn btn-sm btn-primary"
+                  ref={landing(`new:${character.id}`)}
                   onClick={() => setCreatingFor(character.id)}
                 >
                   New set
