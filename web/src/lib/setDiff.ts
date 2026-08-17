@@ -20,12 +20,12 @@ import {
   RESIST_CAP, SAVES, SAVE_NAMES, type SlotPosition,
 } from '../engine/constants';
 import { scoreItem, type WeightProfile } from '../engine/ep';
-import type { StatTotals } from '../engine/stats';
+import { computeTotals, type StatTotals } from '../engine/stats';
 import type { GearSet, Item } from '../engine/types';
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
 import type { CatalogState } from '../data/catalog';
 import {
-  resolvedEntries, scoreContextFrom, slotViews, statDeltas, totalsFor,
+  scoreContextFrom, slotViews, statDeltas, totalsFor,
   type ScoreExisting, type SlotView, type StatDelta,
 } from '../selectors/gear';
 import { finite } from './format';
@@ -300,11 +300,65 @@ function summarizeCaps(groups: DiffGroup[]): CapSummary {
   return summary;
 }
 
+/**
+ * A whole set's EP under one profile.
+ *
+ * Two details keep this agreeing with the rest of the app rather than merely
+ * looking plausible.
+ *
+ * **A weapon only counts where it is swung.** `computeTotals` reports a weapon
+ * from Primary and Secondary alone, so a weapon parked in an Any Slot adds no
+ * damage and no ratio to the stat panel, and neither the picker nor the
+ * per-slot column scores it there. This total credited it anyway, which is how
+ * the headline tile came to disagree with the column beneath it by 10.6 EP on a
+ * set with a weapon in an Any Slot — the one number on the screen that
+ * contradicted the numbers it was summarising.
+ *
+ * **Cap headroom is spent as the walk proceeds**, not reset for every item.
+ * Each slot is credited `min(running + amount, cap) − min(running, cap)`, so the
+ * sum telescopes to `min(total, cap)`: the value of the set's *capped* totals,
+ * which is what a character actually feels. Scoring each item against an empty
+ * context instead lets two items each claim the same headroom and bill for it
+ * twice. No set of gear currently reaches 510, so today this changes nothing —
+ * it is here so the number stays right on the day one does.
+ *
+ * The per-slot column asks a different question — what one item is worth *given
+ * the rest of the set* — and marginal contributions under a binding ceiling do
+ * not sum to the whole. While no cap binds the two agree exactly, which is the
+ * case `setdiff` asserts.
+ */
 function totalEp(views: readonly SlotView[], weights: WeightProfile): number {
-  return resolvedEntries(views).reduce(
-    (sum, entry) => sum + finite(scoreItem(entry.item, entry.upgrade, weights).total),
-    0,
+  const filled = views.flatMap((view) =>
+    view.item && view.equipped
+      ? [{
+          position: view.position,
+          item: view.item,
+          upgrade: normalizeState(view.equipped.upgrade),
+        }]
+      : [],
   );
+  let total = 0;
+
+  for (const [index, entry] of filled.entries()) {
+    // Prefix totals via the engine's own accumulator, so "headroom already
+    // spent" is measured the same way the stat panel measures it.
+    const spent = computeTotals(
+      filled.slice(0, index).map((prior) => ({
+        position: prior.position.id,
+        item: prior.item,
+        upgrade: prior.upgrade,
+      })),
+    );
+
+    total += finite(
+      scoreItem(entry.item, entry.upgrade, weights, {
+        existing: scoreContextFrom(spent),
+        weaponCounts: entry.position.type !== 'ANY',
+      }).total,
+    );
+  }
+
+  return total;
 }
 
 function hasWeights(weights: WeightProfile): boolean {

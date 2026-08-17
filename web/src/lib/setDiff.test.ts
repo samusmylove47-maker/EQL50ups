@@ -392,3 +392,87 @@ describe('diffSets', () => {
     expect(Number.isFinite(diff.epDelta)).toBe(true);
   });
 });
+
+/**
+ * The headline tile and the column beneath it are one number.
+ *
+ * The KPI used to be scored a different way from the per-slot column it
+ * summarises: it credited weapon damage and ratio from *any* position, while
+ * the column — like the picker, and like the stat panel — credits a weapon only
+ * from a hand. A set with a weapon parked in an Any Slot therefore printed a
+ * total 10.6 EP adrift of the rows that were supposed to add up to it, with
+ * nothing on screen to explain the gap.
+ */
+describe('the compare headline agrees with the column it summarises', () => {
+  const blade = item('Borrowed Blade', {
+    sl: ['PRIMARY'],
+    st: { STR: 10 },
+    wp: { dmg: 40, dly: 20, skill: '1H Slashing' },
+  });
+  const helm = item('Plain Helm', { st: { STR: 5, AC: 10 } });
+  const weights = { STR: 1, AC: 1, RATIO: 40, DMG: 2 };
+  const catalog = catalogOf([blade, helm]);
+
+  const columnTotal = (diff: ReturnType<typeof diffSets>, side: 'a' | 'b') =>
+    diff.slots.reduce((sum, slot) => sum + (slot[side]?.ep ?? 0), 0);
+
+  it('credits a weapon in a hand and not in an Any Slot', () => {
+    const held = set({ weights, slots: { PRIMARY: equipped('Borrowed Blade') } });
+    const worn = set({ weights, slots: { ANY_1: equipped('Borrowed Blade') } });
+
+    const heldEp = diffSets(held, held, catalog).epALens;
+    const wornEp = diffSets(worn, worn, catalog).epALens;
+
+    // `computeTotals` reports no weapon from an Any Slot, so the score must not
+    // claim value the stat panel then refuses to show: STR 10 and nothing else.
+    expect(wornEp).toBe(10);
+    expect(heldEp).toBeGreaterThan(wornEp);
+  });
+
+  it('sums to its own per-slot column with a weapon in an Any Slot', () => {
+    const a = set({
+      weights,
+      slots: { HEAD: equipped('Plain Helm'), ANY_1: equipped('Borrowed Blade') },
+    });
+    const b = set({
+      weights,
+      slots: { HEAD: equipped('Plain Helm'), PRIMARY: equipped('Borrowed Blade', 4) },
+    });
+    const diff = diffSets(a, b, catalog);
+
+    // No ceiling binds at these magnitudes, so the marginal contributions the
+    // column prints and the whole-set total must be the same number exactly.
+    expect(diff.epALens).toBeCloseTo(columnTotal(diff, 'a'), 10);
+    expect(diff.epBUnderLens).toBeCloseTo(columnTotal(diff, 'b'), 10);
+    expect(diff.epDelta).toBeCloseTo(columnTotal(diff, 'b') - columnTotal(diff, 'a'), 10);
+  });
+
+  it('sums to its column across every slot of a full set', () => {
+    const slots: GearSet['slots'] = {};
+    for (const position of ['HEAD', 'CHEST', 'ARMS', 'LEGS', 'FEET', 'HANDS', 'WRIST_1']) {
+      slots[position] = equipped('Plain Helm', 3);
+    }
+    slots.PRIMARY = equipped('Borrowed Blade', 7);
+    slots.ANY_1 = equipped('Borrowed Blade', 2);
+    slots.ANY_2 = equipped('Plain Helm');
+
+    const full = set({ weights, slots });
+    const diff = diffSets(full, set({ weights }), catalog);
+    expect(diff.epALens).toBeCloseTo(columnTotal(diff, 'a'), 10);
+    expect(diff.epALens).toBeGreaterThan(0);
+  });
+
+  it('spends cap headroom once across the set rather than per item', () => {
+    // Two items that individually fit under the ceiling but together exceed it.
+    // Scoring each against an empty context would bill for the same headroom
+    // twice; the total must be the value of the *capped* total, min(600, 510).
+    const hoard = item('Hoarded Strength', { sl: ['HEAD'], st: { STR: 300 } });
+    const capCatalog = catalogOf([hoard]);
+    const a = set({
+      weights: { STR: 1 },
+      slots: { HEAD: equipped('Hoarded Strength'), CHEST: equipped('Hoarded Strength') },
+    });
+    const diff = diffSets(a, set({ weights: { STR: 1 } }), capCatalog);
+    expect(diff.epALens).toBe(ATTRIBUTE_CAP);
+  });
+});
