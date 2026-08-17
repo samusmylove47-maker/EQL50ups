@@ -16,6 +16,7 @@ import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade
 import type { EquippedItem, GearSet } from '../engine/types';
 import type { SharedPlan } from '../share/codec';
 import type { ExportEnvelope } from '../share/codec';
+import { isDefaultFilters, type SetFilters } from '../lib/setFilters';
 import {
   emptyState,
   loadState,
@@ -56,9 +57,25 @@ export interface AppState extends PersistedState {
   updateLoadout: (characterId: string, loadoutId: string, patch: Partial<Omit<Loadout, 'id'>>) => void;
   deleteLoadout: (characterId: string, loadoutId: string) => void;
   setActiveLoadout: (characterId: string, loadoutId: string) => void;
-  createSet: (characterId: string, name?: string, weights?: WeightProfile) => GearSet;
+  createSet: (
+    characterId: string,
+    name?: string,
+    weights?: WeightProfile,
+    options?: { notes?: string; filters?: SetFilters },
+  ) => GearSet;
   duplicateSet: (id: string) => GearSet | null;
   renameSet: (id: string, name: string) => void;
+  /**
+   * Apply a whole set configuration in one write.
+   *
+   * The create dialog and the edit dialog are one surface, so saving one is one
+   * mutation rather than four — four would be four persists and four renders
+   * for what the user experienced as pressing Save once.
+   */
+  configureSet: (
+    id: string,
+    patch: { name?: string; notes?: string; weights?: WeightProfile; filters?: SetFilters },
+  ) => void;
   deleteSet: (id: string) => void;
   equip: (setId: string, position: string, itemName: string, upgrade?: UpgradeState) => void;
   unequip: (setId: string, position: string) => void;
@@ -222,7 +239,7 @@ export const useApp = create<AppState>((set, get) => {
       persist();
     },
 
-    createSet(characterId, name, weights) {
+    createSet(characterId, name, weights, options) {
       const now = Date.now();
       const existing = get().sets.filter((s) => s.characterId === characterId).length;
       const gearSet: GearSet = {
@@ -234,9 +251,31 @@ export const useApp = create<AppState>((set, get) => {
         createdAt: now,
         updatedAt: now,
       };
+      if (options?.notes?.trim()) gearSet.notes = options.notes.trim();
+      if (options?.filters && !isDefaultFilters(options.filters)) {
+        gearSet.defaultFilters = { ...options.filters };
+      }
       set({ sets: [...get().sets, gearSet] });
       persist();
       return gearSet;
+    },
+
+    configureSet(id, patch) {
+      mutateSet(id, (s) => {
+        const next: GearSet = { ...s };
+        if (patch.name !== undefined) next.name = patch.name.trim() || s.name;
+        if (patch.notes !== undefined) {
+          const notes = patch.notes.trim();
+          if (notes) next.notes = notes;
+          else delete next.notes;
+        }
+        if (patch.weights) next.weights = { ...patch.weights };
+        if (patch.filters) {
+          if (isDefaultFilters(patch.filters)) delete next.defaultFilters;
+          else next.defaultFilters = { ...patch.filters };
+        }
+        return next;
+      });
     },
 
     duplicateSet(id) {

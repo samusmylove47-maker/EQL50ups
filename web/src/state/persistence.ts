@@ -16,6 +16,7 @@ import {
 } from '../engine/character';
 import type { EquippedItem, GearSet } from '../engine/types';
 import { finite } from '../lib/format';
+import { isDefaultFilters, sanitizeFilters } from '../lib/setFilters';
 
 /**
  * The storage key is deliberately frozen at `.v1`: it is where every existing
@@ -255,6 +256,12 @@ function sanitizeSet(raw: unknown): GearSet | null {
     updatedAt: finite(raw.updatedAt, now),
   };
   if (typeof raw.notes === 'string' && raw.notes) set.notes = raw.notes;
+  // Only a non-default choice is stored, so an untouched set carries no field
+  // and the whole-library export stays as small as it was.
+  if (raw.defaultFilters !== undefined) {
+    const { filters } = sanitizeFilters(raw.defaultFilters);
+    if (!isDefaultFilters(filters)) set.defaultFilters = filters;
+  }
   return set;
 }
 

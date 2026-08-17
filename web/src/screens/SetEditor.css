@@ -1,0 +1,44 @@
+/*
+ * Set screen additions: the switcher's per-sibling compare affordance and the
+ * import report's rejection list.
+ */
+
+.setmenu-row {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.setmenu-row .grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/*
+ * A second action inside a menu row has to stay obviously secondary, or the
+ * row reads as two competing entries rather than "open this / diff this".
+ */
+.setmenu-compare {
+  flex: 0 0 auto;
+  width: 32px;
+  text-align: center;
+  color: var(--text-faint);
+  border-left: 1px solid var(--line);
+}
+
+.setmenu-compare:hover {
+  color: var(--accent);
+}
+
+.import-rejects {
+  margin: 0;
+  padding-left: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}

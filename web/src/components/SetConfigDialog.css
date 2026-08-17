@@ -1,0 +1,117 @@
+/*
+ * Set configuration dialog — §A4's three sections.
+ *
+ * Own stylesheet, own class prefix. Every value resolves to a token from
+ * `styles/tokens.css`; nothing here hard-codes a size or a colour.
+ */
+
+.setconfig {
+  gap: var(--s5);
+}
+
+.setconfig-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+/* A hairline instead of a box: five stacked cards is what leaves a ragged edge. */
+.setconfig-section + .setconfig-section {
+  border-top: 1px solid var(--line);
+  padding-top: var(--s4);
+}
+
+.setconfig-help {
+  margin: 0;
+  min-height: 1.4em;
+}
+
+.setconfig-weights {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--s1) var(--s4);
+}
+
+.setconfig-weight {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 74px 26px;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.setconfig-weight .k {
+  font-size: var(--fs-body);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setconfig-weight input {
+  width: 100%;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.setconfig-add {
+  align-self: start;
+  border: 1px dashed var(--line-strong);
+  background: transparent;
+  color: var(--text-dim);
+  border-radius: var(--radius);
+  padding: var(--s2) var(--s3);
+  font: inherit;
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+
+.setconfig-add:hover:not(:disabled) {
+  border-color: var(--accent-dim);
+  color: var(--text-strong);
+}
+
+.setconfig-add:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.setconfig-addrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  align-items: center;
+}
+
+.setconfig-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--s3);
+  align-items: end;
+}
+
+.setconfig-check {
+  padding-bottom: var(--s1);
+}
+
+/*
+ * The reason `Create` is disabled, beside the button rather than at the top of
+ * a dialog the reader has already scrolled past.
+ */
+.setconfig-footnote {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-small);
+  color: var(--warn);
+  text-align: left;
+}
+
+@media (max-width: 560px) {
+  .setconfig-weights {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

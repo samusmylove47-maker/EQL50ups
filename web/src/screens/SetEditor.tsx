@@ -1,13 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCatalog } from '../data/catalog';
 import type { WeightProfile } from '../engine/ep';
 import type { Item } from '../engine/types';
 import type { UpgradeState } from '../engine/upgrade';
 import { Modal } from '../components/Modal';
+import { SetConfigDialog, type SetConfigValue } from '../components/SetConfigDialog';
 import { SetWorkspace } from '../components/SetWorkspace';
 import { href, navigate, type SetTab } from '../router';
 import { planFrom, shareUrl } from '../share/codec';
 import { characterFor, setsForCharacter, useApp } from '../state/store';
+import { downloadJson } from '../lib/download';
+import { publishPickerDefaults, resetPickerDefaults } from '../lib/pickerDefaults';
+import { filtersFor } from '../lib/setFilters';
+import {
+  buildSetEnvelope, readEnvelopeText, setExportFilename, summarizeReport,
+  type EnvelopeReport,
+} from '../lib/setExport';
+import './SetEditor.css';
 import { autoFillSteps, slotViews } from '../selectors/gear';
 import { nextFrame, runSliced } from '../lib/frames';
 import { activeContext, activeLoadout, describeLoadout } from '../engine/character';
@@ -20,16 +29,30 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
   const catalog = useCatalog();
   const ensureAll = useCatalog((s) => s.ensureAll);
 
-  const [dialog, setDialog] = useState<'share' | 'edit' | null>(null);
+  const [dialog, setDialog] = useState<'share' | 'edit' | 'create' | 'import' | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [draftName, setDraftName] = useState('');
-  const [draftNotes, setDraftNotes] = useState('');
+  const [report, setReport] = useState<EnvelopeReport | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMessage(null);
   }, [id]);
+
+  const filters = filtersFor(gearSet);
+
+  /*
+   * Publish this set's default filters for the pickers opened from it. §A4's
+   * lesson is that a set carries its own lens; these three fields are the
+   * filter half of that lens, and they have to be in place before the first
+   * picker opens.
+   */
+  const { era: filterEra, source: filterSource, hideNoDrop: filterHideNoDrop } = filters;
+  useEffect(() => {
+    publishPickerDefaults({ era: filterEra, source: filterSource, hideNoDrop: filterHideNoDrop });
+    return () => resetPickerDefaults();
+  }, [filterEra, filterSource, filterHideNoDrop]);
 
   const siblings = useMemo(
     () => setsForCharacter(state, gearSet?.characterId ?? null),
@@ -43,6 +66,20 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
     () => (gearSet && character ? shareUrl(planFrom(character, gearSet), dictionary) : ''),
     [gearSet, character, dictionary],
   );
+
+  const onImportFile = async (file: File) => {
+    const result = readEnvelopeText(await file.text());
+    setReport(result);
+    setDialog('import');
+    if (!result.ok || !result.envelope) return;
+    const before = useApp.getState().sets.length;
+    state.importEnvelope(result.envelope);
+    const after = useApp.getState().sets;
+    const landed = after[after.length - 1];
+    // Land on what was just imported: an import you cannot see is an import you
+    // have to go looking for.
+    if (after.length > before && landed) navigate(href.set(landed.id));
+  };
 
   if (!gearSet) {
     return (
@@ -113,6 +150,8 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
     }
   };
 
+  const compareTargets = siblings.filter((sibling) => sibling.id !== gearSet.id);
+
   return (
     <div>
       {/* The notice used to have no dismiss and shifted the whole page down 60px
@@ -144,24 +183,36 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
             </summary>
             <div className="menu-body">
               {siblings.map((sibling) => (
-                <button
-                  type="button"
-                  key={sibling.id}
-                  className="menu-item"
-                  aria-current={sibling.id === gearSet.id}
-                  onClick={() => navigate(href.set(sibling.id, tab))}
-                >
-                  {sibling.name}
-                </button>
+                /*
+                 * Two actions per sibling: open it, or diff against it. The
+                 * switcher is where a player already goes to hold two sets in
+                 * mind, so it is the cheapest place to offer the comparison —
+                 * and switching used to replace the page, leaving the reader to
+                 * carry forty numbers across in their head.
+                 */
+                <div className="setmenu-row" key={sibling.id}>
+                  <button
+                    type="button"
+                    className="menu-item grow"
+                    aria-current={sibling.id === gearSet.id}
+                    onClick={() => navigate(href.set(sibling.id, tab))}
+                  >
+                    {sibling.name}
+                  </button>
+                  {sibling.id === gearSet.id ? null : (
+                    <button
+                      type="button"
+                      className="menu-item setmenu-compare"
+                      title={`Compare ${gearSet.name} with ${sibling.name}`}
+                      aria-label={`Compare ${gearSet.name} with ${sibling.name}`}
+                      onClick={() => navigate(href.compare(gearSet.id, sibling.id))}
+                    >
+                      <span aria-hidden="true">⇄</span>
+                    </button>
+                  )}
+                </div>
               ))}
-              <button
-                type="button"
-                className="menu-item"
-                onClick={() => {
-                  const created = state.createSet(gearSet.characterId);
-                  navigate(href.set(created.id));
-                }}
-              >
+              <button type="button" className="menu-item" onClick={() => setDialog('create')}>
                 + New set
               </button>
             </div>
@@ -221,15 +272,7 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
             >
               {busy ? '… Filling' : '✦ Auto-fill'}
             </button>
-            <button
-              type="button"
-              className="btn btn-quiet btn-sm"
-              onClick={() => {
-                setDraftName(gearSet.name);
-                setDraftNotes(gearSet.notes ?? '');
-                setDialog('edit');
-              }}
-            >
+            <button type="button" className="btn btn-quiet btn-sm" onClick={() => setDialog('edit')}>
               ⚙ Edit
             </button>
             <details className="menu">
@@ -237,6 +280,33 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
                 ⋯
               </summary>
               <div className="menu-body right">
+                <button
+                  type="button"
+                  className="menu-item"
+                  onClick={() =>
+                    navigate(
+                      // One sibling: go straight to the diff. Several: ask which.
+                      href.compare(
+                        gearSet.id,
+                        compareTargets.length === 1 ? compareTargets[0]?.id : undefined,
+                      ),
+                    )
+                  }
+                >
+                  Compare with…
+                </button>
+                <button
+                  type="button"
+                  className="menu-item"
+                  onClick={() =>
+                    downloadJson(setExportFilename(gearSet), buildSetEnvelope(gearSet, character))
+                  }
+                >
+                  Export this set (JSON)
+                </button>
+                <button type="button" className="menu-item" onClick={() => fileRef.current?.click()}>
+                  Import a set (JSON)…
+                </button>
                 <button
                   type="button"
                   className="menu-item"
@@ -272,6 +342,24 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
                 </button>
               </div>
             </details>
+            {/*
+              The visible menu entry opens this, so the input itself must not be
+              a tab stop: a keyboard user would otherwise land on an invisible,
+              unnamed control in the middle of the tab row.
+            */}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json,.json"
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void onImportFile(file);
+                event.target.value = '';
+              }}
+            />
           </>
         }
         onEquip={(position: string, item: Item, upgrade: UpgradeState) =>
@@ -309,54 +397,83 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
                 it. Paste it as a link, not as text.
               </p>
             ) : null}
+            <p className="hint">
+              For a file rather than a link — one a sim, a spreadsheet or a bot can read — use{' '}
+              <strong>Export this set (JSON)</strong> in the ⋯ menu.
+            </p>
           </div>
         </Modal>
       ) : null}
 
+      {/*
+        One configuration surface for both verbs. A creation path with no
+        options beside an edit path with two fields is two half-dialogs; §A4's
+        lesson is that the scoring lens is chosen when the set is made.
+      */}
       {dialog === 'edit' ? (
+        <SetConfigDialog
+          mode="edit"
+          initial={{
+            name: gearSet.name,
+            notes: gearSet.notes ?? '',
+            weights: gearSet.weights,
+            filters,
+          }}
+          siblingNames={compareTargets.map((s) => s.name)}
+          onCancel={() => setDialog(null)}
+          onSubmit={(value: SetConfigValue) => {
+            state.configureSet(gearSet.id, value);
+            setDialog(null);
+          }}
+        />
+      ) : null}
+
+      {dialog === 'create' ? (
+        <SetConfigDialog
+          mode="create"
+          initial={{ weights: gearSet.weights, filters }}
+          siblingNames={siblings.map((s) => s.name)}
+          onCancel={() => setDialog(null)}
+          onSubmit={(value: SetConfigValue) => {
+            const created = state.createSet(gearSet.characterId, value.name, value.weights, {
+              notes: value.notes,
+              filters: value.filters,
+            });
+            setDialog(null);
+            navigate(href.set(created.id));
+          }}
+        />
+      ) : null}
+
+      {dialog === 'import' && report ? (
         <Modal
-          title="Edit set"
+          title={report.ok ? 'Set imported' : 'That file could not be imported'}
           onClose={() => setDialog(null)}
-          width={560}
+          width={620}
           footer={
-            <>
-              <button type="button" className="btn" onClick={() => setDialog(null)}>
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => {
-                  state.renameSet(gearSet.id, draftName);
-                  state.setNotes(gearSet.id, draftNotes);
-                  setDialog(null);
-                }}
-              >
-                Save
-              </button>
-            </>
+            <button type="button" className="btn btn-primary" onClick={() => setDialog(null)}>
+              Close
+            </button>
           }
         >
           <div className="modal-body stack">
-            <label className="field">
-              <span>Set name</span>
-              <input
-                type="text"
-                value={draftName}
-                autoFocus
-                maxLength={80}
-                onChange={(e) => setDraftName(e.target.value)}
-              />
-            </label>
-            <label className="field">
-              <span>Notes</span>
-              <textarea
-                rows={4}
-                value={draftNotes}
-                onChange={(e) => setDraftNotes(e.target.value)}
-                placeholder="What this set is for, what you are still hunting…"
-              />
-            </label>
+            <p>{summarizeReport(report)}</p>
+            {report.rejected.length ? (
+              <>
+                <h3 className="section-label">What could not be used</h3>
+                <ul className="import-rejects">
+                  {report.rejected.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+            {report.ok ? (
+              <p className="hint">
+                Imported characters and sets are given fresh ids, so importing the same file twice
+                gives you two copies rather than overwriting anything.
+              </p>
+            ) : null}
           </div>
         </Modal>
       ) : null}

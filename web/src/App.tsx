@@ -8,13 +8,18 @@ import { Characters } from './screens/Characters';
 import { ItemBrowser } from './screens/ItemBrowser';
 import { Landing } from './screens/Landing';
 import { NewCharacter } from './screens/NewCharacter';
+import { SetCompare } from './screens/SetCompare';
 import { SetEditor } from './screens/SetEditor';
 import { SharedSet } from './screens/SharedSet';
 import { flushPersist, useApp } from './state/store';
 
 const NAV = [
   { href: href.landing, label: 'Home', match: ['landing'] },
-  { href: href.characters, label: 'Characters', match: ['characters', 'new-character', 'character', 'set'] },
+  {
+    href: href.characters,
+    label: 'Characters',
+    match: ['characters', 'new-character', 'character', 'set', 'set-compare'],
+  },
   { href: href.items, label: 'Items', match: ['items'] },
 ];
 
@@ -115,6 +120,7 @@ export function App() {
         {route.name === 'character' ? <CharacterDetail id={route.id} /> : null}
         {route.name === 'items' ? <ItemBrowser /> : null}
         {route.name === 'set' ? <SetEditor id={route.id} tab={route.tab} /> : null}
+        {route.name === 'set-compare' ? <SetCompare id={route.id} id2={route.id2} /> : null}
         {route.name === 'share' ? <SharedSet payload={route.payload} /> : null}
         {route.name === 'not-found' ? (
           <div className="empty-state">

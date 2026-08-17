@@ -1,20 +1,11 @@
 import { useRef, useState } from 'react';
 import { activeRace, describeCharacter } from '../engine/character';
-import { isExportEnvelope } from '../share/codec';
 import { href, navigate } from '../router';
-import { setsForCharacter, useApp } from '../state/store';
-
-function downloadJson(filename: string, data: unknown): void {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+import { DEFAULT_WEIGHTS, setsForCharacter, useApp } from '../state/store';
+import { SetConfigDialog, type SetConfigValue } from '../components/SetConfigDialog';
+import { downloadJson } from '../lib/download';
+import { readEnvelopeText, summarizeReport, type EnvelopeReport } from '../lib/setExport';
+import { buildSetEnvelope, setExportFilename } from '../lib/setExport';
 
 export function Characters() {
   const state = useApp();
@@ -29,24 +20,18 @@ export function Characters() {
     importEnvelope,
   } = state;
   const fileRef = useRef<HTMLInputElement>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [report, setReport] = useState<EnvelopeReport | null>(null);
+  const [creatingFor, setCreatingFor] = useState<string | null>(null);
 
+  /**
+   * Import reports what it dropped rather than failing silently. A file that is
+   * ours but carries junk imports the good part and lists the rest; a file that
+   * is not ours at all says which of the two it is.
+   */
   const onImport = async (file: File) => {
-    try {
-      const parsed: unknown = JSON.parse(await file.text());
-      if (!isExportEnvelope(parsed)) {
-        setMessage('That file is not an EQL Upgrades export.');
-        return;
-      }
-      const result = importEnvelope(parsed);
-      setMessage(
-        `Imported ${result.characters} character${result.characters === 1 ? '' : 's'} and ${
-          result.sets
-        } set${result.sets === 1 ? '' : 's'}.`,
-      );
-    } catch {
-      setMessage('That file could not be read as JSON.');
-    }
+    const result = readEnvelopeText(await file.text());
+    if (result.ok && result.envelope) importEnvelope(result.envelope);
+    setReport(result);
   };
 
   return (
@@ -89,9 +74,29 @@ export function Characters() {
         </div>
       </div>
 
-      {message ? (
-        <div className="notice" role="status">
-          <span>{message}</span>
+      {report ? (
+        <div className={`notice${report.ok ? '' : ' notice-warn'}`} role="status">
+          <span className="grow">
+            {summarizeReport(report)}
+            {report.rejected.length ? (
+              <ul className="import-rejects">
+                {report.rejected.slice(0, 12).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+                {report.rejected.length > 12 ? (
+                  <li>…and {report.rejected.length - 12} more.</li>
+                ) : null}
+              </ul>
+            ) : null}
+          </span>
+          <button
+            type="button"
+            className="btn btn-quiet btn-icon"
+            aria-label="Dismiss this message"
+            onClick={() => setReport(null)}
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       ) : null}
 
@@ -164,6 +169,19 @@ export function Characters() {
                       <button
                         type="button"
                         className="btn btn-sm btn-quiet"
+                        title="Download this one set as JSON"
+                        onClick={() =>
+                          downloadJson(
+                            setExportFilename(gearSet),
+                            buildSetEnvelope(gearSet, character),
+                          )
+                        }
+                      >
+                        Export
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-quiet"
                         onClick={() => duplicateSet(gearSet.id)}
                       >
                         Duplicate
@@ -187,10 +205,7 @@ export function Characters() {
                 <button
                   type="button"
                   className="btn btn-sm btn-primary"
-                  onClick={() => {
-                    const created = createSet(character.id);
-                    navigate(href.set(created.id));
-                  }}
+                  onClick={() => setCreatingFor(character.id)}
                 >
                   New set
                 </button>
@@ -215,6 +230,27 @@ export function Characters() {
           );
         })}
       </div>
+
+      {/*
+        The same dialog the set screen uses. §A4: name, scoring lens and default
+        filters are chosen when the set is made, not discovered in a tab later.
+      */}
+      {creatingFor ? (
+        <SetConfigDialog
+          mode="create"
+          initial={{ weights: DEFAULT_WEIGHTS }}
+          siblingNames={setsForCharacter(state, creatingFor).map((s) => s.name)}
+          onCancel={() => setCreatingFor(null)}
+          onSubmit={(value: SetConfigValue) => {
+            const created = createSet(creatingFor, value.name, value.weights, {
+              notes: value.notes,
+              filters: value.filters,
+            });
+            setCreatingFor(null);
+            navigate(href.set(created.id));
+          }}
+        />
+      ) : null}
     </div>
   );
 }

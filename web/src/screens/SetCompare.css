@@ -1,0 +1,466 @@
+/*
+ * Set-vs-set diff.
+ *
+ * One layout idea, applied twice: `A | Δ | B`, with the delta column narrow and
+ * centred so the eye can run down it alone. Everything resolves to a token; the
+ * only literals are grid track widths and breakpoints.
+ *
+ * Below 900px the three columns become one stack per row rather than three
+ * squeezed columns — a 34px-wide item name is worse than a taller page, which
+ * is the mistake the doll's right column shipped twice.
+ */
+
+.cmp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  min-width: 0;
+}
+
+.cmp-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.cmp-headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.cmp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-left: auto;
+}
+
+.cmp-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s4);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--s3) var(--s4);
+}
+
+.cmp-pairside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s0);
+  min-width: 0;
+}
+
+.cmp-setname {
+  font-size: var(--fs-mid);
+  color: var(--text-strong);
+  font-weight: var(--fw-emph);
+  overflow-wrap: anywhere;
+}
+
+.cmp-pairmid {
+  color: var(--text-faint);
+  font-size: var(--fs-mid);
+}
+
+.cmp-banner {
+  margin: 0;
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  color: var(--text);
+  font-size: var(--fs-small);
+  padding: var(--s2) var(--s3);
+}
+
+/* ---------------------------------------------------------------- KPI row */
+
+.cmp-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s2);
+}
+
+.cmp-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s0);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s3);
+  min-width: 0;
+}
+
+.cmp-kpivalue {
+  font-size: var(--fs-large);
+  font-weight: var(--fw-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
+}
+
+/* ------------------------------------------------------------ delta hues */
+
+.up {
+  color: var(--gain);
+}
+
+.down {
+  color: var(--loss);
+}
+
+.cmp .zero,
+.cmp .neutral {
+  color: var(--text-dim);
+}
+
+/* --------------------------------------------------------------- slot list */
+
+.cmp-slots,
+.cmp-group {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--s3);
+  min-width: 0;
+}
+
+.cmp-grouphead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s2) var(--s3);
+  margin-bottom: var(--s2);
+}
+
+.cmp-grouphead .hint {
+  margin-left: auto;
+}
+
+.cmp-slothead,
+.cmp-slot {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) minmax(0, 210px) minmax(0, 1fr);
+  gap: var(--s3);
+  align-items: start;
+  min-width: 0;
+}
+
+.cmp-slothead {
+  grid-template-columns: 96px minmax(0, 1fr) minmax(0, 210px) minmax(0, 1fr);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: var(--s1) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+/* The first head cell is the empty slot-label column. */
+.cmp-slothead > span:first-child {
+  grid-column: 2;
+}
+
+.cmp-slothead .cmp-middle {
+  text-align: center;
+}
+
+.cmp-slot {
+  padding: var(--s2) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cmp-slot:last-child {
+  border-bottom: 0;
+}
+
+.cmp-slot.quiet {
+  opacity: 0.55;
+}
+
+.cmp-slotlabel {
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding-top: var(--s0);
+  overflow-wrap: anywhere;
+}
+
+.cmp-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s0);
+  min-width: 0;
+}
+
+.cmp-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.cmp-name {
+  font-size: var(--fs-body);
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+.cmp-tier {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--tier-0);
+}
+
+.cmp-tier[data-tier='1'] { color: var(--tier-1); }
+.cmp-tier[data-tier='2'] { color: var(--tier-2); }
+.cmp-tier[data-tier='3'] { color: var(--tier-3); }
+.cmp-tier[data-tier='4'] { color: var(--tier-4); }
+.cmp-tier[data-tier='5'] { color: var(--tier-5); }
+.cmp-tier[data-tier='6'] { color: var(--tier-6); }
+.cmp-tier[data-tier='7'] { color: var(--tier-7); }
+.cmp-tier[data-tier='8'] { color: var(--tier-8); }
+.cmp-tier[data-tier='9'] { color: var(--tier-9); }
+.cmp-tier[data-tier='10'] { color: var(--tier-10); }
+
+.cmp-banked,
+.cmp-sub,
+.cmp-empty {
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.cmp-side.empty {
+  justify-content: center;
+}
+
+.cmp-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s0);
+  text-align: center;
+  min-width: 0;
+}
+
+.cmp-status {
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--s2);
+}
+
+.cmp-status.status-added,
+.cmp-status.status-swapped {
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+.cmp-status.status-removed {
+  border-color: var(--loss);
+  color: var(--loss);
+}
+
+.cmp-status.status-retuned {
+  border-color: var(--tier-5);
+  color: var(--tier-5);
+}
+
+.cmp-epdelta {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.cmp-statline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s0) var(--s2);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- stat groups */
+
+.cmp-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: var(--s3);
+  align-items: start;
+}
+
+.cmp-statrows {
+  display: flex;
+  flex-direction: column;
+}
+
+.cmp-statrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px minmax(0, 180px) 84px;
+  gap: var(--s2);
+  align-items: baseline;
+  padding: var(--s1) 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-body);
+  min-width: 0;
+}
+
+.cmp-statrow:last-child {
+  border-bottom: 0;
+}
+
+.cmp-statrow.zero {
+  color: var(--text-faint);
+}
+
+.cmp-statlabel {
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+
+.cmp-statvalue {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.cmp-statrow.zero .cmp-statvalue {
+  color: var(--text-faint);
+}
+
+.cmp-cap {
+  color: var(--ink-quiet);
+  font-size: var(--fs-small);
+}
+
+.cmp-statdelta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.cmp-raw {
+  font-weight: var(--fw-num);
+}
+
+.cmp-credit {
+  font-size: var(--fs-micro);
+  color: var(--text-faint);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------- chooser */
+
+.cmp-choices {
+  list-style: none;
+  margin: var(--s3) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--s2);
+}
+
+.cmp-choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s0);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s3);
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.cmp-choice:hover {
+  border-color: var(--accent-dim);
+  background: var(--bg-panel-raised);
+}
+
+.cmp-choicename {
+  font-size: var(--fs-mid);
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+.cmp-foot,
+.cmp-footactions {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media (max-width: 1100px) {
+  .cmp-groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .cmp-slothead {
+    display: none;
+  }
+
+  .cmp-slot {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s1);
+    padding: var(--s3) 0;
+  }
+
+  .cmp-mid {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .cmp-statline {
+    justify-content: flex-start;
+  }
+
+  /* Which side is which stops being positional, so it has to be said. */
+  .cmp-side-a::before,
+  .cmp-side-b::before {
+    content: 'A';
+    font-size: var(--fs-micro);
+    letter-spacing: var(--label-spacing);
+    color: var(--text-faint);
+  }
+
+  .cmp-side-b::before {
+    content: 'B';
+  }
+
+  .cmp-statrow {
+    grid-template-columns: minmax(0, 1fr) 70px minmax(0, 130px) 70px;
+    font-size: var(--fs-small);
+  }
+}
+
+@media (max-width: 640px) {
+  .cmp-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cmp-pairmid {
+    display: none;
+  }
+
+  .cmp-statrow {
+    grid-template-columns: minmax(0, 1fr) 56px minmax(0, 104px) 56px;
+    font-size: var(--fs-small);
+  }
+}

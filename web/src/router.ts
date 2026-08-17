@@ -14,6 +14,8 @@ export type Route =
   | { name: 'new-character' }
   | { name: 'character'; id: string }
   | { name: 'set'; id: string; tab: SetTab }
+  /** A/B diff, per DESIGN.md §3: `/set/{id}/compare/{id2}`. */
+  | { name: 'set-compare'; id: string; id2: string }
   | { name: 'items' }
   | { name: 'share'; payload: string }
   | { name: 'not-found'; path: string };
@@ -28,13 +30,24 @@ function isSetTab(value: string | undefined): value is SetTab {
 export function parseHash(hash: string): Route {
   const path = hash.replace(/^#/, '').replace(/^\/+/, '');
   const parts = path.split('/').filter(Boolean);
-  const [head, second, third] = parts;
+  const [head, second, third, fourth] = parts;
 
   if (!head) return { name: 'landing' };
   if (head === 'characters') return { name: 'characters' };
   if (head === 'character' && second === 'new') return { name: 'new-character' };
   if (head === 'character' && second) return { name: 'character', id: decodeURIComponent(second) };
   if (head === 'items') return { name: 'items' };
+  // `compare` is checked before the tab branch: without it `#/set/a/compare/b`
+  // fell through to `isSetTab('compare') === false` and quietly rendered the
+  // gear tab, which is how a declared route can look implemented and not be.
+  if (head === 'set' && second && third === 'compare') {
+    return {
+      name: 'set-compare',
+      id: decodeURIComponent(second),
+      // An absent second id is legal: the screen then asks which set to compare.
+      id2: fourth ? decodeURIComponent(fourth) : '',
+    };
+  }
   if (head === 'set' && second) {
     return { name: 'set', id: decodeURIComponent(second), tab: isSetTab(third) ? third : 'gear' };
   }
@@ -79,4 +92,6 @@ export const href = {
   character: (id: string) => `#/character/${encodeURIComponent(id)}`,
   items: '#/items',
   set: (id: string, tab: SetTab = 'gear') => (tab === 'gear' ? `#/set/${id}` : `#/set/${id}/${tab}`),
+  compare: (id: string, id2 = '') =>
+    id2 ? `#/set/${id}/compare/${encodeURIComponent(id2)}` : `#/set/${id}/compare`,
 };
