@@ -59,17 +59,19 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   1100px. The measurement is recorded at the token so nobody retries it blind. A ruling
   that breaks the paper doll is a wrong ruling. *(Director, 2026-08-18: revert accepted.)*
 
-### Queued — ruled, applied after the drop
+### Type scale and wayfinding
 
-- **Split the heading token.** One token sizing both the wordmark and
-  item names, with opposite constraints, is a second source of truth in CSS form and will
-  keep producing this. Give the wordmark its own 18.5px rung; leave item names at 17px. The
-  bar itself already holds position exactly, so the 13px inside the lockup is polish, not a
-  seam failure. First thing after the drop. *(Director, 2026-08-18: approved, post-drop.)*
-- **The breadcrumb carries the current screen.** One that reads
-  identically on six routes encodes nothing, and `DESIGN.md`'s rule is that a decorative
-  mark should encode something true. Keep three segments on the landing, where there is no
-  deeper screen to name. *(Director, 2026-08-18: approved, post-drop.)*
+- **`--fs-mark` is the wordmark's rung, at the site's 18.5px; item names stay at 17px.**
+  One token sizing both was a second source of truth in CSS form, and its two consumers
+  are width-critical in opposite directions — which is why closing the shared rung cut the
+  paper doll. Splitting it closes the mark to the site's size and moves `SURVEY` 11.59px
+  right (measured at 1440, not the 13px first reported), with the doll's clip probe still
+  passing. 18.5px is listed in `TYPE_SCALE_FIXED`, so it is a step rather than an
+  exception. *(Director, 2026-08-18: approved post-drop; applied.)*
+- **The breadcrumb carries the current screen**, three segments on the landing and four
+  below it, and the tool's name becomes a link once it is no longer where you are.
+  `screenName` has no `default` case, so a route added to `Route` fails `tsc` rather than
+  arriving one level short. *(Director, 2026-08-18: approved post-drop; applied.)*
 
 ### Environment
 
@@ -146,7 +148,7 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
    same commit. *Applied; graduated to Standing.*
 2. **Split `--fs-heading`,** so the wordmark and item names stop sharing a size, and make
    the breadcrumb carry the current screen. Serial if the files are not disjoint.
-   *Not started — see Standing → Queued, and the file-disjointness finding below.*
+   *Applied; not disjoint, so done serially by one. Graduated to Standing.*
 3. **Deploy discipline.** Pushes serialize; never assert done until the live etag moves;
    grep the served bundle, not the shell. *In force; recorded in Standing → Working rules.*
 4. **Licence: proposal only, adopt nothing.** *Applied — `research/LICENSING-PROPOSAL.md`,
@@ -252,6 +254,7 @@ the reproducible vitest is cited instead.
 | Payload gate | `node pipeline/verify.mjs` | **PASSED** — 62 checks, 0 failures, Tier 0 100.0% |
 | Bundle | `npm run build` | clean, 500.92 kB |
 | Browser | `npx playwright test` | **145 passed** (3.1m) |
+| *(re-run after item 2)* | `tsc` · `vitest` · `playwright` | clean · **902 passed / 60 files** · **145 passed** |
 | Sub-path | `VITE_BASE=/EQL50ups/` preview, 6 routes at 1440 and 390 | 40 anchors, 32 distinct, 0 `.html`, 0 withdrawn, self listed once, `aria-current` on 50 Upgrades, scrollX 0, **0 pageerrors, 0 4xx/5xx** |
 | Catalogue | `git status --short web/public/data/` | **0 files** — frozen, `counts.items` 3,663 |
 
@@ -270,12 +273,44 @@ assets/index-BWw-Q4Ia.css  200
   .foot-grid a[aria-current]:after{content:"you are here"; …}
 ```
 
-### Item 2: the files are NOT disjoint, so it is one agent, serial
+### Item 2 done — and the files were NOT disjoint, as you asked me to check
 
-You asked me to confirm before fanning out. Splitting `--fs-heading` and giving the
-breadcrumb the current screen both touch `web/src/components/SiteChrome.css`, and the
-breadcrumb also touches `SiteChrome.tsx`. Two agents would collide on the same file. It
-will be done serially by one, after this deploy lands — not started yet.
+Splitting `--fs-heading` and giving the breadcrumb the current screen both land in
+`web/src/components/SiteChrome.css`, and the breadcrumb also touches `SiteChrome.tsx`.
+One agent, serially, after the first deploy landed. Both are in `34f5c0c`.
+
+**The rung.** `--fs-mark: 18.5px`, the wordmark's alone; item names stay at 17px. The
+fault was never the size, it was one token with two masters, width-critical in opposite
+directions. Measured at 1440 by overriding the token in place:
+
+```
+EQL SOURCE   131.41px -> 143.00px   (+11.59)
+SURVEY       moves right             +11.59
+```
+
+**A correction.** I told you the lockup was dragging `SURVEY` 13px left. Measured, the
+close is worth **11.59px**, not 13. What remains against the site's own rendering I did
+not measure and do not claim — no headless browser here reaches an external host, and I
+did not build a mirror for a figure this small.
+
+The check that failed when this was tried as a single token is the check that clears it
+now: `visual-system.spec.ts`, *no doll row clips its own text at any width down to 360px*
+— passing, with 18.5px on the mark and 17px on the names. 18.5px is listed in
+`TYPE_SCALE_FIXED`, so it is a step on the scale rather than an exception to it.
+
+**The breadcrumb.** Three segments on the landing, four everywhere else:
+
+```
+#/                EQL Source / Tools / 50 Upgrades
+#/upgrades        EQL Source / Tools / 50 Upgrades / Upgrades
+#/contamination   EQL Source / Tools / 50 Upgrades / What the scanner finds
+```
+
+The tool's name becomes a link once it stops being where you are — to this app's landing,
+not the site's page about it. `screenName` switches over `Route` with no `default`, so a
+route added in `router.ts` fails `tsc` rather than arriving one level short; the new test
+covers the case `tsc` cannot see, a route handled by returning `null`. No clipping at 360,
+390, 768 or 1440; it wraps to two lines below 768.
 
 ### Licence
 
@@ -291,5 +326,9 @@ a slot is left and nothing has been drawn that could ship.
 
 ### State
 
-Catalogue frozen at 3,663; `items-index.json` and every shard untouched this turn. Pushed
-once and holding for the etag to move off `"6a843c14-a9e"` before item 2.
+Catalogue frozen at 3,663; `items-index.json` and every shard untouched this turn — two
+pushes, zero regenerations of `web/public/data`.
+
+Items 1 and 2 are both done. Nothing in the parked list has been started. What is open is
+one ruling from you: whether this repository's CI may go red because eqlsource.com
+changed.
