@@ -48,11 +48,32 @@ const get = (name: string): Item => {
 const EXPECTED_STANDING = {
   'tier-M': 5,
   'tier-2': 2045,
-  'tier-5': 59,
-  unattributed: 1424,
+  'tier-5': 126,
+  unattributed: 1477,
 } as const;
-const EXPECTED_TOTAL = 3533;
-const EXPECTED_EXISTENCE = { 'live-export': 289, 'player-report': 1 } as const;
+const EXPECTED_TOTAL = 3653;
+/**
+ * Four marks now, in strength order, and the two new ones come from EQL Source's
+ * own published datasets rather than from this repository.
+ *
+ * `measured-drop` is `sightings.v1.json`: a mob was watched dropping the item in
+ * parsed combat logs. `eqlsource-id` is `items.v1.json`, the name-to-game-ID
+ * table built from `/outputfile inventory` dumps across more characters than
+ * this repo's single export.
+ *
+ * `player-report` is absent, and that is the hierarchy working rather than a
+ * regression. It only ever covered the Shadow Rage set, and all six pieces now
+ * carry harder evidence: three were measured dropping in the Plane of Hate
+ * (Sleeves off a forsaken revenant and an ire ghast, Wristguard off an
+ * abhorrent, Leggings off Innoruuk's Chosen), and three sit in the client
+ * export. The owner's report was right, and it has been superseded by
+ * measurement — which is exactly what Tier M is for.
+ */
+const EXPECTED_EXISTENCE = {
+  'measured-drop': 275,
+  'live-export': 190,
+  'eqlsource-id': 93,
+} as const;
 
 describe.skipIf(!published)('every shipped item states where its numbers came from', () => {
   it('ships the number of items the counts are measured against', () => {
@@ -77,11 +98,11 @@ describe.skipIf(!published)('every shipped item states where its numbers came fr
     for (const item of items) if (item.ex) tally[item.ex] = (tally[item.ex] ?? 0) + 1;
     expect(tally).toEqual(EXPECTED_EXISTENCE);
 
-    // 290 items are known to exist; 5 have client-verified numbers. If those
+    // 558 items are known to exist; 5 have client-verified numbers. If those
     // two ever coincide, one fact has swallowed the other again.
     const exists = items.filter((i) => i.ex).length;
     const verified = items.filter((i) => i.sd === 'tier-M').length;
-    expect(exists).toBe(290);
+    expect(exists).toBe(558);
     expect(verified).toBe(5);
     expect(exists).not.toBe(verified);
   });
@@ -108,7 +129,8 @@ describe.skipIf(!published)('the standing follows from evidence, never from a gu
       expect(item.vf?.length, `${item.n} verified fields`).toBeGreaterThan(0);
       // A client window is a sighting too: nothing can have verified stats
       // without the game having handed the item to somebody.
-      expect(item.ex, `${item.n} existence`).toBe('live-export');
+      // At least export-grade. `measured-drop` is stronger, not different.
+      expect(['measured-drop', 'live-export'], `${item.n} existence`).toContain(item.ex);
     }
   });
 
@@ -130,7 +152,7 @@ describe.skipIf(!published)('the standing follows from evidence, never from a gu
   it('marks era-unplaced stat blocks tier-5, and only those', () => {
     const IN_ERA = new Set(['Classic', 'Fear', 'Hate', 'Paineel', 'Temple', 'Sky']);
     const tier5 = items.filter((i) => i.sd === 'tier-5');
-    expect(tier5.length).toBe(59);
+    expect(tier5.length).toBe(126);
     for (const item of tier5) {
       // Either no era anywhere, or an era past this game's content.
       expect(IN_ERA.has(item.era ?? ''), `${item.n} era ${item.era}`).toBe(false);
@@ -169,6 +191,9 @@ describe.skipIf(!published)('the two items the inverted mark was measured on', (
     expect(orb.era).toBe('Kunark');
     expect(orb.wp).toEqual({ dmg: 7, dly: 25, skill: '1H Blunt' });
 
+    // Orb of Tishan is held in the export and has NOT been measured dropping,
+    // so it keeps the weaker of the two marks. Earthshaker has both and shows
+    // the stronger — which is the whole point of ordering them.
     expect(existenceMark(orb)?.label).toBe('Tier M · held in a live inventory');
     expect(sourceStanding(orb).label).toBe('Tier 5 · wiki stats, era unplaced');
     expect(sourceStanding(orb).band).toBe('distrust');
@@ -191,7 +216,7 @@ describe.skipIf(!published)('the two items the inverted mark was measured on', (
     expect(sourceStanding(earthshaker).standing).toBe('tier-M');
     expect(sourceStanding(earthshaker).label).toBe('Tier M · stats read off the client');
     expect(sourceStanding(earthshaker).band).toBe('trusted');
-    expect(existenceMark(earthshaker)?.label).toBe('Tier M · held in a live inventory');
+    expect(existenceMark(earthshaker)?.label).toBe('Tier M · seen dropping in game');
     expect(sourceStanding(earthshaker).citation).toContain('Nine of nine predictions exact');
   });
 });
@@ -219,7 +244,7 @@ describe.skipIf(!published)('the era-purge rescue list is a rescue list, not an 
   });
 
   it('is a small fraction of what the export actually vouches for', () => {
-    // 19 names against 290 items the game is known to hold. Treating the first
+    // 19 names against 558 items the game is known to hold. Treating the first
     // number as the second is what put the strongest label in the vocabulary on
     // twelve wiki stat blocks.
     const vouched = items.filter((i) => i.ex).length;
@@ -237,9 +262,9 @@ describe('the normaliser carries provenance and refuses to invent it', () => {
   it('carries both facts through unchanged', () => {
     const item = normalizeItem({
       n: 'Bladestopper', sl: ['ANY'], st: { AC: 25 },
-      ex: 'live-export', sd: 'tier-M', sdc: 'TIER0-VALIDATION.md §5', vf: ['AC'],
+      ex: 'measured-drop', sd: 'tier-M', sdc: 'TIER0-VALIDATION.md §5', vf: ['AC'],
     });
-    expect(item?.ex).toBe('live-export');
+    expect(['measured-drop', 'live-export']).toContain(item?.ex);
     expect(item?.sd).toBe('tier-M');
     expect(item?.sdc).toBe('TIER0-VALIDATION.md §5');
     expect(item?.vf).toEqual(['AC']);

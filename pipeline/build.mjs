@@ -385,6 +385,27 @@ const TIER0_KNOWN_ITEMS = [
  */
 const EXISTENCE_EXPORT = 'live-export';
 const EXISTENCE_REPORT = 'player-report';
+/**
+ * Seen dropping in the game, in EQL Source's own parsed combat logs.
+ *
+ * `data/sightings.v1.json` records which mobs have been measured dropping which
+ * items, with a sighting count and the sessions behind it. A drop that was
+ * *observed* is the strongest existence evidence there is — stronger than an
+ * inventory line, which only proves somebody holds the item, and far stronger
+ * than a wiki era tag.
+ *
+ * Their own first note on that file is the rule this pipeline already follows,
+ * arrived at separately: **"A COUNT, NEVER A RATE. A drop seen once is seen
+ * once. Nothing here supports a drop-rate claim and none is made."** Nothing
+ * downstream of this turns `seen` into a percentage.
+ */
+const EXISTENCE_SIGHTED = 'measured-drop';
+/**
+ * Named in `data/items.v1.json` — the item-name-to-game-ID table EQL Source
+ * built from `/outputfile inventory` dumps. Same class of evidence as this
+ * repository's own export, from a wider pool of characters.
+ */
+const EXISTENCE_EQLS_ID = 'eqlsource-id';
 
 /**
  * STANDING, fact two. Values of `sd`, mapped onto the tiers in
@@ -891,6 +912,60 @@ function loadTier0Ids() {
 }
 const idConflicts = [];
 const TIER0_IDS = loadTier0Ids();
+
+// ---------------------------------------------------------------------------
+// EQL Source's own published datasets
+// ---------------------------------------------------------------------------
+
+/**
+ * `https://eqlsource.com/data/` — four versioned, CORS-open datasets that the
+ * site publishes for exactly this purpose: "Nobody in this community publishes
+ * machine-readable data, so every tool re-transcribes the same wiki pages and
+ * inherits the same 1999 errors doing it."
+ *
+ * This planner is an EQL Source tool, so it reads them rather than re-deriving
+ * what the surveys already measured. Two are used here:
+ *
+ *   `items.v1.json`      item name to the game's own numeric ID, read from
+ *                        `/outputfile inventory` dumps.
+ *   `sightings.v1.json`  which mobs have been measured dropping which items,
+ *                        parsed from combat logs, with the sighting count and
+ *                        the dated sessions behind each row.
+ *
+ * Both are Tier M: they record what the game did, not what a page says. They
+ * are vendored under `pipeline/sources/eqlsource/` and pinned by the `hash`
+ * the publisher ships, so a build is reproducible and a change in the upstream
+ * data is visible as a diff rather than as a silent shift.
+ */
+function loadEqlSource(file) {
+  const path = join(ROOT, 'pipeline', 'sources', 'eqlsource', file);
+  if (!existsSync(path)) return { data: null, hash: null, version: null };
+  const doc = JSON.parse(readFileSync(path, 'utf8'));
+  return { data: doc.data, hash: doc.hash ?? null, version: doc.version ?? null };
+}
+
+const EQLS_ITEMS = loadEqlSource('items.v1.json');
+const EQLS_SIGHTINGS = loadEqlSource('sightings.v1.json');
+const EQLS_ZONES = loadEqlSource('zones.v1.json');
+
+/** Display name -> numeric game id, from the published table. */
+const EQLS_ID_BY_NAME = new Map(Object.entries(EQLS_ITEMS.data?.items ?? {}));
+/** Display name -> [{ mob, seen, sessions }], measured rather than transcribed. */
+const EQLS_SIGHT_BY_NAME = new Map(Object.entries(EQLS_SIGHTINGS.data?.items ?? {}));
+
+/**
+ * Zone slug -> how far verification has got, so a measured drop can say whether
+ * the zone behind it is fully surveyed or only partly.
+ */
+const EQLS_ZONE_VERIFY = new Map(
+  (EQLS_ZONES.data?.zones ?? []).map((z) => [String(z.title ?? '').trim(), z.verify_level ?? null]),
+);
+
+const eqlsIdByKey = new Map();
+const eqlsSightByKey = new Map();
+for (const [name, id] of EQLS_ID_BY_NAME) eqlsIdByKey.set(nameKey(name), { name, id });
+for (const [name, rows] of EQLS_SIGHT_BY_NAME) eqlsSightByKey.set(nameKey(name), { name, rows });
+
 
 /**
  * Resolve tier0 names onto catalog name-keys.
@@ -1524,6 +1599,15 @@ function shipDecision(rec) {
   // if that ever changes, the player wins and this line needs revisiting.
   if (rec.ur === 'non_legends') return { ship: false, why: 'wiki flags non_legends' };
   if (idByKey.has(rec.key)) return { ship: true, why: 'in-live-inventory' };
+  /*
+   * Measured dropping in game, in EQL Source's parsed logs. This is the
+   * strongest existence evidence in the project and it ends the era argument:
+   * 74 items quarantined here as "no era in any source" and 7 tagged Kunark
+   * have been *seen dropping*. The conservative rule was right to hold them —
+   * unconfirmed is not the same as absent — and Tier M is what releases them.
+   */
+  if (eqlsSightByKey.has(rec.key)) return { ship: true, why: 'measured dropping in game' };
+  if (eqlsIdByKey.has(rec.key)) return { ship: true, why: 'in eqlsource id table' };
   if (rec.era == null) return { ship: false, why: 'no era in any source' };
   const rank = ERA_RANK.get(rec.era);
   if (rank == null) return { ship: false, why: `unrecognised era: ${rec.era}` };
@@ -1576,6 +1660,8 @@ for (const rec of records) {
  * nothing downstream has to re-derive them from a name list, which is how they
  * got conflated in the first place.
  */
+let measuredDropCount = 0;
+let measuredRowCount = 0;
 const standingCounts = new Counter();
 const existenceCounts = new Counter();
 const statsVerifiedApplied = [];
@@ -1638,9 +1724,47 @@ for (const entry of TIER0_STATS_VERIFIED) {
 
 for (const rec of records) {
   // --- fact one: existence
-  if (idByKey.has(rec.key)) rec.ex = EXISTENCE_EXPORT;
+  // Strongest first: a drop somebody watched happen beats an inventory line,
+  // which beats a report.
+  if (eqlsSightByKey.has(rec.key)) rec.ex = EXISTENCE_SIGHTED;
+  else if (idByKey.has(rec.key)) rec.ex = EXISTENCE_EXPORT;
+  else if (eqlsIdByKey.has(rec.key)) rec.ex = EXISTENCE_EQLS_ID;
   else if (EQL_CONFIRMED_KEYS.has(rec.key)) rec.ex = EXISTENCE_REPORT;
   if (rec.ex) existenceCounts.add(rec.ex);
+
+  /*
+   * --- where it actually drops, measured rather than transcribed.
+   *
+   * `ms` carries EQL Source's own sightings: the mob, how many times the drop
+   * was seen, and the dated sessions behind it. It is deliberately kept
+   * separate from `src`, which holds the wiki's account, because the two are
+   * different classes of claim and merging them would launder one into the
+   * other.
+   *
+   * `seen` is a COUNT and never a rate, which is the publisher's own first
+   * rule for this file and this project's rule independently. Nothing
+   * downstream divides it by anything.
+   */
+  const sighted = eqlsSightByKey.get(rec.key);
+  if (sighted) {
+    rec.ms = sighted.rows
+      .map((row) => {
+        const zones = [...new Set((row.sessions ?? []).map((s) => String(s.zone ?? '').trim()))]
+          .filter(Boolean);
+        const dates = (row.sessions ?? []).map((s) => s.date).filter(Boolean);
+        return {
+          mob: String(row.mob ?? '').trim(),
+          seen: int(row.seen) ?? 0,
+          sessions: (row.sessions ?? []).length,
+          ...(zones.length ? { zones } : {}),
+          ...(dates.length ? { first: dates[0], last: dates[dates.length - 1] } : {}),
+          ...(row.off_roster ? { offRoster: true } : {}),
+        };
+      })
+      .sort((a, b) => b.seen - a.seen);
+    measuredDropCount += 1;
+    measuredRowCount += rec.ms.length;
+  }
 
   // --- fact two: standing of the numbers
   const verified = statsVerifiedByKey.get(rec.key);
@@ -1851,7 +1975,7 @@ writeFileSync(
   JSON.stringify(
     {
       generated: 'pipeline/build.mjs',
-      rule: 'ships iff pre-Kunark era, or present in the live client export, or player-confirmed',
+      rule: 'ships iff pre-Kunark era, or Tier M evidence places it in the game',
       counts: report.purge,
       items: quarantined,
     },
@@ -1859,6 +1983,107 @@ writeFileSync(
     1,
   ) + '\n',
 );
+
+// ---------------------------------------------------------------------------
+// The reader-facing withheld list
+// ---------------------------------------------------------------------------
+
+/**
+ * One paragraph per quarantine reason, in the words a player meets when a
+ * search finds nothing.
+ *
+ * The prose is written here; the names and counts under it are computed. This
+ * file used to be assembled by hand into `web/public/quarantine.json`, and it
+ * went stale the first time the catalog moved — the browser told readers 7,719
+ * items were withheld while the pipeline had withheld 7,599. Emitting it from
+ * the same run that computes the purge makes that impossible.
+ *
+ * A reason with no entry here is a build failure rather than a silent omission:
+ * an unexplained withholding is exactly what this screen exists to prevent.
+ */
+const WITHHELD_COPY = {
+  "era-unplaced": {
+    why: "no era in any source",
+    title: "Era unplaced",
+    line:
+      "No source places it in any era. An item nobody can place is treated as unconfirmed rather than assumed classic, so it waits for a patch note or a first-hand sighting to place it. That is a gap in the evidence, not proof the game lacks it \u2014 if you are holding one, it belongs in the catalog and the export importer will say so.",
+  },
+  "velious": {
+    why: "era:Velious",
+    title: "Scars of Velious",
+    line:
+      "It is Scars of Velious content. EverQuest Legends does not have that expansion, so the item is held out of the catalog rather than offered as something you could go and get.",
+  },
+  "kunark": {
+    why: "era:Kunark",
+    title: "Ruins of Kunark",
+    line:
+      "It is Ruins of Kunark content. EverQuest Legends does not have that expansion, so the item is held out of the catalog rather than offered as something you could go and get.",
+  },
+  "epic": {
+    why: "era:Epic Quests",
+    title: "Epic quests",
+    line:
+      "It is Epic Quest content, and this server does not have the epic quests. The wiki carries the page because large parts of it are a Project 1999 import describing original EverQuest, not this game.",
+  },
+  "chardok": {
+    why: "era:Chardok Revamp",
+    title: "Chardok revamp",
+    line:
+      "It comes from the Chardok revamp, a later original-EverQuest content patch this server does not have.",
+  },
+  "fear-hate-revamp": {
+    why: "era:FearHateRevamp",
+    title: "Fear/Hate revamp",
+    line:
+      "It comes from the Fear/Hate revamp, a later original-EverQuest content patch this server does not have. Its five armour sets were once mistaken here for EQL planar gear; the only planar set a player has actually confirmed is Shadow Rage, which does ship.",
+  },
+  "luclin": {
+    why: "era:Luclin",
+    title: "Shadows of Luclin",
+    line:
+      "It is Shadows of Luclin content. EverQuest Legends does not have that expansion, so the item is held out of the catalog rather than offered as something you could go and get.",
+  },
+  "flagged-not-legends": {
+    why: "wiki flags non_legends",
+    title: "Flagged not-in-Legends",
+    line:
+      "The wiki page for it is itself flagged as not present in EverQuest Legends.",
+  },
+};
+
+{
+  const bySlug = new Map(Object.entries(WITHHELD_COPY).map(([slug, v]) => [v.why, slug]));
+  const names = Object.fromEntries(Object.keys(WITHHELD_COPY).map((slug) => [slug, []]));
+  const unexplained = new Set();
+  for (const row of quarantined) {
+    const slug = bySlug.get(row.why);
+    if (slug) names[slug].push(row.n);
+    else unexplained.add(row.why);
+  }
+  if (unexplained.size) {
+    throw new Error(
+      `quarantine reasons with no reader-facing copy in WITHHELD_COPY: ${[...unexplained].join(', ')}`,
+    );
+  }
+  for (const list of Object.values(names)) list.sort((a, b) => a.localeCompare(b));
+  const explained = Object.values(names).reduce((n, list) => n + list.length, 0);
+  writeFileSync(
+    join(ROOT, 'web', 'public', 'quarantine.json'),
+    JSON.stringify({
+      source: 'pipeline/quarantine.json',
+      rule: 'ships iff pre-Kunark era, or Tier M evidence places it in the game',
+      counts: {
+        scraped: report.purge.before,
+        shipped: report.purge.shipped,
+        quarantined: report.purge.quarantined,
+        explained,
+      },
+      reasons: WITHHELD_COPY,
+      names,
+    }),
+  );
+}
 
 const shardCounts = new Counter();
 for (const slot of SLOTS) {
@@ -1916,7 +2141,9 @@ const meta = {
       field: 'ex',
       question: 'Is this item in the game?',
       vocabulary: [
+        { code: EXISTENCE_SIGHTED, tier: 'M', means: 'a mob was measured dropping it, in EQL Source\'s parsed combat logs (data/sightings.v1.json). The strongest existence evidence here: the game produced the item.' },
         { code: EXISTENCE_EXPORT, tier: 'M', means: 'resolves to a line in research/validation/tier0-inventory-Avenrae.txt, a live /outputfile inventory export' },
+        { code: EXISTENCE_EQLS_ID, tier: 'M', means: 'named in EQL Source\'s published item-name-to-game-ID table (data/items.v1.json), built from /outputfile inventory dumps' },
         { code: EXISTENCE_REPORT, tier: 'M', means: 'named directly by the player who plays the game' },
       ],
       absent: 'no Tier M sighting; the item ships because its era places it in this game, which is a Tier 2 statement about content rather than an observation',
@@ -2043,7 +2270,30 @@ const meta = {
     statsUnknown: statsUnknownCount,
     flagged: eraUnknownCount,
     standing: Object.fromEntries(STANDINGS.map((s) => [s, standingCounts.get(s) ?? 0])),
-    existence: Object.fromEntries([EXISTENCE_EXPORT, EXISTENCE_REPORT].map((e) => [e, existenceCounts.get(e) ?? 0])),
+    // Reported from the counter rather than from a hand-written list, so a new
+    // evidence class can never be added to the pipeline and silently omitted
+    // from the payload that documents it.
+    /*
+     * The era purge, published so the app can render it instead of a human
+     * retyping it. `web/src/screens/sourcesData.ts` used to hold a
+     * hand-transcribed copy of these figures, and it drifted the first time the
+     * catalog moved — which is what hand-transcribed figures do. EQL Source's
+     * own zones dataset states the rule this follows: "Computed, never typed."
+     */
+    purge: {
+      source: 'pipeline/quarantine.json',
+      rule: 'ships iff pre-Kunark era, or Tier M evidence places it in the game',
+      before: report.purge.before,
+      shipped: report.purge.shipped,
+      quarantined: report.purge.quarantined,
+      shipReasons: Object.entries(report.purge.shipReasons).map(([reason, items]) => ({ reason, items })),
+      quarantineReasons: Object.entries(report.purge.quarantineReasons).map(([reason, items]) => ({ reason, items })),
+    },
+    existence: Object.fromEntries(
+      [EXISTENCE_SIGHTED, EXISTENCE_EXPORT, EXISTENCE_EQLS_ID, EXISTENCE_REPORT]
+        .map((e) => [e, existenceCounts.get(e) ?? 0])
+        .filter(([, n]) => n > 0),
+    ),
     perSlot: Object.fromEntries(shardCounts.entries({ sort: 'key' })),
     perEffectKind: Object.fromEntries(report.effectKinds.entries({ sort: 'key' })),
   },

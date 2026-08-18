@@ -28,7 +28,7 @@ import { emptyState } from '../state/persistence';
 import { useApp } from '../state/store';
 import { Landing } from './Landing';
 import { Sources } from './Sources';
-import { PURGE } from './sourcesData';
+import { readPurge } from './sourcesData';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -52,9 +52,24 @@ interface QuarantineReport {
 
 /* -------------------------------------------------- the transcribed figures */
 
+/*
+ * The page reads its figures out of `meta.json`, which the pipeline writes from
+ * `quarantine.json` at build time. Both files are read here and compared, so a
+ * payload that disagrees with the report behind it fails rather than rendering.
+ *
+ * This block used to check a hand-transcribed copy of these numbers held in
+ * `sourcesData.ts`. It did its job — it failed the moment the catalog changed —
+ * but the fix was always going to be retyping, so the transcription is gone.
+ */
 describe.skipIf(!existsSync(QUARANTINE))('the era purge on the page matches the pipeline report', () => {
   const report = JSON.parse(readFileSync(QUARANTINE, 'utf8')) as QuarantineReport;
   const counts = report.counts ?? {};
+  const meta = existsSync(META) ? JSON.parse(readFileSync(META, 'utf8')) : null;
+  const PURGE = readPurge(meta)!;
+
+  it('the payload publishes a purge block at all', () => {
+    expect(PURGE, 'meta.counts.purge is missing — the page would render blanks').toBeTruthy();
+  });
 
   it('totals are the pipeline’s own', () => {
     expect(PURGE.before).toBe(counts.before);
@@ -65,10 +80,10 @@ describe.skipIf(!existsSync(QUARANTINE))('the era purge on the page matches the 
   });
 
   it('every ship reason is transcribed, with nothing added or dropped', () => {
-    expect(Object.fromEntries(PURGE.shipReasons.map((r) => [r.reason, r.items]))).toEqual(
+    expect(Object.fromEntries(PURGE.shipReasons.map((r: { reason: string; items: number }) => [r.reason, r.items]))).toEqual(
       counts.shipReasons,
     );
-    const total = PURGE.shipReasons.reduce((sum, row) => sum + row.items, 0);
+    const total = PURGE.shipReasons.reduce((sum: number, row: { items: number }) => sum + row.items, 0);
     expect(total).toBe(PURGE.shipped);
   });
 
@@ -91,7 +106,7 @@ describe.skipIf(!existsSync(QUARANTINE))('the era purge on the page matches the 
 describe.skipIf(!existsSync(META))('the transcribed ship count agrees with the published catalog', () => {
   it('matches meta.counts.items', () => {
     const meta = JSON.parse(readFileSync(META, 'utf8')) as { counts?: { items?: number } };
-    expect(PURGE.shipped).toBe(meta.counts?.items);
+    expect(readPurge(meta)?.shipped).toBe(meta.counts?.items);
   });
 });
 
@@ -147,15 +162,15 @@ describe.skipIf(!existsSync(META))('the page renders the shipped provenance meta
   it('prints the era purge with its per-reason breakdown', async () => {
     const text = await render(<Sources />);
     expect(text).toContain('11,252');
-    expect(text).toContain('3,533');
-    expect(text).toContain('7,719');
+    expect(text).toContain('3,653');
+    expect(text).toContain('7,599');
     // The three biggest quarantine reasons, by name and by number.
     expect(text).toContain('era:Velious');
     expect(text).toContain('2,828');
     expect(text).toContain('no era in any source');
-    expect(text).toContain('2,331');
+    expect(text).toContain('2,230');
     expect(text).toContain('era:Kunark');
-    expect(text).toContain('1,457');
+    expect(text).toContain('1,438');
     expect(text).toContain('pipeline/quarantine.json');
   });
 
@@ -200,7 +215,14 @@ describe.skipIf(!existsSync(META))('the page renders the shipped provenance meta
     const text = await render(<Sources />);
     expect(text).toMatch(/Dmg Bon/);
     expect(text).toContain('Shadow Rage Helm');
-    expect(text).toMatch(/289 of 3533|289 of 3,533/);
+    /*
+     * The ID sparsity claim, asserted by its substance rather than by an "N of
+     * M" string. The previous form pinned two counts inside one sentence, and
+     * broke when the sentence was reworded rather than when the fact changed.
+     */
+    expect(text).toMatch(/numeric game item IDs/i);
+    expect(text).toMatch(/\b297\b/);
+    expect(text).toMatch(/\b289\b/);
   });
 
   it('credits the upstream repositories, pinned, and the licence', async () => {
@@ -212,13 +234,23 @@ describe.skipIf(!existsSync(META))('the page renders the shipped provenance meta
 });
 
 describe('the page degrades honestly when the catalog publishes nothing', () => {
-  it('says the live figures are absent and still prints what is transcribed', async () => {
+  /*
+   * The page used to fall back to figures transcribed into the source, so a
+   * missing payload still printed numbers. It no longer holds any: every count
+   * is read from `meta.json`, and with no payload there is nothing to print.
+   *
+   * Saying so is the better behaviour. A page that prints last month's counts
+   * when the build published none is worse than one that says the figures are
+   * absent, and it is the exact failure mode the transcription created.
+   */
+  it('says the live figures are absent rather than printing stale ones', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('not found', { status: 404 })));
     const text = await render(<Sources />);
     expect(text).toMatch(/published no/i);
-    expect(text).toContain('11,252');
+    // The standard itself is prose, not payload, so it still renders.
     expect(text).toContain('Tier M');
-    expect(text).not.toMatch(/NaN|undefined|\[object Object\]/);
+    // And no count is invented to fill the gap.
+    expect(text).not.toMatch(/11,252|3,653|NaN|undefined|\[object Object\]/);
   });
 
   it('reports a failed fetch rather than rendering an empty page', async () => {

@@ -29,7 +29,7 @@ const SOURCE_STANDINGS: ReadonlySet<string> = new Set<SourceStanding>([
   'tier-M', 'tier-2', 'tier-5', 'unattributed',
 ]);
 const EXISTENCE_EVIDENCE: ReadonlySet<string> = new Set<ExistenceEvidence>([
-  'live-export', 'player-report',
+  'measured-drop', 'live-export', 'eqlsource-id', 'player-report',
 ]);
 
 /** Slot token, including the EQL-specific "fits anywhere" marker. */

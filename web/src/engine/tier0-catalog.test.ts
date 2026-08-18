@@ -297,10 +297,18 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
 
   it('carries no item from an expansion this game does not have', () => {
     const OUT_OF_ERA = ['Kunark', 'Velious', 'Luclin', 'FearHateRevamp', 'Chardok Revamp', 'Epic Quests'];
-    // ...unless the player is carrying it, which proves the wiki's era wrong
-    // rather than the item unobtainable.
+    /*
+     * ...unless Tier M evidence says otherwise, in which case the wiki's era tag
+     * is wrong rather than the item unobtainable.
+     *
+     * Asserted through `ex` rather than by re-listing the sources, so the rule
+     * stays true as evidence classes are added. Today `ex` can be a measured
+     * drop from EQL Source's combat logs, a line in the client export, the
+     * published ID table, or a player report — all Tier M, all about existence,
+     * none about stats.
+     */
     const contraband = items.filter(
-      (item) => OUT_OF_ERA.includes(item.era ?? '') && !ownedNames.has(item.n),
+      (item) => OUT_OF_ERA.includes(item.era ?? '') && !item.ex && !ownedNames.has(item.n),
     );
     expect(contraband.map((item) => `${item.n} [${item.era}]`)).toEqual([]);
   });
@@ -333,7 +341,7 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     // is only what Tier 0 vouches for: the Shadow Rage set the player named, and
     // era-less items the export shows in their bags.
     const unvouched = items.filter(
-      (item) => item.eraUnknown && !ownedNames.has(item.n) && !/^Shadow Rage /.test(item.n),
+      (item) => item.eraUnknown && !item.ex && !ownedNames.has(item.n) && !/^Shadow Rage /.test(item.n),
     );
     expect(unvouched.map((item) => item.n)).toEqual([]);
     expect(items.filter((item) => /^Shadow Rage /.test(item.n) && item.eraUnknown)).toHaveLength(6);

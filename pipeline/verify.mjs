@@ -308,10 +308,30 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
   const confirmed = new Set(['Shadow Rage Helm', 'Shadow Rage Sleeves', 'Shadow Rage Wristguard',
     'Shadow Rage Gloves', 'Shadow Rage Boots', 'Shadow Rage Leggings'].map(nameKey));
 
+  /*
+   * EQL Source's published Tier M data releases the era gate too, and re-derived
+   * here from the vendored files rather than trusted from the build.
+   *
+   * `sightings.v1.json` records drops measured in parsed combat logs; an item
+   * somebody watched drop is in the game whatever era a wiki page assigns it.
+   * `items.v1.json` is the name-to-game-ID table read from `/outputfile
+   * inventory` dumps — the same class of evidence as this repo's own export,
+   * from a wider pool of characters.
+   */
+  const eqlsDir = join(ROOT, 'pipeline', 'sources', 'eqlsource');
+  const readEqls = (file) => {
+    const path = join(eqlsDir, file);
+    return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')).data : null;
+  };
+  const sighted = new Set(
+    Object.keys(readEqls('sightings.v1.json')?.items ?? {}).map(nameKey),
+  );
+  const eqlsIds = new Set(Object.keys(readEqls('items.v1.json')?.items ?? {}).map(nameKey));
+
   const contraband = [];
   for (const it of items) {
     const key = nameKey(it.n);
-    if (confirmed.has(key) || observed.has(key)) continue;
+    if (confirmed.has(key) || observed.has(key) || sighted.has(key) || eqlsIds.has(key)) continue;
     if (it.era == null) { contraband.push(`${it.n}: no era, not in the live export`); continue; }
     if (ERA_RANK.get(it.era) > cur) contraband.push(`${it.n}: era ${it.era} is past ${CURRENT_ERA}`);
   }
@@ -621,7 +641,7 @@ if (!existsSync(TIER0)) {
 // fails the build instead of validating itself.
 {
   const STANDINGS = new Set(['tier-M', 'tier-2', 'tier-5', 'unattributed']);
-  const EXISTENCE = new Set(['live-export', 'player-report']);
+  const EXISTENCE = new Set(['measured-drop', 'live-export', 'eqlsource-id', 'player-report']);
   const byKeyIdx = new Map(items.map((i) => [nameKey(i.n), i]));
 
   // --- vocabulary and coverage: every row states a standing, none invents one
@@ -661,10 +681,22 @@ if (!existsSync(TIER0)) {
       if (it.id == null) bad.push(`${it.n}: claims live-export but carries no numeric id`);
       else if (!exportIds.has(it.id)) bad.push(`${it.n}: id #${it.id} is not in the export`);
     }
-    // And the converse: an export name the catalog holds must say so.
+    /*
+     * And the converse — an export name the catalog holds must say so, UNLESS
+     * it carries stronger evidence.
+     *
+     * `measured-drop` outranks `live-export`: an inventory line proves somebody
+     * holds the item, while a sighting proves the game produced it, and the
+     * mark records the strongest fact rather than the first one found. So the
+     * check is that an export name is marked with *at least* export-grade
+     * evidence, not that it is marked with exactly that.
+     */
+    const AT_LEAST_EXPORT = new Set(['measured-drop', 'live-export']);
     for (const key of exportNames) {
       const it = byKeyIdx.get(key);
-      if (it && it.ex !== 'live-export') bad.push(`${it.n}: in the export, marked ${JSON.stringify(it.ex)}`);
+      if (it && !AT_LEAST_EXPORT.has(it.ex)) {
+        bad.push(`${it.n}: in the export, marked ${JSON.stringify(it.ex)}`);
+      }
     }
     assert('live-export existence marks match the client inventory export', bad.length === 0,
       `${bad.length} existence discrepancies`, bad);
@@ -769,11 +801,14 @@ if (!existsSync(TIER0)) {
   // the one stat block checked digit-for-digit against a client window, printed
   // nothing. Both are asserted here so neither can silently revert.
   {
+    const AT_LEAST_EXPORT_MARK = new Set(['measured-drop', 'live-export']);
     const bad = [];
     const orb = byKeyIdx.get(nameKey('Orb of Tishan'));
     if (!orb) bad.push('Orb of Tishan: absent from catalog');
     else {
-      if (orb.ex !== 'live-export') bad.push(`Orb of Tishan: ex ${JSON.stringify(orb.ex)} — it is held in the export`);
+      if (!AT_LEAST_EXPORT_MARK.has(orb.ex)) {
+        bad.push(`Orb of Tishan: ex ${JSON.stringify(orb.ex)} — it is held in the export`);
+      }
       if (orb.sd !== 'tier-5') bad.push(`Orb of Tishan: sd ${JSON.stringify(orb.sd)} — its stats are an era-unplaced wiki scrape (era ${orb.era})`);
       if (orb.vf) bad.push('Orb of Tishan: claims client-verified fields');
     }
@@ -781,7 +816,16 @@ if (!existsSync(TIER0)) {
     if (!es) bad.push('Earthshaker: absent from catalog');
     else {
       if (es.sd !== 'tier-M') bad.push(`Earthshaker: sd ${JSON.stringify(es.sd)} — its stat block is the project's best evidence`);
-      if (es.ex !== 'live-export') bad.push(`Earthshaker: ex ${JSON.stringify(es.ex)} — it is held in the export`);
+      /*
+       * Earthshaker is `measured-drop` rather than `live-export` now, and that
+       * is the mark getting *stronger*, not drifting: EQL Source's sightings
+       * record the game producing it, where the export only records somebody
+       * holding it. What must never happen is the mark getting weaker, so this
+       * asserts the floor rather than an exact value.
+       */
+      if (!AT_LEAST_EXPORT_MARK.has(es.ex)) {
+        bad.push(`Earthshaker: ex ${JSON.stringify(es.ex)} — it is held in the export`);
+      }
     }
     assert('the provenance mark is the right way round on the two items it was measured on',
       bad.length === 0, `${bad.length} inverted marks`, bad);

@@ -33,7 +33,7 @@ import {
   asCount,
   asList,
   asText,
-  PURGE,
+  readPurge,
   TIERS,
   useSourceMeta,
   type SourceMeta,
@@ -313,9 +313,9 @@ function Purge({ meta }: { meta: SourceMeta | null }) {
   const policy = asText(meta?.era?.policy);
   const current = asText(meta?.era?.current);
   const order = asList(meta?.era?.order);
-  // Read off the transcribed table rather than restated, so one edit moves both.
+  const purge = readPurge(meta);
   const eraLess =
-    PURGE.quarantineReasons.find((row) => row.reason === 'no era in any source')?.items ?? 0;
+    purge?.quarantineReasons.find((row) => row.reason === 'no era in any source')?.items ?? 0;
   // Counted, never asserted: "sixth of thirteen" is a claim about this build's
   // own era order and has to be read off it.
   const eraIndex = current ? order.indexOf(current) : -1;
@@ -329,51 +329,51 @@ function Purge({ meta }: { meta: SourceMeta | null }) {
       lede="The source wiki is partly a Project 1999 import, and the item tables inherit it. Just over two thirds of the scraped catalog is content from expansions this game does not have, or carries no era at all."
       source={
         <>
-          Counts transcribed from <code>{PURGE.source}</code> on {PURGE.transcribed}; a unit test
-          reads that file and fails if any of them drifts. The era policy and the shipped total are
-          read live from <code>meta.json</code>.
+          Every figure here is read live from <code>meta.json</code>, which the pipeline writes
+          from <code>{purge?.source ?? 'pipeline/quarantine.json'}</code> at build time. Nothing on
+          this page is transcribed by hand — it used to be, and it was wrong the first time the
+          catalog moved.
         </>
       }
     >
       <div className="src-figures">
         <div className="src-figure">
-          <span className="num src-figure-value">{count(PURGE.before)}</span>
+          <span className="num src-figure-value">{count(purge?.before ?? null)}</span>
           <span className="src-figure-label">items in the raw scrape</span>
         </div>
         <div className="src-figure">
-          <span className="num src-figure-value">{count(PURGE.shipped)}</span>
+          <span className="num src-figure-value">{count(purge?.shipped ?? null)}</span>
           <span className="src-figure-label">ship</span>
         </div>
         <div className="src-figure">
-          <span className="num src-figure-value">{count(PURGE.quarantined)}</span>
+          <span className="num src-figure-value">{count(purge?.quarantined ?? null)}</span>
           <span className="src-figure-label">quarantined</span>
         </div>
       </div>
 
-      {shipped !== null && shipped !== PURGE.shipped ? (
+      {purge && shipped !== null && shipped !== purge.shipped ? (
         <p className="src-absent">
-          This build ships {count(shipped)} items, which is not the {count(PURGE.shipped)}{' '}
-          transcribed above. The transcription is stale; trust the live number and rebuild the
-          quarantine report.
+          This build ships {count(shipped)} items, which is not the {count(purge.shipped)} the purge
+          block records. The payload disagrees with itself; rebuild before trusting either.
         </p>
       ) : null}
 
       <div className="src-two">
         <ReasonTable
           caption="Why an item shipped"
-          rows={PURGE.shipReasons}
-          total={PURGE.shipped}
+          rows={(purge?.shipReasons ?? [])}
+          total={purge?.shipped ?? 0}
         />
         <ReasonTable
           caption="Why an item was quarantined"
-          rows={PURGE.quarantineReasons}
-          total={PURGE.quarantined}
+          rows={(purge?.quarantineReasons ?? [])}
+          total={purge?.quarantined ?? 0}
         />
       </div>
 
       <div className="src-grid">
         <Card standing="trusted" eyebrow="The rule" title="Confirmed in era, or seen in a client">
-          <p className="src-quote">{policy ?? PURGE.rule}</p>
+          <p className="src-quote">{policy ?? (purge?.rule ?? "")}</p>
           {current ? (
             <p>
               The current era is <strong>{current}</strong>
@@ -385,8 +385,8 @@ function Purge({ meta }: { meta: SourceMeta | null }) {
           ) : null}
           {order.length ? <p className="src-note">{order.join(' · ')}</p> : null}
           <p>
-            Quarantine is not deletion. Every one of the {count(PURGE.quarantined)} is retained by
-            name, with its reason, in <code>{PURGE.source}</code>, so restoring any of them is a
+            Quarantine is not deletion. Every one of the {count(purge?.quarantined ?? null)} is retained by
+            name, with its reason, in <code>{purge?.source ?? 'pipeline/quarantine.json'}</code>, so restoring any of them is a
             table entry rather than a re-scrape.
           </p>
         </Card>

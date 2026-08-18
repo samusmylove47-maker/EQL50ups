@@ -309,7 +309,7 @@ export function ItemBrowser() {
   /*
    * The withheld list is fetched only once a search has already failed.
    *
-   * 7,719 of the wiki's 11,252 item records are content this server does not
+   * Most of the wiki's 11,252 item records are content this server does not
    * have, and the pipeline keeps every one of them by name with a reason. Until
    * now the reader met that decision as "NOTHING MATCHES — loosen a filter",
    * with no filter set, on the exact word they had come to look up. The list is
@@ -543,7 +543,7 @@ export function ItemBrowser() {
         ------------------------------------------------------
         A reader who types `Ragebringer` here is not making a mistake, and the
         old copy — "Loosen a filter", printed with no filter set — told them
-        they were. 7,719 wiki records are withheld on purpose, by name, with a
+        they were. Thousands of wiki records are withheld on purpose, by name, with a
         reason each; when the failed query names one of them, the reason is the
         answer, and it is the most trust-building sentence in the app.
       */}

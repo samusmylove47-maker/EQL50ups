@@ -195,10 +195,12 @@ export interface ExistenceMark {
 }
 
 const EXISTENCE_LABELS: Record<ExistenceEvidence, string> = {
-  // Deliberately about possession, not about numbers. The export is a
-  // Location/Name/ID/Count/Slots table; it proves the game handed this item to
-  // a character and proves nothing at all about a stat block.
+  // Every one of these is about the item EXISTING, never about its numbers. The
+  // strongest is a drop somebody watched happen; the export only proves a
+  // character holds the thing; the report has no artefact behind it at all.
+  'measured-drop': 'Tier M · seen dropping in game',
   'live-export': 'Tier M · held in a live inventory',
+  'eqlsource-id': 'Tier M · in the EQL Source ID table',
   'player-report': 'Tier M · named in a player report',
 };
 

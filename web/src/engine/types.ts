@@ -52,7 +52,27 @@ export type SourceStanding = 'tier-M' | 'tier-2' | 'tier-5' | 'unattributed';
  * `/outputfile inventory` export is a `Location / Name / ID / Count / Slots`
  * table: it proves an item exists and carries no stat values at all.
  */
-export type ExistenceEvidence = 'live-export' | 'player-report';
+/**
+ * How we know the item is in the game, strongest first.
+ *
+ *   `measured-drop`  a mob was watched dropping it, in EQL Source's parsed
+ *                    combat logs (`sightings.v1.json`). The game produced it.
+ *   `live-export`    it appears in a `/outputfile inventory` dump held in this
+ *                    repository. Somebody holds it.
+ *   `eqlsource-id`   it appears in EQL Source's published name-to-game-ID table
+ *                    (`items.v1.json`), built from inventory dumps across more
+ *                    characters than this repo's single export.
+ *   `player-report`  the owner said so. The weakest Tier M evidence, and the
+ *                    only one with no artefact behind it.
+ *
+ * All four are Tier M under `research/SOURCING-STANDARD.md`, and none of them
+ * says anything whatsoever about the item's stats — that is `SourceStanding`.
+ */
+export type ExistenceEvidence =
+  | 'measured-drop'
+  | 'live-export'
+  | 'eqlsource-id'
+  | 'player-report';
 
 /**
  * One catalog entry. Short keys keep the shipped payload small; the accessors

@@ -231,41 +231,43 @@ export interface PurgeReason {
 }
 
 /**
- * The era purge, transcribed from `pipeline/quarantine.json` on 2026-08-17.
+ * The era purge, read from the shipped payload.
  *
- * `counts.before`, `counts.shipped`, `counts.quarantined`, `counts.shipReasons`
- * and `counts.quarantineReasons`, verbatim and in the file's own order. The
- * reason strings are the pipeline's own, not a rewording: they are what an
- * auditor greps for.
+ * These figures used to be transcribed here by hand out of
+ * `pipeline/quarantine.json`, with a date attached and a test to catch drift.
+ * The test caught it — the day the catalog changed, every number on this page
+ * was wrong until somebody retyped them. So the pipeline publishes them into
+ * `meta.counts.purge` instead and this reads them. EQL Source's own zones
+ * dataset states the rule: **"Computed, never typed."**
+ *
+ * Returns `null` when the build published no purge block, so the page can say
+ * the figures are absent rather than print stale ones.
  */
-export const PURGE = {
-  source: 'pipeline/quarantine.json',
-  transcribed: '2026-08-17',
-  rule: 'ships iff pre-Kunark era, or present in the live client export, or player-confirmed',
-  before: 11252,
-  shipped: 3533,
-  quarantined: 7719,
-  shipReasons: [
-    { reason: 'era:Classic', items: 2772 },
-    { reason: 'era:Sky', items: 324 },
-    { reason: 'in-live-inventory', items: 284 },
-    { reason: 'era:Temple', items: 100 },
-    { reason: 'era:Fear', items: 22 },
-    { reason: 'era:Paineel', items: 21 },
-    { reason: 'player-confirmed', items: 6 },
-    { reason: 'era:Hate', items: 4 },
-  ] as PurgeReason[],
-  quarantineReasons: [
-    { reason: 'era:Velious', items: 2828 },
-    { reason: 'no era in any source', items: 2331 },
-    { reason: 'era:Kunark', items: 1457 },
-    { reason: 'era:Epic Quests', items: 867 },
-    { reason: 'era:Chardok Revamp', items: 145 },
-    { reason: 'era:FearHateRevamp', items: 53 },
-    { reason: 'wiki flags non_legends', items: 26 },
-    { reason: 'era:Luclin', items: 12 },
-  ] as PurgeReason[],
-} as const;
+export interface PurgeCounts {
+  source: string;
+  rule: string;
+  before: number;
+  shipped: number;
+  quarantined: number;
+  shipReasons: PurgeReason[];
+  quarantineReasons: PurgeReason[];
+}
+
+export function readPurge(meta: unknown): PurgeCounts | null {
+  const purge = (meta as { counts?: { purge?: unknown } } | null)?.counts?.purge;
+  if (!purge || typeof purge !== 'object') return null;
+  const p = purge as Partial<PurgeCounts>;
+  if (typeof p.before !== 'number' || typeof p.shipped !== 'number') return null;
+  return {
+    source: p.source ?? 'pipeline/quarantine.json',
+    rule: p.rule ?? '',
+    before: p.before,
+    shipped: p.shipped,
+    quarantined: p.quarantined ?? p.before - p.shipped,
+    shipReasons: Array.isArray(p.shipReasons) ? p.shipReasons : [],
+    quarantineReasons: Array.isArray(p.quarantineReasons) ? p.quarantineReasons : [],
+  };
+}
 
 /* --------------------------------------------- transcribed: the hierarchy */
 

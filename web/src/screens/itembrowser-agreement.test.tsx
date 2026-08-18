@@ -215,7 +215,7 @@ describe('red is spent on the exception, not on the default view', () => {
 
 describe('a search for a withheld item explains itself', () => {
   const INDEX = {
-    counts: { scraped: 11252, shipped: 3533, quarantined: 7719, explained: 7719 },
+    counts: { scraped: 11252, shipped: 3653, quarantined: 7599, explained: 7599 },
     reasons: {
       epic: {
         why: 'era:Epic Quests',
@@ -260,7 +260,7 @@ describe('a search for a withheld item explains itself', () => {
     expect(text).toContain('Ragebringer');
     expect(text).toContain('Epic Quest content');
     expect(text).toContain('era:Epic Quests');
-    expect(text).toContain('7,719');
+    expect(text).toContain('7,599');
     expect(text).toContain('pipeline/quarantine.json');
     // The sentence that was wrong is gone.
     expect(text).not.toMatch(/loosen a filter/i);

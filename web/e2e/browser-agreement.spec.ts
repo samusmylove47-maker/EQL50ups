@@ -114,8 +114,17 @@ test('a search for a purged item explains the purge instead of blaming the reade
     expect(text, `${term}: the pipeline's own rule is cited`).toContain(rule);
     expect(text).toMatch(expansion);
     // The counts come from the pipeline, not from prose.
-    expect(text).toContain('3,533');
-    expect(text).toContain('7,719');
+    /*
+     * Read from the payload rather than pinned, because these move whenever the
+     * catalog does — and they just did, when EQL Source's measured sightings
+     * released 120 items the era purge had been holding.
+     */
+    const counts = await page.evaluate(async () => {
+      const res = await fetch('/quarantine.json');
+      return (await res.json()).counts as { shipped: number; quarantined: number };
+    });
+    expect(text).toContain(counts.shipped.toLocaleString('en-US'));
+    expect(text).toContain(counts.quarantined.toLocaleString('en-US'));
     expect(text).toContain('pipeline/quarantine.json');
     // The sentence that told a reader with no filters to loosen one is gone.
     expect(text, `${term}: still blaming the reader`).not.toMatch(/loosen a filter/i);

@@ -1,0 +1,5718 @@
+{
+ "name": "sky",
+ "version": "1.0.0",
+ "title": "Plane of Sky class unlock quests",
+ "description": "Every Plane of Sky test for all sixteen classes, with the turn-ins, the island each component drops on, and a source recorded per claim.",
+ "source": "https://eqlsource.com",
+ "schema": "https://eqlsource.com/data/sky.v1.json",
+ "terms": {
+  "summary": "Use it, credit EQL Source, and read the provenance before you trust a value.",
+  "attribution": "EQL Source, https://eqlsource.com",
+  "measured": "The measured data — drop sightings, damage figures, spell lists — is parsed from this project's own combat logs. Freely usable with attribution.",
+  "inherited": "Fields sourced from community wikis carry their tier and source. Those values are not ours to license; respect the original source and do not present a tier 5 figure as fact.",
+  "warranty": "None. This is a fan project and the game is actively patched. Every dataset here states what it does not know.",
+  "unofficial": "Not affiliated with or endorsed by Daybreak Game Company, Game Jawn or Darkpaw Studios."
+ },
+ "stability": [
+  "Fields in a vN file are never removed and never change type.",
+  "New optional fields may be added; ignore keys you do not recognise.",
+  "A breaking change gets a new version at a new URL. The old one stays up.",
+  "Values change as evidence improves. That is the product working, not a breach — watch `hash` if you cache."
+ ],
+ "notes": [
+  "`verified` is DERIVED, never hand-set: every claim of every quest must name a source of tier 2 or better with nothing marked against it. Five of sixteen classes qualify.",
+  "Tier 1 is a developer statement, 2 a structured wiki record that passed a provenance check, 3 a named community guide, 4 an aggregator, 5 inherited Project 1999 prose.",
+  "Six reward stat blocks carry classic percentage haste and are marked suspect in place. Legends uses a flat attack-speed value."
+ ],
+ "data": {
+  "sources": {
+   "wiki-sky-151528": {
+    "tier": 2,
+    "name": "eqlwiki, Plane of Sky",
+    "rev": "151528",
+    "url": "https://eqlwiki.com/Plane_of_Sky",
+    "read": "2026-06-28",
+    "note": "Revision post-dates the 28 July 2026 launch check; used for turn-ins, givers and reward names throughout."
+   },
+   "wiki-warrior-tests": {
+    "tier": 5,
+    "name": "eqlwiki, Warrior Plane of Sky Tests",
+    "url": "https://eqlwiki.com/Warrior_Plane_of_Sky_Tests",
+    "read": "2026-06-28",
+    "note": "Warrior stat blocks were cross-read from here. The SAME page's turn-ins were rejected as classic and are not used, which is the reason this source is tier 5 and not tier 2."
+   },
+   "forge-2026-08-02": {
+    "tier": 4,
+    "name": "EQL Build Forge item snapshot",
+    "read": "2026-08-02",
+    "note": "Community aggregator, snapshot-dated. Supplies a few partial stat lines."
+   },
+   "unsourced": {
+    "tier": null,
+    "name": "No confirmed Legends-era source",
+    "note": "The turn-ins for these classes are Legends-current; the reward tooltip has no source we are willing to stand behind."
+   }
+  },
+  "islands": {
+   "1": {
+    "n": "1",
+    "name": "Fairy Island",
+    "boss": "Thunder Spirit Princess",
+    "d": 1
+   },
+   "2": {
+    "n": "2",
+    "name": "Imp Island",
+    "boss": "Protector of Sky",
+    "d": 3
+   },
+   "3": {
+    "n": "3",
+    "name": "Harpy Island",
+    "boss": "Gorgalosk",
+    "d": 4
+   },
+   "4": {
+    "n": "4",
+    "name": "Pegasus Island",
+    "boss": "Keeper of Souls",
+    "d": 5
+   },
+   "5": {
+    "n": "5",
+    "name": "Bird Island",
+    "boss": "The Spiroc Lord — farmable",
+    "d": 6
+   },
+   "6": {
+    "n": "6",
+    "name": "Bee Island",
+    "boss": "Bazzt Zzzt",
+    "d": 7
+   },
+   "7": {
+    "n": "7",
+    "name": "Drake Island",
+    "boss": "Sister of the Spire — farmable",
+    "d": 8
+   },
+   "8": {
+    "n": "8",
+    "name": "Butterfly Island",
+    "boss": "Eye of Veeshan",
+    "d": 9
+   },
+   "1.5": {
+    "n": "1.5",
+    "name": "Noble Island",
+    "boss": "Noble Dojorn — week spawn",
+    "d": 2
+   },
+   "any": {
+    "n": "—",
+    "name": "Zone-wide",
+    "boss": "wind runes, any mob",
+    "d": 0
+   }
+  },
+  "ladder": [
+   "8",
+   "7",
+   "6",
+   "5",
+   "4",
+   "3",
+   "2",
+   "1.5",
+   "1",
+   "any"
+  ],
+  "order": [
+   "BRD",
+   "BST",
+   "BER",
+   "CLR",
+   "DRU",
+   "ENC",
+   "MAG",
+   "MNK",
+   "NEC",
+   "PAL",
+   "RNG",
+   "ROG",
+   "SHD",
+   "SHM",
+   "WAR",
+   "WIZ"
+  ],
+  "efreeti": {
+   "islands": [
+    "1.5",
+    "4",
+    "8"
+   ],
+   "mobs": "Noble Dojorn · Overseer of Air · the Hand of Veeshan"
+  },
+  "classes": {
+   "BRD": {
+    "label": "Bard",
+    "hub": "Cilin Spellsinger",
+    "armor": "Chain",
+    "verified": true,
+    "quests": [
+     {
+      "name": "Test of Tone",
+      "giver": "Clarisa Spiritsong",
+      "say": "choose Clarisa → tone",
+      "reward": {
+       "name": "Mask of Song",
+       "slot": "Face",
+       "stats": "AC 12 · STR/DEX/STA/CHA/WIS/INT/AGI +3 · all five resists +7"
+      },
+      "turnins": [
+       {
+        "name": "Light Woolen Mask",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Meda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Voice",
+      "giver": "Clarisa Spiritsong",
+      "say": "choose Clarisa → voice",
+      "reward": {
+       "name": "Mantle of the Songweaver",
+       "slot": "Shoulders",
+       "stats": "AC 9 · STR +7 · DEX +7 · CHA +5 · AGI +5 · SV MAGIC +5 · clicky Fury (5)"
+      },
+      "turnins": [
+       {
+        "name": "Light Woolen Mantle",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Kala",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Pitch",
+      "giver": "Clarisa Spiritsong",
+      "say": "choose Clarisa → pitch",
+      "reward": {
+       "name": "Ervaj's Flute of Flight",
+       "slot": "Primary",
+       "stats": "Wind Resonance 12 · STR +8 · STA +10 · CHA +10 · INT +5"
+      },
+      "turnins": [
+       {
+        "name": "Crude Wooden Flute",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Azia",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Wind",
+      "giver": "Denise Songweaver",
+      "say": "choose Denise → wind",
+      "reward": {
+       "name": "Fae Amulet",
+       "slot": "Neck",
+       "stats": "AC 5 · DEX +4 · STA +4 · HP +50 · SV DISEASE/POISON +10 · clicky Healing (4)"
+      },
+      "turnins": [
+       {
+        "name": "Amulet of Woven Hair",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Caza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Brass",
+      "giver": "Denise Songweaver",
+      "say": "choose Denise → brass",
+      "reward": {
+       "name": "Denon's Horn of Disaster",
+       "slot": "Primary",
+       "stats": "Brass Resonance 15 · STR +5 · CHA +10 · INT +5 · HP +50"
+      },
+      "turnins": [
+       {
+        "name": "Glowing Diamond",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti War Horn",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Fana",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Harmony",
+      "giver": "Denise Songweaver",
+      "say": "choose Denise → harmony",
+      "reward": {
+       "name": "Harmonic Spear",
+       "slot": "Primary",
+       "stats": "Piercing 10 / 21 · STR +5 · DEX +5 · CHA +5 · proc Chant of Battle"
+      },
+      "turnins": [
+       {
+        "name": "Nebulous Diamond",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti War Spear",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Heda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "BST": {
+    "label": "Beastlord",
+    "hub": "Animist Kratho",
+    "armor": "Leather",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Test of Aviak",
+      "giver": "Animist Kratho",
+      "say": "aviak",
+      "reward": {
+       "name": "Spiroc Beak Earcuff",
+       "slot": "Ear",
+       "stats": "AC 4 · HP +10 · Mana +10 · End +10 · WIS +5 · CHA +5 · click Vigor of Zehkes (120s)"
+      },
+      "turnins": [
+       {
+        "name": "Spiroc Elder's Totem",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Beza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Azarack",
+      "giver": "Animist Kratho",
+      "say": "azarack",
+      "reward": {
+       "name": "Azarack Skin Wristwraps",
+       "slot": "Wrist",
+       "stats": "AC 5 · HP +35 · End +10 · STR +5 · STA +5 · DEX +5 · click Whirl Bolt (240s)"
+      },
+      "turnins": [
+       {
+        "name": "Azarack Skin",
+        "islands": [
+         "2"
+        ],
+        "source": "Protector of Sky (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Heda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Claw",
+      "giver": "Animist Kratho",
+      "say": "claw",
+      "reward": {
+       "name": "Windhowl + Spirit Render",
+       "slot": "Primary / Secondary",
+       "stats": "Windhowl H2H 12 / 22 · HP +55 · End +25 · proc Herikol's Soothing — paired with Spirit Render H2H 10 / 23 · HP 25 · Mana 25 · proc Sha's Lethargy"
+      },
+      "turnins": [
+       {
+        "name": "Sphinx Claw",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Mithril Bands",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Brass Knuckles",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Izah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Harpy",
+      "giver": "Animist Kratho",
+      "say": "harpy",
+      "reward": {
+       "name": "Griffin-Hide Armguards",
+       "slot": "Arms",
+       "stats": "AC 6 · STA +4 · WIS +3 · End +15 · all five resists +5"
+      },
+      "turnins": [
+       {
+        "name": "Leather Cord",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Kala",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Wind",
+      "giver": "Animist Kratho",
+      "say": "wind",
+      "reward": {
+       "name": "Diaphonous Waistband",
+       "slot": "Waist",
+       "stats": "AC 5 · STR +5 · WIS +10 · DEX +10 · Haste +41%"
+      },
+      "turnins": [
+       {
+        "name": "Silken Wrap",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Geza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "suspect",
+        "note": "classic percentage haste; Legends uses a flat attack-speed value, so this figure is a classic import and not a Legends stat"
+       }
+      }
+     }
+    ]
+   },
+   "BER": {
+    "label": "Berserker",
+    "hub": "Stragen The Hewer",
+    "armor": "Chain",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Test of Sharpness",
+      "giver": "Stragen The Hewer",
+      "say": "sharpness",
+      "reward": {
+       "name": "Skycleaver",
+       "slot": "Primary",
+       "stats": "2H Slash 30 / 35 · Dmg Bonus 24 · STA +5 · DEX +10 · SV DISEASE +5 · combat effect Haste"
+      },
+      "turnins": [
+       {
+        "name": "Djinni War Blade",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Standard",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Jaka",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Will",
+      "giver": "Stragen The Hewer",
+      "say": "will",
+      "reward": {
+       "name": "Molten Coil",
+       "slot": "Finger",
+       "stats": "AC 5 · Mana −55 · STR +6 · STA +5 · AGI +5 · DEX +6 · CHA +10 · SV FIRE +5"
+      },
+      "turnins": [
+       {
+        "name": "Pulsating Ruby",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Ferocity",
+      "giver": "Stragen The Hewer",
+      "say": "ferocity",
+      "reward": {
+       "name": "Sash of Ferocity",
+       "slot": "Waist",
+       "stats": "AC 10 · STR +6 · DEX +5 · SV MAGIC +5 · Haste +41%"
+      },
+      "turnins": [
+       {
+        "name": "High Quality Raiment",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ozah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "suspect",
+        "note": "classic percentage haste; Legends uses a flat attack-speed value, so this figure is a classic import and not a Legends stat"
+       }
+      }
+     },
+     {
+      "name": "Test of Burden",
+      "giver": "Stragen The Hewer",
+      "say": "burden",
+      "reward": {
+       "name": "Shroud of the Sky",
+       "slot": "Shoulders",
+       "stats": "AC 8 · HP +25 · End +25 · STR +7 · WIS +7 · DEX +7 · click Raging Strength (120s)"
+      },
+      "turnins": [
+       {
+        "name": "Feathered Cape",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Azia",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Blood",
+      "giver": "Stragen The Hewer",
+      "say": "blood",
+      "reward": {
+       "name": "Blood-Drawn Runes",
+       "slot": "Chest",
+       "stats": "HP +55 · End +25 · STR +10 · STA +10 · AGI +5 · DEX +10 · HP Regen +10"
+      },
+      "turnins": [
+       {
+        "name": "Azarack Blood",
+        "islands": [
+         "2"
+        ],
+        "source": "Protector of Sky (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Lena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Fools Errand",
+      "giver": "Stragen The Hewer",
+      "say": "fools errand",
+      "reward": {
+       "name": "Cudgel of the Fool",
+       "slot": "Primary",
+       "stats": "2H Blunt 45 / 52 · Dmg Bonus 40 · INT −7 · proc Fury of the Chosen"
+      },
+      "turnins": [
+       {
+        "name": "Jester's Mask",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Great Staff",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Dena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "CLR": {
+    "label": "Cleric",
+    "hub": "Josin Faithbringer",
+    "armor": "Plate",
+    "verified": true,
+    "quests": [
+     {
+      "name": "Test of Courage",
+      "giver": "Alan Harten",
+      "say": "choose Alan → courage",
+      "reward": {
+       "name": "Truewind Earring",
+       "slot": "Ear",
+       "stats": "DEX +5 · WIS +9 · SV COLD +10"
+      },
+      "turnins": [
+       {
+        "name": "Silver Hoop",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Lena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Skill",
+      "giver": "Alan Harten",
+      "say": "choose Alan → skill",
+      "reward": {
+       "name": "Aegis of the Wind",
+       "slot": "Secondary",
+       "stats": "AC 25 · WIS +9 · MANA +60 · SV DISEASE +10"
+      },
+      "turnins": [
+       {
+        "name": "Small Shield",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Meda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Protection",
+      "giver": "Alan Harten",
+      "say": "choose Alan → protection",
+      "reward": {
+       "name": "Pauldrons of Piety",
+       "slot": "Shoulders",
+       "stats": "AC 11 · STA +8 · CHA +2 · WIS +12 · MANA +35"
+      },
+      "turnins": [
+       {
+        "name": "Shiny Pauldrons",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Caza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Resolution",
+      "giver": "Deric Lennox",
+      "say": "choose Deric → resolution",
+      "reward": {
+       "name": "Necklace of Resolution",
+       "slot": "Neck",
+       "stats": "AC 4 · STR +5 · WIS +7 · HP +30 · MANA +15 · Promised Renewal · Charges: unlimited"
+      },
+      "turnins": [
+       {
+        "name": "Silvered Spiroc Necklace",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Neza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Theurgy",
+      "giver": "Deric Lennox",
+      "say": "choose Deric → theurgy",
+      "reward": {
+       "name": "Theurgist's Star",
+       "slot": "Primary",
+       "stats": "1H Blunt 15 / 25 · WIS +10 · MANA +40 · SV DISEASE/POISON +25 · proc Blessing of the Theurgist"
+      },
+      "turnins": [
+       {
+        "name": "Djinni Aura",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Mace",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Kala",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of The Weak",
+      "giver": "Deric Lennox",
+      "say": "choose Deric → weak",
+      "reward": {
+       "name": "Baton of the Sky",
+       "slot": "Primary",
+       "stats": "2H Blunt 33 / 40 · AC 25 · MANA +75 · STR +10 · STA +10 · WIS +15 · Blessing of the Lord Commander (600s)"
+      },
+      "turnins": [
+       {
+        "name": "Mithril Bands",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Standard",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "DRU": {
+    "label": "Druid",
+    "hub": "Strandar Pinemist",
+    "armor": "Leather",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Test of Wolf",
+      "giver": "Will Treewalker",
+      "say": "choose Will → wolf",
+      "reward": {
+       "name": "Drake-Hide Mask",
+       "slot": "Face",
+       "stats": "AC 4 · STR +10 · DEX +10 · WIS +10 · AGI +10 · MANA +10 · SV MAGIC +7"
+      },
+      "turnins": [
+       {
+        "name": "Worn Leather Mask",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Meda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Bear",
+      "giver": "Will Treewalker",
+      "say": "choose Will → bear",
+      "reward": {
+       "name": "Nature Walker's Mantle",
+       "slot": "Shoulders",
+       "stats": "AC 6 · DEX +4 · WIS +4 · AGI +4 · MANA +50"
+      },
+      "turnins": [
+       {
+        "name": "Mantle of Woven Grass",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Kala",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Tree",
+      "giver": "Will Treewalker",
+      "say": "choose Will → tree",
+      "reward": {
+       "name": "Shillelagh",
+       "slot": "Primary",
+       "stats": "1H Blunt 10 / 25 · AC 2 · CHA +4 · WIS +9 · AGI +2 · MANA +50 · SV FIRE +5"
+      },
+      "turnins": [
+       {
+        "name": "Spiroc Battle Staff",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Statuette",
+        "islands": [
+         "4"
+        ],
+        "source": "soul / essence griffons",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Azia",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of The Bee",
+      "giver": "Fenalla Moonshadow",
+      "say": "choose Fenalla → bee",
+      "reward": {
+       "name": "Honeycomb Belt",
+       "slot": "Waist",
+       "stats": "AC 6 · CHA +2 · WIS +8 · MANA +75 · Haste +26%"
+      },
+      "turnins": [
+       {
+        "name": "Divine Honeycomb",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Dena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "suspect",
+        "note": "classic percentage haste; Legends uses a flat attack-speed value, so this figure is a classic import and not a Legends stat"
+       }
+      }
+     },
+     {
+      "name": "Test of Eagle",
+      "giver": "Fenalla Moonshadow",
+      "say": "choose Fenalla → eagle",
+      "reward": {
+       "name": "Spiroc Banisher Focus",
+       "slot": "Primary / Secondary",
+       "stats": "STR −2 · DEX −2 · WIS +20 · AGI −2 · MANA +10"
+      },
+      "turnins": [
+       {
+        "name": "Ethereal Ruby",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Spiroc Elder's Totem",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Nature",
+      "giver": "Fenalla Moonshadow",
+      "say": "choose Fenalla → nature",
+      "reward": {
+       "name": "Espri",
+       "slot": "Primary",
+       "stats": "1H Slash 10 / 23 · DEX +9 · WIS +9 · MANA +50 · proc Combust"
+      },
+      "turnins": [
+       {
+        "name": "Storm Sky Opal",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Scimitar",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Izah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "ENC": {
+    "label": "Enchanter",
+    "hub": "Enchanter Jolas",
+    "armor": "Silk",
+    "verified": true,
+    "quests": [
+     {
+      "name": "Test of Illusion",
+      "giver": "Lelulean",
+      "say": "choose Lelulean → illusion",
+      "reward": {
+       "name": "Sphinx Hair Cord",
+       "slot": "Waist",
+       "stats": "AC 4 · CHA +5 · INT +5 · SV FIRE/DISEASE/COLD +10 · no haste"
+      },
+      "turnins": [
+       {
+        "name": "Finely Woven Cloth Cord",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Meda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Metamorphism",
+      "giver": "Lelulean",
+      "say": "choose Lelulean → metamorphism",
+      "reward": {
+       "name": "Wind Walker's Mantle",
+       "slot": "Shoulders",
+       "stats": "AC 6 · STR +5 · DEX +5 · CHA +10 · AGI +2 · HP +50"
+      },
+      "turnins": [
+       {
+        "name": "Light Cloth Mantle",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ozah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Deception",
+      "giver": "Lelulean",
+      "say": "choose Lelulean → deception",
+      "reward": {
+       "name": "Ivory Mask",
+       "slot": "Face",
+       "stats": "AC 6 · CHA +6 · INT +6 · MANA +30"
+      },
+      "turnins": [
+       {
+        "name": "Silken Mask",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Beza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Disillusion",
+      "giver": "Enderbite",
+      "say": "choose Enderbite → disillusion",
+      "reward": {
+       "name": "Earring of Displacement",
+       "slot": "Ear",
+       "stats": "AC 6 · CHA +4 · INT +4 · MANA +25 · Gravity Flux (2 charges)"
+      },
+      "turnins": [
+       {
+        "name": "Adamantium Earring",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Caza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Memorization",
+      "giver": "Enderbite",
+      "say": "choose Enderbite → memorization",
+      "reward": {
+       "name": "Necklace of Whispering Winds",
+       "slot": "Neck",
+       "stats": "AC 4 · STA +5 · CHA +10 · INT +5 · MANA +35 · Cajoling Whispers (2 charges)"
+      },
+      "turnins": [
+       {
+        "name": "Glowing Necklace",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Fana",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Incapacitation",
+      "giver": "Enderbite",
+      "say": "choose Enderbite → incapacitation",
+      "reward": {
+       "name": "Rod of the Protecting Winds",
+       "slot": "Primary",
+       "stats": "2H Blunt 35 / 45 · AC 10 · CHA +15 · INT +15 · MANA +75 · Rune III, infinite charges, 180s"
+      },
+      "turnins": [
+       {
+        "name": "Large Sky Sapphire",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Wind Staff",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Izah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "MAG": {
+    "label": "Magician",
+    "hub": "Magus Frinon",
+    "armor": "Silk",
+    "verified": true,
+    "quests": [
+     {
+      "name": "Test of Clarification",
+      "giver": "Frederic Calermin",
+      "say": "choose Frederic → clarification",
+      "reward": {
+       "name": "Bracelet of Clarification",
+       "slot": "Back / Wrist",
+       "stats": "AC 6 · CHA +1 · INT +9 · MANA +10"
+      },
+      "turnins": [
+       {
+        "name": "Feathered Cape",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Lena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Empowerment",
+      "giver": "Frederic Calermin",
+      "say": "choose Frederic → empowerment",
+      "reward": {
+       "name": "Mask of Empowerment",
+       "slot": "Face",
+       "stats": "AC 4 · DEX +7 · INT +7 · AGI +7 · Burnout III (5 charges)"
+      },
+      "turnins": [
+       {
+        "name": "Ceramic Mask",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Neza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Shielding",
+      "giver": "Frederic Calermin",
+      "say": "choose Frederic → shielding",
+      "reward": {
+       "name": "Gold White Pendant",
+       "slot": "Neck",
+       "stats": "AC 2 · INT +5 · MANA +50"
+      },
+      "turnins": [
+       {
+        "name": "Golden Coffer",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Azia",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Summoning",
+      "giver": "Roanis Elindar",
+      "say": "choose Roanis → summoning",
+      "reward": {
+       "name": "Drake-Hide Amice",
+       "slot": "Shoulders",
+       "stats": "AC 6 · STA +5 · HP +50 · MANA +50 · Malaise (10 charges)"
+      },
+      "turnins": [
+       {
+        "name": "Large Diamond",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Dena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Interpretation",
+      "giver": "Roanis Elindar",
+      "say": "choose Roanis → interpretation",
+      "reward": {
+       "name": "Duennan Shielding Ring",
+       "slot": "Finger",
+       "stats": "AC 4 · WIS +5 · INT +5 · MANA +30 · Harmshield (1 charge)"
+      },
+      "turnins": [
+       {
+        "name": "Golden Efreeti Ring",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Gesticulation",
+      "giver": "Roanis Elindar",
+      "say": "choose Roanis → gesticulation",
+      "reward": {
+       "name": "Staff of The Magister",
+       "slot": "Primary",
+       "stats": "2H Blunt 16 / 48 · INT +15 · MANA +75 · SV FIRE +10 · SV COLD +20 · SV POISON +10"
+      },
+      "turnins": [
+       {
+        "name": "Hazy Opal",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Magi Staff",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Jaka",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Displacement",
+      "giver": "Roanis Elindar",
+      "say": "choose Roanis → displacement",
+      "reward": {
+       "name": "Staff of Elemental Mastery: Air",
+       "slot": "Primary",
+       "stats": "2H Blunt 15 / 30 · Reclaim Energy · Focus Effect: Servant of Air"
+      },
+      "turnins": [
+       {
+        "name": "Crown of Elemental Mastery",
+        "islands": [
+         "7"
+        ],
+        "source": "drake / sphinx / spirit trash",
+        "rune": false
+       },
+       {
+        "name": "Large Opal",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Djinni Stave",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Heda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "MNK": {
+    "label": "Monk",
+    "hub": "Holwin",
+    "armor": "Leather",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Test of Strength",
+      "giver": "Ton Po",
+      "say": "Ton Po → strength",
+      "reward": {
+       "name": "Back Straps of Mastery",
+       "slot": "Back / Wrist",
+       "stats": "AC 15 · STR +7 · STA +7 · CHA +5 · HP +50"
+      },
+      "turnins": [
+       {
+        "name": "Silken Strands",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Caza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Sight",
+      "giver": "Ton Po",
+      "say": "Ton Po → sight",
+      "reward": {
+       "name": "Ton Po's Eye Patch",
+       "slot": "Face",
+       "stats": "End +25 · STR +8 · DEX +8 · AGI +8 · See Invisible (worn)"
+      },
+      "turnins": [
+       {
+        "name": "Cracked Leather Eyepatch",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Geza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Speed",
+      "giver": "Ton Po",
+      "say": "Ton Po → speed",
+      "reward": {
+       "name": "Sandals of Alacrity",
+       "slot": "Feet",
+       "stats": "AC 6 · STR +10 · AGI +10 · HP +20 · Alacrity (2 charges)"
+      },
+      "turnins": [
+       {
+        "name": "Dove Slippers",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Jaka",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Tears",
+      "giver": "Wu the Enlightened",
+      "say": "Wu → tears",
+      "reward": {
+       "name": "Ton Po's Shoulder Wraps",
+       "slot": "Shoulders",
+       "stats": "AC 8 · STR +4 · DEX +4 · AGI +4 · all five resists +10"
+      },
+      "turnins": [
+       {
+        "name": "Silken Wrap",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Beza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Fists",
+      "giver": "Wu the Enlightened",
+      "say": "Wu → fists",
+      "reward": {
+       "name": "Wu's Fist of Mastery",
+       "slot": "Primary / Secondary",
+       "stats": "1H Blunt 16 / 22 · NO DROP but tooltip carries no LORE flag"
+      },
+      "turnins": [
+       {
+        "name": "Nebulous Sapphire",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Brass Knuckles",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Neza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Tranquility",
+      "giver": "Wu the Enlightened",
+      "say": "Wu → tranquility",
+      "reward": {
+       "name": "Golden Sash of Tranquility",
+       "slot": "Waist",
+       "stats": "AC 5 · Haste +41% · STR +15 · DEX +15 · AGI +15"
+      },
+      "turnins": [
+       {
+        "name": "Tear of Quellious",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Lena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "suspect",
+        "note": "classic percentage haste; Legends uses a flat attack-speed value, so this figure is a classic import and not a Legends stat"
+       }
+      }
+     }
+    ]
+   },
+   "NEC": {
+    "label": "Necromancer",
+    "hub": "Drakis Bloodcaster",
+    "armor": "Silk",
+    "verified": true,
+    "quests": [
+     {
+      "name": "Test of Flight",
+      "giver": "Jzil Gsix",
+      "say": "choose Jzil → flight",
+      "reward": {
+       "name": "Bloody Griffon-Hide Wrist Guard",
+       "slot": "Wrist",
+       "stats": "AC 5 · DEX +5 · CHA +10 · INT +5 · AGI +5 · MANA +25 · Levitate (10 charges)"
+      },
+      "turnins": [
+       {
+        "name": "Griffon's Beak",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Lena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Power",
+      "giver": "Jzil Gsix",
+      "say": "choose Jzil → power",
+      "reward": {
+       "name": "Cloak of Spiroc Feathers",
+       "slot": "Back",
+       "stats": "AC 6 · STR +5 · STA +6 · INT +5 · MANA +50"
+      },
+      "turnins": [
+       {
+        "name": "Black Silk Cape",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Neza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Mind",
+      "giver": "Jzil Gsix",
+      "say": "choose Jzil → mind",
+      "reward": {
+       "name": "Bloodsoaked Raiment",
+       "slot": "Shoulders",
+       "stats": "AC 4 · DEX +3 · INT +5 · HP +30 · MANA +65"
+      },
+      "turnins": [
+       {
+        "name": "Fine Cloth Raiment",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ozah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Heart",
+      "giver": "Dugaas Helpyre",
+      "say": "choose Dugaas → heart",
+      "reward": {
+       "name": "Sphinx Heart Amulet",
+       "slot": "Neck",
+       "stats": "AC 4 · STR +10 · CHA −5 · INT +10 · MANA +25 · SV DISEASE +5 · Ultravision (worn)"
+      },
+      "turnins": [
+       {
+        "name": "Pulsating Ruby",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Azia",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Finger",
+      "giver": "Dugaas Helpyre",
+      "say": "choose Dugaas → finger",
+      "reward": {
+       "name": "Band of Wailing Winds",
+       "slot": "Finger",
+       "stats": "AC 2 · INT +5 · MANA +50 · Invoke Fear (3 charges)"
+      },
+      "turnins": [
+       {
+        "name": "Ring of Veeshan",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Caza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Hands",
+      "giver": "Dugaas Helpyre",
+      "say": "choose Dugaas → hands",
+      "reward": {
+       "name": "Gorgon Head Staff",
+       "slot": "Primary",
+       "stats": "2H Blunt 14 / 41 · INT +15 · MANA +75 · SV DISEASE +25 · proc Tishan's Clash"
+      },
+      "turnins": [
+       {
+        "name": "Gorgon Head",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Great Staff",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Fana",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "PAL": {
+    "label": "Paladin",
+    "hub": "Dason Goldblade",
+    "armor": "Plate",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Test of Spirit",
+      "giver": "Dirkog Steelhand",
+      "say": "tested by Dirkog → spirit",
+      "reward": {
+       "name": "Girdle of Faith",
+       "slot": "Waist",
+       "stats": "AC 10 · STR +6 · WIS +6 · AGI +6 · Haste +41%"
+      },
+      "turnins": [
+       {
+        "name": "Ivory Sky Diamond",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Lena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "suspect",
+        "note": "classic percentage haste; Legends uses a flat attack-speed value, so this figure is a classic import and not a Legends stat"
+       }
+      }
+     },
+     {
+      "name": "Test of Sacrifice",
+      "giver": "Gregori Lightbringer",
+      "say": "tested by Gregori → sacrifice",
+      "reward": {
+       "name": "Aldryn, Blade of the Ocean",
+       "slot": "Primary",
+       "stats": "1H Slash 20 / 26 · STR +10 · STA +10 · WIS +8"
+      },
+      "turnins": [
+       {
+        "name": "Bixie Sword Blade",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ozah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Love",
+      "giver": "Gregori Lightbringer",
+      "say": "tested by Gregori → love",
+      "reward": {
+       "name": "Thelvorn, Blade of Light",
+       "slot": "Primary",
+       "stats": "1H Slash 20 / 26 · WIS +15 · proc Dismiss Summoned"
+      },
+      "turnins": [
+       {
+        "name": "Golden Hilt",
+        "islands": [
+         "7"
+        ],
+        "source": "drake / sphinx / spirit trash",
+        "rune": false
+       },
+       {
+        "name": "Sphinx Claw",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Geza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Compassion",
+      "giver": "Gregori Lightbringer",
+      "say": "tested by Gregori → compassion",
+      "reward": {
+       "name": "Truvinan",
+       "slot": "Primary",
+       "stats": "2H Slash 32 / 40 · proc Dismiss Undead"
+      },
+      "turnins": [
+       {
+        "name": "Large Sky Diamond",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Zweihander",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Izah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "RNG": {
+    "label": "Ranger",
+    "hub": "Ranger Spirit",
+    "armor": "Chain",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Griffon Talon Necklace",
+      "giver": "Ranger Spirit",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Griffon Talon Necklace",
+       "slot": "Neck",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Griffon Talon",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Meda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Dark Cloak of the Sky",
+      "giver": "Ranger Spirit",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Dark Cloak of the Sky",
+       "slot": "Back",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Fine Velvet Cloak",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Neza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Earthshaker's Mantle",
+      "giver": "Ranger Spirit",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Earthshaker's Mantle",
+       "slot": "Shoulders",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Spiroc Earth Totem",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Kala",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Thunderforged Earring",
+      "giver": "Ranger Spirit",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Thunderforged Earring",
+       "slot": "Ear",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "White Gold Earring",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Azia",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Arydryidriyorn",
+      "giver": "Ranger Spirit",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Arydryidriyorn",
+       "slot": "Primary / Secondary",
+       "stats": "STR +8 · WIS +8 · HP +50 — partial, Build Forge snapshot"
+      },
+      "turnins": [
+       {
+        "name": "Circlet of Brambles",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Long Sword",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Windstriker",
+      "giver": "Ranger Spirit",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Windstriker",
+       "slot": "Range",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Shimmering Pearl",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti War Bow",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Heda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     }
+    ]
+   },
+   "ROG": {
+    "label": "Rogue",
+    "hub": "Thalik Silenthand",
+    "armor": "Chain",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Wispy Choker of Vigor",
+      "giver": "Thalik Silenthand",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Wispy Choker of Vigor",
+       "slot": "Neck",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Inlaid Choker",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ozah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Crystal Mask",
+      "giver": "Thalik Silenthand",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Crystal Mask",
+       "slot": "Face",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Jester's Mask",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Dena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Griffon Wing Spaulders",
+      "giver": "Thalik Silenthand",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Griffon Wing Spaulders",
+       "slot": "Shoulders",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Spiroc Sky Totem",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Shimmering Bracer of Protection",
+      "giver": "Thalik Silenthand",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Shimmering Bracer of Protection",
+       "slot": "Wrist",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Fine Wool Cloak",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Geza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Renard's Belt of Quickness",
+      "giver": "Thalik Silenthand",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Renard's Belt of Quickness",
+       "slot": "Waist",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Sphinxian Circlet",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Izah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Thornstinger",
+      "giver": "Thalik Silenthand",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Thornstinger",
+       "slot": "Primary",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Bixie Stinger",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Bloodsky Sapphire",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Jaka",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     }
+    ]
+   },
+   "SHD": {
+    "label": "Shadow Knight",
+    "hub": "Sarkis Ebonblade",
+    "armor": "Plate",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Amulet of the Sphinx Eye",
+      "giver": "Sarkis Ebonblade",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Amulet of the Sphinx Eye",
+       "slot": "Neck",
+       "stats": "AC 15 · STR +7 · WIS +3 · INT +14 · CHA +3 · MANA +25 · Ultravision (worn)"
+      },
+      "turnins": [
+       {
+        "name": "Finely Crafted Amulet",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ozah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Crimson Ring of the Djinni",
+      "giver": "Sarkis Ebonblade",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Crimson Ring of the Djinni",
+       "slot": "Finger",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Silvery Ring",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Beza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Pegasus-Hide Belt",
+      "giver": "Sarkis Ebonblade",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Pegasus-Hide Belt",
+       "slot": "Waist",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Finely Woven Cloth Belt",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Dena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Blood Sky Face Plate",
+      "giver": "Sarkis Ebonblade",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Blood Sky Face Plate",
+       "slot": "Face",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Rusted Pauldrons",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Fana",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Obtenebrate Mithril Guard",
+      "giver": "Sarkis Ebonblade",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Obtenebrate Mithril Guard",
+       "slot": "Secondary",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Efreeti War Shield",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Heda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Khyldorn the Blood Drinker",
+      "giver": "Sarkis Ebonblade",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Khyldorn the Blood Drinker",
+       "slot": "Primary",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Blood Sky Ruby",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti War Axe",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Kala",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Pearlescent Pauldrons",
+      "giver": "Sarkis Ebonblade",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Pearlescent Pauldrons",
+       "slot": "Shoulders",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Fae Pauldrons",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Sphinxian Ring",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Izah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     }
+    ]
+   },
+   "SHM": {
+    "label": "Shaman",
+    "hub": "Medicine Man Veetra",
+    "armor": "Chain",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Amulet of the Fang",
+      "giver": "Medicine Man Veetra",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Amulet of the Fang",
+       "slot": "Neck",
+       "stats": "AC 8 · WIS +8 · CHA +2 · MANA +10 · SV MAGIC +5 · SV FIRE +10"
+      },
+      "turnins": [
+       {
+        "name": "Leather Cord",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Meda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Bracelet of the Spirits",
+      "giver": "Medicine Man Veetra",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Bracelet of the Spirits",
+       "slot": "Waist",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Ceremonial Belt",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Kala",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "suspect",
+        "note": "slot recorded as Waist; a bracelet belongs on the wrist. We do not know the correct slot and will not guess one. One screenshot of the item tooltip settles it."
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Fairy-Hide Mantle",
+      "giver": "Medicine Man Veetra",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Fairy-Hide Mantle",
+       "slot": "Shoulders",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Light Damask Mantle",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Beza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Vermilion Sky Ring",
+      "giver": "Medicine Man Veetra",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Vermilion Sky Ring",
+       "slot": "Finger",
+       "stats": "AC 5 · DEX +3 · WIS +7 · SV DISEASE +20 · Feign Death (2 charges) — classic tooltip"
+      },
+      "turnins": [
+       {
+        "name": "Bixie Essence",
+        "islands": [
+         "6"
+        ],
+        "source": "bee mobs",
+        "rune": false
+       },
+       {
+        "name": "Spiritualist's Ring",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Heda",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Warhammer of the Wind",
+      "giver": "Medicine Man Veetra",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Warhammer of the Wind",
+       "slot": "Primary",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Corrosive Venom",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti War Club",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Ena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Garduk",
+      "giver": "Medicine Man Veetra",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Garduk",
+       "slot": "Primary",
+       "stats": "Piercing 23 / 40 · WIS +15 · MANA +75 · proc Tagar's Insects — classic tooltip"
+      },
+      "turnins": [
+       {
+        "name": "Symbol of Veeshan",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti War Maul",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Geza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "WAR": {
+    "label": "Warrior",
+    "hub": "Torgon Blademaster",
+    "armor": "Plate",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Test of Skill",
+      "giver": "Falorn",
+      "say": "tested by Falorn → test of blades → skill",
+      "reward": {
+       "name": "Azure Ruby Ring",
+       "slot": "Finger",
+       "stats": "AC 5 · STR +6 · DEX +9 · STA +6"
+      },
+      "turnins": [
+       {
+        "name": "Azure Ring",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Neza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-warrior-tests",
+        "tier": 5,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Force",
+      "giver": "Falorn",
+      "say": "… test of blades → force",
+      "reward": {
+       "name": "Pauldrons of the Blue Sky",
+       "slot": "Shoulders",
+       "stats": "AC 12 · STR +8 · DEX +10 · STA +7 · AGI +10 · Spirit of Cheetah (3 charges)"
+      },
+      "turnins": [
+       {
+        "name": "Spiroc Air Totem",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Beza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-warrior-tests",
+        "tier": 5,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Strength",
+      "giver": "Falorn",
+      "say": "… test of blades → strength",
+      "reward": {
+       "name": "Runed Wind Amulet",
+       "slot": "Neck",
+       "stats": "AC 6 · STR +7 · AGI +7 · HP +40"
+      },
+      "turnins": [
+       {
+        "name": "Stone Amulet",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Azia",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-warrior-tests",
+        "tier": 5,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Think",
+      "giver": "Ogog",
+      "say": "tested by ogog → ready for ogog → think",
+      "reward": {
+       "name": "Belt of the Four Winds",
+       "slot": "Waist",
+       "stats": "AC 5 · STR +12 · DEX +6 · STA +12 · AGI +6 · SV MAGIC +5 · Haste +41%"
+      },
+      "turnins": [
+       {
+        "name": "Efreeti Belt",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Tablet",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Fana",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-warrior-tests",
+        "tier": 5,
+        "status": "suspect",
+        "note": "classic percentage haste; Legends uses a flat attack-speed value, so this figure is a classic import and not a Legends stat"
+       }
+      }
+     },
+     {
+      "name": "Test of Smash",
+      "giver": "Ogog",
+      "say": "… ready for ogog → smash",
+      "reward": {
+       "name": "Dagas",
+       "slot": "Primary / Secondary",
+       "stats": "1H Slash 11 / 21 · AC 20 · STR +3 · AGI +2 · HP +100 · Lore Equipped"
+      },
+      "turnins": [
+       {
+        "name": "Djinni War Blade",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Gem of Invigoration",
+        "islands": [
+         "7"
+        ],
+        "source": "drake / sphinx / spirit trash",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Jaka",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-warrior-tests",
+        "tier": 5,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Test of Bash",
+      "giver": "Ogog",
+      "say": "… ready for ogog → bash",
+      "reward": {
+       "name": "Fangol",
+       "slot": "Primary",
+       "stats": "2H Slash 29 / 35 · STR +3 · DEX +10 · STA +10 · SV POISON +5 · proc Fangol's Breath"
+      },
+      "turnins": [
+       {
+        "name": "Efreeti Battle Axe",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Ethereal Emerald",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Dena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "wiki-warrior-tests",
+        "tier": 5,
+        "status": "ok",
+        "note": null
+       }
+      }
+     }
+    ]
+   },
+   "WIZ": {
+    "label": "Wizard",
+    "hub": "Wizard Schrock",
+    "armor": "Silk",
+    "verified": false,
+    "quests": [
+     {
+      "name": "Augmentor's Mask",
+      "giver": "Wizard Schrock",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Augmentor's Mask",
+       "slot": "Face",
+       "stats": "AC 6 · AGI +8 · DEX +4 · INT +9 · MANA +9 — Build Forge snapshot"
+      },
+      "turnins": [
+       {
+        "name": "Grey Damask Cloak",
+        "islands": [
+         "3"
+        ],
+        "source": "Gorgalosk (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Dena",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Al`Kabor's Cap of Binding",
+      "giver": "Wizard Schrock",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Al`Kabor's Cap of Binding",
+       "slot": "Head",
+       "stats": "AC 6 · STR +5 · INT +8 · HP +40 · MANA +20 · SV FIRE/COLD +10 — Build Forge snapshot"
+      },
+      "turnins": [
+       {
+        "name": "Woven Skull Cap",
+        "islands": [
+         "4"
+        ],
+        "source": "Keeper of Souls (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Fana",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Raiment of Thunder",
+      "giver": "Wizard Schrock",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Raiment of Thunder",
+       "slot": "Shoulders",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "High Quality Raiment",
+        "islands": [
+         "5"
+        ],
+        "source": "The Spiroc Lord (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Geza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Solidate Mithril Ring",
+      "giver": "Wizard Schrock",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Solidate Mithril Ring",
+       "slot": "Finger",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Box of Winds",
+        "islands": [
+         "6"
+        ],
+        "source": "Bazzt Zzzt (boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti Statuette",
+        "islands": [
+         "4"
+        ],
+        "source": "soul / essence griffons, Eternal Spirit",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Izah",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     },
+     {
+      "name": "Amulet of the Void",
+      "giver": "Wizard Schrock",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Amulet of the Void",
+       "slot": "Neck",
+       "stats": "AC 4 · AGI +5 · DEX +5 · INT +5 · CHA +5 · MANA +50 — Build Forge snapshot"
+      },
+      "turnins": [
+       {
+        "name": "Amethyst Amulet",
+        "islands": [
+         "7"
+        ],
+        "source": "Sister of the Spire (boss)",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Jaka",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "ok",
+        "note": null
+       }
+      }
+     },
+     {
+      "name": "Nargon's Staff",
+      "giver": "Wizard Schrock",
+      "say": "tester chain not confirmed for Legends",
+      "reward": {
+       "name": "Nargon's Staff",
+       "slot": "Primary",
+       "stats": null
+      },
+      "turnins": [
+       {
+        "name": "Large Sky Lapis",
+        "islands": [
+         "8"
+        ],
+        "source": "Eye of Veeshan (final boss)",
+        "rune": false
+       },
+       {
+        "name": "Efreeti War Staff",
+        "islands": [
+         "1.5",
+         "4",
+         "8"
+        ],
+        "source": "Noble Dojorn · Overseer of Air · the Hand of Veeshan",
+        "rune": false
+       },
+       {
+        "name": "Wind Rune Caza",
+        "islands": [
+         "any"
+        ],
+        "source": "random zone-wide drop",
+        "rune": true
+       }
+      ],
+      "provenance": {
+       "turnins": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "giver": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "reward": {
+        "source": "wiki-sky-151528",
+        "tier": 2,
+        "status": "ok",
+        "note": null
+       },
+       "stats": {
+        "source": "unsourced",
+        "tier": null,
+        "status": "unsourced",
+        "note": "no Legends tooltip recorded"
+       }
+      }
+     }
+    ]
+   }
+  }
+ },
+ "hash": "c8d41d080e92f873"
+}

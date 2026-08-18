@@ -1,24 +1,26 @@
 {
  "generated": "pipeline/build.mjs",
- "rule": "ships iff pre-Kunark era, or present in the live client export, or player-confirmed",
+ "rule": "ships iff pre-Kunark era, or Tier M evidence places it in the game",
  "counts": {
   "before": 11252,
-  "shipped": 3533,
-  "quarantined": 7719,
+  "shipped": 3653,
+  "quarantined": 7599,
   "shipReasons": {
-   "era:Classic": 2772,
+   "era:Classic": 2633,
    "era:Sky": 324,
    "in-live-inventory": 284,
+   "measured dropping in game": 175,
    "era:Temple": 100,
-   "era:Fear": 22,
+   "in eqlsource id table": 93,
    "era:Paineel": 21,
+   "era:Fear": 15,
    "player-confirmed": 6,
-   "era:Hate": 4
+   "era:Hate": 2
   },
   "quarantineReasons": {
    "era:Velious": 2828,
-   "no era in any source": 2331,
-   "era:Kunark": 1457,
+   "no era in any source": 2230,
+   "era:Kunark": 1438,
    "era:Epic Quests": 867,
    "era:Chardok Revamp": 145,
    "era:FearHateRevamp": 53,
@@ -1890,24 +1892,6 @@
    "why": "era:Chardok Revamp"
   },
   {
-   "key": "anthemion armbands",
-   "n": "Anthemion Armbands",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "anthemion wristguard",
-   "n": "Anthemion Wristguard",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "anti-poison amulet",
    "n": "Anti-Poison Amulet",
    "era": null,
@@ -1946,56 +1930,11 @@
    "why": "era:Epic Quests"
   },
   {
-   "key": "apothic boots",
-   "n": "Apothic Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "apothic crown",
-   "n": "Apothic Crown",
-   "era": null,
-   "sl": [
-    "HEAD"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "apothic gloves",
-   "n": "Apothic Gloves",
-   "era": null,
-   "sl": [
-    "HANDS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "apothic kilt",
-   "n": "Apothic Kilt",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "apothic sleeves",
    "n": "Apothic Sleeves",
    "era": null,
    "sl": [
     "ARMS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "apothic warband",
-   "n": "Apothic Warband",
-   "era": null,
-   "sl": [
-    "WRIST"
    ],
    "why": "no era in any source"
   },
@@ -2659,13 +2598,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "baby joseph sayer",
-   "n": "Baby Joseph Sayer",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "baby shark remains",
    "n": "Baby Shark Remains",
    "era": null,
@@ -3210,13 +3142,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "bat wing",
-   "n": "Bat Wing",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "batfang headband",
    "n": "Batfang Headband",
    "era": "Kunark",
@@ -3238,15 +3163,6 @@
    "era": "Kunark",
    "sl": [
     "WRIST"
-   ],
-   "why": "era:Kunark"
-  },
-  {
-   "key": "batling eye",
-   "n": "Batling Eye",
-   "era": "Kunark",
-   "sl": [
-    "RANGE"
    ],
    "why": "era:Kunark"
   },
@@ -3931,13 +3847,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "black heart",
-   "n": "Black Heart",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "black ice boots",
    "n": "Black Ice Boots",
    "era": "Velious",
@@ -4360,13 +4269,6 @@
   {
    "key": "blackbox z series",
    "n": "Blackbox Z Series",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "blackburrow gnoll pelt",
-   "n": "Blackburrow Gnoll Pelt",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -4847,47 +4749,11 @@
    "why": "era:Kunark"
   },
   {
-   "key": "blighted armband",
-   "n": "Blighted Armband",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "blighted boots",
-   "n": "Blighted Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "blighted gloves",
-   "n": "Blighted Gloves",
-   "era": null,
-   "sl": [
-    "HANDS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "blighted mare hide",
    "n": "Blighted Mare Hide",
    "era": "Luclin",
    "sl": [],
    "why": "era:Luclin"
-  },
-  {
-   "key": "blighted robe",
-   "n": "Blighted Robe",
-   "era": null,
-   "sl": [
-    "CHEST"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "blighted skullcap",
@@ -4986,13 +4852,6 @@
   {
    "key": "block of mithril",
    "n": "Block of Mithril",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "block of permafrost",
-   "n": "Block of Permafrost",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -5358,13 +5217,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "blood spirit",
-   "n": "Blood Spirit",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "blood splattered veil",
    "n": "Blood Splattered Veil",
    "era": "Kunark",
@@ -5547,15 +5399,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "bloodstone ring",
-   "n": "Bloodstone Ring",
-   "era": "Kunark",
-   "sl": [
-    "FINGERS"
-   ],
-   "why": "era:Kunark"
-  },
-  {
    "key": "bloody claw of draazak",
    "n": "Bloody Claw of Draazak",
    "era": "Velious",
@@ -5638,13 +5481,6 @@
    "sl": [
     "HEAD"
    ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "blue orc head",
-   "n": "Blue Orc Head",
-   "era": null,
-   "sl": [],
    "why": "no era in any source"
   },
   {
@@ -6705,15 +6541,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "brawler's belt",
-   "n": "Brawler's Belt",
-   "era": "Kunark",
-   "sl": [
-    "WAIST"
-   ],
-   "why": "era:Kunark"
-  },
-  {
    "key": "brazen brass kilij",
    "n": "Brazen Brass Kilij",
    "era": null,
@@ -7208,15 +7035,6 @@
    "era": "Kunark",
    "sl": [
     "FEET"
-   ],
-   "why": "era:Kunark"
-  },
-  {
-   "key": "bronze bracers",
-   "n": "Bronze Bracers",
-   "era": "Kunark",
-   "sl": [
-    "WRIST"
    ],
    "why": "era:Kunark"
   },
@@ -7910,13 +7728,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "butler syncalls fang",
-   "n": "Butler Syncalls Fang",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "cabilis pale ale",
    "n": "Cabilis Pale Ale",
    "era": null,
@@ -8216,47 +8027,11 @@
    "why": "no era in any source"
   },
   {
-   "key": "carmine gloves",
-   "n": "Carmine Gloves",
-   "era": null,
-   "sl": [
-    "HANDS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "carmine pants",
    "n": "Carmine Pants",
    "era": null,
    "sl": [
     "LEGS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "carmine sleeves",
-   "n": "Carmine Sleeves",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "carmine trinket",
-   "n": "Carmine Trinket",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "carmine turban",
-   "n": "Carmine Turban",
-   "era": null,
-   "sl": [
-    "HEAD"
    ],
    "why": "no era in any source"
   },
@@ -14220,16 +13995,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "diviner's bowl",
-   "n": "Diviner's Bowl",
-   "era": "Kunark",
-   "sl": [
-    "PRIMARY",
-    "SECONDARY"
-   ],
-   "why": "era:Kunark"
-  },
-  {
    "key": "do'vassir's gauntlets of might",
    "n": "Do`Vassir`s Gauntlets of Might",
    "era": "Velious",
@@ -15076,13 +14841,6 @@
     "SHOULDERS"
    ],
    "why": "era:Kunark"
-  },
-  {
-   "key": "drop of mercury",
-   "n": "Drop of Mercury",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "drums of the beast",
@@ -16573,13 +16331,6 @@
    "why": "era:Luclin"
   },
   {
-   "key": "emerald",
-   "n": "Emerald",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "emerald bastardsword of purity",
    "n": "Emerald Bastardsword of Purity",
    "era": "Velious",
@@ -18053,13 +17804,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "essence of fire",
-   "n": "Essence of Fire",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "essence of gukta",
    "n": "Essence of Gukta",
    "era": null,
@@ -18081,13 +17825,6 @@
     "SECONDARY"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "essence of rathe",
-   "n": "Essence of Rathe",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "essence of shadow",
@@ -18120,15 +17857,6 @@
     "FINGERS"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "etched chitin shield",
-   "n": "Etched Chitin Shield",
-   "era": "Kunark",
-   "sl": [
-    "SECONDARY"
-   ],
-   "why": "era:Kunark"
   },
   {
    "key": "etched iron boots",
@@ -18322,24 +18050,6 @@
    "era": null,
    "sl": [
     "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "ethereal mist bracers",
-   "n": "Ethereal Mist Bracers",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "ethereal mist gauntlets",
-   "n": "Ethereal Mist Gauntlets",
-   "era": null,
-   "sl": [
-    "HANDS"
    ],
    "why": "no era in any source"
   },
@@ -19530,16 +19240,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "fine steel scimitar",
-   "n": "Fine Steel Scimitar",
-   "era": "Kunark",
-   "sl": [
-    "PRIMARY",
-    "SECONDARY"
-   ],
-   "why": "era:Kunark"
-  },
-  {
    "key": "fine steel short sword",
    "n": "Fine Steel Short Sword",
    "era": "Kunark",
@@ -19752,13 +19452,6 @@
     "FINGERS"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "fire giant toes",
-   "n": "Fire Giant Toes",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "fire hornet wing",
@@ -20050,13 +19743,6 @@
   {
    "key": "flake of lodestone",
    "n": "Flake of Lodestone",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "flame agate",
-   "n": "Flame Agate",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -20402,15 +20088,6 @@
    "era": "Kunark",
    "sl": [
     "AMMO"
-   ],
-   "why": "era:Kunark"
-  },
-  {
-   "key": "flowing black robe",
-   "n": "Flowing Black Robe",
-   "era": "Kunark",
-   "sl": [
-    "CHEST"
    ],
    "why": "era:Kunark"
   },
@@ -22002,13 +21679,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "gargoyle eye",
-   "n": "Gargoyle Eye",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "garou bone club",
    "n": "Garou Bone Club",
    "era": "Velious",
@@ -22693,23 +22363,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "giant snake fang",
-   "n": "Giant Snake Fang",
-   "era": "Kunark",
-   "sl": [
-    "PRIMARY",
-    "SECONDARY"
-   ],
-   "why": "era:Kunark"
-  },
-  {
-   "key": "giant snake rattle",
-   "n": "Giant Snake Rattle",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "giant snakespine belt",
    "n": "Giant Snakespine Belt",
    "era": "Kunark",
@@ -23264,13 +22917,6 @@
     "SECONDARY"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "glowing sword hilt",
-   "n": "Glowing Sword Hilt",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "glowing velium axe",
@@ -24023,15 +23669,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "gold ring",
-   "n": "Gold Ring",
-   "era": "Kunark",
-   "sl": [
-    "FINGERS"
-   ],
-   "why": "era:Kunark"
-  },
-  {
    "key": "gold thread",
    "n": "Gold Thread",
    "era": null,
@@ -24285,15 +23922,6 @@
    "era": "Kunark",
    "sl": [
     "FACE"
-   ],
-   "why": "era:Kunark"
-  },
-  {
-   "key": "gossamer robe",
-   "n": "Gossamer Robe",
-   "era": "Kunark",
-   "sl": [
-    "CHEST"
    ],
    "why": "era:Kunark"
   },
@@ -25429,15 +25057,6 @@
     "SECONDARY"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "hand drum",
-   "n": "Hand Drum",
-   "era": null,
-   "sl": [
-    "SECONDARY"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "hand made backpack",
@@ -27915,13 +27534,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "illegible scroll",
-   "n": "Illegible Scroll",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "illusionist's gloves",
    "n": "Illusionist's Gloves",
    "era": "Velious",
@@ -27989,33 +27601,6 @@
    "n": "Illweed Parchment",
    "era": null,
    "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "imbrued platemail breastplate",
-   "n": "Imbrued Platemail Breastplate",
-   "era": null,
-   "sl": [
-    "CHEST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "imbrued platemail helm",
-   "n": "Imbrued Platemail Helm",
-   "era": null,
-   "sl": [
-    "HEAD"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "imbrued platemail vambraces",
-   "n": "Imbrued Platemail Vambraces",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
    "why": "no era in any source"
   },
   {
@@ -31429,33 +31014,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "indicolite boots",
-   "n": "Indicolite Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "indicolite helm",
-   "n": "Indicolite Helm",
-   "era": null,
-   "sl": [
-    "HEAD"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "indicolite vambraces",
-   "n": "Indicolite Vambraces",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "indigo sabre",
    "n": "Indigo Sabre",
    "era": "Epic Quests",
@@ -31643,42 +31201,6 @@
    "era": "Velious",
    "sl": [],
    "why": "era:Velious"
-  },
-  {
-   "key": "insidious manacle",
-   "n": "Insidious Manacle",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "insidious pantaloons",
-   "n": "Insidious Pantaloons",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "insidious robe",
-   "n": "Insidious Robe",
-   "era": null,
-   "sl": [
-    "CHEST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "insidious sleeves",
-   "n": "Insidious Sleeves",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "insignia protector",
@@ -32064,15 +31586,6 @@
    "era": "Kunark",
    "sl": [
     "PRIMARY"
-   ],
-   "why": "era:Kunark"
-  },
-  {
-   "key": "jade ring",
-   "n": "Jade Ring",
-   "era": "Kunark",
-   "sl": [
-    "FINGERS"
    ],
    "why": "era:Kunark"
   },
@@ -34346,13 +33859,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "lava rock",
-   "n": "Lava Rock",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "lead peroxide",
    "n": "Lead Peroxide",
    "era": null,
@@ -34417,16 +33923,6 @@
     "HEAD"
    ],
    "why": "no era in any source"
-  },
-  {
-   "key": "leather whip",
-   "n": "Leather Whip",
-   "era": "Kunark",
-   "sl": [
-    "PRIMARY",
-    "SECONDARY"
-   ],
-   "why": "era:Kunark"
   },
   {
    "key": "leathered zombie flesh",
@@ -35388,51 +34884,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "lustrous russet boots",
-   "n": "Lustrous Russet Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "lustrous russet bracer",
-   "n": "Lustrous Russet Bracer",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "lustrous russet greaves",
-   "n": "Lustrous Russet Greaves",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "lustrous russet helm",
-   "n": "Lustrous Russet Helm",
-   "era": null,
-   "sl": [
-    "HEAD"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "lute",
-   "n": "Lute",
-   "era": null,
-   "sl": [
-    "SECONDARY"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "lute of the howler",
    "n": "Lute of the Howler",
    "era": "Velious",
@@ -35576,13 +35027,6 @@
    "why": "era:Epic Quests"
   },
   {
-   "key": "maid issis fang",
-   "n": "Maid Issis Fang",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "maidenhair fern",
    "n": "Maidenhair Fern",
    "era": null,
@@ -35614,13 +35058,6 @@
     "NECK"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "malachite",
-   "n": "Malachite",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "malagil's compendium vol. 1",
@@ -36941,15 +36378,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "midnight sea mail coat",
-   "n": "Midnight Sea Mail Coat",
-   "era": "Kunark",
-   "sl": [
-    "CHEST"
-   ],
-   "why": "era:Kunark"
-  },
-  {
    "key": "midnight sea mail leggings",
    "n": "Midnight Sea Mail Leggings",
    "era": "Velious",
@@ -37183,13 +36611,6 @@
    "era": "Epic Quests",
    "sl": [],
    "why": "era:Epic Quests"
-  },
-  {
-   "key": "mistmoore granite",
-   "n": "Mistmoore Granite",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "misty acorn",
@@ -37690,43 +37111,8 @@
    "why": "no era in any source"
   },
   {
-   "key": "mote of greater potential",
-   "n": "Mote of Greater Potential",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "mote of infinite potential",
    "n": "Mote of Infinite Potential",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "mote of lesser potential",
-   "n": "Mote of Lesser Potential",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "mote of major potential",
-   "n": "Mote of Major Potential",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "mote of minor potential",
-   "n": "Mote of Minor Potential",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "mote of potential",
-   "n": "Mote of Potential",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -37920,13 +37306,6 @@
   {
    "key": "muddite mud",
    "n": "Muddite Mud",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "mudwater rune",
-   "n": "Mudwater Rune",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -39892,15 +39271,6 @@
    "why": "era:Epic Quests"
   },
   {
-   "key": "onyx earring",
-   "n": "Onyx Earring",
-   "era": "Kunark",
-   "sl": [
-    "EAR"
-   ],
-   "why": "era:Kunark"
-  },
-  {
    "key": "onyx gauntlets",
    "n": "Onyx Gauntlets",
    "era": "Velious",
@@ -41064,13 +40434,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "permafrost crystals",
-   "n": "Permafrost Crystals",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "permafrost resonance crystal",
    "n": "Permafrost Resonance Crystal",
    "era": null,
@@ -42203,13 +41566,6 @@
    "why": "era:Epic Quests"
   },
   {
-   "key": "power of wind",
-   "n": "Power of Wind",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "powered gloves",
    "n": "Powered Gloves",
    "era": "Epic Quests",
@@ -43245,13 +42601,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "rat ears",
-   "n": "Rat Ears",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "rat fur cap",
    "n": "Rat Fur Cap",
    "era": null,
@@ -43270,13 +42619,6 @@
   {
    "key": "rat kabobs",
    "n": "Rat Kabobs",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "rat meat",
-   "n": "Rat Meat",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -43303,13 +42645,6 @@
    "era": "Luclin",
    "sl": [],
    "why": "era:Luclin"
-  },
-  {
-   "key": "rat whiskers",
-   "n": "Rat Whiskers",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "rathe muskie",
@@ -45536,24 +44871,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "rune etched boots",
-   "n": "Rune Etched Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "rune etched helm",
-   "n": "Rune Etched Helm",
-   "era": null,
-   "sl": [
-    "HEAD"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "rune etched icewurm fang",
    "n": "Rune Etched Icewurm Fang",
    "era": "Velious",
@@ -45562,15 +44879,6 @@
     "PRIMARY"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "rune etched vambraces",
-   "n": "Rune Etched Vambraces",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "rune etched wedding band",
@@ -45736,13 +45044,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "rune of fortune",
-   "n": "Rune of Fortune",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "rune of frost",
    "n": "Rune of Frost",
    "era": null,
@@ -45773,13 +45074,6 @@
   {
    "key": "rune of infraction",
    "n": "Rune of Infraction",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "rune of ivy",
-   "n": "Rune of Ivy",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -46009,15 +45303,6 @@
    "era": "Kunark",
    "sl": [
     "PRIMARY"
-   ],
-   "why": "era:Kunark"
-  },
-  {
-   "key": "runed bolster belt",
-   "n": "Runed Bolster Belt",
-   "era": "Kunark",
-   "sl": [
-    "WAIST"
    ],
    "why": "era:Kunark"
   },
@@ -48851,50 +48136,8 @@
    "why": "no era in any source"
   },
   {
-   "key": "shackle key 17",
-   "n": "Shackle Key 17",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "shackle key 19",
    "n": "Shackle Key 19",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "shackle key 20",
-   "n": "Shackle Key 20",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "shackle key 21",
-   "n": "Shackle Key 21",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "shackle key 22",
-   "n": "Shackle Key 22",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "shackle key 23",
-   "n": "Shackle Key 23",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "shackle key 24",
-   "n": "Shackle Key 24",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -50766,15 +50009,6 @@
     "WRIST"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "silver ring",
-   "n": "Silver Ring",
-   "era": "Kunark",
-   "sl": [
-    "FINGERS"
-   ],
-   "why": "era:Kunark"
   },
   {
    "key": "silver ring (ring of opolla)",
@@ -53389,13 +52623,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "speckled granite pebble",
-   "n": "Speckled Granite Pebble",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "speckled molded mushroom",
    "n": "Speckled Molded Mushroom",
    "era": "Epic Quests",
@@ -53669,13 +52896,6 @@
     "FEET"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "spider legs",
-   "n": "Spider Legs",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "spider venom",
@@ -54655,13 +53875,6 @@
   {
    "key": "stinging nettle",
    "n": "Stinging Nettle",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "stone marker",
-   "n": "Stone Marker",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -57052,65 +56265,11 @@
    "why": "no era in any source"
   },
   {
-   "key": "thorny vine boots",
-   "n": "Thorny Vine Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "thorny vine bracer",
-   "n": "Thorny Vine Bracer",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "thorny vine chestplate",
-   "n": "Thorny Vine Chestplate",
-   "era": null,
-   "sl": [
-    "CHEST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "thorny vine gauntlets",
-   "n": "Thorny Vine Gauntlets",
-   "era": null,
-   "sl": [
-    "HANDS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "thorny vine greaves",
    "n": "Thorny Vine Greaves",
    "era": null,
    "sl": [
     "LEGS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "thorny vine helm",
-   "n": "Thorny Vine Helm",
-   "era": null,
-   "sl": [
-    "HEAD"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "thorny vine vambraces",
-   "n": "Thorny Vine Vambraces",
-   "era": null,
-   "sl": [
-    "ARMS"
    ],
    "why": "no era in any source"
   },
@@ -59064,16 +58223,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "uliorn's fishing pole",
-   "n": "Uliorn's Fishing Pole",
-   "era": "Kunark",
-   "sl": [
-    "PRIMARY",
-    "SECONDARY"
-   ],
-   "why": "era:Kunark"
-  },
-  {
    "key": "ulthork hide",
    "n": "Ulthork Hide",
    "era": "Velious",
@@ -59427,13 +58576,6 @@
    "era": "Kunark",
    "sl": [],
    "why": "era:Kunark"
-  },
-  {
-   "key": "undead froglok tongue",
-   "n": "Undead Froglok Tongue",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "underfoot mushroom",
@@ -61026,42 +60168,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "vermiculated armplates",
-   "n": "Vermiculated Armplates",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "vermiculated boots",
-   "n": "Vermiculated Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "vermiculated crown",
-   "n": "Vermiculated Crown",
-   "era": null,
-   "sl": [
-    "HEAD"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "vermiculated gloves",
-   "n": "Vermiculated Gloves",
-   "era": null,
-   "sl": [
-    "HANDS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "vermiculated leggings",
    "n": "Vermiculated Leggings",
    "era": null,
@@ -61188,13 +60294,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "vial of noble's blood",
-   "n": "Vial of Noble's Blood",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "vial of purified mana",
    "n": "Vial of Purified Mana",
    "era": null,
@@ -61307,16 +60406,6 @@
    "era": null,
    "sl": [],
    "why": "no era in any source"
-  },
-  {
-   "key": "violet flame lantern",
-   "n": "Violet Flame Lantern",
-   "era": "Kunark",
-   "sl": [
-    "PRIMARY",
-    "SECONDARY"
-   ],
-   "why": "era:Kunark"
   },
   {
    "key": "violet jr apprentice robe*",
@@ -61911,13 +61000,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "werewolf talon",
-   "n": "Werewolf Talon",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "wet clay",
    "n": "Wet Clay",
    "era": "Kunark",
@@ -62247,13 +61329,6 @@
     "SECONDARY"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "widowmistress hair",
-   "n": "Widowmistress Hair",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "will of innoruuk",
@@ -63608,69 +62683,6 @@
     "FEET"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "woven shadow boots",
-   "n": "Woven Shadow Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "woven shadow bracer",
-   "n": "Woven Shadow Bracer",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "woven shadow chestplate",
-   "n": "Woven Shadow Chestplate",
-   "era": null,
-   "sl": [
-    "CHEST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "woven shadow gauntlets",
-   "n": "Woven Shadow Gauntlets",
-   "era": null,
-   "sl": [
-    "HANDS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "woven shadow greaves",
-   "n": "Woven Shadow Greaves",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "woven shadow helm",
-   "n": "Woven Shadow Helm",
-   "era": null,
-   "sl": [
-    "HEAD"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "woven shadow vambraces",
-   "n": "Woven Shadow Vambraces",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "woven vine wristband",
