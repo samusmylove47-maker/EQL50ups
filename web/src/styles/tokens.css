@@ -411,6 +411,28 @@
   --fs-small: 11px;
   --fs-body: 13px;
   --fs-mid: 15px;
+  /*
+   * 17px, and it stays there until somebody spends a layout change on it.
+   *
+   * This is the only reading rung more than half a pixel off eqlsource's ladder
+   * (10/11.5/13.5/15.5/18.5 against our 10/11/13/15/17); the other four are
+   * 0.5px low and stay that way by ruling, because half a pixel is below what a
+   * reader perceives and moving four tokens reflows every screen for nothing.
+   * This one carries item names, so closing it to 18.5px was ruled worth doing
+   * and was tried on 2026-08-18.
+   *
+   * It does not fit. `.slot-item` on the paper doll is a `-webkit-line-clamp`
+   * box, and at 1100px the doll's slot body measures 135px: `Summoned: Jolum's
+   * Brilliant Bauble` wants 216.7px at 17px and 235.8px at 18.5px, so it was
+   * already wrapping, and the extra 1.5px pushes it past the clamp into a line
+   * that is cut vertically. `visual-system.spec.ts`'s clip probe catches it —
+   * it measures the height the content wants against the height it gets, which
+   * `scrollWidth === clientWidth` cannot see on an already-shrunk row.
+   *
+   * Raising the clamp would change the height of every row on the doll, which
+   * is a layout change rather than a token change. Recorded rather than done:
+   * the gap is real, the fix is not free, and the probe is the check.
+   */
   --fs-heading: 17px;
   --fs-large: clamp(20px, 2.2vw, 30px);
   /*
@@ -434,11 +456,18 @@
    * — the name of the page weighing the same as one number on it.
    *
    * The floors are this app's old fixed values, so nothing shrinks at phone
-   * widths. The ceilings are this tool's own — NOT the site's. eqlsource's
-   * `--t-h1` reaches 90px and its hero 104px; `--fs-title` stops at 56px,
-   * because whether a tool inside a frame should match the site's display scale
-   * or deliberately sit a step below it is the Director's call and has not been
-   * made. Only the display tier moves; the reading and data tiers stay fixed,
+   * widths.
+   *
+   * **The ceilings are deliberately below the site's, and this is settled — it
+   * is not an unfinished job.** eqlsource's `--t-h1` reaches 90px and its hero
+   * 104px; `--fs-title` stops at 56px and `--fs-hero` at 84px. Director's
+   * ruling, 2026-08-18: the site's hero type is doing brand work, and this
+   * tool's is doing wayfinding inside a working surface. Matching them would
+   * make the planner shout in a place a reader has come to concentrate. A tool
+   * frame sitting a step below the site's display scale is correct rather than
+   * incomplete, so nobody should "finish" this later.
+   *
+   * Only the display tier moves; the reading and data tiers stay fixed,
    * because a table of numbers that reflows its own type is harder to read, not
    * easier.
    */
