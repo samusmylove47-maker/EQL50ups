@@ -73,6 +73,13 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 
 ### Environment
 
+- **A test that fetches must opt out of `jsdom`, or it is not fetching.** jsdom supplies
+  its own `fetch` and it ignores this container's proxy; the call returns HTTP 403, which a
+  reachability check cannot tell apart from the site being down. Both drift checks were
+  skipping on that and reporting passes. The two files carry
+  `// @vitest-environment node` and `vitest.config.ts` names the variable Node's `fetch`
+  needs before it will honour a proxy. Anything new that reaches the network needs the same
+  pragma. *(2026-08-18.)*
 - **No headless browser in this toolchain reaches an external host; only `curl` does.**
   Three sessions hit this independently. Geometry and type are checkable against a local
   build; the network hop is not; a local mirror of the far side is the accepted substitute,
@@ -101,6 +108,24 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   — the field name described a different quantity from its contents. `positions.worn` is
   the 21. **BREAKING for anyone reading `slots.worn`.** *(Director, 2026-08-18.)*
 
+### The site's tool index
+
+- **The footer copies the site's six-tool state, and a test holds it there.**
+  `SITE_TOOLS` is the `Tools` column of the footer `eqlsource.com/tools/` serves, in its
+  order, and `site-foot-drift.test.ts` checks the copy against the original the same way
+  `site-nav-drift.test.ts` checks the masthead. Three withdrawn URLs are pinned by name
+  because they 301 rather than 404, so nothing else here would notice one typed back in.
+  *(Director, 2026-08-18: item 1, applied.)*
+- **This tool lists itself, marked `aria-current="true"`.** `/tools/50-upgrades` is a real
+  200 and a different document from the planner — the site's page *about* it — so the link
+  goes somewhere the reader is not. `"true"` and not `"page"`: the current item of a set,
+  not a claim that the href's target is the document being read.
+- **The prose references went with the links.** A withdrawn page named in a comment or an
+  eyebrow is invisible to every link checker there is. The exception is the dated citation
+  in `planarSets.ts`, which keeps its URL on purpose: a read of a page that existed on the
+  date given is the record, and deleting it would leave the eighteen set names looking
+  unsourced.
+
 ### Sourcing
 
 - **No content licence is asserted.** `eqlwiki` publishes none — checked 2026-08-18;
@@ -115,58 +140,156 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 
 ## From the Director
 
-### Pending — the footer, after the consolidation lands
+### Live — orders of 18 Aug
 
-The site is consolidating nine tools to three: The Index, Sky Ledger and 50 Upgrades. Six
-pages this tool's footer links are being deleted:
+1. **The footer.** Copy once from the final six-tool state and add the drift check in the
+   same commit. *Applied; graduated to Standing.*
+2. **Split `--fs-heading`,** so the wordmark and item names stop sharing a size, and make
+   the breadcrumb carry the current screen. Serial if the files are not disjoint.
+   *Not started — see Standing → Queued, and the file-disjointness finding below.*
+3. **Deploy discipline.** Pushes serialize; never assert done until the live etag moves;
+   grep the served bundle, not the shell. *In force; recorded in Standing → Working rules.*
+4. **Licence: proposal only, adopt nothing.** *Applied — `research/LICENSING-PROPOSAL.md`,
+   unsigned, no `LICENSE` file, no existing file changed.*
 
-| Link | Where |
-|---|---|
-| `/tools/character` | `SiteChrome.tsx:211` |
-| `/tools/race-unlocks` | `SiteChrome.tsx:214` |
-| `/tools/combo-calculator` | `SiteChrome.tsx:215` |
-| `/tools/faction-impact` | `SiteChrome.tsx:216` |
-| `/tools/planar-gear` | `SiteChrome.tsx:217` |
-| `/tools/inventory` | `SiteChrome.tsx:218` |
-
-All six are extensionless, confirmed in this repository's own source and in the live bundle.
-Session A is writing every withdrawal redirect in both the `.html` and extensionless forms,
-so they will 301 rather than break.
-
-**Do not fix this yet — fixing now means fixing twice.** When the removals land, the
-Director says so, and then: copy the footer once from the final state and add a drift check
-of the same shape as `web/src/components/site-nav-drift.test.ts` — expected set pinned
-offline so CI can run it without a network, checked against the live site when reachable,
-skipping loudly rather than failing when not. A hand-copied footer drifts silently, which
-is the whole reason that test exists. *(Director, 2026-08-18: heads-up, no action.)*
-
-**One thing beyond the footer, for whenever this is actioned.** `PlanarGear.tsx:461`
-renders a visible eyebrow reading *"Tool · planar armour · absorbed from
-eqlsource.com/tools/planar-gear"*. It is prose, not a link, so nothing 404s — but it points
-a reader at a page that will no longer exist, and it is the kind of line no link-checker
-looks at. It should be rewritten in the same pass, not left behind because it happens not
-to be an `<a>`.
-
----
+**Parked, not started:** `upgrades.eqlsource.com` and the `VITE_BASE` change it implies;
+the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
-### Acknowledged, nothing touched
+### Item 1 done, and your brief was wrong about its size — in your favour
 
-The footer is unchanged. `git status` this turn is one file: `HANDOFF.md`.
+**Only three of this tool's links were withdrawn, not six.** You listed six and my own
+earlier note in this file repeated them back to you. Measured before touching anything:
 
-Two things from checking my own source while recording it, both read-only:
+```
+curl -o /dev/null -w '%{http_code} -> %{redirect_url}' https://eqlsource.com/tools/…
+  character         301 -> /tools/50-upgrades.html      withdrawn
+  planar-gear       301 -> /tools/50-upgrades.html      withdrawn
+  inventory         301 -> /tools/50-upgrades.html      withdrawn
+  race-unlocks      200                                 SURVIVES
+  combo-calculator  200                                 SURVIVES
+  faction-impact    200                                 SURVIVES
+  index-search      200    sky-ledger 200    50-upgrades 200
+```
 
-- The six links are where you said, all extensionless — `SiteChrome.tsx:211, 214, 215, 216,
-  217, 218`. Recorded above with line numbers so the eventual pass has a work list rather
-  than a search.
-- **`PlanarGear.tsx:461` carries the same exposure in prose.** It renders a visible eyebrow
-  reading *"Tool · planar armour · absorbed from eqlsource.com/tools/planar-gear"*. Not a
-  link, so nothing 404s and no link-checker will ever flag it — but it names a page that is
-  going away, to a reader, on screen. Worth folding into the same pass rather than
-  discovering later.
+`race-unlocks`, `combo-calculator` and `faction-impact` are still served and I have kept
+them. Had I applied the brief as written I would have deleted three working links. The
+`.html` target 307s on to the extensionless form: two hops, final 200.
+
+The canonical `/tools/` page lists exactly the six you named, so the consolidation is
+finished as you said — it is the *deletion list* that was over-long, not the count.
+
+### The footer was also wrong in the other direction: it omitted this tool
+
+`/tools/50-upgrades` was not in the column. Checked before fixing —
+`grep -n '50-upgrades' web/src/components/SiteChrome.tsx` returned nothing. The one entry
+in the site's tool index this repository knows about first-hand was the one entry missing
+from the index it publishes.
+
+It is listed now, marked `aria-current="true"` — the current item of a set. Not `"page"`,
+which would claim the href's target is the document being read; it is not, it is the
+site's own page *about* the planner, and a 200.
+
+### The drift checks were not checking anything
+
+This is the one I would want to hear about first. **The live half of both drift tests had
+never run — not once, including `site-nav-drift`, silently, since the day I wrote it.**
+
+`vitest.config.ts` sets `environment: 'jsdom'`. jsdom brings its own `fetch`, and it
+ignores this container's proxy, so the call returns **HTTP 403** — and a reachability
+check cannot tell HTTP 403 from a site being down. Both files took their loud-skip path
+and the run reported passes.
+
+That is the failure the loud skip was written to prevent, arriving by the one route the
+skip is blind to. I had reported the nav pin to you as a working check. It was not one.
+
+```
+npx vitest run src/components/site-foot-drift.test.ts --reporter=verbose
+  before: stderr "[site-foot-drift] SKIPPED — HTTP 403", 5 passed
+  after:  live test runs, 522ms, no skip line, 5 passed
+```
+
+Fixed with a per-file `// @vitest-environment node` and the proxy variable named in
+`vitest.config.ts`, so a bare `npx vitest run` gets the real check. Proved it *bites*, not
+merely that it runs: relabelling one `SITE_TOOLS` entry to "Sky Ledger DRIFTED" fails the
+live test with the message it was written to give. Reverted.
+
+**One consequence needs your ruling.** This repository's CI can now go red because
+eqlsource.com changed. That is what a drift check is and it is the behaviour you
+specified — but it is a coupling to a repository this session cannot see, and Session A
+can now redden my build by shipping. Keep it, or make the live half advisory. I have kept
+it, because a check that cannot fail is what I just finished removing.
+
+### A live defect found on the way, unrelated to the footer
+
+The Upgrades screen called two hooks *below* its `if (!gearSet)` early return. `App.tsx`
+calls `hydrate()` from an effect and the store opens at `hydrated: false`, so a real page
+load onto that route crosses the boundary **every time**: first paint has no set, the
+paint after hydration has one, the hook count changes, React aborts the tree.
+
+It survived because every test in `upgrades-screen.test.tsx` seeds the store before
+mounting, so every render it had ever done was on the ranked path. Shipped in `eff5732`.
+
+Proved rather than argued — the new test mounts the crossing:
+
+```
+npx vitest run src/screens/upgrades-screen.test.tsx
+  before: 1 failed — Rendered more hooks than during the previous render
+  after:  20 passed
+```
+
+I also cut a claim from the fix's own comment that I could not check: it asserted the bug
+"reproduced on nine specs of the browser suite". I did not measure that, so it is gone and
+the reproducible vitest is cited instead.
+
+### Verification, with the commands
+
+| Check | Command | Result |
+|---|---|---|
+| Types | `npx tsc --noEmit` | clean |
+| Units | `npx vitest run` | **897 passed / 59 files** (896 + the new guard) |
+| Payload gate | `node pipeline/verify.mjs` | **PASSED** — 62 checks, 0 failures, Tier 0 100.0% |
+| Bundle | `npm run build` | clean, 500.92 kB |
+| Browser | `npx playwright test` | **145 passed** (3.1m) |
+| Sub-path | `VITE_BASE=/EQL50ups/` preview, 6 routes at 1440 and 390 | 40 anchors, 32 distinct, 0 `.html`, 0 withdrawn, self listed once, `aria-current` on 50 Upgrades, scrollX 0, **0 pageerrors, 0 4xx/5xx** |
+| Catalogue | `git status --short web/public/data/` | **0 files** — frozen, `counts.items` 3,663 |
+
+One push, four commits: `34a90ee` `4a20aed` `00cd509` `8f7b14e`.
+
+**Deploy confirmed live, not inferred from a green suite.** The etag moved
+`"6a843c14-a9e"` -> `"6a84be8f-a9e"`, and the served assets carry it — read from the
+bundle, not the shell:
+
+```
+assets/index-BCbLFY5Q.js   200, 500,956 bytes
+  present: tools/50-upgrades 1 · Faction impact checker 1 · now withdrawn 1
+  absent:  tools/character 0 · tools/planar-gear 0 · tools/inventory 0
+           Inventory reader 0 · Character sheet 0 · CC BY-SA 0
+assets/index-BWw-Q4Ia.css  200
+  .foot-grid a[aria-current]:after{content:"you are here"; …}
+```
+
+### Item 2: the files are NOT disjoint, so it is one agent, serial
+
+You asked me to confirm before fanning out. Splitting `--fs-heading` and giving the
+breadcrumb the current screen both touch `web/src/components/SiteChrome.css`, and the
+breadcrumb also touches `SiteChrome.tsx`. Two agents would collide on the same file. It
+will be done serially by one, after this deploy lands — not started yet.
+
+### Licence
+
+`research/LICENSING-PROPOSAL.md`, unsigned. No `LICENSE` file, no existing file changed.
+Three independent decisions, none chosen; §9 is a signature block. It records that no
+terms at all is not neutrality but all-rights-reserved by default, and refuses re-asserting
+any content licence over wiki-derived material, which would repeat this morning's fault.
+
+### Still parked, nothing drawn
+
+`upgrades.eqlsource.com` and its `VITE_BASE` change: not started. The `=50Upgrades` mark:
+a slot is left and nothing has been drawn that could ship.
 
 ### State
 
-Holding. Catalogue frozen at `counts.items` **3,663**; `items-index.json` and every shard
-untouched. Post-drop queue untouched. Waiting on your word that the removals have landed.
+Catalogue frozen at 3,663; `items-index.json` and every shard untouched this turn. Pushed
+once and holding for the etag to move off `"6a843c14-a9e"` before item 2.
