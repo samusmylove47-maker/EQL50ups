@@ -40,14 +40,14 @@ const SITE = 'https://eqlsource.com';
  * current section because that is the section this tool lives in — the site
  * marks it the same way, with `a[aria-current]`.
  */
-const SITE_NAV: ReadonlyArray<{ href: string; label: string; here?: boolean; find?: boolean }> = [
-  { href: `${SITE}/dungeons/index.html`, label: 'Dungeons' },
-  { href: `${SITE}/raids/index.html`, label: 'Raids' },
-  { href: `${SITE}/tools/index.html`, label: 'Tools', here: true },
-  { href: `${SITE}/tools/index-search.html`, label: 'The Index' },
-  { href: `${SITE}/learn/index.html`, label: 'Learn' },
-  { href: `${SITE}/sources.html`, label: 'Accuracy' },
-  { href: `${SITE}/search.html`, label: 'Search', find: true },
+export const SITE_NAV: ReadonlyArray<{ href: string; label: string; here?: boolean; find?: boolean }> = [
+  { href: `${SITE}/dungeons/`, label: 'Dungeons' },
+  { href: `${SITE}/raids/`, label: 'Raids' },
+  { href: `${SITE}/tools/`, label: 'Tools', here: true },
+  { href: `${SITE}/tools/index-search`, label: 'The Index' },
+  { href: `${SITE}/learn/`, label: 'Learn' },
+  { href: `${SITE}/sources`, label: 'Accuracy' },
+  { href: `${SITE}/search`, label: 'Search', find: true },
 ];
 
 /**
@@ -108,7 +108,7 @@ function SiteBar({ route }: { route: Route }) {
   return (
     <header className="site-bar">
       <div className="shell">
-        <a className="mark" href={`${SITE}/index.html`}>
+        <a className="mark" href={`${SITE}/`}>
           <span className="m1">EQL Source</span>
           <span className="m2">Survey</span>
         </a>
@@ -152,9 +152,9 @@ function ToolBar({ route }: { route: Route }) {
             its air at this tracking. A plain space collapses against the
             .24em and the slashes crowd the words. */}
         <p className="crumb">
-          <a href={`${SITE}/index.html`}>EQL Source</a>
+          <a href={`${SITE}/`}>EQL Source</a>
           <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
-          <a href={`${SITE}/tools/index.html`}>Tools</a>
+          <a href={`${SITE}/tools/`}>Tools</a>
           <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
           <span className="crumb-here">{TOOL_NAME}</span>
         </p>
@@ -208,57 +208,57 @@ const FOOT: ReadonlyArray<Column> = [
   {
     head: 'Tools',
     links: [
-      { href: `${SITE}/tools/character.html`, label: 'Character sheet' },
-      { href: `${SITE}/tools/index-search.html`, label: 'The Index' },
-      { href: `${SITE}/tools/sky-ledger.html`, label: 'Sky Ledger' },
-      { href: `${SITE}/tools/race-unlocks.html`, label: 'Race unlock tracker' },
-      { href: `${SITE}/tools/combo-calculator.html`, label: 'Race and primary calculator' },
-      { href: `${SITE}/tools/faction-impact.html`, label: 'Faction impact checker' },
-      { href: `${SITE}/tools/planar-gear.html`, label: 'Planar gear targets' },
-      { href: `${SITE}/tools/inventory.html`, label: 'Inventory reader' },
+      { href: `${SITE}/tools/character`, label: 'Character sheet' },
+      { href: `${SITE}/tools/index-search`, label: 'The Index' },
+      { href: `${SITE}/tools/sky-ledger`, label: 'Sky Ledger' },
+      { href: `${SITE}/tools/race-unlocks`, label: 'Race unlock tracker' },
+      { href: `${SITE}/tools/combo-calculator`, label: 'Race and primary calculator' },
+      { href: `${SITE}/tools/faction-impact`, label: 'Faction impact checker' },
+      { href: `${SITE}/tools/planar-gear`, label: 'Planar gear targets' },
+      { href: `${SITE}/tools/inventory`, label: 'Inventory reader' },
     ],
   },
   {
     head: 'Dungeons',
     links: [
-      { href: `${SITE}/dungeons/index.html`, label: 'All surveys' },
-      { href: `${SITE}/dungeons/najena.html`, label: 'Najena' },
-      { href: `${SITE}/dungeons/lowerguk.html`, label: 'Lower Guk' },
-      { href: `${SITE}/dungeons/mistmoore.html`, label: 'Castle Mistmoore' },
-      { href: `${SITE}/items/index.html`, label: 'Every item' },
-      { href: `${SITE}/named/index.html`, label: 'Every named mob' },
-      { href: `${SITE}/sets/index.html`, label: 'Every planar set' },
+      { href: `${SITE}/dungeons/`, label: 'All surveys' },
+      { href: `${SITE}/dungeons/najena`, label: 'Najena' },
+      { href: `${SITE}/dungeons/lowerguk`, label: 'Lower Guk' },
+      { href: `${SITE}/dungeons/mistmoore`, label: 'Castle Mistmoore' },
+      { href: `${SITE}/items/`, label: 'Every item' },
+      { href: `${SITE}/named/`, label: 'Every named mob' },
+      { href: `${SITE}/sets/`, label: 'Every planar set' },
     ],
   },
   {
     head: 'Raids',
     links: [
-      { href: `${SITE}/raids/index.html`, label: 'Encounter index' },
-      { href: `${SITE}/raids/plane-of-sky.html`, label: 'Plane of Sky, island by island' },
+      { href: `${SITE}/raids/`, label: 'Encounter index' },
+      { href: `${SITE}/raids/plane-of-sky`, label: 'Plane of Sky, island by island' },
     ],
   },
   {
     head: 'Learn',
     links: [
-      { href: `${SITE}/learn/still-true.html`, label: 'Is it still true?' },
-      { href: `${SITE}/learn/difficulty.html`, label: 'What difficulty changes' },
-      { href: `${SITE}/learn/motes.html`, label: 'Motes' },
-      { href: `${SITE}/learn/raid-access.html`, label: 'How raid access works' },
-      { href: `${SITE}/learn/deity.html`, label: 'Deity, and the level 11 lock' },
-      { href: `${SITE}/learn/reading-the-plans.html`, label: 'Reading a floor plan' },
-      { href: `${SITE}/learn/contamination.html`, label: 'Contamination' },
+      { href: `${SITE}/learn/still-true`, label: 'Is it still true?' },
+      { href: `${SITE}/learn/difficulty`, label: 'What difficulty changes' },
+      { href: `${SITE}/learn/motes`, label: 'Motes' },
+      { href: `${SITE}/learn/raid-access`, label: 'How raid access works' },
+      { href: `${SITE}/learn/deity`, label: 'Deity, and the level 11 lock' },
+      { href: `${SITE}/learn/reading-the-plans`, label: 'Reading a floor plan' },
+      { href: `${SITE}/learn/contamination`, label: 'Contamination' },
     ],
   },
   {
     head: 'About',
     links: [
-      { href: `${SITE}/search.html`, label: 'Search the site' },
-      { href: `${SITE}/data/index.html`, label: 'Public data' },
-      { href: `${SITE}/credits.html`, label: 'Credits' },
-      { href: `${SITE}/archive/index.html`, label: 'The original plates' },
-      { href: `${SITE}/sources.html`, label: 'Sourcing standard' },
-      { href: `${SITE}/sources.html#gaps`, label: 'Known gaps' },
-      { href: `${SITE}/sources.html#changelog`, label: 'Change log' },
+      { href: `${SITE}/search`, label: 'Search the site' },
+      { href: `${SITE}/data/`, label: 'Public data' },
+      { href: `${SITE}/credits`, label: 'Credits' },
+      { href: `${SITE}/archive/`, label: 'The original plates' },
+      { href: `${SITE}/sources`, label: 'Sourcing standard' },
+      { href: `${SITE}/sources#gaps`, label: 'Known gaps' },
+      { href: `${SITE}/sources#changelog`, label: 'Change log' },
     ],
   },
 ];
@@ -304,7 +304,7 @@ export function SiteFooter() {
             <strong>Found something the site gets wrong, or something the wiki does?</strong> That
             is the most useful thing anyone can send us, and every finding is credited by name.{' '}
             <a href={FINDING}>Send a finding</a> ·{' '}
-            <a href={`${SITE}/learn/still-true.html`}>see what is already open</a>.
+            <a href={`${SITE}/learn/still-true`}>see what is already open</a>.
           </p>
           <p className="foot-nolog">
             Please do not attach a combat log to a public issue — they can carry private chat. Say

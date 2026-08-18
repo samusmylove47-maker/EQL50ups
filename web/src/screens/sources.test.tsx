@@ -256,11 +256,21 @@ describe.skipIf(!existsSync(META))('the page renders the shipped provenance meta
     expect(text).toMatch(/\b299\b/);
   });
 
-  it('credits the upstream repositories, pinned, and the licence', async () => {
+  /*
+   * The page must credit the source and must NOT claim terms it has not been
+   * granted. It asserted "CC BY-SA 4.0" until eqlsource.com verified on
+   * 2026-08-18 that eqlwiki publishes no content licence — siteinfo rightsinfo
+   * empty, Project:Copyrights absent. The credit is the obligation; the licence
+   * was an assumption.
+   */
+  it('credits the upstream repositories, pinned, and states that no licence is published', async () => {
     const text = await render(<Sources />);
     expect(text).toContain('Thiole/EQLGearPlanner');
     expect(text).toContain('jmoyers/everquest-companion');
-    expect(text).toContain('CC BY-SA 4.0');
+    expect(text).toContain('EverQuest Legends Wiki');
+    expect(text).toMatch(/no content licence/i);
+    expect(text).not.toMatch(/CC BY-SA/i);
+    expect(text).not.toMatch(/share.?alike/i);
   });
 });
 

@@ -459,18 +459,26 @@ Everything here is a property of the upstream sources, not of the pipeline.
 ## Licensing and attribution
 
 All item, quest and zone data ultimately derives from the **EverQuest Legends Wiki**
-(`eqlwiki.com`), used under **CC BY-SA 4.0**. Two obligations follow and both are load-bearing:
+(`eqlwiki.com`), which **publishes no content licence**.
 
-- **Attribution.** The app must visibly credit "EverQuest Legends Wiki". The exact string is in
-  `meta.json` → `attribution`; render it, don't retype it.
-- **Share-alike.** This derived dataset — `web/public/data/**` — is itself CC BY-SA 4.0. Anything
-  redistributing it must carry the same licence.
+That was checked on 18 August 2026, three ways: `siteinfo` `rightsinfo` returns an empty url
+and empty text, `/wiki/Project:Copyrights` 404s, and the API normalises the title to
+`EQLWiki:Copyrights` and reports it missing. This section previously asserted CC BY-SA 4.0 and
+a share-alike obligation. Neither was granted by the source; both were assumed, the way a wiki
+usually is CC BY-SA.
+
+- **Attribution.** The app visibly credits "EverQuest Legends Wiki". The exact string is in
+  `meta.json` → `attribution`; render it, don't retype it. This obligation is one we keep
+  because the data is theirs, not because a licence compels it.
+- **Terms of reuse.** Not stated by the source, and not asserted here on its behalf. Anyone
+  redistributing `web/public/data/**` is in the same position we are: the upstream terms are
+  unstated. `meta.license` says so, with the date it was checked.
 
 Intermediate scrapes and their code have their own terms, which is why nothing is copied from them:
 
 | Repo | Licence | How it is used here |
 |---|---|---|
-| `Thiole/EQLGearPlanner` | no licence file (all rights reserved) | its `items.json` is read as a copy of CC BY-SA wiki content; none of its code is used |
+| `Thiole/EQLGearPlanner` | no licence file (all rights reserved) | its `items.json` is read as a copy of eqlwiki content, whose own terms are unstated; none of its code is used |
 | `nathan-bates/eql` | no licence file | same |
 | `jmoyers/everquest-companion` | FSL-1.1 (source-available, MIT in ~2 years) | data only. **No code from `research/mechanics/jmoyers-*.ts` is copied into this pipeline** — it is not needed, since this pipeline does normalization, not upgrade math |
 | `DranakCorps-bot/EQBuddy` | MIT | data, with attribution in `meta.provenance` |

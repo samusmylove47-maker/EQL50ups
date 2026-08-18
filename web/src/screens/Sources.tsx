@@ -951,7 +951,15 @@ function Upstream({ meta }: { meta: SourceMeta | null }) {
           ) : null}
         </Card>
 
-        <Card standing="unattributed" eyebrow="Licence and credit" title="CC BY-SA, share alike">
+        {/*
+          Titled for what the source actually says, which is nothing.
+
+          This card read "CC BY-SA, share alike" until eqlsource.com verified
+          on 2026-08-18 that eqlwiki publishes no content licence at all. The
+          heading is now the finding rather than the assumption, and the body
+          renders `meta.license.note`, which carries how it was checked.
+        */}
+        <Card standing="unattributed" eyebrow="Licence and credit" title="No licence is stated">
           <p>{asText(meta?.attribution) ?? 'No attribution published in this build.'}</p>
           {asText(meta?.license?.note) ? (
             <p className="src-note">{asText(meta?.license?.note)}</p>

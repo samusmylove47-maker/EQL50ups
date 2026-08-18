@@ -280,5 +280,17 @@ export function isEraRescued(name: string | undefined): boolean {
  */
 export const LEVEL_CAP = 50;
 
+/*
+ * The fallback shown before `meta.json` loads, and on every screen.
+ *
+ * This said "licensed CC BY-SA 4.0" and it was never true — eqlwiki publishes
+ * no content licence, verified three ways on 2026-08-18 (siteinfo rightsinfo
+ * empty, Project:Copyrights 404, API reports EQLWiki:Copyrights missing). It
+ * was assumed, the way a wiki usually is CC BY-SA.
+ *
+ * Kept short because it renders in the footer of every screen; the full finding
+ * and how it was checked live in `meta.license.note`, which the Sources page
+ * prints in full.
+ */
 export const ATTRIBUTION =
-  'Item data derived from the EverQuest Legends Wiki, licensed CC BY-SA 4.0.';
+  'Item data derived from the EverQuest Legends Wiki, which publishes no content licence.';

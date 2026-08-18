@@ -144,9 +144,14 @@ What ships is pre-Kunark content, plus every item the player's own client export
 proves, plus the player-confirmed Shadow Rage set. Era-less is treated as
 unconfirmed, not presumed classic.
 
-Item data derives from the **EverQuest Legends Wiki**, used under **CC BY-SA
-4.0**; derived data is shared alike. EverQuest is a trademark of Daybreak Game
-Company LLC. This project is unaffiliated with Daybreak or Game Jawn.
+Item data derives from the **EverQuest Legends Wiki** (`eqlwiki.com`), with
+attribution. **eqlwiki publishes no content licence** — checked 18 August 2026;
+`siteinfo` `rightsinfo` returns an empty url and empty text, and
+`/wiki/Project:Copyrights` is absent. The terms of reuse are therefore not
+stated by the source, and this project asserts none on its behalf. It previously
+claimed CC BY-SA 4.0, which was assumed rather than checked. EverQuest is a
+trademark of Daybreak Game Company LLC. This project is unaffiliated with
+Daybreak or Game Jawn.
 
 ---
 
@@ -196,7 +201,7 @@ cd web
 npm install
 npm run dev          # local dev server
 npm run build        # production build
-npx vitest run       # 621 unit tests
+npx vitest run       # unit tests (885 at time of writing; the suite is the source of truth)
 npx playwright test  # browser tests — see BROWSER-TESTING.md first
 ```
 

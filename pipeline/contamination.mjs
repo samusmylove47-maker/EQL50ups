@@ -126,6 +126,67 @@ function loadCatalog() {
  * contamination would pad the report with hits nobody can see. Stylesheets are
  * included because a stylesheet can carry a unit in a `content` property.
  */
+/**
+ * Blank out comments and string contents, keeping line numbering intact.
+ *
+ * Deliberately crude — it is a scanner input, not a parser. Block comments are
+ * tracked across lines; `//` runs to end of line; anything between matching
+ * quotes (single, double or backtick) becomes spaces. Regex literals and
+ * escaped quotes are not modelled, which can only blank slightly more than it
+ * should, and blanking too much loses a hit rather than inventing one.
+ */
+function codeOnly(lines) {
+  const out = [];
+  let inBlock = false;
+  for (const raw of lines) {
+    let result = '';
+    let quote = null;
+    for (let i = 0; i < raw.length; i += 1) {
+      const c = raw[i];
+      const next = raw[i + 1];
+      if (inBlock) {
+        if (c === '*' && next === '/') { inBlock = false; i += 1; }
+        result += ' ';
+        continue;
+      }
+      if (quote) {
+        if (c === '\\') { result += '  '; i += 1; continue; }
+        if (c === quote) { quote = null; result += ' '; continue; }
+        result += ' ';
+        continue;
+      }
+      if (c === '/' && next === '*') { inBlock = true; i += 1; result += '  '; continue; }
+      if (c === '/' && next === '/') { result += ' '.repeat(raw.length - i); break; }
+      if (c === '\'' || c === '"' || c === '`') { quote = c; result += ' '; continue; }
+      result += c;
+    }
+    out.push(result);
+  }
+  return out;
+}
+
+/**
+ * The bindings a file actually imports.
+ *
+ * Marked-ness used to be `/HASTE_PROVENANCE|HASTE_STACKING/.test(wholeFile)`,
+ * which is a text search and gave demonstrably opposite verdicts for identical
+ * claims: `ep.ts:325` and `gear.ts:54` both weight `HASTE: 2`, and ep.ts counted
+ * as MARKED solely because two of its comments mention the constants by name,
+ * while gear.ts counted as unmarked because none of its comments do. Naming a
+ * badge in prose is not wearing it. Importing it is.
+ */
+function importedBindings(lines) {
+  const text = lines.join('\n');
+  const names = new Set();
+  for (const m of text.matchAll(/import\s+([\s\S]*?)\s+from\s+['"][^'"]+['"]/g)) {
+    for (const part of m[1].replace(/[{}]/g, ' ').split(',')) {
+      const name = part.trim().replace(/^type\s+/, '').split(/\s+as\s+/)[0].trim();
+      if (name) names.add(name);
+    }
+  }
+  return names;
+}
+
 function loadSource() {
   const files = [];
   const walk = (dir) => {
@@ -137,9 +198,24 @@ function loadSource() {
       }
       if (!/\.(tsx?|css)$/.test(entry)) continue;
       if (/\.test\.[tj]sx?$/.test(entry)) continue;
+      const lines = readFileSync(full, 'utf8').split('\n');
       files.push({
         path: `web/src/${relative(SRC, full).split(sep).join('/')}`,
-        lines: readFileSync(full, 'utf8').split('\n'),
+        lines,
+        /*
+         * The same lines with comments and string CONTENTS blanked out, index
+         * for index. Predicates test against these; the report quotes the real
+         * line, so it stays readable.
+         *
+         * Without this the scanner quoted its own disclosure as the fault it
+         * was disclosing. Four of the seven sites under "OUR OWN SOURCE,
+         * QUOTED" were prose about haste rather than code handling haste —
+         * including `stats.ts:58`, which is a line of HASTE_PROVENANCE, the
+         * constant whose entire job is to say the figure carries a classic
+         * unit. A self-audit that cites its own warning label as the hazard is
+         * the same failure it was built to catch, one level up.
+         */
+        code: codeOnly(lines),
       });
     }
   };
@@ -221,7 +297,11 @@ function scanSource(source, test, kind = 'code') {
     file.lines.forEach((raw, i) => {
       const text = raw.trim();
       if (isComment(text)) return;
-      if (!test(text, raw)) return;
+      // Predicates see the line with comments and string contents blanked, so
+      // prose describing a hazard is never quoted as the hazard.
+      const bare = (file.code?.[i] ?? raw).trim();
+      if (!bare) return;
+      if (!test(bare, raw)) return;
       out.push({
         file: file.path,
         line: i + 1,
@@ -299,7 +379,10 @@ const signatures = [];
    * reader the figure carries a classic unit" means in this codebase.
    */
   const marksProvenance = new Map(
-    source.map((file) => [file.path, /HASTE_PROVENANCE|HASTE_STACKING/.test(file.lines.join('\n'))]),
+    source.map((file) => {
+      const bindings = importedBindings(file.lines);
+      return [file.path, bindings.has('HASTE_PROVENANCE') || bindings.has('HASTE_STACKING')];
+    }),
   );
   for (const s of codeSites) {
     hit(t, {

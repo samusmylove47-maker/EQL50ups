@@ -22,6 +22,7 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 
@@ -2235,9 +2236,29 @@ function writeOut(relPath, obj) {
   return { raw, gz };
 }
 
+/*
+ * No licence is asserted, because eqlwiki does not publish one.
+ *
+ * This read "used under CC BY-SA 4.0. Derived data is shared alike." for the
+ * whole life of the project, and it was never checked — it was assumed, the way
+ * a wiki usually is CC BY-SA. eqlsource.com verified it three ways on
+ * 2026-08-18 and withdrew the claim: `siteinfo` `rightsinfo` returns an empty
+ * url and empty text, `/wiki/Project:Copyrights` 404s, and the API normalises
+ * to `EQLWiki:Copyrights` and reports it missing.
+ *
+ * Asserting a licence a source has not granted is the same fault as asserting a
+ * stat a source has not published, and this project spent two days removing the
+ * second kind. The credit stays — the data is theirs and saying so costs
+ * nothing. The trademark disclaimer stays. The terms go, and their absence is
+ * stated rather than left blank, which is the same rule rule 7 applies to an
+ * item with no slot.
+ */
+const LICENCE_CHECKED = '2026-08-18';
 const ATTRIBUTION =
-  'Item data derived from the EverQuest Legends Wiki (eqlwiki.com), used under CC BY-SA 4.0. ' +
-  'Derived data is shared alike. EverQuest is a trademark of Daybreak Game Company LLC; ' +
+  'Item data derived from the EverQuest Legends Wiki (eqlwiki.com), with attribution. ' +
+  `eqlwiki publishes no content licence — checked ${LICENCE_CHECKED}; siteinfo rightsinfo ` +
+  'empty, Project:Copyrights absent — so the terms of reuse are not stated by the source. ' +
+  'EverQuest is a trademark of Daybreak Game Company LLC; ' +
   'this project is unaffiliated with Daybreak or Game Jawn.';
 
 writeOut('items-index.json', { v: SCHEMA_VERSION, count: records.length, items: records.map(indexRecord) });
@@ -2392,9 +2413,16 @@ const meta = {
   generator: 'pipeline/build.mjs',
   attribution: ATTRIBUTION,
   license: {
-    content: 'CC BY-SA 4.0',
+    content: null,
     contentSource: 'EverQuest Legends Wiki (eqlwiki.com)',
-    note: 'Derived data must remain share-alike and must credit the EverQuest Legends Wiki.',
+    checked: LICENCE_CHECKED,
+    note:
+      'eqlwiki publishes no content licence. Verified three ways: siteinfo rightsinfo returns ' +
+      'an empty url and empty text, /wiki/Project:Copyrights 404s, and the API normalises to ' +
+      'EQLWiki:Copyrights and reports it missing. Item data is derived from it with ' +
+      'attribution; the terms of reuse are not stated by the source. This field previously ' +
+      'named a specific licence, which was assumed rather than checked; the withdrawal is ' +
+      'recorded in pipeline/build.mjs where ATTRIBUTION is declared.',
   },
   era: {
     current: CURRENT_ERA,
@@ -2663,8 +2691,8 @@ const meta = {
   provenance: {
     repos: [
       { repo: 'jmoyers/everquest-companion', sha: 'd25455ee0f251a063e7899e0e544146f4492454d', file: 'src/main/data/items.json', role: 'enrichment: iconId, typed effects, statsBlock, broad name coverage', license: 'FSL-1.1 (code); data derived from eqlwiki' },
-      { repo: 'Thiole/EQLGearPlanner', sha: '0213a63b8ee7242dedc34fb1223423a970a56ff2', file: 'items.json', role: 'PRIMARY: stats, slots, classes, races, era/availability, acquisition', license: 'no license file; upstream content eqlwiki CC BY-SA 4.0' },
-      { repo: 'nathan-bates/eql', sha: '3caccd09710758581030d0070b03863e15f8d421', file: 'data/items.json, data/focus_effects.json', role: 'gap-fill: endurance, required level, focus effects', license: 'no license file; upstream content eqlwiki CC BY-SA 4.0' },
+      { repo: 'Thiole/EQLGearPlanner', sha: '0213a63b8ee7242dedc34fb1223423a970a56ff2', file: 'items.json', role: 'PRIMARY: stats, slots, classes, races, era/availability, acquisition', license: 'no license file; upstream content from eqlwiki, which states no licence' },
+      { repo: 'nathan-bates/eql', sha: '3caccd09710758581030d0070b03863e15f8d421', file: 'data/items.json, data/focus_effects.json', role: 'gap-fill: endurance, required level, focus effects', license: 'no license file; upstream content from eqlwiki, which states no licence' },
       { repo: 'DranakCorps-bot/EQBuddy', sha: '03c624cd2955c58028648ae9dbead813518b4121', file: 'src/EQBuddy.Core/Data/ItemCatalog.json.gz', role: 'gap-fill: quests, recipes, drop zones', license: 'MIT' },
     ],
     inputs: Object.entries(FILES).map(([k, f]) => ({
@@ -2834,4 +2862,28 @@ if (!QUIET) {
   L(`  ... ${written.length} files total`);
   L(`  TOTAL ${kb(totalRaw)} raw / ${kb(totalGz)} gzip`);
   L('');
+}
+
+// ---------------------------------------------------------------------------
+// The self-audit is part of the payload, not a thing you remember to run
+// ---------------------------------------------------------------------------
+
+/*
+ * `contamination.mjs` was a separate script nobody had to run, and the payload
+ * was green without it. That is how the self-audit page came to publish quotes
+ * from source that had changed twenty minutes earlier: the badge shipped at
+ * 04:02, the scan was from 03:42, and every gate passed in between.
+ *
+ * CI does not run this pipeline at all — it builds the committed
+ * `web/public/data/`. So the only moment the scan can be made to agree with the
+ * tree is here, when the rest of the payload is written. `verify.mjs` then
+ * treats a missing or stale report as a hard failure rather than a warning.
+ */
+const scan = spawnSync(process.execPath, [join(HERE, 'contamination.mjs')], {
+  stdio: 'inherit',
+  env: process.env,
+});
+if (scan.status !== 0) {
+  console.error(`\nFATAL: pipeline/contamination.mjs exited ${scan.status}. The payload is incomplete.`);
+  process.exit(scan.status ?? 1);
 }

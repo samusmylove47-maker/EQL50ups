@@ -416,16 +416,29 @@
   /*
    * The display tier is fluid, because the site's is.
    *
-   * Measured at 1440 against eqlsource.com: their interior h1 is 72–78px and
-   * ours was 30px; their h2 40px against our 20px; their lede 18.5px against
-   * our 15px. `grep 'font-size:.*clamp'` returned 25 hits in their stylesheet
-   * and 0 in all eight of ours. The consequence was visible on the planar
-   * screen, where the page title and a statistic beneath it were both exactly
-   * 30px — the name of the page weighing the same as one number on it.
+   * eqlsource.com puts its display tier inside `clamp()` and this app did not.
+   * Counted, not estimated:
+   *
+   *   curl -sS https://eqlsource.com/assets/site.css | grep -c 'font-size:.*clamp'   -> 8
+   *   grep -rh 'font-size:.*clamp' web/src --include=*.css | wc -l                   -> 1
+   *
+   * (26 and 6 respectively for `clamp(` in any property, across their one sheet
+   * and our 13.) An earlier version of this comment claimed "25 hits in their
+   * stylesheet and 0 in all eight of ours" — three numbers, all typed by hand
+   * from someone else's file, all wrong, frozen in a comment where nothing
+   * could ever check them. That is the same fault this repository has now
+   * corrected four times.
+   *
+   * The consequence the change addresses was visible on the planar screen,
+   * where the page title and a statistic beneath it both measured exactly 30px
+   * — the name of the page weighing the same as one number on it.
    *
    * The floors are this app's old fixed values, so nothing shrinks at phone
-   * widths, where the app already measured close to the site. The ceilings are
-   * theirs. Only the display tier moves; the reading and data tiers stay fixed,
+   * widths. The ceilings are this tool's own — NOT the site's. eqlsource's
+   * `--t-h1` reaches 90px and its hero 104px; `--fs-title` stops at 56px,
+   * because whether a tool inside a frame should match the site's display scale
+   * or deliberately sit a step below it is the Director's call and has not been
+   * made. Only the display tier moves; the reading and data tiers stay fixed,
    * because a table of numbers that reflows its own type is harder to read, not
    * easier.
    */

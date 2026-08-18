@@ -1,7 +1,7 @@
 /**
  * Planar gear targets.
  *
- * This absorbs eqlsource.com/tools/planar-gear.html. That tool exists for one
+ * This absorbs eqlsource.com/tools/planar-gear. That tool exists for one
  * genuinely hard reason and it is worth restating rather than paraphrasing: a
  * trio can wear planar armour from all three of its classes **plus the two
  * shared sets**, so up to five sets compete for every slot, and nobody can hold

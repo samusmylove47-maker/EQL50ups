@@ -140,7 +140,24 @@ assert('meta.counts.items matches index length', meta.counts?.items === items.le
 assert('meta carries an attribution string',
   typeof meta.attribution === 'string' && /EverQuest Legends Wiki/i.test(meta.attribution),
   'meta.attribution must name the EverQuest Legends Wiki');
-assert('meta records CC BY-SA 4.0 for wiki content', meta.license?.content === 'CC BY-SA 4.0', JSON.stringify(meta.license));
+/*
+ * The inverse of what this used to assert.
+ *
+ * It required `license.content === 'CC BY-SA 4.0'` — a check that enforced an
+ * assumption. eqlwiki publishes no content licence, verified three ways on
+ * 2026-08-18. What must now hold is that the payload claims no terms and says
+ * how that was established, so a future edit cannot quietly reinstate a licence
+ * nobody granted.
+ */
+assert('meta claims no content licence, and says how that was checked',
+  meta.license?.content === null &&
+  typeof meta.license?.note === 'string' &&
+  /no content licence/i.test(meta.license.note) &&
+  /^\d{4}-\d{2}-\d{2}$/.test(meta.license?.checked ?? ''),
+  JSON.stringify(meta.license));
+assert('no payload string asserts a licence the source has not granted',
+  !/CC BY-SA/i.test(meta.attribution ?? ''),
+  `meta.attribution still asserts a licence: ${meta.attribution}`);
 assert('meta records source provenance with commit SHAs',
   Array.isArray(meta.provenance?.repos) && meta.provenance.repos.length >= 4 &&
   meta.provenance.repos.every((r) => /^[0-9a-f]{40}$/.test(r.sha ?? '')),
@@ -1007,9 +1024,18 @@ if (!existsSync(TIER0)) {
         const lines = readLines(site.file);
         if (!lines) { stale.push(`${site.file}: quoted but the file is gone`); continue; }
         const actual = (lines[site.line - 1] ?? '').trim();
-        // The scanner truncates long lines with an ellipsis; compare the stem.
+        /*
+         * Exact, except for the scanner's own truncation.
+         *
+         * This compared with `startsWith` on the trimmed line, so a quoted line
+         * that GAINED a suffix still passed — the report could show half a
+         * statement as if it were the whole one. A truncated quote (ellipsis)
+         * must prefix the real line; an untruncated quote must equal it.
+         */
+        const truncated = String(site.text).endsWith('…');
         const quoted = String(site.text).replace(/…$/, '');
-        if (!actual.startsWith(quoted)) {
+        const agrees = truncated ? actual.startsWith(quoted) : actual === quoted;
+        if (!agrees) {
           stale.push(`${site.file}:${site.line} quotes ${JSON.stringify(quoted.slice(0, 60))} but the line reads ${JSON.stringify(actual.slice(0, 60))}`);
         }
       }
@@ -1018,8 +1044,50 @@ if (!existsSync(TIER0)) {
       stale.length === 0,
       `${stale.length} of ${checked} quoted source lines are stale — re-run node pipeline/contamination.mjs`,
       stale);
+
+    /*
+     * The counts and the marked-file list have to survive the same standard as
+     * the quotes. `marked` is a claim about our own code and the page prints it
+     * as a headline figure, so it is re-derived here rather than trusted:
+     * a file listed as marked must actually import the constant that marks it.
+     *
+     * The previous rule was a text search over the whole file, which counted
+     * `ep.ts` as marked because two of its COMMENTS name `HASTE_PROVENANCE`,
+     * while `gear.ts` — carrying the identical `HASTE: 2` claim — counted as
+     * unmarked because none of its comments do. Naming a badge is not wearing
+     * one.
+     */
+    const badMarks = [];
+    let tallies = 0;
+    for (const sig of report.signatures ?? []) {
+      const marked = sig.marked ?? 0;
+      const unmarked = sig.unmarked ?? 0;
+      if (sig.total != null && marked + unmarked !== sig.total) {
+        badMarks.push(`${sig.id}: ${unmarked} + ${marked} != total ${sig.total}`);
+      }
+      tallies += 1;
+      for (const file of sig.markedFiles ?? []) {
+        const lines = readLines(file);
+        if (!lines) { badMarks.push(`${sig.id}: markedFiles names ${file}, which is gone`); continue; }
+        const imports = lines.join('\n').match(/import\s+[\s\S]*?\s+from\s+['"][^'"]+['"]/g) ?? [];
+        if (!imports.some((stmt) => /HASTE_PROVENANCE|HASTE_STACKING/.test(stmt))) {
+          badMarks.push(`${sig.id}: ${file} is counted as marked but imports no provenance constant`);
+        }
+      }
+    }
+    assert('the self-audit\'s own tallies add up, and every marked file earned it',
+      badMarks.length === 0,
+      `${badMarks.length} inconsistencies across ${tallies} signatures`,
+      badMarks);
   } else {
-    warn('contamination report', 'no data/contamination.json in the payload; the self-audit page will be empty');
+    /*
+     * Hard, not a warning. A missing report ships an empty self-audit page with
+     * a green verify — the page whose entire purpose is to say what this build
+     * cannot vouch for, silently saying nothing. `build.mjs` now produces it, so
+     * its absence means the build did not finish.
+     */
+    assert('the payload carries a self-audit report', false,
+      'no data/contamination.json — run node pipeline/build.mjs, which now produces it');
   }
 }
 

@@ -1,8 +1,8 @@
 {
   "v": 1,
   "generator": "pipeline/contamination.mjs",
-  "scannedAt": "2026-08-18T05:39:38.086Z",
-  "builtAt": "2026-08-18T05:34:08.263Z",
+  "scannedAt": "2026-08-18T06:36:14.052Z",
+  "builtAt": "2026-08-18T06:36:13.565Z",
   "principle": {
     "hit": "A hit is a question, not a verdict.",
     "hitBody": "EverQuest Legends kept a great deal of classic EverQuest intact, and most of these patterns are probably current. What a hit means is: this figure carries a convention from a game whose numbers we know changed, and nobody has checked this one.",
@@ -16,18 +16,18 @@
     "indexCount": 3663,
     "catalogFiles": 21,
     "sourceFiles": 84,
-    "sourceLines": 31293,
+    "sourceLines": 31336,
     "excluded": "Test files are excluded from the source corpus: a test is not a surface, and counting its fixtures would pad this report with hits nobody can see. pipeline/quarantine.json is excluded too — the 7,599 items it holds are the ones we refused to ship, and scanning them would measure the wiki rather than us."
   },
   "headline": {
-    "unmarkedOnChangedMechanics": 2333,
-    "markedOnChangedMechanics": 7,
+    "unmarkedOnChangedMechanics": 2334,
+    "markedOnChangedMechanics": 3,
     "classicFormats": 1109,
     "classicFormatsUnmarked": 982,
     "filesScanned": 105,
     "statBlocksShipped": 2176,
     "statBlocksCheckedAgainstTheGame": 5,
-    "note": "2305 of those 2333 — 99% — are the one signature \"flag-vocab\", which is a single unanswered question multiplied across the catalog rather than 2305 separate problems. The table below is the honest shape of this number."
+    "note": "2305 of those 2334 — 99% — are the one signature \"flag-vocab\", which is a single unanswered question multiplied across the catalog rather than 2305 separate problems. The table below is the honest shape of this number."
   },
   "groups": [
     {
@@ -50,27 +50,9 @@
       "codeSites": [
         {
           "file": "web/src/components/StatPanel.tsx",
-          "line": 163,
-          "kind": "printed with a percent sign",
-          "text": "Atk Speed used to print `36%`."
-        },
-        {
-          "file": "web/src/components/StatPanel.tsx",
-          "line": 167,
-          "kind": "printed with a percent sign",
-          "text": "`Attack Speed %`, so the *total a player sees in the game* is a"
-        },
-        {
-          "file": "web/src/components/StatPanel.tsx",
           "line": 224,
           "kind": "printed with a percent sign",
           "text": "window does head it <b>Attack Speed %</b> — but the number under it is the wiki's, and"
-        },
-        {
-          "file": "web/src/engine/stats.ts",
-          "line": 58,
-          "kind": "printed with a percent sign",
-          "text": "'Legends: the eqltools Haste Guide describes flat attack-speed values under a level-scaled cap, while eqlwiki still documents its own item field as “worn has…"
         },
         {
           "file": "web/src/engine/ep.ts",
@@ -92,13 +74,11 @@
         }
       ],
       "markedFiles": [
-        "web/src/components/StatPanel.tsx",
-        "web/src/engine/stats.ts",
-        "web/src/engine/ep.ts"
+        "web/src/components/StatPanel.tsx"
       ],
-      "unmarked": 24,
-      "marked": 6,
-      "total": 30,
+      "unmarked": 25,
+      "marked": 2,
+      "total": 27,
       "foundIn": [
         {
           "file": "data/items/WAIST.json",
@@ -121,14 +101,14 @@
           "marked": 0
         },
         {
-          "file": "web/src/selectors/gear.ts",
+          "file": "web/src/engine/ep.ts",
           "unmarked": 1,
           "marked": 0
         },
         {
-          "file": "web/src/components/StatPanel.tsx",
-          "unmarked": 0,
-          "marked": 3
+          "file": "web/src/selectors/gear.ts",
+          "unmarked": 1,
+          "marked": 0
         },
         {
           "file": "data/items/BACK.json",
@@ -136,12 +116,7 @@
           "marked": 1
         },
         {
-          "file": "web/src/engine/ep.ts",
-          "unmarked": 0,
-          "marked": 1
-        },
-        {
-          "file": "web/src/engine/stats.ts",
+          "file": "web/src/components/StatPanel.tsx",
           "unmarked": 0,
           "marked": 1
         }
@@ -460,7 +435,7 @@
         "734 resist figures ship across 470 items.",
         "Exactly one has ever been checked: Cloak of Flames SV Fire, and it is the sample that corrected this project's exaltation rounding rule from rounding to truncation.",
         "The sixth resist is the evidence that this vocabulary is live rather than inherited: an import from a 2001 game could not have produced a Void column.",
-        "The abbreviation is also this app's internal stat-key namespace — SV_MAGIC, SV_FIRE and the rest appear in 6 source files (web/src/data/fixture.ts, web/src/engine/ep.ts, web/src/engine/stats.ts, web/src/engine/upgrade.ts, web/src/selectors/gear.ts, web/src/share/codec.ts). Those are not counted above: a key in a weights map is not a figure printed to a reader."
+        "The abbreviation is also this app's internal stat-key namespace — SV_MAGIC, SV_FIRE and the rest appear in 3 source files (web/src/data/fixture.ts, web/src/engine/ep.ts, web/src/selectors/gear.ts). Those are not counted above: a key in a weights map is not a figure printed to a reader."
       ]
     },
     {
