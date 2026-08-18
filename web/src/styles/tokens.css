@@ -123,19 +123,26 @@
    * Bone-Clasped Girdle — each qualifying through at least one of the trio —
    * are green.
    *
-   * The rule earns its keep on the item browser, where it reads 43 green / 57
-   * red — counted off the rendered `.cell-open.iname` colours on page 1 of
-   * `#/items`, default sort, against a WAR/BRD/BER trio.
-   * On the paper doll and in a slot picker it cannot: auto-fill and the
-   * pickers only ever offer equippable items, so all 23 names took one value
-   * and the "signal" was a full-screen tint. Those two surfaces re-point
-   * `--item-usable` at `--text-strong` locally (see `styles.css` §8), which
-   * leaves red as the only thing that shouts.
+   * **Both halves of the rule are still here; what changed is where each half
+   * is allowed to be the loud one.** On the paper doll and in a slot picker the
+   * green cannot say anything: auto-fill and the pickers only ever offer
+   * equippable items, so all 23 names took one value and the "signal" was a
+   * full-screen tint. Those two surfaces re-point `--item-usable` at
+   * `--text-strong` locally (see `styles.css` §8). On the item browser the *red*
+   * had the mirror-image problem: opened to the whole catalog, page 1 measured
+   * **69 red against 31 sage** — the app's one warning hue carrying the majority
+   * state of its primary screen. So §12 re-points `--item-blocked` there, sage
+   * marks the minority you can act on, and the browser prints `WEARABLE` beside
+   * it so the claim is not colour-only.
+   *
+   * Red is untouched everywhere a blocked item is genuinely an exception: the
+   * doll's `blocked` tile and name, where it can only arrive through a shared
+   * set, an import or a class change.
    *
    * Green and red are now the doc's sage and brick rather than the old
    * saturated pair, so they sit inside the warm palette instead of on top of
-   * it. They are still unmistakably green and red — `Landing.tsx` prints the
-   * two words as a legend and that sentence has to stay true.
+   * it. `Landing.tsx` prints a legend for both and that sentence has to keep
+   * matching what the app actually draws — it was corrected along with §12.
    *
    * A third state exists that we have not pinned down: Bladestopper renders
    * amber despite being usable. Until it is understood, `--item-caution` is
@@ -254,23 +261,44 @@
 
   /* ---- Type scale ------------------------------------------------------ */
   /*
-   * Seven steps, and only seven. `styles.css` used to hard-code 30 further
+   * Eight steps, and only eight. `styles.css` used to hard-code 30 further
    * sizes outside this scale — 8.5, 10.5, 11.5, 12, 12.5, 14, 17, 24 — so the
    * gear tab rendered eleven sizes and its two most common ones were both
    * off-scale. Roles, so the scale can be applied rather than guessed:
    *
-   *   micro  10  tags, badges, uppercase micro-labels
-   *   small  11  secondary lines, buttons, tabs, hints, dense numerics
-   *   body   13  running text, item names, stat rows, menu items
-   *   mid    15  card titles, set name, meter numerals
-   *   large  20  headline numerals (the Vitals tiles), section titles
-   *   title  30  page and identity titles
-   *   hero   44  the landing headline
+   *   micro    10  tags, badges, uppercase micro-labels
+   *   small    11  secondary lines, buttons, tabs, hints, dense numerics
+   *   body     13  running text, stat rows, menu items
+   *   mid      15  reading prose, card titles, meter numerals
+   *   heading  17  the object a row is about — an item's name
+   *   large    20  headline numerals (the Vitals tiles), dialog titles
+   *   title    30  page and identity titles
+   *   hero     44  the landing headline
+   *
+   * **`--fs-heading` is the step the scale was missing**, and its absence was
+   * measurable rather than theoretical. An audit of the item browser walked 660
+   * text runs and found **one** of them ≥16px and **none** in the heading face:
+   * 528 were 13px, because the four type roles had no size between the 15px
+   * card title and the 30px page title for a heading to occupy. The item name —
+   * the most important text in a gear planner — sat at 13px in the reading
+   * face, indistinguishable from the stat line beside it.
+   *
+   * 17px rather than 20px because the face that takes this step is Oswald, and
+   * the rows it lands on are width-critical. Measured with canvas `measureText`
+   * over the 100 names on page 1 of the catalog, Oswald 17/700 sets **18%
+   * wider** than the Lato 13/600 it replaces — a mean of 131.4px against
+   * 111.3px, and +40.3px on the worst name of the hundred. Oswald's condensation
+   * pays for most of a four-point rise but not for all of it, so the cost was
+   * checked rather than assumed: at 1440px **0 of 100** names in the browser
+   * ellipsise and 1 does at 1280 and below, and `visual-system.spec.ts`'s clip
+   * probe still finds no doll row cutting its own text at any width down to
+   * 360px. `--fs-large` would not have survived either check.
    */
   --fs-micro: 10px;
   --fs-small: 11px;
   --fs-body: 13px;
   --fs-mid: 15px;
+  --fs-heading: 17px;
   --fs-large: 20px;
   --fs-title: 30px;
   --fs-hero: 44px;
@@ -282,6 +310,19 @@
    * that it is one decision rather than two literals.
    */
   --fs-glyph: 0.72em;
+
+  /*
+   * The measure — how wide a line of running prose is allowed to get.
+   *
+   * The doc asks for "generous measure"; a 1400px shell with 24px gutters gives
+   * a paragraph 1,352px, and the item browser's two helper paragraphs and the
+   * new-character screen's were setting across the whole of it at roughly 210
+   * characters a line. Generous is about leading and margin, not line length:
+   * past ~75 characters the eye loses the line it is returning to. In `ch`
+   * because the limit is a count of characters, so it follows the face and the
+   * size rather than fixing a pixel width that only holds at one of them.
+   */
+  --measure: 72ch;
 
   /*
    * Three weights. There were five (300/400/600/700/800) on a single screen,

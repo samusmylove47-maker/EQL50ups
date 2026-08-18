@@ -11,6 +11,8 @@ import { NewCharacter } from './screens/NewCharacter';
 import { SetCompare } from './screens/SetCompare';
 import { SetEditor } from './screens/SetEditor';
 import { SharedSet } from './screens/SharedSet';
+import { Sources } from './screens/Sources';
+import { Upgrades } from './screens/Upgrades';
 import { flushPersist, useApp } from './state/store';
 
 const NAV = [
@@ -20,6 +22,14 @@ const NAV = [
     label: 'Characters',
     match: ['characters', 'new-character', 'character', 'set', 'set-compare'],
   },
+  /*
+   * The ranked upgrade list, for the set you were last editing. It is a
+   * top-level destination rather than a fourth tab on the set because it is the
+   * question people arrive with — "where is my biggest gain" — and a screen you
+   * can only reach from inside the thing it ranks is a screen most readers
+   * never find.
+   */
+  { href: href.upgrades(), label: 'Upgrades', match: ['upgrades'] },
   { href: href.items, label: 'Items', match: ['items'] },
 ];
 
@@ -119,8 +129,10 @@ export function App() {
         {route.name === 'new-character' ? <NewCharacter /> : null}
         {route.name === 'character' ? <CharacterDetail id={route.id} /> : null}
         {route.name === 'items' ? <ItemBrowser /> : null}
+        {route.name === 'sources' ? <Sources /> : null}
         {route.name === 'set' ? <SetEditor id={route.id} tab={route.tab} /> : null}
         {route.name === 'set-compare' ? <SetCompare id={route.id} id2={route.id2} /> : null}
+        {route.name === 'upgrades' ? <Upgrades id={route.id} /> : null}
         {route.name === 'share' ? <SharedSet payload={route.payload} /> : null}
         {route.name === 'not-found' ? (
           <div className="empty-state">

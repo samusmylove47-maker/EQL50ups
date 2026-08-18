@@ -47,7 +47,19 @@ const FILL_COLOR: Record<Fill, string | undefined> = {
 
 /**
  * A real item, shown in the real item window, as the product shot.
- * Earthshaker's numbers are the Tier 0 sample recorded in the validation set.
+ *
+ * This is the shipped `Earthshaker` record, field for field — including the
+ * provenance fields, which is the whole reason it is the exemplar. Its stat
+ * block is the only one in this project that has been read off a live client
+ * window and agreed with digit for digit (`research/validation/TIER0-VALIDATION.md`
+ * §1), so the window on the front page prints the two Tier M marks it earned
+ * rather than the silence it used to.
+ *
+ * Its flag line is the counter-example, and it stays in on purpose: the client
+ * shows *Lore Equipped, No Trade, Placeable* where the wiki says *Lore, Magic*.
+ * The note beside the window says so, because printing a value we hold Tier M
+ * evidence against, unmarked, on the first screen is exactly what the sourcing
+ * standard exists to stop.
  */
 const SAMPLE: Item = {
   id: 5667,
@@ -63,6 +75,12 @@ const SAMPLE: Item = {
   sz: 'GIANT',
   era: 'Classic',
   av: true,
+  ex: 'live-export',
+  sd: 'tier-M',
+  vf: ['DLY', 'DMG', 'STA', 'STR'],
+  sdc:
+    'TIER0-VALIDATION.md §1: observed in a live client window at +10 — Base Dmg 74, Delay 70, ' +
+    'Ratio 1.057, Strength 16, Stamina 16, SV Void 10. Nine of nine predictions exact.',
 };
 
 export function Landing() {
@@ -120,17 +138,28 @@ export function Landing() {
           </div>
           {/*
             The rule is stated where it actually applies. Browsing the catalog,
-            green and red separate what this trio can equip from what it cannot,
-            exactly as the client tints item names. On a gear set the question
-            is already settled — every slot holds something you can wear — so
-            the doll spends its colour on upgrade tier instead of repeating an
+            green separates what this trio can equip from what it cannot,
+            following the client's own tint. On a gear set the question is
+            already settled — every slot holds something you can wear — so the
+            doll spends its colour on upgrade tier instead of repeating an
             answer you have. Claiming a green doll here would teach a rule the
             rest of the app no longer follows.
+
+            **This sentence used to promise red as well, and it has to stop.**
+            The client tints a blocked name red and §12 of `styles.css` now
+            declines to on the catalog table, for a measured reason: opened to
+            the whole game, "your trio cannot wear this" is 69 rows in 100, and
+            a warning colour spent on the majority state is not a warning. Red
+            survives where a blocked item is the exception — a shared set or an
+            import putting one on the doll — and that is where the legend now
+            points. A legend that describes a screen the app no longer draws is
+            worse than no legend.
           */}
           <p className="hero-art-note">
             Browsing items, <span style={{ color: 'var(--item-usable)' }}>green</span> is what this
-            trio can equip and <span style={{ color: 'var(--item-blocked)' }}>red</span> is what it
-            cannot — the same rule the client uses.
+            trio can equip, following the client's own tint; the rest simply
+            recede. On a set, an item nobody in the trio can wear is marked{' '}
+            <span style={{ color: 'var(--item-blocked)' }}>red</span> and said in words.
           </p>
         </div>
       </section>
@@ -141,12 +170,28 @@ export function Landing() {
           <div className="showcase-art">
             <ItemWindow item={SAMPLE} upgrade={tier(10)} context={AVENRAE} slot="PRIMARY" />
           </div>
-          <p className="hint showcase-note">
-            Hover anything, anywhere — a slot on the doll, a row in a picker, a row in the item
-            browser — and the item opens in the client's own window: red title bar, green numerics,
-            cyan group headers. Shown at <strong>+10</strong>, with every number scaled by the
-            wiki-verified upgrade curve rather than guessed at.
-          </p>
+          {/*
+            The claim under the product shot has to match the evidence in it.
+            This said "the wiki-verified upgrade curve" while sitting beside the
+            one stat block in the project that was checked against the running
+            game — a four-tier demotion, in the sentence meant to establish
+            trust. It now cites the receipt that exists.
+          */}
+          <div style={{ display: 'grid', gap: 'var(--s3)', minWidth: 0 }}>
+            <p className="hint showcase-note">
+              Hover anything, anywhere — a slot on the doll, a row in a picker, a row in the item
+              browser — and the item opens in the client's own window: red title bar, green
+              numerics, cyan group headers.
+            </p>
+            <p className="hint showcase-note">
+              Shown at <strong>+10</strong>, and these are not estimates. This exact window was read
+              off a live client and the planner reproduces it:{' '}
+              <strong>nine of nine predictions exact</strong> — 74 damage, delay unchanged at 70,
+              ratio 1.057, Strength and Stamina 16, and the synthetic SV Void at 10, a rule that
+              appears in no documentation. Its flag line is the one part a client contradicts, which
+              is what <a href={href.sources}>Sources</a> is for.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -204,15 +249,18 @@ export function Landing() {
           <div className="feature">
             <h3>+0 to +10, everywhere</h3>
             <p>
-              Every equipped item carries an inline upgrade control using the wiki-verified scaling
-              rules, including the synthetic SV Void an upgraded item grants.
+              Every equipped item carries an inline upgrade control. The scaling rules were
+              re-derived from the wiki's own item-level slider and then checked against live client
+              windows, which corrected two of them — including the synthetic SV Void an upgraded
+              item grants.
             </p>
           </div>
           <div className="feature">
             <h3>Cap-aware scoring</h3>
             <p>
-              Attributes cap at 510 and resists at 1000. Points past a ceiling score nothing, so an
-              item cannot win a slot by piling on a stat you have already maxed.
+              Attributes cap at 510 and resists at 1000, both read straight off the client's stats
+              window. Points past a ceiling score nothing, so an item cannot win a slot by piling on
+              a stat you have already maxed.
             </p>
           </div>
           <div className="feature">
@@ -223,6 +271,18 @@ export function Landing() {
             </p>
           </div>
         </div>
+        {/*
+          Not a footnote. Two thirds of the scraped catalog is content this game
+          does not have, the flag vocabulary is unreliable enough that the data
+          says so itself, and a planner that hides either is asking to be
+          trusted on nothing.
+        */}
+        <p className="hint">
+          Every item window names where its numbers came from.{' '}
+          <a href={href.sources}>Sources</a> does it for the catalog as a whole — the tier
+          hierarchy, what was cut before this shipped, and what is known to be wrong with what
+          remains.
+        </p>
       </section>
     </div>
   );

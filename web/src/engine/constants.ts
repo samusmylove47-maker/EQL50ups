@@ -175,14 +175,33 @@ export const ERA_ORDER = [
 
 /**
  * Items whose wiki era says they are out of era and which a live client
- * demonstrably holds anyway.
+ * demonstrably holds anyway — **the era-purge rescue list, and nothing else.**
  *
  * The pipeline ships an item only if its era is pre-Kunark or its name appears
  * here; everything else is quarantined into `pipeline/quarantine.json`. So this
  * list is not an un-gating of hidden rows any more — it is the sole reason
  * thirteen Kunark items and the Shadow Rage set are in the catalog at all.
  *
- * This is that list, as far as Tier 0 — the running game — can attest.
+ * **It is not the set of items seen in the live game, and no screen may read it
+ * as one.** It was read that way once, and the result was the worst provenance
+ * bug this project has had: `ItemWindow` printed "TIER M · CONFIRMED IN THE
+ * LIVE GAME" over Orb of Tishan's wiki stat block — the export carries names
+ * and ids, no stat values at all — while Earthshaker, whose numbers are the one
+ * stat block checked digit-for-digit against a client window, printed nothing.
+ * The strongest label in the vocabulary sat on Tier 2 data and was absent from
+ * the best evidence in the project.
+ *
+ * The two facts that list was standing in for now ship on every catalog record,
+ * computed by the pipeline from the files that actually carry them:
+ *
+ *   `item.ex` — existence: the name resolves to a line in the live inventory
+ *               export, or the player named it. Proves the item is in the game.
+ *   `item.sd` — standing: where the numbers on the row came from, including
+ *               `tier-M` for the five stat blocks a client window confirmed.
+ *
+ * Read those. This list stays because it documents *why* nineteen out-of-era
+ * items are in the catalog, and `data/source-standing.test.ts` holds it to that
+ * job — every name in it must be out of era and must carry `ex`.
  *
  * Nothing is inferred from an item's neighbours, its zone or its era. Every
  * name is grouped below by the evidence that put it there, so a reader can see
@@ -237,13 +256,20 @@ const TIER0_OBSERVED_IN_EXPORT = [
  */
 const TIER0_REPORTED_BY_PLAYER = ['Shadow Rage Leggings'];
 
-export const TIER0_LIVE_ITEMS: ReadonlySet<string> = new Set(
+export const TIER0_ERA_RESCUE_ITEMS: ReadonlySet<string> = new Set(
   [...TIER0_OBSERVED_IN_EXPORT, ...TIER0_REPORTED_BY_PLAYER].map((name) => name.toLowerCase()),
 );
 
-/** Was this exact item seen in a live client inventory export? */
-export function isTier0Confirmed(name: string | undefined): boolean {
-  return name !== undefined && TIER0_LIVE_ITEMS.has(name.toLowerCase());
+/**
+ * Did this item survive the era purge on Tier 0 evidence rather than on its era?
+ *
+ * Named for what it answers. It is **not** "was this seen in the live game" —
+ * that question is answered by `item.ex`, on every record, from the export
+ * itself; and it is not "are these numbers trustworthy" — that is `item.sd`.
+ * See `lib/itemStyle.ts` for both.
+ */
+export function isEraRescued(name: string | undefined): boolean {
+  return name !== undefined && TIER0_ERA_RESCUE_ITEMS.has(name.toLowerCase());
 }
 
 /**

@@ -10,13 +10,21 @@
  * The body is the EverQuest item window itself (`ItemWindow`, UI-REFERENCE
  * §B5) rather than a second, differently-styled rendering of the same facts:
  * one artefact, shown small on hover and large here.
+ *
+ * **What it will not do is contradict itself.** The window prints THIS LOADOUT
+ * CANNOT EQUIP IT from `usabilityNote`; this dialog then used to print EQUIP IN
+ * MAIN SET four lines below it, and clicking it wrote the item into the set.
+ * The equip section is now gated on the same predicate the window reads and the
+ * same one `rankSlotItems` filters every picker with, so all three surfaces
+ * answer one question the same way.
  */
 
 import type { LoadoutContext } from '../engine/character';
+import { blockSentence } from '../lib/blockReason';
 import type { Item } from '../engine/types';
 import type { UpgradeState } from '../engine/upgrade';
 import { statsAreUnknown } from '../data/normalize';
-import { sourceSummary } from '../lib/itemStyle';
+import { sourceSummary, usabilityOf } from '../lib/itemStyle';
 import { Modal } from './Modal';
 import { ItemWindow } from './ItemWindow';
 
@@ -56,6 +64,31 @@ export function ItemDetail({
    */
   const unstatted = statsAreUnknown(item);
 
+  /*
+   * The second reason to withdraw them, and the one that was shipping wrong.
+   *
+   * The window above this already prints **THIS LOADOUT CANNOT EQUIP IT** — and
+   * four lines below it, this dialog used to offer EQUIP IN MAIN SET anyway,
+   * with no confirm and no warning. Clicking it put a Monk-only sash on a
+   * WAR/BRD/BER paper doll and folded its 41% haste into the headline stat
+   * totals, so the set reported speed the trio can never have. Meanwhile every
+   * slot picker in the app refuses to *list* such an item: `rankSlotItems`
+   * filters on the same loadout context. Two surfaces, two rules, and the one
+   * that was wrong is the one that writes to your set.
+   *
+   * So this surface adopts the picker's rule. Blocked means blocked, in the
+   * same words the window uses, with the class list that decides it. It is not
+   * a confirm dialog: there is no correct outcome behind the confirm, because
+   * the game will not let the character wear it either.
+   */
+  const blocked = usabilityOf(item, context) === 'blocked';
+  /*
+   * Which gate actually closed — class, race or level. Shared with `SlotCard`,
+   * because the two surfaces refusing the same item for different stated
+   * reasons would be the same disagreement this whole change is about.
+   */
+  const why = blockSentence(item, context) ?? 'this loadout cannot equip it';
+
   return (
     <Modal title={item.n} titleHidden onClose={onClose} width={640}>
       <div className="modal-body stack">
@@ -82,7 +115,15 @@ export function ItemDetail({
           </p>
         ) : null}
 
-        {!unstatted && equipTargets.length && onEquip ? (
+        {blocked && equipTargets.length && onEquip ? (
+          <p className="hint" data-blocked="equip">
+            Not offered for {setName ?? 'your set'}: {why}. The slot pickers leave it out of their
+            lists for the same reason — equipping it would add stats to your totals that the
+            character can never actually wear.
+          </p>
+        ) : null}
+
+        {!blocked && !unstatted && equipTargets.length && onEquip ? (
           <div>
             <h3 className="section-label">Equip in {setName ?? 'your set'}</h3>
             <div className="chip-row">

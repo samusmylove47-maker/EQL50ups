@@ -16,7 +16,20 @@ export type Route =
   | { name: 'set'; id: string; tab: SetTab }
   /** A/B diff, per DESIGN.md §3: `/set/{id}/compare/{id2}`. */
   | { name: 'set-compare'; id: string; id2: string }
+  /**
+   * Ranked upgrades for one set: `/set/{id}/upgrades`. An empty id means
+   * `#/upgrades`, which resolves to the set you were last editing and rewrites
+   * itself to the explicit form so the answer can be linked.
+   */
+  | { name: 'upgrades'; id: string }
   | { name: 'items' }
+  /**
+   * Where every number on screen came from, and what is known to be wrong with
+   * it. A route rather than a section of a README because
+   * `research/SOURCING-STANDARD.md` rule 5 puts uncertainty on screen, and
+   * because `meta.dataReliability` is already in the browser's memory.
+   */
+  | { name: 'sources' }
   | { name: 'share'; payload: string }
   | { name: 'not-found'; path: string };
 
@@ -37,6 +50,14 @@ export function parseHash(hash: string): Route {
   if (head === 'character' && second === 'new') return { name: 'new-character' };
   if (head === 'character' && second) return { name: 'character', id: decodeURIComponent(second) };
   if (head === 'items') return { name: 'items' };
+  if (head === 'sources') return { name: 'sources' };
+  if (head === 'upgrades') return { name: 'upgrades', id: '' };
+  // Checked before the tab branch for the reason `compare` is: `upgrades` is
+  // not a `SetTab`, so without this it would fall through and quietly render
+  // the gear tab under an URL that promises something else.
+  if (head === 'set' && second && third === 'upgrades') {
+    return { name: 'upgrades', id: decodeURIComponent(second) };
+  }
   // `compare` is checked before the tab branch: without it `#/set/a/compare/b`
   // fell through to `isSetTab('compare') === false` and quietly rendered the
   // gear tab, which is how a declared route can look implemented and not be.
@@ -91,7 +112,9 @@ export const href = {
   newCharacter: '#/character/new',
   character: (id: string) => `#/character/${encodeURIComponent(id)}`,
   items: '#/items',
+  sources: '#/sources',
   set: (id: string, tab: SetTab = 'gear') => (tab === 'gear' ? `#/set/${id}` : `#/set/${id}/${tab}`),
   compare: (id: string, id2 = '') =>
     id2 ? `#/set/${id}/compare/${encodeURIComponent(id2)}` : `#/set/${id}/compare`,
+  upgrades: (id = '') => (id ? `#/set/${encodeURIComponent(id)}/upgrades` : '#/upgrades'),
 };

@@ -12,6 +12,17 @@
  * every candidate, which is memoised and unchanged; a page is a `slice`, so it
  * costs one array copy and renders a bounded number of rows with no scroll
  * measurement, no row-height guessing and no jump-to-item bugs.
+ *
+ * **This screen answers to the set, not to itself.** It used to be an island:
+ * its own hardcoded scoring preset, its own class filter opening on the whole
+ * catalog, its own equip buttons that ignored the loadout, and an empty state
+ * that blamed the reader for a decision the pipeline had made. Every one of
+ * those produced a visible contradiction with the slot picker one screen away —
+ * the same sword at 41.0 and 53.0 EP, an item the picker refuses to offer being
+ * equipped from here anyway. So the defaults are all derived from whatever set
+ * is open: its weights score the table, its loadout filters and colours it, and
+ * its rules decide what may be equipped. A preset and the whole catalog are
+ * both one dropdown away; they are lenses, not the ground state.
  */
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
@@ -22,10 +33,15 @@ import { BASE_STATE, tier, type UpgradeState } from '../engine/upgrade';
 import type { Item } from '../engine/types';
 import { useCatalog } from '../data/catalog';
 import { statsAreUnknown, type SlotCode } from '../data/normalize';
+import {
+  findQuarantined,
+  loadQuarantineIndex,
+  type QuarantineIndex,
+} from '../data/quarantine';
 import { searchIndexFor } from '../data/searchIndex';
 import { UpgradeStepper } from '../components/UpgradeStepper';
 import { count, ep as epText } from '../lib/format';
-import { eraLabel, itemNameColor } from '../lib/itemStyle';
+import { eraLabel, itemNameColor, usabilityOf } from '../lib/itemStyle';
 import { ItemDetail } from '../components/ItemDetail';
 import { itemHoverProps } from '../components/ItemWindow';
 import { SlotGlyph } from '../components/SlotGlyph';
@@ -39,6 +55,33 @@ type SortDir = 'asc' | 'desc';
 
 /** Rows per page. Large enough to scan, small enough to render instantly. */
 const PAGE_SIZE = 100;
+
+/**
+ * The scoring option that is not a preset.
+ *
+ * This screen used to hardcode `PRESET_PROFILES[0]` — *Melee DPS* — and never
+ * look at the set the reader was editing, so the same sword was 41.0 EP here
+ * and 53.0 EP in the slot picker one screen away. Across the five presets one
+ * item spans 14.0 to 92.4; a 2.2x disagreement on the tool's only ranking
+ * number is not a preference, it is two tools disagreeing in one window. The
+ * set's own weights are what every picker, the auto-fill and the upgrade
+ * ranking already use, so they are what this screen defaults to whenever there
+ * is a set to read them from.
+ */
+const SET_WEIGHTS = 'set';
+
+/**
+ * The class filter that is a loadout rather than a class.
+ *
+ * A character in this game runs three classes at once, so "filter by WAR" is
+ * not the same question as "what can Critic wear" — the second is a union of
+ * three, and it is the only one a player actually asks. With a character
+ * loaded this is the default, which is also what stops the table opening on a
+ * page where 57 of 100 names are the red that means *not for you*.
+ */
+const LOADOUT_FILTER = 'loadout';
+
+type ClassFilter = 'any' | typeof LOADOUT_FILTER | ClassCode;
 
 /** How each column sorts on its first click: scores high-first, text A-first. */
 const NATURAL_DIRECTION: Record<SortKey, SortDir> = {
@@ -57,14 +100,41 @@ export function ItemBrowser() {
   const [query, setQuery] = useState('');
   const [slot, setSlot] = useState<'any' | SlotCode>('any');
   const [era, setEra] = useState('any');
-  const [classFilter, setClassFilter] = useState<'any' | ClassCode>('any');
-  const [profileId, setProfileId] = useState(PRESET_PROFILES[0]?.id ?? 'balanced');
+  /*
+   * Both of these are "what the reader chose", and `null` means they have not
+   * chosen — the effective value is derived below from whatever character is
+   * loaded. They are not seeded with `useState(initial)` because the persisted
+   * store hydrates *after* first render: seeding would read an empty character
+   * list, latch `any` / `melee-dps`, and leave the defaults permanently wrong
+   * for everyone who arrives on this route directly.
+   */
+  const [classChoice, setClassChoice] = useState<ClassFilter | null>(null);
+  const [profileChoice, setProfileChoice] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState<UpgradeState>(BASE_STATE);
   const [sort, setSort] = useState<SortKey>('ep');
   const [dir, setDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(0);
   const [detail, setDetail] = useState<Item | null>(null);
+  const [quarantine, setQuarantine] = useState<QuarantineIndex | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * The set the reader was last editing: the equip target, the source of the
+   * scoring weights, and the loadout every name is judged against. Read before
+   * the filters because the filters default to it.
+   */
+  const targetSet = setsForCharacter(app, app.activeCharacterId ?? characters[0]?.id ?? null)[0];
+  const targetCharacter = characterFor(app, targetSet);
+  const loadoutContext = useMemo(
+    () => (targetCharacter ? activeContext(targetCharacter) : undefined),
+    [targetCharacter],
+  );
+
+  const classFilter: ClassFilter = classChoice ?? (loadoutContext ? LOADOUT_FILTER : 'any');
+  const profileId = profileChoice ?? (targetSet ? SET_WEIGHTS : (PRESET_PROFILES[0]?.id ?? 'balanced'));
+  const usingSetWeights = profileId === SET_WEIGHTS && Boolean(targetSet);
+  const presetLabel = PRESET_PROFILES.find((p) => p.id === profileId)?.label ?? 'preset';
+  const weightsLabel = usingSetWeights ? `${targetSet?.name ?? 'this set'} weights` : `${presetLabel} preset`;
 
   // Clicking the column you are already sorted by reverses it; clicking another
   // starts it in whichever direction that column reads best.
@@ -82,17 +152,28 @@ export function ItemBrowser() {
     void ensureAll();
   }, [ensureAll]);
 
-  const weights: WeightProfile = useMemo(
-    () => PRESET_PROFILES.find((p) => p.id === profileId)?.weights ?? {},
-    [profileId],
-  );
+  /*
+   * The same weights the pickers rank with, whenever there is a set.
+   *
+   * `targetSet.weights` is what `SetWorkspace` hands `ItemPicker`, what
+   * `autoFillSteps` optimises against and what the upgrades screen ranks by, so
+   * reading it here is what makes one item carry one number across the app. A
+   * preset can still be selected; it is a lens, not the default.
+   */
+  const weights: WeightProfile = useMemo(() => {
+    if (usingSetWeights && targetSet) return targetSet.weights;
+    return PRESET_PROFILES.find((p) => p.id === profileId)?.weights ?? {};
+  }, [usingSetWeights, targetSet, profileId]);
 
   // A filter, not a character: one class at the level cap, so the browser shows
   // everything that class can ever wear rather than what one saved character can.
+  // `loadout` is the exception, and the point of it — three classes at once is
+  // what this game actually gives you, and no single-class filter expresses it.
   const filterContext: LoadoutContext | undefined = useMemo(() => {
     if (classFilter === 'any') return undefined;
+    if (classFilter === LOADOUT_FILTER) return loadoutContext;
     return makeContext([classFilter], null, { [classFilter]: LEVEL_CAP });
-  }, [classFilter]);
+  }, [classFilter, loadoutContext]);
 
   const matches = useMemo(
     () => searchIndexFor(catalog.revision, catalog.items).search(deferredQuery),
@@ -183,14 +264,6 @@ export function ItemBrowser() {
   };
 
   /*
-   * "Equip" targets: the set the reader was last editing, and the positions
-   * this item can legally occupy in it. Without a set there is nothing to
-   * equip into, and the detail dialog quietly drops the section.
-   */
-  const targetSet = setsForCharacter(app, app.activeCharacterId ?? characters[0]?.id ?? null)[0];
-  const targetCharacter = characterFor(app, targetSet);
-
-  /*
    * Names are tinted against *your character*, not against the class dropdown.
    * The dropdown narrows the list, so colouring by it would paint every
    * surviving row the same green and the rule would never say anything; judged
@@ -198,15 +271,76 @@ export function ItemBrowser() {
    * you at a glance what you could wear and what you could not.
    */
   const colorContext = useMemo(
-    () => (targetCharacter ? activeContext(targetCharacter) : filterContext),
-    [targetCharacter, filterContext],
+    () => loadoutContext ?? filterContext,
+    [loadoutContext, filterContext],
   );
+
+  /*
+   * …and not tinted at all when the filter has already answered the question.
+   *
+   * With the list narrowed to what this loadout can wear, every one of the
+   * hundred names on the page would take the same green — and a constant is
+   * not a signal, it is a full-screen tint, which is the reasoning `SlotCard`
+   * already applies to the paper doll. Colour returns the moment the reader
+   * asks for a wider list than their trio, because then it is discriminating
+   * again.
+   */
+  const tintContext = classFilter === LOADOUT_FILTER ? undefined : colorContext;
+
+  /*
+   * "Equip" targets: the positions this item can legally occupy in the set the
+   * reader was last editing. Without a set there is nothing to equip into, and
+   * the detail dialog quietly drops the section; if the loadout cannot wear the
+   * item at all, `ItemDetail` withdraws the section itself, which is the rule
+   * the slot pickers have always applied.
+   */
   const equipTargets = useMemo(() => {
     if (!detail || !targetSet) return [];
     return SLOT_POSITIONS.filter(
       (position) => position.type === 'ANY' || detail.sl.includes(position.type),
     ).map((position) => ({ positionId: position.id, label: position.label }));
   }, [detail, targetSet]);
+
+  /* ------------------------------------------------- the withheld catalog */
+
+  const trimmedQuery = deferredQuery.trim();
+  const noResults = catalog.status === 'ready' && !rows.length;
+
+  /*
+   * The withheld list is fetched only once a search has already failed.
+   *
+   * 7,719 of the wiki's 11,252 item records are content this server does not
+   * have, and the pipeline keeps every one of them by name with a reason. Until
+   * now the reader met that decision as "NOTHING MATCHES — loosen a filter",
+   * with no filter set, on the exact word they had come to look up. The list is
+   * 174 KB of JSON (~49 KB gzipped) and nobody who does not run a dead search
+   * ever downloads it.
+   */
+  useEffect(() => {
+    if (!noResults || !trimmedQuery || quarantine) return;
+    let live = true;
+    void loadQuarantineIndex().then((index) => {
+      if (live && index) setQuarantine(index);
+    });
+    return () => {
+      live = false;
+    };
+  }, [noResults, trimmedQuery, quarantine]);
+
+  const withheld = useMemo(
+    () => (noResults && trimmedQuery ? findQuarantined(quarantine, trimmedQuery) : null),
+    [noResults, trimmedQuery, quarantine],
+  );
+
+  const filtersNarrowing = slot !== 'any' || era !== 'any' || classFilter !== 'any';
+
+  /** The way out of a dead end. Returns the two class/scoring choices to their defaults. */
+  const clearFilters = () => {
+    setQuery('');
+    setSlot('any');
+    setEra('any');
+    setClassChoice(null);
+  };
 
   const pageNav = (position: 'top' | 'bottom') =>
     pageCount > 1 ? (
@@ -274,13 +408,21 @@ export function ItemBrowser() {
    * for. Visually hidden because the same facts are on screen in the toolbar
    * directly above it.
    */
+  const loadoutClasses = loadoutContext?.classes.join('/') ?? '';
+  const classCaption =
+    classFilter === 'any'
+      ? 'any class'
+      : classFilter === LOADOUT_FILTER
+        ? `usable by ${targetCharacter?.name ?? 'this loadout'}’s ${loadoutClasses}`
+        : `usable by ${classFilter}`;
+
   const caption = [
     `${count(total)} item${total === 1 ? '' : 's'}`,
     slot === 'any' ? 'any slot' : `slot ${slot}`,
-    classFilter === 'any' ? 'any class' : `usable by ${classFilter}`,
+    classCaption,
     era === 'any' ? 'any era' : `${era} era`,
     query.trim() ? `matching “${query.trim()}”` : null,
-    `scored with the ${PRESET_PROFILES.find((p) => p.id === profileId)?.label ?? 'preset'} weights at +${upgrade.full}`,
+    `scored with the ${weightsLabel} at +${upgrade.full}`,
   ]
     .filter(Boolean)
     .join(', ');
@@ -323,9 +465,20 @@ export function ItemBrowser() {
           </select>
           <select
             value={classFilter}
-            onChange={(e) => setClassFilter(e.target.value as 'any' | ClassCode)}
+            onChange={(e) => setClassChoice(e.target.value as ClassFilter)}
             aria-label="Filter by class"
           >
+            {/*
+              The loadout sits first and is the default, because with a
+              character loaded "Any class" is a catalog of things you mostly
+              cannot wear: the top row by EP was a Monk item and five of the
+              first eight rendered in the red that means *not for you*.
+            */}
+            {loadoutContext ? (
+              <option value={LOADOUT_FILTER}>
+                {targetCharacter?.name ?? 'My loadout'} · {loadoutClasses}
+              </option>
+            ) : null}
             <option value="any">Any class</option>
             {CLASSES.map((c) => (
               <option key={c} value={c}>
@@ -343,9 +496,10 @@ export function ItemBrowser() {
           </select>
           <select
             value={profileId}
-            onChange={(e) => setProfileId(e.target.value)}
+            onChange={(e) => setProfileChoice(e.target.value)}
             aria-label="Scoring profile"
           >
+            {targetSet ? <option value={SET_WEIGHTS}>This set’s weights</option> : null}
             {PRESET_PROFILES.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.label} weights
@@ -364,17 +518,84 @@ export function ItemBrowser() {
         </div>
         {characters.length ? (
           <p className="hint" style={{ marginTop: 'var(--s3)' }}>
-            Scored against the {PRESET_PROFILES.find((p) => p.id === profileId)?.label ?? 'preset'}{' '}
-            preset. Open any row for the full item, or your own set for cap-aware scoring.
+            {usingSetWeights ? (
+              <>
+                Scored against <strong>{targetSet?.name}</strong>’s own weights — the same ones the
+                slot pickers, auto-fill and the upgrades list rank with, so an item carries one EP
+                across the app. Each row is scored on its own here; a slot picker refines that with
+                the cap headroom the rest of your set leaves.
+              </>
+            ) : (
+              <>
+                Scored against the {presetLabel} preset — a lens, not your set’s weights, so these
+                numbers need not match a slot picker’s.
+              </>
+            )}
+            {classFilter === LOADOUT_FILTER ? (
+              <> Showing what {loadoutClasses} can wear; choose “Any class” for the whole catalog.</>
+            ) : null}
           </p>
         ) : null}
       </div>
 
-      {catalog.status === 'ready' && !rows.length ? (
-        <div className="empty-state">
-          <h2>Nothing matches</h2>
-          <p>Loosen a filter — a narrower search, slot, class or era than the catalog holds.</p>
-        </div>
+      {/*
+        The empty state carries the project's largest decision.
+        ------------------------------------------------------
+        A reader who types `Ragebringer` here is not making a mistake, and the
+        old copy — "Loosen a filter", printed with no filter set — told them
+        they were. 7,719 wiki records are withheld on purpose, by name, with a
+        reason each; when the failed query names one of them, the reason is the
+        answer, and it is the most trust-building sentence in the app.
+      */}
+      {noResults ? (
+        withheld ? (
+          <div className="empty-state" data-empty="quarantined">
+            <h2>Not in this catalog</h2>
+            <p>
+              <strong>{withheld.name}</strong> is on the wiki. It is not in this catalog, and that
+              is a decision rather than a gap: {withheld.reason.line}
+            </p>
+            <p className="hint">
+              Withheld under <span className="mono">{withheld.reason.why}</span> (
+              {withheld.reason.title}). {count(withheld.counts.shipped)} of{' '}
+              {count(withheld.counts.scraped)} scraped wiki records ship;{' '}
+              {count(withheld.counts.quarantined)} are held out by name in{' '}
+              <span className="mono">pipeline/quarantine.json</span>.
+              {withheld.others > 0
+                ? ` ${count(withheld.others)} other withheld ${
+                    withheld.others === 1 ? 'name matches' : 'names match'
+                  } this search.`
+                : ''}
+            </p>
+            {filtersNarrowing ? (
+              <p className="hint">Your slot, class or era filter is narrowing the list as well.</p>
+            ) : null}
+            <div className="empty-actions">
+              <button type="button" className="btn btn-sm" onClick={clearFilters}>
+                Clear search and filters
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="empty-state" data-empty="none">
+            <h2>Nothing matches</h2>
+            <p>
+              {trimmedQuery
+                ? `Nothing among the ${count(catalog.items.length)} shipped items matches “${trimmedQuery}”${
+                    quarantine ? ', and no withheld record carries that name either' : ''
+                  }.`
+                : 'Loosen a filter — a narrower search, slot, class or era than the catalog holds.'}
+            </p>
+            {trimmedQuery && filtersNarrowing ? (
+              <p className="hint">Your slot, class or era filter is narrowing the list as well.</p>
+            ) : null}
+            <div className="empty-actions">
+              <button type="button" className="btn btn-sm" onClick={clearFilters}>
+                Clear search and filters
+              </button>
+            </div>
+          </div>
+        )
       ) : null}
 
       {pageNav('top')}
@@ -438,7 +659,7 @@ export function ItemBrowser() {
                 >
                   <td>
                     <span className="cell-item">
-                      <span className="cell-glyph" aria-hidden="true" style={{ color: itemNameColor(item, colorContext) }}>
+                      <span className="cell-glyph" aria-hidden="true" style={{ color: itemNameColor(item, tintContext) }}>
                         <SlotGlyph slot={item.sl[0] ?? 'ANY'} size={20} />
                       </span>
                       {/*
@@ -451,7 +672,7 @@ export function ItemBrowser() {
                         type="button"
                         className="cell-open iname"
                         tabIndex={-1}
-                        style={{ color: itemNameColor(item, colorContext) }}
+                        style={{ color: itemNameColor(item, tintContext) }}
                         onClick={(event) => {
                           event.stopPropagation();
                           setDetail(item);
@@ -459,6 +680,18 @@ export function ItemBrowser() {
                       >
                         {item.n}
                       </button>
+                      {/*
+                        The usability tint, said in words as well as in colour.
+                        §12 inverts the emphasis on this table — sage marks what
+                        the trio can wear, and what it cannot recedes instead of
+                        painting 69 names of 100 brick red — and a signal that
+                        travels only on a hue fails WCAG 1.4.1. Present only when
+                        there is a loadout to judge against, which is the same
+                        condition the tint itself has.
+                      */}
+                      {usabilityOf(item, tintContext) === 'usable' ? (
+                        <span className="cell-wearable">Wearable</span>
+                      ) : null}
                     </span>
                     {statsAreUnknown(item) ? (
                       <span className="tag tag-locked">No stat data</span>

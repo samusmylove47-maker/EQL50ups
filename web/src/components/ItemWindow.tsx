@@ -20,13 +20,15 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { LoadoutContext } from '../engine/character';
-import { CLASS_NAMES, isTier0Confirmed, type ClassCode } from '../engine/constants';
+import { CLASS_NAMES, type ClassCode } from '../engine/constants';
 import { canUseClass, canUseRace, levelCheck } from '../engine/character';
 import type { Item } from '../engine/types';
 import { statsAreUnknown } from '../data/normalize';
 import { scaleWeight, type UpgradeState } from '../engine/upgrade';
 import { dec, num, signed } from '../lib/format';
-import { displayFlags, eraLabel, itemNameColor, usabilityNote } from '../lib/itemStyle';
+import {
+  displayFlags, eraLabel, existenceMark, itemNameColor, sourceStanding, usabilityNote,
+} from '../lib/itemStyle';
 import { ratioText, shortStatLabel, statLabel, statVector } from '../selectors/gear';
 import { SlotGlyph } from './SlotGlyph';
 
@@ -45,54 +47,39 @@ export interface ItemWindowProps {
 /** Stats the client prints in the item's headline block rather than as a list. */
 const HEADLINE = new Set(['AC', 'HP', 'MANA', 'ENDUR']);
 
-/**
- * Where this window's numbers stand, per `research/SOURCING-STANDARD.md`.
+/*
+ * Provenance, per `research/SOURCING-STANDARD.md` rule 5: a player looking at a
+ * number is entitled to know where it came from. eqlsource.com marks every
+ * source card with a coloured rule on its top edge and a mono eyebrow naming
+ * the tier; this window is the surface that prints an individual item's
+ * numbers, so it carries both marks.
  *
- * eqlsource.com marks every source card with a coloured rule on its top edge
- * and a mono eyebrow naming the tier, and the standard's rule 5 says a player
- * looking at a number is entitled to know where it came from. This is that
- * device, on the one surface in the app that prints an individual item's
- * numbers.
+ * **Two eyebrows, because there are two facts and they are independent.**
  *
- * **It states only what the app already holds as fact, and returns `null` the
- * moment it would have to infer.**
+ * This used to be one. `standingOf` read an 18-name list called
+ * `TIER0_LIVE_ITEMS` and printed "Tier M · confirmed in the live game" for any
+ * hit — but that list is the era-purge rescue list, and the file it stands for
+ * is a `Location / Name / ID / Count / Slots` inventory export carrying no stat
+ * values whatsoever. So Orb of Tishan printed the strongest label in the
+ * vocabulary directly above `DMG 7 DLY 25 MANA +35 STR +9 STA +9`, every digit
+ * of which is a wiki scrape, and Earthshaker — 9 of 9 predictions exact against
+ * a live client window — printed nothing. The badge decorated twelve wiki stat
+ * blocks and skipped the project's only client-verified one.
  *
- *   - `trusted` — the item's name is in `TIER0_LIVE_ITEMS`: it was seen in the
- *     owner's `/outputfile inventory` export or reported directly by them.
- *     That is Tier M, first-hand client output, and it outranks every read
- *     source for the fact that this item exists. The label says "in the live
- *     game" rather than "in the client" because the set covers both the export
- *     and the player's own report, and those are the same authority.
- *   - `distrust` — the catalog carries no stats for it, so the window prints
- *     none. Red, spent once, on the one state the standard says to distrust.
- *     The mark is about the *numbers*: an item can be Tier M confirmed to
- *     exist and still have no sourced stats, which is exactly Shadow Rage, so
- *     this case is tested first and the body text below states the existence
- *     evidence separately.
- *   - `null` — an ordinary catalog row. The standard places structured wiki
- *     data at Tier 2 *and* warns in the same breath that the wiki's item
- *     tables carry a Project 1999 import; picking either reading per item
- *     would be an inference, and an inference is never evidence. So the window
- *     makes no claim at all and looks exactly as it did before.
+ * The pipeline now computes both facts from the files that carry them, so this
+ * component looks them up rather than deriving them:
  *
- * The `corroborating` steel of the token file is deliberately unused here for
- * the same reason `--item-caution` is unused: it is reserved for the day the
- * pipeline records a per-item source tier, not guessed at now.
+ *   `existenceMark` — is the item in the game? From the export and the player
+ *                     reports. Says nothing about stats, and its wording is
+ *                     about possession for exactly that reason.
+ *   `sourceStanding` — where did these numbers come from? From the client
+ *                     captures, the scrape, and the era that places or fails to
+ *                     place that scrape. Never null: a row with nothing to
+ *                     attribute says so.
+ *
+ * Orb of Tishan now reads "held in a live inventory" over "Tier 5 · wiki stats,
+ * era unplaced", which is both halves of the truth about it.
  */
-type Standing = 'trusted' | 'distrust';
-
-interface StandingMark {
-  standing: Standing;
-  label: string;
-}
-
-function standingOf(item: Item): StandingMark | null {
-  if (statsAreUnknown(item)) return { standing: 'distrust', label: 'Unsourced · stats withheld' };
-  if (isTier0Confirmed(item.n)) {
-    return { standing: 'trusted', label: 'Tier M · confirmed in the live game' };
-  }
-  return null;
-}
 
 export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemWindowProps) {
   const stats = statVector(item, upgrade);
@@ -107,16 +94,20 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
   const era = eraLabel(item);
   const flags = displayFlags(item.fl);
   const glyphSlot = slot ?? item.sl[0] ?? 'ANY';
-  const mark = standingOf(item);
+  const standing = sourceStanding(item);
+  const existence = existenceMark(item);
 
   return (
-    <div className={`iwin${wide ? ' wide' : ''}`} data-standing={mark?.standing}>
+    <div className={`iwin${wide ? ' wide' : ''}`} data-standing={standing.band}>
       <div className="iwin-title">
         <span className="iwin-title-name">{item.n}</span>
       </div>
 
       <div className="iwin-body">
-        {mark ? <div className="standing-label">{mark.label}</div> : null}
+        {/* Existence first: it is the stronger and simpler claim, and it is
+            what a reader checks before asking where the numbers came from. */}
+        {existence ? <div className="standing-label">{existence.label}</div> : null}
+        <div className="standing-label">{standing.label}</div>
         <div className="iwin-top">
           <div className="iwin-icon" aria-hidden="true">
             <SlotGlyph slot={glyphSlot} size={34} />
@@ -187,6 +178,37 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
                 {fx.d ? <span className="iwin-dim"> — {fx.d}</span> : null}
               </div>
             ))}
+          </>
+        ) : null}
+
+        {/*
+          The receipt behind the eyebrow, in the dialog only. The eyebrow states
+          the tier in four words; a reader who wants to check it needs the
+          capture named or the reason stated, and the hover card is 330px wide
+          with no room for either. Tier 2 gets nothing here on purpose — it is
+          the catalog's ordinary condition, already named above, and repeating
+          it on 2,045 items would turn the note into wallpaper.
+        */}
+        {wide && (standing.citation || standing.standing === 'tier-5') ? (
+          <>
+            <div className="iwin-group">Provenance</div>
+            <div className="iwin-effect">
+              <span className="iwin-dim">
+                {standing.citation ??
+                  `No source places this item in EverQuest Legends' content — the wiki gives it ${
+                    item.era ? `${item.era}, which is past this game's era` : 'no era at all'
+                  }. It is in the catalog because a live client holds it, but its numbers are a ` +
+                    'wiki page that may describe the original EverQuest item of the same name.'}
+              </span>
+            </div>
+            {standing.verifiedFields?.length ? (
+              <div className="iwin-effect">
+                <span className="iwin-dim">
+                  Checked field by field: {standing.verifiedFields.join(', ')}. Anything else on
+                  this item is catalog data that no client capture covers.
+                </span>
+              </div>
+            ) : null}
           </>
         ) : null}
 

@@ -27,3 +27,27 @@
 .card .set-line .meta {
   overflow-wrap: anywhere;
 }
+
+/*
+ * **One card must not float in a void.**
+ *
+ * The shared `.card-grid` is `repeat(auto-fill, minmax(min(360px, 100%), 1fr))`,
+ * which is right for a wall of cards and wrong for the screen most people open
+ * with a single character on it: `auto-fill` lays four empty tracks beside the
+ * one real card, so the screen rendered a 435px card against 965px of black —
+ * the reviewer's "not air between things, it is emptiness after them".
+ *
+ * `auto-fit` collapses the empty tracks instead, so one character fills the
+ * measure and two sit side by side; the max-width is what stops a lone card
+ * stretching to 1,352px and turning one failure into its mirror image. 820px
+ * holds two 398px cards at the same 24px gutter the rest of the page uses, and
+ * a card is a name, a meta line and a stack of set rows — it has no business
+ * being wider than a paragraph.
+ *
+ * Scoped to this screen: the landing page's feature grid and the set list are
+ * genuinely walls of cards and want `auto-fill`'s empty tracks.
+ */
+.characters .card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+  max-width: 820px;
+}

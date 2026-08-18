@@ -66,7 +66,10 @@ export function Characters() {
   };
 
   return (
-    <div>
+    // `characters` is a styling hook only: `Characters.css` narrows the shared
+    // card grid here, because this is the one screen that routinely holds a
+    // single card. See the note there.
+    <div className="characters">
       <div className="page-head">
         {/* `tabIndex={-1}` so the page has a landing point for focus after a
             destruction, without becoming a tab stop of its own. */}

@@ -28,7 +28,14 @@
   background: none;
   border: 0;
   border-left: 1px solid var(--line);
-  color: var(--text-faint);
+  /*
+   * `--text-dim`, not `--text-faint`. The faint step is documented at ≈4.6:1
+   * "over `--bg-panel`", and this control sits inside a menu, whose ground is
+   * `--panel-2` — where the same hex composites to **4.29:1**. It was one of
+   * two enabled runs in the app under AA, found by measuring every run against
+   * the background actually behind it rather than the one the token assumed.
+   */
+  color: var(--text-dim);
   font: inherit;
   font-size: var(--fs-body);
   cursor: pointer;

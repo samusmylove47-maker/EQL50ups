@@ -185,8 +185,38 @@
   border-bottom: 0;
 }
 
-.cmp-slot.quiet {
-  opacity: var(--opacity-quiet);
+/*
+ * **Unchanged rows recede by colour, not by alpha.**
+ *
+ * The header says "unchanged slots dimmed" and that is the right idea: on a
+ * 23-slot diff where one slot moved, 22 rows are context. It was implemented as
+ * `opacity: var(--opacity-quiet)` on the whole row, and alpha does not know
+ * what it is dimming. Compositing every text run against its real background
+ * found **316 runs below WCAG AA on this screen alone** — `--text-faint`
+ * (4.57:1 at full strength) landing at **2.21:1**, the slot label at 2.56:1,
+ * the tier chip at 3.0:1. `--text-faint` is the floor token: multiply it by
+ * 0.55 and there is no value of "dimmed" that is also legible.
+ *
+ * So the row keeps its full alpha and each of its parts steps down one rung of
+ * the ramp instead. The visual result is the same — the changed row is
+ * unmistakably the loud one — and every run stays above 4.5:1. The *floor* is
+ * what makes a recession legible rather than merely faint; the item browser's
+ * blocked names are handled the same way in §12 of `styles.css`.
+ */
+.cmp-slot.quiet .cmp-name {
+  color: var(--text);
+}
+
+.cmp-slot.quiet .cmp-slotlabel,
+.cmp-slot.quiet .cmp-status,
+.cmp-slot.quiet .cmp-tier,
+.cmp-slot.quiet .cmp-sub,
+.cmp-slot.quiet .cmp-epdelta {
+  color: var(--text-faint);
+}
+
+.cmp-slot.quiet .cmp-status {
+  border-color: var(--line);
 }
 
 .cmp-slotlabel {
@@ -214,8 +244,9 @@
   min-width: 0;
 }
 
+/* Face, size and weight come from the item-name heading role in §3 of
+   `styles.css` — a diff row is an item row and reads like one. */
 .cmp-name {
-  font-size: var(--fs-body);
   color: var(--text-strong);
   overflow-wrap: anywhere;
 }
@@ -369,8 +400,14 @@
   color: var(--text-faint);
 }
 
+/*
+ * `/510` is the ceiling a value is being read against — words and digits, not a
+ * rule. `--ink-quiet` is documented in `tokens.css` as being for "rules,
+ * disabled glyphs and other non-words", and it measured 3.22:1 here on 56 runs.
+ * `--text-faint` is the floor token for text and clears AA at 4.57:1.
+ */
 .cmp-cap {
-  color: var(--ink-quiet);
+  color: var(--text-faint);
   font-size: var(--fs-small);
 }
 
@@ -386,8 +423,10 @@
   font-weight: var(--fw-num);
 }
 
+/* "only +3 counts · 2 above the cap" is a sentence, not a reading. Mono is for
+   the numbers and the labels; the words around them take the reading face. */
 .cmp-credit {
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: var(--fs-micro);
   color: var(--text-faint);
   text-align: center;

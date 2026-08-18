@@ -1,0 +1,523 @@
+/*
+ * Sources.
+ *
+ * `research/DESIGN-EQLSOURCE.md` is transcribed from a screenshot of
+ * eqlsource.com/sources — which is to say, from a page that does exactly this
+ * job. So this screen follows it literally rather than by analogy: a mono
+ * section number outdented beside a display-serif uppercase title, a two-column
+ * card grid on a ~24px gutter, cards at 1px border / 2px radius / 24px padding
+ * with a 2px accent on the top edge only, mono eyebrows with `·` separators,
+ * and closing callouts that are a left rule and no box.
+ *
+ * Every value resolves to a token from `styles/tokens.css`; the file declares
+ * no colour, no face and no type size of its own. The only literals are grid
+ * track minimums, one measure cap and the breakpoints — the same exception the
+ * other screen stylesheets take.
+ *
+ * The tier accent is re-declared here at `.src-card[data-standing]` rather than
+ * inherited from `styles.css` §23, so that the card's own `border` shorthand
+ * cannot win on source order. Same tokens, same three colours: sage for the
+ * trusted tiers, steel for the corroborating ones, and the single brick red
+ * spent on the tier the standard says to distrust.
+ */
+
+.src {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s7);
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------- head */
+
+.src-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding-bottom: var(--s5);
+  border-bottom: 1px solid var(--line);
+}
+
+.src-head-eyebrow {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.src-head-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  line-height: 1.1;
+}
+
+.src-head-lede {
+  max-width: 68ch;
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.src-head-lede em {
+  color: var(--text-emph);
+  font-style: normal;
+  font-weight: var(--fw-emph);
+}
+
+/* ---------------------------------------------------------------- section */
+
+.src-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  min-width: 0;
+}
+
+/*
+ * The doc's outdented section number. It is a grid rather than a flex gap so
+ * the title's baseline does not shift when the number wraps away at 720px.
+ */
+.src-section-head {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--s2);
+}
+
+.src-section-num {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  letter-spacing: var(--track-nav);
+  color: var(--text-faint);
+}
+
+.src-section-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-large);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+.src-lede {
+  max-width: 68ch;
+  margin-left: 3.5rem;
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* A heading inside a section, below the card grid. */
+.src-sub {
+  font-family: var(--font-heading);
+  font-size: var(--fs-mid);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-heading);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  margin-top: var(--s3);
+}
+
+.src-sub-sm {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-emph);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: var(--s4);
+  margin-bottom: var(--s2);
+}
+
+/* ------------------------------------------------------------------ cards */
+
+/*
+ * The doc's grid: "roughly equal columns, wide gutter (~24px)". A 360px track
+ * against this page's 1080px measure gives two columns on a desktop and one on
+ * a phone, which is the reference layout — 300px gave three narrow ones and a
+ * card of body prose at 300px is a column of a newspaper, not of a reference
+ * work.
+ */
+.src-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+  gap: var(--gutter, var(--s5));
+}
+
+.src-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  padding: var(--card-pad);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.src-card[data-standing='trusted'] {
+  border-top-color: var(--source-trusted);
+}
+
+.src-card[data-standing='corroborating'] {
+  border-top-color: var(--source-corroborating);
+}
+
+.src-card[data-standing='distrust'] {
+  border-top-color: var(--source-distrust);
+}
+
+/* The two low-confidence subjects get the full measure; they need the room. */
+.src-card-wide {
+  gap: var(--s3);
+}
+
+/*
+ * Inline code in running prose. The browser's default monospace sits at a
+ * different optical size from the body face, so a field name in a sentence
+ * read as a paste error; this is the mono role at reading size.
+ */
+.src :is(p, li) code {
+  font-family: var(--font-num);
+  font-size: 0.9em;
+  color: var(--text-emph);
+}
+
+.src-card-eyebrow {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.src-card-title {
+  font-family: var(--font-heading);
+  font-size: var(--fs-mid);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-heading);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  line-height: 1.2;
+}
+
+.src-card p {
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text);
+  max-width: 74ch;
+}
+
+.src-card strong {
+  color: var(--text-emph);
+}
+
+.src-card-here,
+.src-open {
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* The label that opens a run-in paragraph: mono, quiet, on its own line. */
+.src-card-here-label {
+  display: block;
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.src-open {
+  border-left: 2px solid var(--source-distrust);
+  padding-left: var(--s3);
+}
+
+/* ------------------------------------------------------------ prose parts */
+
+.src-quote {
+  border-left: 2px solid var(--line-strong);
+  padding-left: var(--s4);
+  max-width: 74ch;
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text-emph);
+}
+
+.src-callout {
+  border-left: 2px solid var(--line-strong);
+  padding-left: var(--s4);
+  max-width: 74ch;
+}
+
+.src-callout p {
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.src-callout strong,
+.src-card-here strong {
+  color: var(--text-emph);
+}
+
+.src-note {
+  font-size: var(--fs-small);
+  line-height: 1.6;
+  color: var(--text-faint);
+  max-width: 74ch;
+}
+
+/* Sourcing line, at the foot of every section. Never decorative. */
+.src-source {
+  margin-left: 3.5rem;
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  line-height: 1.7;
+  letter-spacing: var(--label-spacing);
+  color: var(--text-faint);
+  max-width: 74ch;
+}
+
+/* An absent fact, said rather than left blank. */
+.src-absent {
+  border-left: 2px solid var(--line-strong);
+  padding-left: var(--s3);
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text-faint);
+}
+
+.src-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  max-width: 74ch;
+}
+
+.src-list li {
+  position: relative;
+  padding-left: var(--s4);
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.src-list li::before {
+  content: '·';
+  position: absolute;
+  left: var(--s1);
+  color: var(--text-faint);
+}
+
+.src-back {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ---------------------------------------------------------------- figures */
+
+.src-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s6);
+  padding: var(--s4) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.src-figure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.src-figure-value {
+  font-size: var(--fs-title);
+  font-weight: var(--fw-num);
+  color: var(--text-strong);
+  line-height: 1;
+}
+
+.src-figure-label {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ----------------------------------------------------------------- tables */
+
+.src-two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: var(--gutter, var(--s5));
+}
+
+/*
+ * Wide content scrolls inside its own box. The page itself may never scroll
+ * sideways — the browser suite asserts that at 320px, and a five-column
+ * provenance table is wider than a phone.
+ */
+.src-scroll {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.src-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+}
+
+.src-table caption {
+  text-align: left;
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding-bottom: var(--s2);
+}
+
+.src-table th,
+.src-table td {
+  text-align: left;
+  padding: var(--s2) var(--s3) var(--s2) 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  color: var(--text);
+  font-weight: var(--fw-body);
+}
+
+.src-table thead th {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.src-table tbody th {
+  color: var(--text-emph);
+}
+
+.src-table tfoot th,
+.src-table tfoot td {
+  border-bottom: none;
+  color: var(--text-strong);
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+}
+
+.src-num-col {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.src-table code {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  color: var(--text-emph);
+}
+
+.src-cell-sub {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  color: var(--text-faint);
+  font-weight: var(--fw-body);
+  padding-top: var(--s0);
+}
+
+/* ------------------------------------------------------- contradictions */
+
+/*
+ * Capped rather than `1fr`: there are two of these in one place and one in
+ * another, and a single contradiction stretched to 1,080px turned three lines
+ * of text into a banner.
+ */
+.src-contras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 420px));
+  justify-content: start;
+  gap: var(--s4);
+}
+
+.src-contra {
+  background: var(--bg-inset);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.src-contra-item {
+  font-family: var(--font-heading);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-heading);
+  text-transform: uppercase;
+  color: var(--text-strong);
+}
+
+.src-contra-row {
+  display: flex;
+  gap: var(--s2);
+  font-size: var(--fs-small);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.src-contra-label {
+  flex: 0 0 4.5rem;
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding-top: 0.15em;
+}
+
+/* ------------------------------------------------------------ responsive */
+
+/*
+ * Below 720px the outdented number stops paying for itself: 3rem of the
+ * measure is a lot on a phone, and the number is decorative once the title has
+ * nothing to sit beside.
+ */
+@media (max-width: 720px) {
+  .src-section-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s0);
+  }
+
+  .src-lede,
+  .src-source {
+    margin-left: 0;
+  }
+
+  .src {
+    gap: var(--s6);
+  }
+}

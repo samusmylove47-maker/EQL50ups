@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 import { computeTotals, resolveItem } from './stats';
 import { scoreItem } from './ep';
 import { tier } from './upgrade';
-import { isTier0Confirmed, ATTRIBUTE_CAP } from './constants';
+import { isEraRescued, ATTRIBUTE_CAP } from './constants';
 import type { Item } from './types';
 
 function mk(patch: Partial<Item>): Item {
@@ -386,19 +386,32 @@ describe('cap-aware scoring credits only what a character can still feel', () =>
 });
 
 /* ------------------------------------------------------------------ *
- * Availability
+ * The era-purge rescue list
  *
  * This list used to un-gate items the client hid. Since the purge it does more
  * than that: `pipeline/build.mjs` reads it to decide whether an out-of-era
  * record is shipped at all, so a name dropping out of it removes the item from
  * the catalog rather than merely hiding it.
+ *
+ * What it is *not* is a record of what the live game holds. It covers only the
+ * out-of-era subset of the export, so `Earthshaker` — Classic, and therefore in
+ * era on its own — is absent from it while being one of the most thoroughly
+ * client-evidenced items in the project. Reading a `false` here as "not seen in
+ * the game" is what inverted the item window's provenance mark; the assertion
+ * below says out loud that it means nothing of the kind. Existence lives on
+ * `item.ex`, provenance on `item.sd`.
  * ------------------------------------------------------------------ */
 
-describe('items seen in a live client are never withheld', () => {
-  it('recognises the names recovered from the Tier 0 inventory export', () => {
-    expect(isTier0Confirmed("Hamed's Ring of Tears")).toBe(true);
-    expect(isTier0Confirmed('selo`s drums of the march')).toBe(true);
-    expect(isTier0Confirmed('Earthshaker')).toBe(false);
-    expect(isTier0Confirmed(undefined)).toBe(false);
+describe('the era-purge rescue list', () => {
+  it('names the out-of-era items the Tier 0 export vouches for', () => {
+    expect(isEraRescued("Hamed's Ring of Tears")).toBe(true);
+    expect(isEraRescued('selo`s drums of the march')).toBe(true);
+    expect(isEraRescued(undefined)).toBe(false);
+  });
+
+  it('says nothing about in-era items, however well evidenced', () => {
+    // Earthshaker is Classic. It needed no rescue, and its absence here is not
+    // a statement that the game does not hold it — the game demonstrably does.
+    expect(isEraRescued('Earthshaker')).toBe(false);
   });
 });

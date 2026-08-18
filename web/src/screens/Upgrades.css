@@ -1,0 +1,518 @@
+/*
+ * Upgrades.
+ *
+ * One idea, laid out once: `what you have → what you could have → what it is
+ * worth`, with the acquisition line underneath it because that is the half a
+ * player acts on. The gain column is the only place the eye has to land, so it
+ * is the only mono numeral at display size and the only coloured rule on the
+ * row.
+ *
+ * Everything resolves to a token — the file declares no colour and no type size
+ * of its own, per `tokens.css`'s third rule. The only literals are grid track
+ * widths, flex bases, hairline borders and breakpoints. At 1180px the actions
+ * drop to their own line; at 900px the six-column row becomes a stack rather
+ * than six squeezed columns, because a 40px-wide item name is worse than a
+ * taller page — the mistake the doll's right column shipped twice.
+ */
+
+.upg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ head */
+
+.upg-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--s3) var(--s4);
+}
+
+.upg-titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+  flex: 1 1 420px;
+}
+
+/* The doc's card eyebrow: mono, uppercase, wide tracking, `·` as separator. */
+.upg-eyebrow {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+
+.upg-lede {
+  margin: 0;
+  max-width: 74ch;
+  color: var(--text);
+  font-size: var(--fs-body);
+  line-height: 1.65;
+}
+
+.upg-headactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-left: auto;
+}
+
+/* -------------------------------------------------------------- controls */
+
+.upg-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--s3) var(--s4);
+  min-width: 0;
+}
+
+.upg-control {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.upg-basisnote {
+  flex: 1 1 320px;
+  margin: 0;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ KPIs */
+
+.upg-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--s2);
+}
+
+.upg-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s0);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s3);
+  min-width: 0;
+}
+
+.upg-kpivalue {
+  font-family: var(--mono);
+  font-size: var(--fs-large);
+  font-weight: var(--fw-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
+}
+
+.upg-kpiof {
+  color: var(--text-faint);
+  font-size: var(--fs-mid);
+}
+
+/* Gains are the one thing on this page that is unambiguously good news. */
+.upg .up,
+.upg-kpivalue.up {
+  color: var(--gain);
+}
+
+.upg .down {
+  color: var(--loss);
+}
+
+/* ------------------------------------------------------------- the list */
+
+.upg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.upg-row {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--s4);
+  min-width: 0;
+}
+
+.upg-main {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 150px) minmax(0, 1fr) auto minmax(0, 1.15fr) minmax(0, 120px) auto;
+  align-items: center;
+  gap: var(--s3);
+  min-width: 0;
+}
+
+.upg-rank {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.upg-rankno {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  min-width: 2ch;
+  text-align: right;
+}
+
+.upg-glyph {
+  color: var(--text-faint);
+  display: inline-flex;
+}
+
+.upg-slot {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+
+.upg-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s0);
+  min-width: 0;
+}
+
+.upg-side-label {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.upg-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s1) var(--s2);
+  min-width: 0;
+}
+
+.upg-worn,
+.upg-name {
+  font-size: var(--fs-body);
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+/*
+ * The candidate's name is the control that opens it, so it is a real button —
+ * but it is a name first and a control second, so it carries no chrome until
+ * it is pointed at.
+ */
+.upg-name {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.upg-name:hover {
+  color: var(--accent-hot);
+  text-decoration: underline;
+}
+
+.upg-empty {
+  font-family: var(--mono);
+  font-size: var(--fs-body);
+  color: var(--text-faint);
+}
+
+.upg-sub {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  overflow-wrap: anywhere;
+}
+
+/*
+ * `--ink-quiet` says on its own definition: "Rules, disabled glyphs and other
+ * non-words. 3:1 belongs here, not on text." This arrow is text — it is the
+ * glyph that says worn *becomes* candidate — and on `--bg-card` it measured
+ * 3.22:1, the only sub-AA run left in the app. `--text-faint` is 4.57:1 on the
+ * same ground and still the quietest thing on the row.
+ */
+.upg-arrow {
+  color: var(--text-faint);
+  font-size: var(--fs-mid);
+}
+
+.upg-gain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.upg-gainvalue {
+  font-family: var(--mono);
+  font-size: var(--fs-large);
+  font-weight: var(--fw-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--gain);
+}
+
+.upg-gainunit {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  color: var(--text-faint);
+}
+
+/* A hairline, not a gauge: how this row compares with the best row, no more. */
+.upg-bar {
+  flex: 1 0 100%;
+  height: 2px;
+  background: var(--line-strong);
+  overflow: hidden;
+}
+
+.upg-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--gain);
+}
+
+.upg-do {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  justify-content: flex-end;
+}
+
+/* ------------------------------------------------------- the second line */
+
+.upg-detail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--s2) var(--s5);
+  margin-top: var(--s3);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+
+.upg-move {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+  flex: 1 1 300px;
+}
+
+.upg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s3);
+  min-width: 0;
+}
+
+/* Quieter than the chips it sits under: a caveat, not a headline. */
+.upg-unweighted {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s2);
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+  min-width: 0;
+}
+
+.upg-chip {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.upg-chip i {
+  font-style: normal;
+  color: var(--text-faint);
+  letter-spacing: var(--label-spacing);
+  margin-right: var(--s1);
+}
+
+.upg-source {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s0);
+  min-width: 0;
+  flex: 1 1 340px;
+}
+
+.upg-srcline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s2);
+  margin: 0;
+  min-width: 0;
+}
+
+.upg-srclabel {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  flex: 0 0 84px;
+}
+
+.upg-srctext {
+  font-size: var(--fs-small);
+  color: var(--text);
+  overflow-wrap: anywhere;
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+.upg-more {
+  color: var(--text-faint);
+}
+
+.upg-source-none {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+  max-width: 74ch;
+}
+
+/* --------------------------------------------------------- not compared */
+
+.upg-withheld {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.upg-sectionhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s2) var(--s3);
+}
+
+/*
+ * The eqlsource card device, spent on the one state the sourcing standard says
+ * to distrust: a 2px rule on the top edge only, plus a mono eyebrow naming the
+ * standing. Same vocabulary the item window uses for the same fact, so a reader
+ * who has met one recognises the other.
+ */
+.upg-held {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--source-distrust);
+  border-radius: var(--radius-lg);
+  padding: var(--s3) var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.upg-heldhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s2) var(--s3);
+  min-width: 0;
+}
+
+.upg-heldmark {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--source-distrust);
+  margin-left: auto;
+}
+
+.upg-heldtext {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--text);
+  line-height: 1.6;
+  max-width: 88ch;
+}
+
+.upg-heldtext strong {
+  color: var(--text-emph);
+}
+
+.upg-foot {
+  margin: 0;
+  max-width: 92ch;
+}
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 1180px) {
+  .upg-main {
+    grid-template-columns:
+      minmax(0, 130px) minmax(0, 1fr) auto minmax(0, 1.1fr) minmax(0, 110px);
+  }
+
+  .upg-do {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 900px) {
+  .upg-main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s2);
+    align-items: start;
+  }
+
+  /* Direction stops being positional once the columns stack. */
+  .upg-arrow {
+    display: none;
+  }
+
+  .upg-bar {
+    flex-basis: 100%;
+  }
+
+  .upg-detail {
+    gap: var(--s3);
+  }
+
+  .upg-srclabel {
+    flex-basis: 72px;
+  }
+}

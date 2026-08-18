@@ -605,6 +605,190 @@ if (!existsSync(TIER0)) {
 }
 
 // ---------------------------------------------------------------------------
+// 10. Source standing — existence and stat provenance, restated independently
+// ---------------------------------------------------------------------------
+//
+// `research/SOURCING-STANDARD.md` rule 5 requires the payload to state where
+// every number came from. Two fields carry it and they answer different
+// questions: `ex` says whether the game is known to hold the item, `sd` says
+// where the numbers on the row came from. They are checked separately here
+// because conflating them is the defect this section was written to catch — a
+// name appearing in a `Location / Name / ID / Count / Slots` export proves
+// existence and says nothing whatsoever about a stat block.
+//
+// Everything below is re-derived from the shipped payload and the raw export,
+// never from build.mjs's tables, so a table that stops matching the catalog
+// fails the build instead of validating itself.
+{
+  const STANDINGS = new Set(['tier-M', 'tier-2', 'tier-5', 'unattributed']);
+  const EXISTENCE = new Set(['live-export', 'player-report']);
+  const byKeyIdx = new Map(items.map((i) => [nameKey(i.n), i]));
+
+  // --- vocabulary and coverage: every row states a standing, none invents one
+  {
+    const missing = items.filter((i) => i.sd === undefined).map((i) => i.n);
+    assert('every shipped item carries a source standing', missing.length === 0,
+      `${missing.length} of ${items.length} items have no \`sd\``, missing);
+    const badVocab = items.filter((i) => i.sd !== undefined && !STANDINGS.has(i.sd))
+      .map((i) => `${i.n}: ${JSON.stringify(i.sd)}`);
+    assert('every source standing is in the published vocabulary', badVocab.length === 0,
+      `${badVocab.length} items carry an unknown standing`, badVocab);
+    const badEx = items.filter((i) => i.ex !== undefined && !EXISTENCE.has(i.ex))
+      .map((i) => `${i.n}: ${JSON.stringify(i.ex)}`);
+    assert('every existence mark is in the published vocabulary', badEx.length === 0,
+      `${badEx.length} items carry an unknown existence mark`, badEx);
+  }
+
+  // --- fact one: existence is the export, and only the export
+  if (existsSync(TIER0)) {
+    const exportIds = new Set();
+    const exportNames = new Set();
+    for (const line of readFileSync(TIER0, 'utf8').split(/\r?\n/)) {
+      const f = line.split('\t');
+      if (f.length < 3) continue;
+      const [loc, name, id] = f;
+      if (!name || name === 'Empty' || name === 'Name' || loc === 'Location') continue;
+      const n = Number(id);
+      if (!Number.isFinite(n) || n <= 0) continue;
+      exportIds.add(n);
+      exportNames.add(nameKey(name.replace(/\s*\(Exaltation\)\s*/g, ' ').replace(/\s*\+\d+\s*/g, ' ').trim()));
+    }
+    const bad = [];
+    for (const it of items) {
+      if (it.ex !== 'live-export') continue;
+      // The export is the only place a numeric id can come from, so an item
+      // claiming a live sighting must carry one of the ids that file printed.
+      if (it.id == null) bad.push(`${it.n}: claims live-export but carries no numeric id`);
+      else if (!exportIds.has(it.id)) bad.push(`${it.n}: id #${it.id} is not in the export`);
+    }
+    // And the converse: an export name the catalog holds must say so.
+    for (const key of exportNames) {
+      const it = byKeyIdx.get(key);
+      if (it && it.ex !== 'live-export') bad.push(`${it.n}: in the export, marked ${JSON.stringify(it.ex)}`);
+    }
+    assert('live-export existence marks match the client inventory export', bad.length === 0,
+      `${bad.length} existence discrepancies`, bad);
+
+    // `player-report` is the weakest Tier M evidence in the project and is kept
+    // to the one set the player named. Anything else wearing it is a leak.
+    const reported = items.filter((i) => i.ex === 'player-report');
+    const leaks = reported.filter((i) => !/^shadow rage /i.test(i.n) || exportNames.has(nameKey(i.n)))
+      .map((i) => `${i.n}: player-report is reserved for names the export does not hold`);
+    assert('player-report existence is confined to the one set the player named',
+      leaks.length === 0, `${leaks.length} unexpected player-report marks`, leaks);
+  }
+
+  // --- fact two, the Tier M half: transcribed from TIER0-VALIDATION.md
+  //
+  // Base values the client's own windows imply. If the catalog and the client
+  // disagree, the row must NOT wear the client's label — so both the numbers
+  // and the mark are asserted together.
+  {
+    const verified = [
+      ['Earthshaker', { wp: { dmg: 37, dly: 70 }, st: { STR: 6, STA: 6 } }, ['DMG', 'DLY', 'STR', 'STA']],
+      ['Whitened Treant Fists', { wp: { dmg: 14, dly: 28 } }, ['DMG', 'DLY']],
+      ['Cloak of Flames', { st: { AC: 10, HP: 50, AGI: 9, DEX: 9, HASTE: 36 }, sv: { FIRE: 15 } }, ['AC', 'HP', 'AGI', 'DEX', 'HASTE', 'SV_FIRE']],
+      ['Bone-Clasped Girdle', { st: { AC: 4, HP: 75, MANA: 75, STR: 7, STA: 7, DEX: 7 } }, ['AC', 'HP', 'MANA', 'STR', 'STA', 'DEX']],
+      ['Bladestopper', { st: { AC: 25, HP: 50, STA: 15 } }, ['AC', 'HP', 'STA']],
+    ];
+    const bad = [];
+    for (const [name, expect, fields] of verified) {
+      const it = byKeyIdx.get(nameKey(name));
+      if (!it) { bad.push(`${name}: absent from catalog`); continue; }
+      for (const [k, v] of Object.entries(expect.wp ?? {})) {
+        if (it.wp?.[k] !== v) bad.push(`${name}: wp.${k} ${JSON.stringify(it.wp?.[k])} != client ${v}`);
+      }
+      for (const [k, v] of Object.entries(expect.st ?? {})) {
+        if (it.st?.[k] !== v) bad.push(`${name}: st.${k} ${JSON.stringify(it.st?.[k])} != client ${v}`);
+      }
+      for (const [k, v] of Object.entries(expect.sv ?? {})) {
+        if (it.sv?.[k] !== v) bad.push(`${name}: sv.${k} ${JSON.stringify(it.sv?.[k])} != client ${v}`);
+      }
+      if (it.sd !== 'tier-M') bad.push(`${name}: stats are client-verified but sd is ${JSON.stringify(it.sd)}`);
+      if (!it.sdc) bad.push(`${name}: tier-M with no citation`);
+      for (const f of fields) {
+        if (!(it.vf ?? []).includes(f)) bad.push(`${name}: vf omits the client-checked field ${f}`);
+      }
+    }
+    // The claim must not spread beyond the captures that support it.
+    const overclaim = items.filter((i) => i.sd === 'tier-M' &&
+      !verified.some(([n]) => nameKey(n) === nameKey(i.n))).map((i) => `${i.n}: tier-M with no client capture`);
+    bad.push(...overclaim);
+    assert('tier-M marks exactly the stat blocks a client window confirmed', bad.length === 0,
+      `${bad.length} tier-M discrepancies`, bad);
+  }
+
+  // --- fact two, the rest: re-derived from the payload's own era and stats
+  {
+    const cur = ERA_RANK.get(CURRENT_ERA);
+    const bad = [];
+    const tally = { 'tier-M': 0, 'tier-2': 0, 'tier-5': 0, unattributed: 0 };
+    for (const it of items) {
+      tally[it.sd] = (tally[it.sd] ?? 0) + 1;
+      if (it.sd === 'tier-M') continue;
+      const numbers = !it.statsUnknown && (
+        Object.keys(it.st ?? {}).length > 0 || Object.keys(it.sv ?? {}).length > 0 || Boolean(it.wp));
+      const rank = it.era == null ? null : ERA_RANK.get(it.era);
+      const want = !numbers ? 'unattributed' : (rank == null || rank > cur ? 'tier-5' : 'tier-2');
+      if (it.sd !== want) bad.push(`${it.n}: sd ${JSON.stringify(it.sd)}, derived ${want} (era ${it.era ?? 'none'}, numbers ${numbers})`);
+    }
+    assert('every non-tier-M standing follows from the era and the stats on the row',
+      bad.length === 0, `${bad.length} standings do not re-derive`, bad);
+
+    // A row that withholds its numbers cannot attribute them.
+    const withheld = items.filter((i) => i.statsUnknown === true && i.sd !== 'unattributed')
+      .map((i) => `${i.n}: statsUnknown but sd=${JSON.stringify(i.sd)}`);
+    assert('withheld stats are unattributed, never tiered', withheld.length === 0,
+      `${withheld.length} statsUnknown rows claim a tier`, withheld);
+
+    const metaCounts = meta.counts?.standing ?? {};
+    const mismatched = Object.entries(tally)
+      .filter(([k, v]) => metaCounts[k] !== v)
+      .map(([k, v]) => `${k}: meta ${metaCounts[k]} vs payload ${v}`);
+    assert('meta.counts.standing matches the shipped payload', mismatched.length === 0,
+      `${mismatched.length} standing counts disagree`, mismatched);
+
+    assert('meta publishes the source-standing contract',
+      meta.sourceStanding?.existence?.field === 'ex' && meta.sourceStanding?.stats?.field === 'sd' &&
+      Array.isArray(meta.sourceStanding.stats.vocabulary) &&
+      meta.sourceStanding.stats.vocabulary.length === STANDINGS.size,
+      'meta.sourceStanding must document both fields and the whole standing vocabulary');
+
+    console.log('-- source standing (rule 5: where every number came from) --');
+    for (const [k, v] of Object.entries(tally)) {
+      console.log(`  ${k.padEnd(14)} ${String(v).padStart(6)}   ${((v / items.length) * 100).toFixed(1).padStart(5)}%`);
+    }
+    console.log(`  existence: live-export ${items.filter((i) => i.ex === 'live-export').length}, player-report ${items.filter((i) => i.ex === 'player-report').length}, none ${items.filter((i) => !i.ex).length}`);
+    console.log('');
+  }
+
+  // --- the two items the inverted mark was measured on, named explicitly
+  //
+  // Orb of Tishan used to print "TIER M — confirmed in the live game" directly
+  // above a wiki stat block, because its name is in the export. Earthshaker,
+  // the one stat block checked digit-for-digit against a client window, printed
+  // nothing. Both are asserted here so neither can silently revert.
+  {
+    const bad = [];
+    const orb = byKeyIdx.get(nameKey('Orb of Tishan'));
+    if (!orb) bad.push('Orb of Tishan: absent from catalog');
+    else {
+      if (orb.ex !== 'live-export') bad.push(`Orb of Tishan: ex ${JSON.stringify(orb.ex)} — it is held in the export`);
+      if (orb.sd !== 'tier-5') bad.push(`Orb of Tishan: sd ${JSON.stringify(orb.sd)} — its stats are an era-unplaced wiki scrape (era ${orb.era})`);
+      if (orb.vf) bad.push('Orb of Tishan: claims client-verified fields');
+    }
+    const es = byKeyIdx.get(nameKey('Earthshaker'));
+    if (!es) bad.push('Earthshaker: absent from catalog');
+    else {
+      if (es.sd !== 'tier-M') bad.push(`Earthshaker: sd ${JSON.stringify(es.sd)} — its stat block is the project's best evidence`);
+      if (es.ex !== 'live-export') bad.push(`Earthshaker: ex ${JSON.stringify(es.ex)} — it is held in the export`);
+    }
+    assert('the provenance mark is the right way round on the two items it was measured on',
+      bad.length === 0, `${bad.length} inverted marks`, bad);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // summary
 // ---------------------------------------------------------------------------
 console.log('-- results --');

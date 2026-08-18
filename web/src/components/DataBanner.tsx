@@ -11,6 +11,7 @@ import { ATTRIBUTION } from '../engine/constants';
 import { useCatalog } from '../data/catalog';
 import { FIXTURE_NOTICE } from '../data/fixture';
 import { count } from '../lib/format';
+import { href } from '../router';
 
 
 export function DataBanner() {
@@ -90,6 +91,16 @@ function generatedOn(iso: string | undefined): string | null {
   return when.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+/**
+ * The footer line, on every screen.
+ *
+ * It carries the attribution and the build date, and now the way to the page
+ * that explains both. `meta.dataReliability` — the catalog's own account of
+ * what is wrong with itself — shipped to every browser and was read by nothing
+ * in `web/src`; rule 5 of `research/SOURCING-STANDARD.md` says uncertainty
+ * belongs on screen, so the one line that is always visible is where the door
+ * to it goes.
+ */
 export function CatalogFootnote() {
   const meta = useCatalog((s) => s.meta);
   const items = useCatalog((s) => s.items.length);
@@ -102,6 +113,9 @@ export function CatalogFootnote() {
           {count(items)} items loaded{generated ? `, ${generated}` : ''}
         </span>
       ) : null}
+      <span>
+        <a href={href.sources}>Sources &amp; data quality</a>
+      </span>
     </>
   );
 }

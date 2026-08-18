@@ -340,6 +340,148 @@ const TIER0_KNOWN_ITEMS = [
 ];
 
 // ---------------------------------------------------------------------------
+// Source standing — two independent facts, recorded for every shipped record
+// ---------------------------------------------------------------------------
+
+/**
+ * `research/SOURCING-STANDARD.md` rule 5: *"A player looking at a number is
+ * entitled to know whether it came from the game or from a wiki page of
+ * uncertain provenance."* Two fields carry that, and they are deliberately
+ * **independent of each other**, because they answer different questions and
+ * rest on different files.
+ *
+ *   `ex`  EXISTENCE  — is this item in the game?
+ *   `sd`  STANDING   — where did the numbers printed on this row come from?
+ *
+ * Conflating the two is the defect this section exists to remove. The live
+ * inventory export is a `Location / Name / ID / Count / Slots` table: it is
+ * Tier M proof that an item **exists**, and it carries **no stat values at
+ * all**. Marking a wiki stat block "Tier M — confirmed in the live game"
+ * because the item's *name* appeared in that export prints the strongest label
+ * in the vocabulary over Tier 2 data. Meanwhile Earthshaker — the one stat
+ * block in this project checked digit-for-digit against a client window — is
+ * an ordinary in-era wiki page and carries no export-name rescue, so it read as
+ * unremarkable.
+ *
+ * So: existence comes from the export and the player reports. Standing comes
+ * from `TIER0-VALIDATION.md`, the scrape, and the era that places (or fails to
+ * place) that scrape in this game.
+ */
+
+/**
+ * EXISTENCE, fact one. Values of `ex`:
+ *
+ *   `live-export`    the name resolves to a line in
+ *                    `research/validation/tier0-inventory-Avenrae.txt`. The
+ *                    character possesses it in the running game.
+ *   `player-report`  the owner named it directly (`EQL_CONFIRMED_NAMES`).
+ *   absent           no Tier M evidence. The item ships on its era, which is a
+ *                    Tier 2 statement about content, not a sighting.
+ *
+ * Both values are Tier M under the standard, and neither says anything
+ * whatsoever about the item's stats. The set is computed below from `idByKey`,
+ * the same export resolution that supplies numeric item ids — one parse of one
+ * file, used for both, so the two can never drift apart.
+ */
+const EXISTENCE_EXPORT = 'live-export';
+const EXISTENCE_REPORT = 'player-report';
+
+/**
+ * STANDING, fact two. Values of `sd`, mapped onto the tiers in
+ * `research/SOURCING-STANDARD.md`:
+ *
+ *   `tier-M`        the stat block was read off a live client window and agrees
+ *                   with what ships, field for field. Enumerated in
+ *                   `TIER0_STATS_VERIFIED` below and re-checked against the
+ *                   record at build time — never asserted, always proven.
+ *   `tier-2`        structured wiki data for an item whose era places it inside
+ *                   this game's content. The standard's Tier 2: "machine-shaped
+ *                   fields that somebody entered from the live game."
+ *   `tier-5`        wiki numbers this project cannot place in this game. The
+ *                   item ships on Tier M *existence* evidence alone: its era is
+ *                   missing everywhere, or it is past the current era. Tier 5's
+ *                   rule is that the wiki is "a Project 1999 import, sometimes
+ *                   word for word... quoted only when marked as classic, never
+ *                   as Legends fact" — and an era-unplaced page is exactly a
+ *                   page that cannot be quoted as Legends fact. Marked on
+ *                   sight. This is the same reasoning that withholds the Shadow
+ *                   Rage stat blocks, applied to the rest of the catalog rather
+ *                   than to one set.
+ *   `unattributed`  the row prints no sourced stat values at all — either it
+ *                   never had any (food, containers, quest turn-ins) or they
+ *                   are deliberately withheld (`statsUnknown`). There is
+ *                   nothing here to attribute, and saying so is a fact rather
+ *                   than a guess. **This is what the standard's "where you
+ *                   cannot tell" case looks like, and it is stated, not left
+ *                   blank.**
+ *
+ * Tiers 1, 3 and 4 never appear. No patch note, named community guide or
+ * aggregator supplies an item stat in this repository; inventing an occupant
+ * for those rows would be the inference the standard forbids. `meta` says so
+ * explicitly rather than leaving the reader to wonder.
+ */
+const STANDING_TIER_M = 'tier-M';
+const STANDING_TIER_2 = 'tier-2';
+const STANDING_TIER_5 = 'tier-5';
+const STANDING_UNATTRIBUTED = 'unattributed';
+const STANDINGS = [STANDING_TIER_M, STANDING_TIER_2, STANDING_TIER_5, STANDING_UNATTRIBUTED];
+
+/**
+ * The stat blocks a live client window has confirmed, transcribed from
+ * `research/validation/TIER0-VALIDATION.md`.
+ *
+ * Every entry lists the **base** values the client's own numbers imply, and the
+ * build compares them to what the record actually ships. A mismatch does not
+ * downgrade quietly: the item loses the Tier M mark, and the discrepancy is
+ * reported. The mark therefore certifies agreement between this catalog and the
+ * game, not merely that somebody once looked at the item.
+ *
+ * `vf` — the fields that were checked — ships with the record too, because
+ * "Earthshaker's stats are client-verified" is not true of Earthshaker's `DEX`,
+ * which appears in no client capture. A per-field list is the honest width of
+ * the claim, and it is what a stat row needs in order to mark itself.
+ */
+const TIER0_STATS_VERIFIED = [
+  {
+    n: 'Earthshaker',
+    wp: { dmg: 37, dly: 70 },
+    st: { STR: 6, STA: 6 },
+    cite:
+      'TIER0-VALIDATION.md §1: observed in a live client window at +10 — Base Dmg 74, Delay 70, ' +
+      'Ratio 1.057, Strength 16, Stamina 16, SV Void 10. Nine of nine predictions exact.',
+  },
+  {
+    n: 'Whitened Treant Fists',
+    wp: { dmg: 14, dly: 28 },
+    cite:
+      'TIER0-VALIDATION.md §1: observed in live client windows at +0, +1, +2 and +3 — ' +
+      'DMG 14/15/16/18 against a base of 14, Delay 28 at every tier.',
+  },
+  {
+    n: 'Cloak of Flames',
+    st: { AC: 10, HP: 50, AGI: 9, DEX: 9, HASTE: 36 },
+    sv: { FIRE: 15 },
+    cite:
+      'TIER0-VALIDATION.md §5: observed in a live client window at +7 — AC 17, HP 85, AGI 16, ' +
+      'DEX 16, Haste 43, SV Fire 25. The SV Fire reading is the sample that corrected the ' +
+      "project's rounding rule to truncation.",
+  },
+  {
+    n: 'Bone-Clasped Girdle',
+    st: { AC: 4, HP: 75, MANA: 75, STR: 7, STA: 7, DEX: 7 },
+    cite:
+      'TIER0-VALIDATION.md §5: observed in a live client window at +4 — AC 8, HP 105, Mana 105, ' +
+      'STR/STA/DEX 11.',
+  },
+  {
+    n: 'Bladestopper',
+    st: { AC: 25, HP: 50, STA: 15 },
+    cite:
+      'TIER0-VALIDATION.md §5: observed in a live client window at +6 — AC 40, HP 80, STA 24.',
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
 
@@ -1424,6 +1566,98 @@ for (const rec of records) {
 }
 
 // ---------------------------------------------------------------------------
+// Stamp the two source facts onto every surviving record
+// ---------------------------------------------------------------------------
+
+/**
+ * Runs after the purge so that `era` is final and every record here is one the
+ * app will actually show. Both facts are derived from data this file already
+ * computed — the export resolution, the validation table, the era gate — so
+ * nothing downstream has to re-derive them from a name list, which is how they
+ * got conflated in the first place.
+ */
+const standingCounts = new Counter();
+const existenceCounts = new Counter();
+const statsVerifiedApplied = [];
+const statsVerifiedRejected = [];
+
+/** Does this row print any sourced number at all? */
+function hasSourcedNumbers(rec) {
+  if (rec.statsUnknown) return false;
+  if (rec.st && Object.keys(rec.st).length) return true;
+  if (rec.sv && Object.keys(rec.sv).length) return true;
+  return Boolean(rec.wp);
+}
+
+/**
+ * Compare a validation entry against the record and return the fields that
+ * agree, or `null` if any declared field disagrees.
+ *
+ * Disagreement is not smoothed over. If the client says a base of 37 and the
+ * catalog ships 36, this catalog's number is not the client's number and must
+ * not wear the client's label.
+ */
+function verifiedFields(rec, entry) {
+  const fields = [];
+  const bad = [];
+  for (const [k, want] of Object.entries(entry.wp ?? {})) {
+    const got = rec.wp?.[k];
+    if (got === want) fields.push(k === 'dmg' ? 'DMG' : k === 'dly' ? 'DLY' : k.toUpperCase());
+    else bad.push(`wp.${k} ${JSON.stringify(got)} != ${want}`);
+  }
+  for (const [k, want] of Object.entries(entry.st ?? {})) {
+    const got = rec.st?.[k];
+    if (got === want) fields.push(k);
+    else bad.push(`st.${k} ${JSON.stringify(got)} != ${want}`);
+  }
+  for (const [k, want] of Object.entries(entry.sv ?? {})) {
+    const got = rec.sv?.[k];
+    if (got === want) fields.push(`SV_${k}`);
+    else bad.push(`sv.${k} ${JSON.stringify(got)} != ${want}`);
+  }
+  return bad.length ? { fields: null, bad } : { fields: uniqSorted(fields), bad };
+}
+
+const statsVerifiedByKey = new Map();
+const shippedByKey = new Map(records.map((r) => [r.key, r]));
+for (const entry of TIER0_STATS_VERIFIED) {
+  const key = nameKey(entry.n);
+  const rec = shippedByKey.get(key);
+  if (!rec) {
+    statsVerifiedRejected.push(`${entry.n}: client-verified stats declared, but the item is not in the shipped catalog`);
+    continue;
+  }
+  const { fields, bad } = verifiedFields(rec, entry);
+  if (!fields) {
+    statsVerifiedRejected.push(`${entry.n}: catalog disagrees with the client window — ${bad.join('; ')}`);
+    continue;
+  }
+  statsVerifiedByKey.set(key, { fields, cite: entry.cite });
+  statsVerifiedApplied.push(`${entry.n}: ${fields.join(' ')} agree with the client window`);
+}
+
+for (const rec of records) {
+  // --- fact one: existence
+  if (idByKey.has(rec.key)) rec.ex = EXISTENCE_EXPORT;
+  else if (EQL_CONFIRMED_KEYS.has(rec.key)) rec.ex = EXISTENCE_REPORT;
+  if (rec.ex) existenceCounts.add(rec.ex);
+
+  // --- fact two: standing of the numbers
+  const verified = statsVerifiedByKey.get(rec.key);
+  if (verified) {
+    rec.sd = STANDING_TIER_M;
+    rec.vf = verified.fields;
+    rec.sdc = verified.cite;
+  } else if (!hasSourcedNumbers(rec)) {
+    rec.sd = STANDING_UNATTRIBUTED;
+  } else {
+    const rank = rec.era == null ? null : ERA_RANK.get(rec.era);
+    rec.sd = rank == null || rank > CURRENT_ERA_RANK ? STANDING_TIER_5 : STANDING_TIER_2;
+  }
+  standingCounts.add(rec.sd);
+}
+
+// ---------------------------------------------------------------------------
 // Weapon-skill reliability: the wiki contradicts the live client on fist weapons
 // ---------------------------------------------------------------------------
 
@@ -1505,6 +1739,10 @@ const skillSuspects = records
 const INDEX_FIELDS = [
   'id', 'n', 'ic', 'sl', 'cl', 'ra', 'st', 'sv', 'wp', 'wt', 'fl',
   'era', 'av', 'eraUnknown', 'statsUnknown', 'evidence', 'an',
+  // The two source facts ride the index, not just the detail shards: the item
+  // browser lists from the index, and a provenance mark that only exists on a
+  // hover window is a mark 3,500 rows never get.
+  'ex', 'sd', 'sdc', 'vf',
 ];
 const DETAIL_OMIT = new Set(['key']);
 
@@ -1662,6 +1900,48 @@ const meta = {
     policy: 'ships iff era rank <= CURRENT_ERA rank, or the item is in the live client export, or the player named it; everything else is quarantined to pipeline/quarantine.json and never reaches the payload. Era-less is unconfirmed, not presumed classic: the few era-less items that do ship are the ones Tier 0 vouches for, and they carry eraUnknown:true. Everything shipped is available (av:true) — there is no client-side era gate.',
   },
   slots: { worn: SLOTS, any: ANY_SLOT, otherShard: NO_SLOT_SHARD, anyPolicy: 'items with an:1 may be placed in either "Any Slot" position; no ANY shard is emitted (it would duplicate every worn item)' },
+
+  /**
+   * The per-item provenance contract, published so a consumer can render the
+   * marks without re-deriving them and without inventing labels of its own.
+   * See research/SOURCING-STANDARD.md, whose rule 5 this implements.
+   */
+  sourceStanding: {
+    standard: 'research/SOURCING-STANDARD.md',
+    principle:
+      'Existence and stat provenance are two facts, not one. The live inventory export proves an ' +
+      'item is in the game and carries no stat values at all; the validation captures prove ' +
+      'particular numbers. Every shipped record states both, and states them separately.',
+    existence: {
+      field: 'ex',
+      question: 'Is this item in the game?',
+      vocabulary: [
+        { code: EXISTENCE_EXPORT, tier: 'M', means: 'resolves to a line in research/validation/tier0-inventory-Avenrae.txt, a live /outputfile inventory export' },
+        { code: EXISTENCE_REPORT, tier: 'M', means: 'named directly by the player who plays the game' },
+      ],
+      absent: 'no Tier M sighting; the item ships because its era places it in this game, which is a Tier 2 statement about content rather than an observation',
+      note: 'The export is a Location/Name/ID/Count/Slots table. It proves existence and nothing about stats.',
+      counts: Object.fromEntries(existenceCounts.entries({ sort: 'value' })),
+    },
+    stats: {
+      field: 'sd',
+      question: 'Where did the numbers printed on this row come from?',
+      vocabulary: [
+        { code: STANDING_TIER_M, tier: 'M', means: 'the stat block was read off a live client window and agrees with what ships, field for field; `vf` lists the fields actually checked and `sdc` cites the capture' },
+        { code: STANDING_TIER_2, tier: '2', means: 'structured wiki data for an item whose era places it inside this game' },
+        { code: STANDING_TIER_5, tier: '5', means: 'wiki numbers with no era that places them in this game — the item ships on Tier M existence evidence alone, so its stat block may describe an original-EverQuest item of the same name. Marked on sight.' },
+        { code: STANDING_UNATTRIBUTED, tier: null, means: 'the row prints no sourced stat values: it never had any, or they are withheld (statsUnknown). Nothing to attribute, stated rather than left blank.' },
+      ],
+      tiersNotPresent: {
+        '1': 'no patch note supplies an item stat in this repository',
+        '3': 'no named community guide is used as an item-stat source',
+        '4': 'no aggregator is used as an item-stat source',
+      },
+      counts: Object.fromEntries(standingCounts.entries({ sort: 'value' })),
+      clientVerified: statsVerifiedApplied,
+      clientVerifiedRejected: statsVerifiedRejected,
+    },
+  },
   classes: CLASSES,
   races: RACES,
   statKeys: STAT_KEYS,
@@ -1762,6 +2042,8 @@ const meta = {
     eraUnknown: eraUnknownCount,
     statsUnknown: statsUnknownCount,
     flagged: eraUnknownCount,
+    standing: Object.fromEntries(STANDINGS.map((s) => [s, standingCounts.get(s) ?? 0])),
+    existence: Object.fromEntries([EXISTENCE_EXPORT, EXISTENCE_REPORT].map((e) => [e, existenceCounts.get(e) ?? 0])),
     perSlot: Object.fromEntries(shardCounts.entries({ sort: 'key' })),
     perEffectKind: Object.fromEntries(report.effectKinds.entries({ sort: 'key' })),
   },
@@ -1777,7 +2059,17 @@ const meta = {
     })),
     itemIds: {
       source: 'research/validation/tier0-inventory-Avenrae.txt (live client /outputfile inventory, 2026-08-16)',
-      note: 'No wiki scrape carries numeric game item IDs. These 298 name->id pairs are the only observed IDs.',
+      /*
+       * Derived, not typed. This sentence used to hard-code "298" beside a
+       * computed `observed: 297` and a computed `applied: 289` — three numbers
+       * for one fact, one of them a stale literal, and all three are printed
+       * on `/sources` where a reader can see them disagree. `SOURCING-STANDARD`
+       * rule "never invent a number" applies to the prose about the data as
+       * much as to the data.
+       */
+      note:
+        `No wiki scrape carries numeric game item IDs. These ${TIER0_IDS.size} name->id pairs ` +
+        `are the only observed IDs; ${withId} of them matched a catalog record by name and were applied.`,
       observed: TIER0_IDS.size,
       applied: withId,
     },
@@ -1840,6 +2132,21 @@ if (!QUIET) {
   if (!tier0Applied.length) L('  (none)');
   L(`  records shipped with statsUnknown (real item, no stats anywhere): ${statsUnknownCount}`);
   for (const line of tier0Missed) L(`  !! ${line}`);
+  L('');
+  L('-- source standing: two facts, stamped on every shipped record --');
+  L('  existence (`ex`) — is this item in the game? (the export carries no stat values)');
+  for (const code of [EXISTENCE_EXPORT, EXISTENCE_REPORT]) {
+    L(`    ${code.padEnd(16)} ${String(existenceCounts.get(code)).padStart(6)}`);
+  }
+  L(`    ${'(none)'.padEnd(16)} ${String(records.length - existenceCounts.get(EXISTENCE_EXPORT) - existenceCounts.get(EXISTENCE_REPORT)).padStart(6)}   ships on its era, not on a sighting`);
+  L('  standing (`sd`) — where did the numbers on this row come from?');
+  for (const code of STANDINGS) {
+    const n = standingCounts.get(code);
+    L(`    ${code.padEnd(16)} ${String(n).padStart(6)}   ${((n / records.length) * 100).toFixed(1).padStart(5)}%`);
+  }
+  L('  stat blocks checked against a live client window (TIER0-VALIDATION.md):');
+  for (const line of statsVerifiedApplied) L(`    ${line}`);
+  for (const line of statsVerifiedRejected) L(`    !! ${line}`);
   L('');
   L('-- effects --');
   for (const [k, v] of report.effectKinds.entries({ sort: 'value' })) L(`  ${k.padEnd(10)} ${String(v).padStart(6)}`);

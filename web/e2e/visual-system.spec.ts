@@ -8,8 +8,16 @@
 
 import { createCharacter, expect, openSlotPicker, test } from './helpers';
 
-/** The type scale declared in `styles/tokens.css`. Nothing else may render. */
-const TYPE_SCALE = ['10px', '11px', '13px', '15px', '20px', '30px', '44px'];
+/**
+ * The type scale declared in `styles/tokens.css`. Nothing else may render.
+ *
+ * 17px is `--fs-heading`, added when an audit found the item browser rendering
+ * 660 text runs of which one was ≥16px and none were in the heading face: the
+ * scale ran 15px → 20px with the card title at the bottom of that gap and
+ * nothing for the name of the thing a row is *about*. It is a step on the
+ * scale, not an exception to it — the assertion below is what keeps it one.
+ */
+const TYPE_SCALE = ['10px', '11px', '13px', '15px', '17px', '20px', '30px', '44px'];
 const WEIGHTS = ['400', '600', '800'];
 
 /*
@@ -21,11 +29,13 @@ const WEIGHTS = ['400', '600', '800'];
 const ACCENT = 'rgb(117, 149, 184)';
 const USABLE = 'rgb(143, 174, 130)';
 
-async function filledSet(page: import('@playwright/test').Page): Promise<void> {
+/** Create a filled 23-slot set and return its id. */
+async function filledSet(page: import('@playwright/test').Page): Promise<string> {
   page.on('dialog', (d) => d.accept());
-  await createCharacter(page, { name: 'Avenrae', classes: [0, 1, 15], level: '50' });
+  const hash = await createCharacter(page, { name: 'Avenrae', classes: [0, 1, 15], level: '50' });
   await page.getByRole('button', { name: /auto-fill/i }).click();
   await expect(page.locator('.slot-wrap .slot.filled')).toHaveCount(23, { timeout: 60_000 });
+  return hash.replace('#/set/', '');
 }
 
 test('the accent is signal: no slot glyph is stroked in azure', async ({ page }) => {
@@ -170,6 +180,254 @@ test('every rendered size and weight comes off the declared scale — on all thr
       type.weights.filter((w) => !WEIGHTS.includes(w)),
       `off-scale font weights on the ${name}: ${type.offenders.join(' | ')}`,
     ).toEqual([]);
+  }
+});
+
+/**
+ * The four type roles, counted where the product is.
+ *
+ * An art review walked every visible text node and found the roles doing no
+ * work on the two screens that *are* the app: the item browser rendered 660
+ * runs of which **one** was ≥16px and **none** were in the heading face, 528 of
+ * them at 13px; the set editor managed one heading run in 430. The heading role
+ * was bound to six card and dialog titles and the item name — the most
+ * important text in a gear planner — was not one of them.
+ *
+ * This asserts the shape of the fix rather than a count that will drift with
+ * the catalog: on every surface that lists items, the *name* is in the heading
+ * face at the heading step, and it out-sizes the stat line beside it.
+ */
+async function nameRole(page: import('@playwright/test').Page, selector: string) {
+  return page.locator(selector).first().evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { family: cs.fontFamily, size: parseFloat(cs.fontSize), weight: cs.fontWeight };
+  });
+}
+
+test('the item name carries the heading role on every surface that lists items', async ({
+  page,
+}) => {
+  test.slow();
+  await filledSet(page);
+
+  // The doll.
+  const doll = await nameRole(page, '.slot-item');
+  expect(doll.family, 'doll row name').toMatch(/Oswald/);
+  expect(doll.size, 'doll row name').toBe(17);
+
+  // The picker.
+  await openSlotPicker(page, 0);
+  const picker = await nameRole(page, '.result-name .iname');
+  expect(picker.family, 'picker row name').toMatch(/Oswald/);
+  expect(picker.size, 'picker row name').toBe(17);
+  // A dialog title must out-rank the rows it introduces; at `--fs-mid` it did not.
+  const title = await nameRole(page, '.modal-head h2');
+  expect(title.size, 'the picker title sits above its rows').toBeGreaterThan(picker.size);
+  await page.keyboard.press('Escape');
+
+  // The browser.
+  await page.goto('/#/items');
+  await page.locator('table.data tbody tr').first().waitFor({ timeout: 30_000 });
+  await page.waitForTimeout(1200);
+  const browser = await nameRole(page, 'table.data tbody .cell-item .iname');
+  expect(browser.family, 'browser row name').toMatch(/Oswald/);
+  expect(browser.size, 'browser row name').toBe(17);
+
+  // …and it is not one run in six hundred. Every name on the page has it.
+  const audit = await page.evaluate(() => {
+    const runs = [...document.querySelectorAll<HTMLElement>('table.data tbody .cell-item .iname')];
+    return {
+      total: runs.length,
+      heading: runs.filter((el) => /Oswald/.test(getComputedStyle(el).fontFamily)).length,
+    };
+  });
+  expect(audit.total, 'a full page of rows').toBeGreaterThan(50);
+  expect(audit.heading, 'every item name is in the heading face').toBe(audit.total);
+});
+
+/**
+ * Every enabled text run clears WCAG AA against the background actually behind
+ * it.
+ *
+ * Declared colours are not what a reader meets: an ancestor's `opacity` and a
+ * translucent panel both change the number, and neither is visible to a check
+ * that reads `color` alone. `.cmp-slot.quiet` was `opacity: 0.55` over
+ * `--text-faint` — a token documented at 4.57:1 — and landed **316 runs on the
+ * compare screen at 2.21–3.22:1**, invisible to every earlier audit because
+ * every one of them read the declared hex. This composites the whole ancestor
+ * chain, both colour and alpha, and it is why the recession on that screen is
+ * done with colours rather than with alpha.
+ */
+const CONTRAST_PROBE = `(() => {
+  const parse = (s) => {
+    const m = String(s).match(/rgba?\\(([^)]+)\\)/);
+    if (!m) return null;
+    const p = m[1].split(/[,\\s\\/]+/).filter(Boolean).map(Number);
+    return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+  };
+  const over = (f, b) => ({
+    r: f.r * f.a + b.r * (1 - f.a),
+    g: f.g * f.a + b.g * (1 - f.a),
+    b: f.b * f.a + b.b * (1 - f.a),
+    a: 1,
+  });
+  const lum = (c) => {
+    const f = (v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+  };
+  const ratio = (a, b) => {
+    const l1 = lum(a), l2 = lum(b);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  };
+
+  // Composite every painted background from the element up to the root, then
+  // the page's own black underneath.
+  const groundOf = (el) => {
+    const stack = [];
+    for (let n = el; n; n = n.parentElement) {
+      const c = parse(getComputedStyle(n).backgroundColor);
+      if (c && c.a > 0) stack.push(c);
+    }
+    stack.push({ r: 0, g: 0, b: 0, a: 1 });
+    let acc = stack[stack.length - 1];
+    for (let i = stack.length - 2; i >= 0; i--) acc = over(stack[i], acc);
+    return acc;
+  };
+  const alphaOf = (el) => {
+    let o = 1;
+    for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+      const v = parseFloat(getComputedStyle(n).opacity);
+      if (!Number.isNaN(v)) o *= v;
+    }
+    return o;
+  };
+
+  const bad = [];
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node, seen = 0;
+  while ((node = walk.nextNode())) {
+    const text = (node.nodeValue || '').trim();
+    if (!text) continue;
+    const el = node.parentElement;
+    if (!el || !el.offsetParent) continue;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden') continue;
+    const box = el.getBoundingClientRect();
+    if (box.width < 1 || box.height < 1) continue;
+
+    // A control the reader cannot operate is exempt (WCAG 1.4.3), and so is
+    // anything faded almost out — those are states, not text.
+    const alpha = alphaOf(el);
+    if (alpha < 0.5) continue;
+    if (el.closest('[disabled],[aria-disabled="true"],:disabled')) continue;
+
+    const raw = parse(cs.color) || { r: 255, g: 255, b: 255, a: 1 };
+    const ground = groundOf(el);
+    const ink = over({ ...raw, a: raw.a * alpha }, ground);
+    const size = parseFloat(cs.fontSize);
+    const weight = Number(cs.fontWeight);
+    const large = size >= 24 || (size >= 18.66 && weight >= 700);
+    const r = ratio(ink, ground);
+    seen += 1;
+    if (r < (large ? 3 : 4.5)) {
+      bad.push(\`\${r.toFixed(2)}:1 \${size}px "\${text.slice(0, 28)}" on \${el.tagName}.\${String(el.className).slice(0, 30)}\`);
+    }
+  }
+  return { seen, bad: [...new Set(bad)].slice(0, 12) };
+})()`;
+
+test('no enabled text run on any product screen is below WCAG AA', async ({ page }) => {
+  test.slow();
+  const first = await filledSet(page);
+
+  /*
+   * Raise the whole set off +0 before measuring anything.
+   *
+   * `filledSet` auto-fills at +0, and the first exaltation socket unlocks at
+   * +1 — so the exaltations screen this sweep had been measuring rendered
+   * *zero* sockets ("23 waiting on +N") and the entire socket UI, 92 elements
+   * on a +5 set, was never composited by any assertion here. That blind spot
+   * hid `.donor.none` at 4.29:1 through a whole review round. A fixture that
+   * cannot reach a state is a state nobody is testing.
+   */
+  await page.locator('.bulk-tiers button', { hasText: /^\+5$/ }).click();
+  await page.waitForTimeout(600);
+
+  // A second set, so the diff has both sides and its 22 unchanged rows render.
+  await page.locator('summary[aria-label="More set actions"]').click();
+  await page.locator('.menu-body.right .menu-item', { hasText: 'Duplicate set' }).click();
+  await expect(page.locator('.set-switch .name')).toHaveText('Main Set (copy)');
+  const second = new URL(page.url()).hash.replace('#/set/', '');
+
+  /*
+   * Each screen names the row a pointer can land on, because contrast is a
+   * property of a *state*, not of a stylesheet. `.slot-stats` measured 4.57:1
+   * at rest and 4.29:1 under the hover that lifts its row's ground — sub-AA on
+   * all 23 doll rows, invisible to every audit that only ever looked at the
+   * page sitting still.
+   */
+  const screens: Array<[string, () => Promise<unknown>, string?]> = [
+    ['gear tab', async () => {
+      await page.goto(`/#/set/${first}`);
+      await expect(page.locator('.slot-wrap .slot.filled').first()).toBeVisible();
+    }, '.slot-wrap'],
+    ['exaltations', async () => {
+      await page.goto(`/#/set/${first}/exaltations`);
+      await expect(page.locator('.socket').first()).toBeVisible();
+      await page.waitForTimeout(900);
+    }, '.socket'],
+    ['weights', async () => {
+      await page.goto(`/#/set/${first}/weights`);
+      await page.waitForTimeout(600);
+    }],
+    ['compare', async () => {
+      await page.goto(`/#/set/${first}/compare/${second}`);
+      await expect(page.locator('.cmp-slots')).toBeVisible();
+      await page.waitForTimeout(600);
+    }],
+    ['item browser', async () => {
+      await page.goto('/#/items');
+      await page.locator('table.data tbody tr').first().waitFor({ timeout: 30_000 });
+      await page.waitForTimeout(1500);
+    }, 'table.data tbody tr'],
+    /*
+     * The two screens this round added. Neither was in this list, which is why
+     * `.upg-arrow` shipped at 3.22:1 — a new screen is exactly where an
+     * unmeasured colour lands, so the list grows with the app.
+     */
+    ['upgrades', async () => {
+      await page.goto(`/#/set/${first}/upgrades`);
+      await expect(page.locator('.upg-row').first()).toBeVisible({ timeout: 60_000 });
+      await page.waitForTimeout(600);
+    }, '.upg-row'],
+    ['sources', async () => {
+      await page.goto('/#/sources');
+      await expect(page.locator('.src-card').first()).toBeVisible({ timeout: 30_000 });
+      await page.waitForTimeout(800);
+    }, '.src-card'],
+    ['landing', async () => {
+      await page.goto('/#/');
+      await page.waitForTimeout(800);
+    }],
+  ];
+
+  for (const [name, go, hoverable] of screens) {
+    await go();
+    const result = await page.evaluate(CONTRAST_PROBE);
+    expect(result.seen, `${name} should have text to measure`).toBeGreaterThan(20);
+    expect(result.bad, `sub-AA text on the ${name}`).toEqual([]);
+
+    // …and again with a pointer resting on the screen's own row, which is a
+    // different set of colours wherever hovering lifts the ground.
+    if (!hoverable) continue;
+    const rows = page.locator(hoverable);
+    const reach = Math.min(await rows.count(), 4);
+    for (let i = 0; i < reach; i++) {
+      await rows.nth(i).hover();
+      await page.waitForTimeout(120);
+      const hovered = await page.evaluate(CONTRAST_PROBE);
+      expect(hovered.bad, `sub-AA text on the ${name} with row ${i} hovered`).toEqual([]);
+    }
   }
 });
 

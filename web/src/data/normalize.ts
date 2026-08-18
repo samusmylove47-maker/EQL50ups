@@ -11,8 +11,26 @@
  */
 
 import { SLOT_TYPES, type SlotType } from '../engine/constants';
-import type { Item, ItemEffect, ItemSource, WeaponData } from '../engine/types';
+import type {
+  ExistenceEvidence, Item, ItemEffect, ItemSource, SourceStanding, WeaponData,
+} from '../engine/types';
 import { finite } from '../lib/format';
+
+/**
+ * The two provenance vocabularies, restated as runtime guards.
+ *
+ * A payload value outside these sets is dropped rather than carried: an
+ * unrecognised standing would flow straight to a badge and put a word on screen
+ * that no part of this project defines. Absence is a meaning the app already
+ * handles — it reads as `unattributed` — so dropping is safe, which is not true
+ * of passing an unknown token through.
+ */
+const SOURCE_STANDINGS: ReadonlySet<string> = new Set<SourceStanding>([
+  'tier-M', 'tier-2', 'tier-5', 'unattributed',
+]);
+const EXISTENCE_EVIDENCE: ReadonlySet<string> = new Set<ExistenceEvidence>([
+  'live-export', 'player-report',
+]);
 
 /** Slot token, including the EQL-specific "fits anywhere" marker. */
 export type SlotCode = SlotType | 'ANY';
@@ -222,6 +240,24 @@ export function normalizeItem(raw: unknown, fallbackName?: string): Item | null 
   if (src) item.src = src;
 
   if (typeof raw.parsed === 'string') item.parsed = raw.parsed;
+
+  /*
+   * Provenance, carried verbatim from the pipeline and never reconstructed
+   * here. Both facts are computed at build time against the live inventory
+   * export, the client-window captures and the era gate — files this module
+   * cannot see. Re-deriving either one from an item's shape (say, guessing
+   * "no stats therefore unattributed") would be an inference, and the whole
+   * point of these two fields is that neither one is inferred.
+   */
+  if (typeof raw.ex === 'string' && EXISTENCE_EVIDENCE.has(raw.ex)) {
+    item.ex = raw.ex as ExistenceEvidence;
+  }
+  if (typeof raw.sd === 'string' && SOURCE_STANDINGS.has(raw.sd)) {
+    item.sd = raw.sd as SourceStanding;
+  }
+  if (typeof raw.sdc === 'string' && raw.sdc.trim()) item.sdc = raw.sdc.trim();
+  const verifiedFields = stringList(raw.vf);
+  if (verifiedFields.length) item.vf = verifiedFields;
 
   /*
    * "Real item, no stats anywhere." Carried through verbatim rather than

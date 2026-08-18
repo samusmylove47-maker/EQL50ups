@@ -18,7 +18,7 @@
  */
 
 import { canUse, type LoadoutContext } from '../engine/character';
-import type { Item } from '../engine/types';
+import type { ExistenceEvidence, Item, SourceStanding } from '../engine/types';
 
 export type Usability = 'usable' | 'blocked' | 'unjudged';
 
@@ -96,6 +96,125 @@ export function displayFlags(flags: readonly string[]): string[] {
     if (!out.includes(label)) out.push(label);
   }
   return out;
+}
+
+/* ------------------------------------------------------- source provenance */
+
+/**
+ * The two provenance marks, as any surface should render them.
+ *
+ * `research/DESIGN-EQLSOURCE.md` describes the device: a 2px accent rule on a
+ * card's top edge, colour-coded by tier standing, plus a mono eyebrow naming
+ * that tier — `TIER M · STRONGEST`. `styles.css` §23 implements it as
+ * `[data-standing]`. What it lacked was data: the standing was derived in one
+ * component from an 18-name list, so the device could reach 15 of 3,533 items
+ * and only inside a hover window.
+ *
+ * The pipeline now records a standing for **every** record, so these two
+ * functions are pure lookups over shipped facts. Neither infers anything. Put
+ * `band` on `data-standing` and `label` in the eyebrow, on any surface.
+ *
+ * The band names are the ones the stylesheet already knows, and the mapping to
+ * them is the design doc's own table: tiers M/1/2 read as trusted sage, 3/4 as
+ * corroborating steel, 5 as the single brick red the doc says to spend exactly
+ * once. `unattributed` is not in that table because it is not a tier — it takes
+ * the stylesheet's neutral rule, which is the correct amount of colour for "no
+ * claim is being made here".
+ */
+export type StandingBand = 'trusted' | 'corroborating' | 'distrust' | 'unattributed';
+
+export interface StandingMark {
+  standing: SourceStanding;
+  band: StandingBand;
+  /** Eyebrow text. Rendered uppercase by the stylesheet. */
+  label: string;
+  /**
+   * The tier alone, for a surface with no room for the eyebrow — a table cell,
+   * a chip beside an item name. Still a statement: `Unattributed` is a word,
+   * not a dash, because a dash is the silence this field exists to end.
+   */
+  short: string;
+  /** The capture that confirmed it, on a `tier-M` row. */
+  citation?: string;
+  /** Stat keys a client window actually checked, on a `tier-M` row. */
+  verifiedFields?: string[];
+}
+
+const STANDING_BANDS: Record<SourceStanding, StandingBand> = {
+  'tier-M': 'trusted',
+  'tier-2': 'trusted',
+  'tier-5': 'distrust',
+  unattributed: 'unattributed',
+};
+
+const STANDING_LABELS: Record<SourceStanding, string> = {
+  // Scoped to what the captures cover. "Stats read off the client" is a claim
+  // about this row's numbers; it is not a claim about the item's flags, which
+  // the client contradicts on this very item.
+  'tier-M': 'Tier M · stats read off the client',
+  'tier-2': 'Tier 2 · structured wiki data',
+  // Not "Kunark" and not "unknown era": the reader needs to know the *numbers*
+  // are the thing that cannot be placed, because they are what is on screen.
+  'tier-5': 'Tier 5 · wiki stats, era unplaced',
+  unattributed: 'Unattributed · no sourced stats',
+};
+
+const STANDING_SHORT: Record<SourceStanding, string> = {
+  'tier-M': 'Tier M',
+  'tier-2': 'Tier 2',
+  'tier-5': 'Tier 5',
+  unattributed: 'Unattributed',
+};
+
+/**
+ * Where this item's numbers stand. Never null: an item with no recorded
+ * standing is `unattributed`, which is a statement rather than a silence, and
+ * silence is what the standard's rule 5 exists to remove.
+ */
+export function sourceStanding(item: Item): StandingMark {
+  const standing: SourceStanding = item.sd ?? 'unattributed';
+  const mark: StandingMark = {
+    standing,
+    band: STANDING_BANDS[standing],
+    // A record that withholds numbers it knows exist is saying something
+    // sharper than "we have none", and the browser's own `NO STAT DATA` tag is
+    // the same fact. Say the sharper thing where it is true.
+    label: standing === 'unattributed' && item.statsUnknown
+      ? 'Unattributed · stats withheld'
+      : STANDING_LABELS[standing],
+    short: STANDING_SHORT[standing],
+  };
+  if (item.sdc) mark.citation = item.sdc;
+  if (item.vf?.length) mark.verifiedFields = item.vf;
+  return mark;
+}
+
+export interface ExistenceMark {
+  evidence: ExistenceEvidence;
+  label: string;
+}
+
+const EXISTENCE_LABELS: Record<ExistenceEvidence, string> = {
+  // Deliberately about possession, not about numbers. The export is a
+  // Location/Name/ID/Count/Slots table; it proves the game handed this item to
+  // a character and proves nothing at all about a stat block.
+  'live-export': 'Tier M · held in a live inventory',
+  'player-report': 'Tier M · named in a player report',
+};
+
+/**
+ * Whether the game is known to hold this item — the second, independent fact.
+ * Null where there is no sighting: the item ships on its era, and saying so
+ * would be a claim about content, not about this item.
+ */
+export function existenceMark(item: Item): ExistenceMark | null {
+  if (!item.ex) return null;
+  return { evidence: item.ex, label: EXISTENCE_LABELS[item.ex] };
+}
+
+/** Did a live client window confirm this particular stat key on this item? */
+export function isStatClientVerified(item: Item, statKey: string): boolean {
+  return item.sd === 'tier-M' && (item.vf ?? []).includes(statKey);
 }
 
 export function sourceSummary(item: Item): string | null {

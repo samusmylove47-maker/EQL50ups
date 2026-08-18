@@ -26,6 +26,35 @@ export interface ItemSource {
 }
 
 /**
+ * Where the numbers printed on an item's row came from, per
+ * `research/SOURCING-STANDARD.md`. Computed once by the pipeline and shipped on
+ * every record — see `meta.sourceStanding` in the payload for the contract.
+ *
+ *   `tier-M`        read off a live client window and in agreement with what
+ *                   ships, field for field. `vf` names the fields checked.
+ *   `tier-2`        structured wiki data for an item whose era places it inside
+ *                   this game.
+ *   `tier-5`        wiki numbers with no era that places them here. The item is
+ *                   in the catalog on Tier M *existence* evidence alone, so the
+ *                   stat block may describe an original-EverQuest item of the
+ *                   same name. The standard says: mark on sight.
+ *   `unattributed`  the row prints no sourced stat values — it never had any,
+ *                   or they are withheld. Stated rather than left blank.
+ *
+ * Tiers 1, 3 and 4 do not occur: no patch note, community guide or aggregator
+ * supplies an item stat in this project.
+ */
+export type SourceStanding = 'tier-M' | 'tier-2' | 'tier-5' | 'unattributed';
+
+/**
+ * Whether the game is known to hold this item, which is a **different fact**
+ * from where its numbers came from and rests on different files. The live
+ * `/outputfile inventory` export is a `Location / Name / ID / Count / Slots`
+ * table: it proves an item exists and carries no stat values at all.
+ */
+export type ExistenceEvidence = 'live-export' | 'player-report';
+
+/**
  * One catalog entry. Short keys keep the shipped payload small; the accessors
  * below are the only place that shortness leaks into application code.
  */
@@ -62,6 +91,24 @@ export interface Item {
   statsUnknown?: boolean;
   /** Why we know a `statsUnknown` item exists, in the reader's own words. */
   evidence?: string;
+  /**
+   * Tier M evidence that the game holds this item. Absent means no sighting —
+   * the item ships because its era places it in this game, which is a Tier 2
+   * statement about content rather than an observation of the item.
+   */
+  ex?: ExistenceEvidence;
+  /** Standing of the numbers on this row. Absent is read as `unattributed`. */
+  sd?: SourceStanding;
+  /** Citation for a `tier-M` row: the client capture that confirmed it. */
+  sdc?: string;
+  /**
+   * The stat keys a client window actually confirmed, on a `tier-M` row.
+   *
+   * A narrower claim than "this item's stats are verified": the Earthshaker
+   * captures cover DMG, DLY, STR and STA, and say nothing about its DEX. A stat
+   * row can mark itself from this; a whole-item mark cannot.
+   */
+  vf?: string[];
   src?: ItemSource;
   /** Set when stats were recovered by text-parsing rather than structured data. */
   parsed?: string;

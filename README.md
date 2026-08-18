@@ -46,6 +46,16 @@ never equipped.
 **Compare two sets** side by side, with a centre column showing how much of each
 gain is actually creditable against the caps.
 
+**A ranked upgrade list** at `#/upgrades`: the best item this loadout can wear in
+every position, what it gains, what it quietly gives up, and where to go and get
+it. Positions whose worn item cannot be scored are listed separately rather than
+compared against a zero nobody measured.
+
+**Every number says where it came from.** Each row carries its standing under
+`research/SOURCING-STANDARD.md` — read off a live client, structured wiki data,
+or wiki numbers no era can place — and `#/sources` sets out the whole hierarchy,
+what ships, what is withheld and why, and what is known to be uncertain.
+
 **Share a set** as a ~300-character link that reconstructs it exactly. Links
 carry a checksum, so a mistyped one is refused rather than silently decoding into
 a different plan.

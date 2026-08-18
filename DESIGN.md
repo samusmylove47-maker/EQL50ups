@@ -101,23 +101,32 @@ click 824 / proc 453 / focus 143 / worn 104.
 
 | Layer | Choice | Why |
 |---|---|---|
-| Framework | React 18 + TypeScript | UI is stateful (doll, picker, tooltips, live stats); TS keeps the stat math honest |
+| Framework | React 19 + TypeScript | UI is stateful (doll, picker, tooltips, live stats); TS keeps the stat math honest |
 | Build | Vite | Fast builds, trivial static output for Pages |
 | State | Zustand | Small, no boilerplate, easy to test in isolation |
-| Routing | React Router, `/{ruleset}/…` from day one | Sixtyupgrades' lesson: new eras must be routes, not new products |
+| Routing | Hand-rolled hash router (`web/src/router.ts`) | *This row planned React Router; the build does not use it.* Pages has no server to rewrite paths and share links must survive being pasted into Discord, so routes are hash fragments and the whole router is one file with no dependency |
 | Data | Pre-built JSON shards, lazy-loaded per slot | 11k items must not block first paint |
 | Tests | Vitest (math//logic) + Playwright (UI) | The exhaustive test phase needs real browser driving |
 | Host | GitHub Pages via Actions | Agreed target |
 
-**URL architecture** (mirroring the original, which proved it):
+**URL architecture** (mirroring the original, which proved it). Hash fragments,
+not paths — see the routing row above. As shipped:
 
 ```
-/                          landing
-/items                     global item browser, EP-ranked
-/character/new             character creation (race, level, 3 classes)
-/set/{id}                  a gear set  ← the shareable artifact
-/set/{id}/exaltations      exaltation planning
-/set/{id}/compare/{id2}    explicit A/B diff  ← leapfrogs the original
+#/                          landing
+#/items                     global item browser, EP-ranked
+#/sources                   where every number came from, and what is wrong with it
+#/characters                the library
+#/character/new             character creation (race, level, 3 classes)
+#/character/{id}            one character and its loadouts
+#/set/{id}                  a gear set  ← the shareable artifact
+#/set/{id}/exaltations      exaltation planning
+#/set/{id}/weights          the scoring profile
+#/set/{id}/compare/{id2}    explicit A/B diff  ← leapfrogs the original
+#/set/{id}/upgrades         ranked upgrades for that set
+#/upgrades                  the same, for the set you last edited (rewrites itself
+                            to the explicit form so the answer can be linked)
+#/share/{payload}           a set reconstructed entirely from the fragment
 ```
 
 Sets serialize into the URL fragment (compact binary → base62), so **a link fully reconstructs a set

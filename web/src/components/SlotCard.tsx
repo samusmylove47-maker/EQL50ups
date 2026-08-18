@@ -19,6 +19,12 @@
  *    only — never the glyph, the tile border or the tile wash.
  *  - **The word `Empty` is gone.** §A1: the slot name *is* the empty state.
  *    It used to be printed 23 times, louder than the slot label above it.
+ *  - **The exception is written, not only coloured.** Red on the name was the
+ *    *entire* signal for "this loadout cannot wear it", on a tab that carries
+ *    no legend — colour as the sole carrier of meaning, which fails WCAG 1.4.1.
+ *    The row now names it: a `can't equip` marker beside the slot label, the
+ *    reason in the row's `title`, and the same sentence in the button's
+ *    accessible name.
  *
  * The row is one fixed height whether or not it is filled, so filling a slot
  * never reflows the page: the +N stepper and the clear control moved from a
@@ -29,7 +35,8 @@ import { useEffect, useRef } from 'react';
 import type { LoadoutContext } from '../engine/character';
 import type { WeightProfile } from '../engine/ep';
 import type { UpgradeState } from '../engine/upgrade';
-import { itemNameColor } from '../lib/itemStyle';
+import { blockSentence } from '../lib/blockReason';
+import { itemNameColor, usabilityOf } from '../lib/itemStyle';
 import { summarizeItem } from '../selectors/gear';
 import type { SlotView } from '../selectors/gear';
 import { itemHoverProps } from './ItemWindow';
@@ -66,6 +73,31 @@ export function SlotCard({
 
   const summary = item && equipped ? summarizeItem(item, equipped.upgrade, weights) : null;
   const tone = item ? itemNameColor(item, context) : undefined;
+
+  /*
+   * The exception, said in words as well as in colour.
+   *
+   * A set can hold an item this trio cannot wear — a shared plan built by
+   * somebody else, an import, or a character whose classes changed after the
+   * slot was filled. The doll marked exactly one thing when that happened: the
+   * item name turned `#c86454`. That is colour as the sole carrier of meaning,
+   * which fails WCAG 1.4.1, and it is one red word among twenty-two cream ones
+   * with nothing on the page to say what red means — there is no legend on this
+   * tab.
+   *
+   * So the row also says it. A short mono marker beside the slot label, the
+   * same shape as the `flex` marker the Any Slot rows carry, plus the reason in
+   * the row's `title` and in the accessible name of the button. Deliberately
+   * *not* red: the name already carries the colour, and a second red token
+   * would spend the app's one warning hue twice on one row.
+   */
+  const blocked = item ? usabilityOf(item, context) === 'blocked' : false;
+  const blockedNote =
+    blocked && item
+      ? `${item.n}: this loadout cannot equip it — ${
+          blockSentence(item, context) ?? 'no class in the loadout qualifies'
+        }. Its stats are not something the character can actually wear.`
+      : null;
 
   /*
    * The remove control unmounts itself, so focus had nowhere to go and landed
@@ -107,9 +139,23 @@ export function SlotCard({
             </span>
           </>
         ) : null}
+        {blockedNote ? (
+          <>
+            {' '}
+            <span className="slot-flex slot-blocked" title={blockedNote}>
+              can’t equip
+            </span>
+          </>
+        ) : null}
       </span>
       {item ? (
-        <span className="slot-item" style={{ color: tone }} title={item.n}>
+        <span
+          className="slot-item"
+          style={{ color: tone }}
+          // `blockedNote` already opens with the item's name, so it replaces
+          // the plain title rather than being appended to a copy of it.
+          title={blockedNote ?? item.n}
+        >
           {item.n}
         </span>
       ) : unresolved ? (
@@ -139,7 +185,9 @@ export function SlotCard({
         className={classes}
         onClick={() => onPick(position.id)}
         aria-label={
-          item ? `${position.label}: ${item.n}. Change item.` : `${position.label}: empty. Choose an item.`
+          item
+            ? `${position.label}: ${item.n}.${blocked ? ' This loadout cannot equip it.' : ''} Change item.`
+            : `${position.label}: empty. Choose an item.`
         }
         {...itemHoverProps(item, equipped?.upgrade ?? { full: 0, fraction: 0 }, context, position.type)}
       >

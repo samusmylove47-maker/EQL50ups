@@ -141,6 +141,27 @@ ul {
   border-radius: var(--radius);
 }
 
+/*
+ * A heading is not a control, so it does not get a control's ring.
+ *
+ * `#/characters` puts `tabIndex={-1}` on its `<h1>` so focus has somewhere to
+ * land after a delete — a focus *destination*, never a tab stop. Chrome matches
+ * `:focus-visible` on it anyway, so the route rendered its page title inside a
+ * steel-blue outline *and* the token file's steel-blue box-shadow on plain page
+ * load: two indicators, on the app's one cool colour, spent on an element
+ * nobody can interact with. The title looked like an empty text field.
+ *
+ * Scoped to headings by tag on purpose. `[tabindex="-1"]` in general is exactly
+ * how the roving-tabindex widgets in this app mark their *unfocused* members —
+ * the equipment map's 23 cells, the bulk strip's eleven buttons, the picker's
+ * rows — and every one of those must keep its ring.
+ */
+h1[tabindex='-1']:focus-visible,
+h2[tabindex='-1']:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 ::selection {
   background: var(--accent-dim);
 }
@@ -212,6 +233,58 @@ ul {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * **The item name is the heading of its row.**
+ *
+ * The four type roles existed and did no work where the product is. A walk of
+ * every visible text node counted 660 runs on the item browser, of which *one*
+ * was ≥16px and *none* were in the heading face; 528 were 13px. The set editor
+ * managed one Oswald run in 430. The cause was that `--condensed` was bound to
+ * six selectors — all card and dialog titles, all at 15px — and the item name
+ * was not among them, so the most important text in a gear planner was set in
+ * the same 13px reading face as the stat line under it, separated by weight
+ * alone.
+ *
+ * These are the three surfaces the app is *for*: the browser's rows, the doll's
+ * rows and the picker's rows. One rule puts all three on the heading role at
+ * the `--fs-heading` step, which exists for exactly this.
+ *
+ * Not uppercased, unlike `.feature h3` and `.modal-head h2`: an item name is a
+ * proper noun the game chose, and `text-transform` is cosmetic only — the
+ * reader would be shown something the client never prints. Same reasoning
+ * `.card h3` already applies to a player's character name.
+ *
+ * The colour is deliberately absent here. It arrives as an inline
+ * `var(--item-usable|blocked|neutral)` from `lib/itemStyle.ts`, which is what
+ * lets §8 and §12 re-point those variables per surface.
+ */
+table.data .cell-item .iname,
+.slot-item,
+.result-name .iname,
+.exalt-row-label,
+.cmp-name {
+  font-family: var(--condensed);
+  font-size: var(--fs-heading);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-heading);
+  /*
+   * 1.3, not the 1.2 this rule shipped with, because Oswald's descender is
+   * deeper than the line box 1.2 gives it and every one of these five surfaces
+   * clips (`overflow: hidden` is what `text-overflow: ellipsis` requires, and
+   * CSS will not let one axis clip while the other stays visible).
+   *
+   * Measured with canvas ink metrics rather than `scrollHeight`, because
+   * `scrollHeight` reports the font's ascent/descent *metric* box, which is
+   * mostly empty air. At 17px/800 the real ink of a descender reaches
+   * baseline + 3.0px = 20.7px inside a 20px content box, so **0.7px of every
+   * g, j, p, q and y was being sheared off flat** — visible on "Golden Sash of
+   * Tranquility", and on the doll, the picker, the browser, the exaltation
+   * rows and the compare column alike. 1.3 puts ink bottom at 21.55px in a
+   * 22px box. Do not lower it without re-measuring the ink, not the metrics.
+   */
+  line-height: 1.3;
+}
+
 .dim {
   color: var(--muted);
 }
@@ -227,6 +300,24 @@ ul {
 .hint {
   color: var(--muted);
   font-size: var(--fs-small);
+}
+
+/*
+ * A paragraph is prose and gets prose treatment; an inline `.hint` beside a
+ * control is a label and keeps the small step.
+ *
+ * The helper text under the item browser's filter row and on the new-character
+ * screen was `--fs-small` running the full 1,330px of the shell — about 210
+ * characters a line, at 11px, which is the density of a dev tool's status bar
+ * and the reason those screens read nothing like the landing page. `--fs-body`
+ * with real leading and `--measure` is the doc's "generous measure": generous
+ * in leading and margin, bounded in line length.
+ */
+p.hint,
+.hint-block {
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  max-width: var(--measure);
 }
 
 /* --- 4. App shell ------------------------------------------------------- */
@@ -347,7 +438,21 @@ ul {
   border-radius: var(--radius) var(--radius) 0 0;
 }
 
-/* Wide gutters and a generous top: the doc's layout is air first. */
+/*
+ * Wide gutters and a generous top: the doc's layout is air first.
+ *
+ * **The shell stays at 1400px, and that is a decision rather than an
+ * oversight.** A review measured 16px gutters inside it and 1,330px-wide
+ * paragraphs and proposed narrowing the shell to ~1200 to fix both. Narrowing
+ * would have fixed neither: the gutters were 16px because `.doll` said `--s4`
+ * (it now says `--gutter`), and a paragraph is too wide at 1,200px for exactly
+ * the same reason it is too wide at 1,400 — line length is a count of
+ * characters, so it is capped by `--measure` on the prose itself. What the
+ * shell *is* sized for is the item browser's six-column table, which has real
+ * data to show and loses a column of it at 1,200. Air belongs between things
+ * and around sentences; taking 200px off every screen to get it would have
+ * been the same mistake in the opposite direction.
+ */
 .page {
   flex: 1;
   width: 100%;
@@ -453,13 +558,23 @@ ul {
  * the +N stepper beside it on a slot row: the destructive action used to be
  * the larger of the two, and 8px away.
  */
+/*
+ * `--text-dim`, not `--text-faint`. The faint step is documented as "≈4.6:1
+ * over `--bg-panel`", and that is where most of these sit — but the toast's
+ * dismiss sits on `--bg-panel-raised` and a slot row's clear moves onto it the
+ * moment the row is hovered, where the same hex measures **4.29:1**. It was the
+ * only enabled text run in the app under WCAG AA, found by compositing every
+ * run against its real background rather than its declared one. `--text-dim`
+ * measures 5.56:1 on that ground and 5.73:1 on the panel, so the control is
+ * above the floor wherever it can land.
+ */
 .btn-icon {
   width: 26px;
   height: 26px;
   padding: 0;
   flex: none;
   font-size: var(--fs-small);
-  color: var(--text-faint);
+  color: var(--text-dim);
 }
 
 .btn-icon:hover:not(:disabled) {
@@ -574,18 +689,34 @@ select {
   border-bottom: 1px solid var(--line);
 }
 
+/*
+ * The doc's callout: "a closing callout below the grid: **left vertical rule,
+ * no box**, body text with a bold lead-in." This was a box with a left rule
+ * bolted onto it — a 1px border *and* a panel background *and* the 3px rule,
+ * which is three devices doing one job and the only one of the three the doc
+ * asks for is the rule.
+ *
+ * The box comes back for `.notice-toast` below, and only there: a status object
+ * floating over the page has to be opaque or it reads as text that has come
+ * loose.
+ */
 .notice {
   display: flex;
   align-items: flex-start;
   gap: var(--s3);
-  padding: var(--s3) var(--s4);
-  border: 1px solid var(--line);
+  padding: var(--s1) 0 var(--s1) var(--s4);
+  border: 0;
   border-left: 3px solid var(--line-strong);
-  border-radius: var(--radius);
-  background: var(--panel);
+  border-radius: 0;
+  background: transparent;
   color: var(--text-dim);
   font-size: var(--fs-body);
+  line-height: 1.65;
   margin-bottom: var(--s4);
+}
+
+.notice > span {
+  max-width: var(--measure);
 }
 
 /*
@@ -609,7 +740,11 @@ select {
   max-width: min(420px, calc(100vw - 2 * var(--s5)));
   align-items: flex-start;
   margin-bottom: 0;
-  border-left-color: var(--accent);
+  /* The one `.notice` that keeps its box — see the note above. */
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
   background: var(--bg-panel-raised);
   /*
    * The app's second elevation step, from the token file. This used to be its
@@ -777,10 +912,12 @@ select {
   background: var(--panel);
 }
 
-/* A set name is a panel heading: the heavy condensed face, player's own case. */
-.set-switch .name {
+/* A set name is a panel heading: the heavy condensed face, player's own case,
+   at the same step as the item names it heads. */
+.set-switch .name,
+.set-identity > .name {
   font-family: var(--condensed);
-  font-size: var(--fs-mid);
+  font-size: var(--fs-heading);
   font-weight: var(--fw-num);
   letter-spacing: var(--track-heading);
   color: var(--text-strong);
@@ -872,10 +1009,26 @@ select {
   --item-usable: var(--text-strong);
 }
 
+/*
+ * The doc's gutter, not a dense tool's.
+ *
+ * This grid was three columns at a 16px gap inside a 1400px shell, which
+ * measured `509px 302px 509px` — the reviewer's phrase was "dense-tool
+ * spacing", and it is the reason the gear tab reads as a table while the
+ * landing page reads as a page. `--gutter` is the same 24px the page uses at
+ * its own edges and the card grid uses between cards, so the three surfaces
+ * finally agree.
+ *
+ * Three columns stay. The doc asks for two, but the two flanks and the figure
+ * between them are a paper doll — the arrangement *is* the information, and
+ * collapsing it to two would be following the letter of a card grid onto a
+ * screen that is not one. What the doc actually asks for here is air, and the
+ * gutter is where the air goes.
+ */
 .doll {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) 302px minmax(260px, 1fr);
-  gap: var(--s4);
+  gap: var(--gutter);
   align-items: stretch;
   margin-bottom: var(--s5);
 }
@@ -929,6 +1082,31 @@ select {
 .slot-wrap:hover {
   border-color: var(--line-strong);
   background: var(--bg-panel-raised);
+}
+
+/*
+ * When the ground lifts, the quiet ink has to lift with it.
+ *
+ * `--text-faint` is the palette's dimmest *text* value and it is sized against
+ * `--bg-card` (#131110), where it measures 4.57:1 — AA with 0.07 to spare.
+ * Hovering or focusing a row swaps that ground for `--bg-panel-raised`
+ * (#1b1815), and the same ink then measures **4.29:1: below AA**. All 23 stat
+ * lines on the doll, every time a pointer crosses them.
+ *
+ * It survived a whole review round because every audit here — including the
+ * sweep in `visual-system.spec.ts` — measured the page at rest, and a state
+ * nobody hovers is a state nobody has checked. The sweep now hovers.
+ *
+ * The rule this establishes, and the reason the fix is here rather than in the
+ * token: **`--text-faint` is only safe on `--bg-card`. On any raised ground,
+ * step up to `--text-dim`** (5.37:1 there). Re-pointing the token instead would
+ * have collapsed the dim/faint ramp everywhere to fix four selectors in one
+ * state. `.socket .donor.none` is the same rule applied at rest, because a
+ * socket sits on the raised panel to begin with.
+ */
+.slot-wrap:hover .slot-stats,
+.slot-wrap:focus-within .slot-stats {
+  color: var(--text-dim);
 }
 
 .slot {
@@ -1071,14 +1249,12 @@ select {
  * broken mid-glyph fails visibly instead of invisibly, which is not the same
  * thing as fitting.
  */
+/* Size, weight and face come from the item-name heading role in §3. */
 .slot-item {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  font-size: var(--fs-body);
-  line-height: 1.3;
-  font-weight: var(--fw-emph);
   overflow: hidden;
   text-overflow: ellipsis;
   overflow-wrap: normal;
@@ -1359,44 +1535,49 @@ select {
   background: var(--bg-panel-raised);
 }
 
+/*
+ * **Colour states, not the controls that set them.**
+ *
+ * The ramp used to run on the bulk strip as well, so `SET ALL TO +0…+10` drew
+ * eleven chips across a grey→gold gradient ending in `--tier-10`, the
+ * highest-chroma value in the token file — at the top-left of the gear tab, and
+ * the first colour on the page at 390px. That is maximum visual priority spent
+ * on a preset control: eleven buttons stating a scale nobody has chosen yet,
+ * beside twenty-three chips stating what the set actually is.
+ *
+ * The strip is now plain, with the tier the set already sits at marked by
+ * `aria-current` below. The ramp survives where it says something — the per-slot
+ * chip, the compare view's `.tier-chip`, the equipment map's `.figure-tier` —
+ * and `--tier-10` is now reached only by a slot that is genuinely at +10.
+ */
 .stepper .value[data-tier='1'],
-.bulk-tiers button[data-tier='1'],
 .tier-chip[data-tier='1'],
 .figure-tier[data-tier='1'] { color: var(--tier-1); }
 .stepper .value[data-tier='2'],
-.bulk-tiers button[data-tier='2'],
 .tier-chip[data-tier='2'],
 .figure-tier[data-tier='2'] { color: var(--tier-2); }
 .stepper .value[data-tier='3'],
-.bulk-tiers button[data-tier='3'],
 .tier-chip[data-tier='3'],
 .figure-tier[data-tier='3'] { color: var(--tier-3); }
 .stepper .value[data-tier='4'],
-.bulk-tiers button[data-tier='4'],
 .tier-chip[data-tier='4'],
 .figure-tier[data-tier='4'] { color: var(--tier-4); }
 .stepper .value[data-tier='5'],
-.bulk-tiers button[data-tier='5'],
 .tier-chip[data-tier='5'],
 .figure-tier[data-tier='5'] { color: var(--tier-5); }
 .stepper .value[data-tier='6'],
-.bulk-tiers button[data-tier='6'],
 .tier-chip[data-tier='6'],
 .figure-tier[data-tier='6'] { color: var(--tier-6); }
 .stepper .value[data-tier='7'],
-.bulk-tiers button[data-tier='7'],
 .tier-chip[data-tier='7'],
 .figure-tier[data-tier='7'] { color: var(--tier-7); }
 .stepper .value[data-tier='8'],
-.bulk-tiers button[data-tier='8'],
 .tier-chip[data-tier='8'],
 .figure-tier[data-tier='8'] { color: var(--tier-8); }
 .stepper .value[data-tier='9'],
-.bulk-tiers button[data-tier='9'],
 .tier-chip[data-tier='9'],
 .figure-tier[data-tier='9'] { color: var(--tier-9); }
 .stepper .value[data-tier='10'],
-.bulk-tiers button[data-tier='10'],
 .tier-chip[data-tier='10'],
 .figure-tier[data-tier='10'] { color: var(--tier-10); }
 
@@ -1440,6 +1621,8 @@ select {
   overflow: hidden;
 }
 
+/* Plain, per the note on the tier ramp above: this strip sets a state, it does
+   not report one. `--text-dim` is the app's control label, not a tier value. */
 .bulk-tiers button {
   min-width: 32px;
   height: 24px;
@@ -1447,7 +1630,7 @@ select {
   border: 0;
   border-left: 1px solid var(--line);
   background: transparent;
-  color: var(--tier-0);
+  color: var(--text-dim);
   font-family: var(--mono);
   font-size: var(--fs-small);
   font-weight: var(--fw-num);
@@ -1458,6 +1641,10 @@ select {
   place-items: center;
 }
 
+.bulk-tiers button:hover:not(:disabled) {
+  color: var(--text-strong);
+}
+
 .bulk-tiers button:first-child {
   border-left: 0;
 }
@@ -1466,9 +1653,15 @@ select {
   background: var(--panel-3);
 }
 
-/* Where the set already sits, washed the way the stepper washes its own chip. */
+/*
+ * Where the set already sits. One marked button out of eleven, rather than
+ * eleven chips each declaring a different colour — the mark is the information.
+ * Marked with lightness, which is how the rest of the app says "the one you are
+ * on" without spending a sixth job on the accent.
+ */
 .bulk-tiers button[aria-current='true'] {
-  background: color-mix(in srgb, currentColor 16%, var(--panel-2));
+  color: var(--text-strong);
+  background: var(--bg-active);
 }
 
 .bulk-tiers button:disabled {
@@ -1620,7 +1813,19 @@ select {
   font-weight: var(--fw-emph);
 }
 
+/*
+ * **The unit is a word, so it is set in the reading face.**
+ *
+ * `--mono` accounted for 48 of the stylesheet's 63 `font-family` declarations
+ * and 239 of the set editor's 430 text runs, and the single largest block of it
+ * was this one: 66 runs of `dmg/dly · ratio`, `of 300`, `per tick` inheriting
+ * mono from the numeral they annotate. The design doc scopes mono to "labels,
+ * eyebrows, nav" and to numbers; running words in it are what made the stat
+ * sheet read as a log. The number keeps the mono — it is what makes a column of
+ * forty values line up — and the caption beside it steps back to `--sans`.
+ */
 .stat-row .v .cap {
+  font-family: var(--sans);
   color: var(--faint);
   font-weight: var(--fw-body);
 }
@@ -1774,11 +1979,16 @@ select {
   border-bottom: 0;
 }
 
-/* A dialog title is a panel heading: heavy condensed, uppercase, cream. */
+/*
+ * A dialog title is a panel heading: heavy condensed, uppercase, cream — and at
+ * `--fs-large`, one step above the item names in the list beneath it. At
+ * `--fs-mid` it was *smaller* than the rows it introduced, so the picker had no
+ * top to its hierarchy: `CHOOSE EAR 1` read as a caption on a table.
+ */
 .modal-head h2 {
   font-family: var(--condensed);
   color: var(--text-strong);
-  font-size: var(--fs-mid);
+  font-size: var(--fs-large);
   font-weight: var(--fw-num);
   letter-spacing: var(--track-heading);
   text-transform: uppercase;
@@ -2248,6 +2458,42 @@ table.data tbody tr:hover {
   background: var(--panel-2);
 }
 
+/*
+ * **The emphasis is inverted here: colour marks what you can wear.**
+ *
+ * The client tints an item name by usability — green for equippable, red for
+ * not — and `tokens.css` copies it, which is right on the surfaces that quote
+ * the client. On a catalog table it inverted itself. "Your trio cannot wear
+ * this" is the *normal* state of a 3,533-item catalog, so with the class filter
+ * opened to the whole game a computed-style census of page 1 read **69 names in
+ * brick and 31 in sage** — a candy stripe in which the app's one warning hue is
+ * the most common colour of its most important text, spent entirely on saying
+ * "default". Red stops meaning anything at that frequency.
+ *
+ * So on this table, and only on this table, the two states swap weight. Sage
+ * stays exactly as it is and marks the minority you can act on. Blocked steps
+ * back to the reading cream at the muted step — still a *distinct* value from
+ * `--item-neutral`, which is what the same cell takes when there is no
+ * character to judge against, so no meaning is lost and no two states collide.
+ *
+ * `--item-blocked` keeps its brick everywhere else: the paper doll's `blocked`
+ * tile, the item window's `Requirements` lines and `--danger` are all still the
+ * one red, and it is an *event* on each of them because none of them is a
+ * hundred rows long.
+ *
+ * The re-point is a variable rather than a `color` override because the name's
+ * colour arrives as an inline `style` from `itemNameColor()` — a stylesheet
+ * cannot outrank that, but it can change what the `var()` in it resolves to.
+ *
+ * **And the meaning does not travel on colour alone.** `ItemBrowser` prints
+ * `WEARABLE` beside the sage names, in the mono eyebrow the doc specifies, so
+ * the marked state is marked twice and the unmarked one is simply the default.
+ * WCAG 1.4.1 is why, and it is the same fix `SlotCard` makes on the doll.
+ */
+table.data {
+  --item-blocked: var(--text-dim);
+}
+
 .cell-item {
   display: inline-flex;
   align-items: center;
@@ -2255,6 +2501,27 @@ table.data tbody tr:hover {
   min-width: 0;
   max-width: 100%;
   font-weight: var(--fw-emph);
+}
+
+/*
+ * The positive mark. An unboxed mono eyebrow, `·`-separated from the name the
+ * way the doc's `TIER M · STRONGEST` is — not another outlined pill. It rides
+ * the sage so the two halves of the signal read as one thing.
+ */
+.cell-wearable {
+  flex: none;
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--item-usable);
+}
+
+.cell-wearable::before {
+  content: '·';
+  margin-right: var(--s1);
+  color: var(--ink-quiet);
 }
 
 .cell-item .iname {
@@ -2313,7 +2580,9 @@ table.data tbody tr:hover {
  */
 .card h3 {
   font-family: var(--condensed);
-  font-size: var(--fs-mid);
+  /* A card's subject, at the same step as an item name — both are the thing
+     their block is about. */
+  font-size: var(--fs-heading);
   font-weight: var(--fw-num);
   letter-spacing: var(--track-heading);
   color: var(--text-strong);
@@ -2390,23 +2659,38 @@ table.data tbody tr:hover {
  * the previous attempt and was worse: CASTING became one input floating above
  * 250px of framed nothing. Take the frames away and the same space is simply
  * the panel, the way a stat sheet's columns work.
+ *
+ * **Multi-column, not grid.** A grid still stretched every cell to the tallest
+ * one in its row, so on a 1400px shell all six groups laid out abreast and the
+ * row was sized by ATTRIBUTES' seven fields — leaving CASTING, which has one,
+ * as a single input above ~250px of ruled nothing. That is the same defect the
+ * bordered cards had, with the borders taken away so it was harder to see.
+ *
+ * CSS columns balance instead of stretching: the six groups pour into four
+ * columns, measured at 255 / 323 / 284 / 411px in a 445px panel — a 156px
+ * spread across the whole surface rather than a 250px hole inside one cell of
+ * it — and the page's content now ends 112px lower, which is 112px of trailing
+ * void the footer no longer has to sit under. `column-rule` draws the thin rule
+ * between columns that §A6 asks for, which is what the per-cell `border-right`
+ * was imitating.
  */
 .weights-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  align-items: stretch;
+  columns: 4 220px;
+  column-gap: var(--gutter);
+  column-rule: 1px solid var(--line-soft);
+  padding: var(--s4);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--bg-panel);
-  overflow: hidden;
 }
 
+/* A group is one unit of the flow: it never splits across a column break. */
 .weights-grid > .panel {
+  break-inside: avoid;
   border: 0;
-  border-right: 1px solid var(--line-soft);
-  border-bottom: 1px solid var(--line-soft);
   border-radius: 0;
   background: transparent;
+  padding: 0 0 var(--s5);
 }
 
 .weight-row {
@@ -2470,8 +2754,22 @@ table.data tbody tr:hover {
   text-overflow: ellipsis;
 }
 
+/*
+ * `--faint` is documented at 4.57:1 — but that is over `--bg-panel`, and a
+ * socket is not on `--bg-panel`. Composited against the ground actually behind
+ * it (#1b1815) the em-dash measured **4.29:1**, i.e. below AA, 92 times on a
+ * set whose slots are above +0.
+ *
+ * It went unseen because the contrast sweep's fixture auto-fills at +0 and the
+ * first socket unlocks at +1: the screen it measured rendered zero sockets. The
+ * sweep now raises the tier for exactly this reason.
+ *
+ * `--text-dim` measures 5.37:1 on that ground and is still a step below the
+ * filled donor's `--text`, so "this socket is empty" stays the quieter of the
+ * two states without being unreadable.
+ */
 .socket .donor.none {
-  color: var(--faint);
+  color: var(--text-dim);
 }
 
 .exalt-item {
@@ -2996,6 +3294,37 @@ table.data tbody tr:hover {
 }
 
 /*
+ * Four nav items do not fit a 320px bar, so below 380px the bar stops trying.
+ *
+ * The primary nav gained a fourth entry when the Upgrades screen did. Measured
+ * in Chromium: the three-item bar was already *exactly* full at 320px — nav
+ * `scrollWidth 177` in `clientWidth 177` — and a fourth takes the content to
+ * 242px, at which point flex shrinks each link below its own text and the
+ * labels print over each other. 390px and up are unaffected (247 in 247).
+ *
+ * Four labels cannot be made to fit 177px without squeezing words, so the items
+ * keep their natural width and the strip scrolls under the thumb instead. A nav
+ * you can swipe beats four labels overlapping. Measured after this rule: no
+ * link squeezed, no overlap, and zero *page* scroll at 320 / 360 / 380.
+ *
+ * This lived in `screens/Upgrades.css` while that screen was being built,
+ * relying on being bundled ahead of this file for the cascade to land. That is
+ * a global chrome rule depending on import order to work — it belongs here,
+ * with the rest of the top bar, where its specificity is its own.
+ */
+@media (max-width: 380px) {
+  .topbar nav {
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .topbar nav a {
+    flex: none;
+  }
+}
+
+/*
  * The narrowest phones. The figure keeps its side-by-side map/numbers layout
  * down to here; below it the map alone is 226px of a 264px panel, so the meter
  * track resolved to 14px and pushed `776 EP` out to x=349 in a 320px viewport —
@@ -3067,9 +3396,14 @@ table.data tbody tr:hover {
   font-variant-numeric: tabular-nums;
 }
 
+/* Prose, bounded to the measure like the rest of the app's prose — it was
+   setting 236 characters across the whole 1,330px shell in two lines. */
 .exalt-summary .hint {
   flex: 1 1 320px;
   min-width: 0;
+  max-width: var(--measure);
+  font-size: var(--fs-body);
+  line-height: 1.65;
 }
 
 .effect-list {
@@ -3279,6 +3613,45 @@ table.data tr.rowlink:focus-visible {
  * keywords `white` and `black`, so half of it followed the token file and half
  * of it could not, which is the worst of both. `--tint` and `--shade` are those
  * two ends of the range, declared where everything else is declared.
+ *
+ * ---------------------------------------------------------------------------
+ * **On being the loudest object on the page.**
+ *
+ * An art review measured this window as the brightest, most saturated and most
+ * chromatically foreign thing in the app — `--client-cyan` alone runs B−R=156
+ * against a palette that is otherwise entirely warm — and it opens on every
+ * hover. The proposed fix was to damp all four client hues 15–20% toward the
+ * ground. That fix is declined, and the reason is written here so the decision
+ * is not re-litigated from the screenshot alone:
+ *
+ *   1. Rule 2 of `tokens.css` is *where the client makes a choice, copy the
+ *      client*, and it is the rule that caught this window silently drifting
+ *      once already — it used to read its cyan off `--accent-hot` and its green
+ *      off `--gain`, so the re-skin moved both and the quotation stopped
+ *      matching the game it quotes. A 15% damp is that same failure by a
+ *      politer door: the window would no longer be a quotation, it would be a
+ *      paraphrase, and the next skin would move it again.
+ *   2. The four hues are not what makes it loud. Three of them carry a handful
+ *      of short runs of text; the fourth is a full-width saturated band. **The
+ *      title bar is the object.**
+ *
+ * So the hues are untouched and the *rendering* of them is corrected. Both
+ * gradients here were the app's inventions rather than the client's: the title
+ * lightened `--client-red` 12% toward cream at its top stop, which made the
+ * loudest band in the app brighter than the colour it is quoting, and the body
+ * washed 90px of cream down from under it. `UI-REFERENCE` §B5 asks for "a red
+ * gradient title bar" and "beveled borders" — it does not ask for either lift,
+ * and the 1px inset highlight below is what a bevel actually is. The band now
+ * starts at the client's own red and falls into shade, which is both quieter
+ * and closer to the thing on the reference screen.
+ *
+ * The gradient's top stop goes from rgb(217, 99, 92) — `--client-red` mixed 12%
+ * into cream — to rgb(213, 80, 74), which is `--client-red` itself. Relative
+ * luminance 0.245 → 0.204: a **17% drop**, with no hue shift and no loss of
+ * fidelity. That is the reviewer's 15–20%, taken out of the app's own
+ * embellishment rather than out of the quotation. Sampled off the rendered
+ * window rather than only computed: one pixel row into the band now reads
+ * rgb(208, 78, 72), L 0.193.
  */
 
 .iwin {
@@ -3297,12 +3670,14 @@ table.data tr.rowlink:focus-visible {
   overflow: hidden;
 }
 
+/* The client's red at the top, falling into shade — not a brightened copy of
+   it. See the note above §21 on why the hue itself does not move. */
 .iwin-title {
   padding: var(--s1) var(--s3);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--client-red) 88%, var(--tint)),
-    color-mix(in srgb, var(--client-red) 66%, var(--shade))
+    var(--client-red),
+    color-mix(in srgb, var(--client-red) 62%, var(--shade))
   );
   border-bottom: 1px solid var(--stone-shade);
   text-shadow: var(--shadow-text);
@@ -3316,12 +3691,13 @@ table.data tr.rowlink:focus-visible {
   overflow-wrap: anywhere;
 }
 
+/* Flat stone. The 90px cream wash that used to fall from under the title bar
+   was not a bevel and not in §B5; the 1px inset highlight on `.iwin` is. */
 .iwin-body {
   display: flex;
   flex-direction: column;
   gap: var(--s1);
   padding: var(--s2) var(--s3) var(--s3);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--stone-lit) 25%, transparent), transparent 90px);
 }
 
 .iwin-top {
