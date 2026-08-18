@@ -115,71 +115,58 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 
 ## From the Director
 
-*(nothing outstanding)*
+### Pending — the footer, after the consolidation lands
+
+The site is consolidating nine tools to three: The Index, Sky Ledger and 50 Upgrades. Six
+pages this tool's footer links are being deleted:
+
+| Link | Where |
+|---|---|
+| `/tools/character` | `SiteChrome.tsx:211` |
+| `/tools/race-unlocks` | `SiteChrome.tsx:214` |
+| `/tools/combo-calculator` | `SiteChrome.tsx:215` |
+| `/tools/faction-impact` | `SiteChrome.tsx:216` |
+| `/tools/planar-gear` | `SiteChrome.tsx:217` |
+| `/tools/inventory` | `SiteChrome.tsx:218` |
+
+All six are extensionless, confirmed in this repository's own source and in the live bundle.
+Session A is writing every withdrawal redirect in both the `.html` and extensionless forms,
+so they will 301 rather than break.
+
+**Do not fix this yet — fixing now means fixing twice.** When the removals land, the
+Director says so, and then: copy the footer once from the final state and add a drift check
+of the same shape as `web/src/components/site-nav-drift.test.ts` — expected set pinned
+offline so CI can run it without a network, checked against the live site when reachable,
+skipping loudly rather than failing when not. A hand-copied footer drifts silently, which
+is the whole reason that test exists. *(Director, 2026-08-18: heads-up, no action.)*
+
+**One thing beyond the footer, for whenever this is actioned.** `PlanarGear.tsx:461`
+renders a visible eyebrow reading *"Tool · planar armour · absorbed from
+eqlsource.com/tools/planar-gear"*. It is prose, not a link, so nothing 404s — but it points
+a reader at a page that will no longer exist, and it is the kind of line no link-checker
+looks at. It should be rewritten in the same pass, not left behind because it happens not
+to be an `<a>`.
 
 ---
 
 ## To the Director
 
-### The map is fixed, and your hypothesis was the one thing that was already right
+### Acknowledged, nothing touched
 
-The doubled slots were **already mirrored** — `EAR_1`/`EAR_2` flanking, `WRIST_1`/`WRIST_2`
-either side, `FINGERS_1`/`FINGERS_2` outermost. That part matched the game.
+The footer is unchanged. `git status` this turn is one file: `HANDOFF.md`.
 
-The fault was larger. The panel was a **5-column, 7-row anatomical silhouette** with a
-decorative SVG body drawn behind it — ears flanking a helm, a chest-waist spine, weapons
-beside the legs, Any Slots at the ankles — and three files carried comments arguing that
-narrowing at the head and widening at the shoulders "is the whole point". Every position a
-player already knows the place of was somewhere else.
+Two things from checking my own source while recording it, both read-only:
 
-Rendered and measured in a browser against the capture:
-
-```
-·          Ear 1      Neck       Face       Head       Ear 2
-Fingers 1  Wrist 1    Arms       Hands      Wrist 2    Fingers 2
-Shoulders  Chest      Back       Waist      Legs       Feet
-Primary    Secondary  Range      Ammo       Any Slot 1 Any Slot 2
-```
-
-The silhouette is **removed, not adapted**. A body drawn behind the game's grid is
-decoration competing with recognition, and there is nothing to adapt it to.
-
-**Worth naming, because it is not the usual failure.** Nothing here was typed where it
-could have been computed — the layout was measured, asserted in jsdom and re-measured in a
-real browser, and every one of those checks passed against it for weeks. It was **invented
-where it could have been observed.** Nobody looked at the game's own window. Rigour
-downstream of a wrong premise just makes the wrong thing harder to dislodge.
-
-### A miss of mine you should know about
-
-**`e2e/routes.spec.ts` has been red since `ea76d92` and I pushed twice over it.** When the
-32 chrome links moved off the `.html` form, three assertions kept the old spelling. I
-started that suite, the run completed, and I read a different command's output instead of
-its result — then reported "145/145" from a run that predated the change. The rule I broke
-is my own: the command that produced the number has to be the command that answers the
-question.
-
-Fixed, and guarded: the spec now asserts the extensionless form and additionally fails if
-**any** chrome link ends in `.html`, so the dependency on your redirect rule cannot come
-back silently.
-
-### From the capture, recorded not chased
-
-- `Strength 70/510` and `SV Magic 25/1000` put `ATTRIBUTE_CAP` and `RESIST_CAP` on Tier M
-  footing — a second character, far from the first, printing the same denominators.
-- `AC 20/350 | 110` is **gap 7** in `research/validation/KNOWN-DATA-ISSUES.md`. The `110`
-  is unexplained and is not guessed at. What would settle it: two captures of the same
-  character with different gear, so the figure's response to worn AC can be measured. One
-  capture cannot distinguish a constant from a function.
-
-### Needs your relay to Session A
-
-`slots.worn` is renamed to `slots.types`. Anything reading `slots.worn` gets `undefined`
-rather than a wrong number, which is the failure mode I'd choose, but it is a break and
-they cannot see it from here.
+- The six links are where you said, all extensionless — `SiteChrome.tsx:211, 214, 215, 216,
+  217, 218`. Recorded above with line numbers so the eventual pass has a work list rather
+  than a search.
+- **`PlanarGear.tsx:461` carries the same exposure in prose.** It renders a visible eyebrow
+  reading *"Tool · planar armour · absorbed from eqlsource.com/tools/planar-gear"*. Not a
+  link, so nothing 404s and no link-checker will ever flag it — but it names a page that is
+  going away, to a reader, on screen. Worth folding into the same pass rather than
+  discovering later.
 
 ### State
 
-891 unit, 145 e2e, 55 pipeline checks, verify green. Catalogue frozen: `counts.items`
-**3,663**, `items-index.json` and every shard byte-identical. Holding, post-drop queue
-untouched.
+Holding. Catalogue frozen at `counts.items` **3,663**; `items-index.json` and every shard
+untouched. Post-drop queue untouched. Waiting on your word that the removals have landed.
