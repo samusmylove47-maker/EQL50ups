@@ -1,7 +1,14 @@
 /**
  * Planar gear targets.
  *
- * This absorbs eqlsource.com/tools/planar-gear. That tool exists for one
+ * This absorbed the site's own Planar gear targets, since withdrawn —
+ * `/tools/planar-gear` 301s to `/tools/50-upgrades.html` and 307s on to
+ * `/tools/50-upgrades`, checked 2026-08-18. Everything below that speaks of
+ * "that tool" in the present is describing what it did while it was up, read
+ * off it on 2026-08-18 and recorded in `planarSets.ts`; it is history now, and
+ * the comparison is kept because it is why this screen is shaped as it is.
+ *
+ * That tool existed for one
  * genuinely hard reason and it is worth restating rather than paraphrasing: a
  * trio can wear planar armour from all three of its classes **plus the two
  * shared sets**, so up to five sets compete for every slot, and nobody can hold
@@ -457,8 +464,23 @@ export function PlanarGear() {
   return (
     <div className="pl">
       <header className="pl-head">
+        {/*
+          This read `absorbed from eqlsource.com/tools/planar-gear` until that
+          page was withdrawn. It is prose rather than an `<a>`, so nothing 404s
+          and no link checker would ever have flagged it — it simply named, to a
+          reader, on screen, a URL they could type in and not arrive at. (It
+          301s to `/tools/50-upgrades.html` and 307s on to `/tools/50-upgrades`
+          — `curl -o /dev/null -w '%{http_code} %{redirect_url}'`, 2026-08-18 —
+          so a reader who tried would land on the site's page about this very
+          tool, which is a confusing way to be told a page is gone.)
+
+          The absorption is real history and worth keeping; the address is what
+          had to go. `Planar gear targets` is the name the site published it
+          under, and naming it rather than its URL is what makes the line stay
+          true after the redirect rule is eventually retired too.
+        */}
         <div className="pl-head-eyebrow">
-          Tool · planar armour · absorbed from eqlsource.com/tools/planar-gear
+          Tool · planar armour · absorbed from the site&apos;s Planar gear targets, now withdrawn
         </div>
         <h1 className="pl-head-title">
           Planar gear <em>targets</em>

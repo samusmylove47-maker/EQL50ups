@@ -5,7 +5,19 @@
  * WHERE THE SET LIST COMES FROM
  *
  * The eighteen set names and the class each belongs to are transcribed from
- * eqlsource.com's own `/tools/planar-gear.html`, read on 2026-08-18. That is a
+ * eqlsource.com's own Planar gear targets at `/tools/planar-gear.html`, read on
+ * 2026-08-18.
+ *
+ * **That page has since been withdrawn** — it now 301s to `/tools/50-upgrades`
+ * — so the citation cannot be re-fetched, and the URL is kept rather than
+ * tidied away precisely because a dated read of a page that existed on the date
+ * given is the record. Deleting it would leave the eighteen names looking
+ * unsourced; replacing it with a live URL would be worse, because it would
+ * invite a future session to "re-check" against a page that no longer says
+ * anything. If these names ever need re-deriving, the successor source is this
+ * repository's own catalog, which is what everything below already uses.
+ *
+ * That is a
  * **Tier 3** statement under `research/SOURCING-STANDARD.md` — a named
  * community source — and it is used here for exactly one thing: deciding which
  * eighteen names are set names, and which class each set belongs to.

@@ -25,7 +25,8 @@ export type Route =
   | { name: 'items' }
   /**
    * Planar armour targets across all five sets a trio can draw on — the site's
-   * own `/tools/planar-gear.html`, absorbed. A top-level route rather than a
+   * own Planar gear targets, absorbed, and since withdrawn there, so this route
+   * is now the only place it exists. A top-level route rather than a
    * tab on a gear set because it answers a question you can ask before you have
    * saved anything: "of the eighteen planar sets, which pieces are mine".
    */

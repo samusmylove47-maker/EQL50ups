@@ -345,6 +345,46 @@
 }
 
 /*
+ * The one entry in the Tools column that is this tool.
+ *
+ * A third meaning needs a third device, and this file already says why:
+ * `.site-nav a[aria-current]` is a 1px box and means *which part of the site*,
+ * `.tool-nav a[aria-current]` is a 2px accent underline and means *which page
+ * of this tool*. Neither fits. This one means *which of the site's six tools
+ * you are inside*, and it is read by someone who has scrolled a long way past
+ * the masthead that already said it — so it has to carry the fact on its own,
+ * without either of the other two marks' baggage.
+ *
+ * Borrowing the box here would also be wrong mechanically: a 1px border on one
+ * `li` in a column of six shifts that row against its neighbours, and the
+ * column is set in `--sans` at reading size rather than in the masthead's mono
+ * caps, where a box sits naturally around a short tracked word.
+ *
+ * So: the strong text these links already reach on hover, plus a label. The
+ * label is `::after` and the fact is on the element as `aria-current`, so a
+ * screen reader gets it from the markup rather than from generated content,
+ * which not every one announces. It takes the footer `h4`'s own setting —
+ * mono, micro, faint, widest tracking — so it reads as the column's own label
+ * voice and not as a second link.
+ */
+.foot-grid a[aria-current] {
+  color: var(--text-strong);
+}
+
+.foot-grid a[aria-current]::after {
+  content: 'you are here';
+  margin-left: var(--s2);
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--track-widest);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  /* The label belongs to the link and must not be split off it by a wrap;
+     the whole pair wraps to the next line instead. */
+  white-space: nowrap;
+}
+
+/*
  * The catalog's own account of itself. The site has no equivalent — its pages
  * are built, not loaded — so this is ours, set in the footer's own mono at the
  * quietest step that still clears AA on this panel (5.8:1).

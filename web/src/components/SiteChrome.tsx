@@ -2,10 +2,13 @@
  * Site chrome — the frame that makes this a page *of* eqlsource.com.
  *
  * This planner is not a standalone site. It is one of three flagship tools on
- * eqlsource.com, alongside Sky Ledger and the overlay, and it is meant to
- * replace that site's Planar gear targets, Inventory reader and The Index. A
- * reader who arrives here from `/tools/` should not feel the floor change, and
- * — more importantly — should be able to walk back out.
+ * eqlsource.com, alongside Sky Ledger and the overlay, and it replaces three
+ * pages that site has since withdrawn: the Character sheet, the Planar gear
+ * targets and the Inventory reader. All three now 301 to `/tools/50-upgrades`
+ * — `curl -o /dev/null -w '%{http_code} %{redirect_url}'`, 2026-08-18. The
+ * Index is *not* among them; it is still served, and it is still in the nav
+ * below. A reader who arrives here from `/tools/` should not feel the floor
+ * change, and — more importantly — should be able to walk back out.
  *
  * Everything below is read off the live site rather than inferred:
  * `https://eqlsource.com/assets/site.css` and `/tools/index.html`, fetched
@@ -35,6 +38,18 @@ import './SiteChrome.css';
 
 const SITE = 'https://eqlsource.com';
 
+/*
+ * The three outbound links the chrome writes outside a list: the wordmark, the
+ * first breadcrumb step, and the second. Named rather than inlined so that
+ * `CHROME_LINKS` below is genuinely *every* eqlsource.com href this component
+ * can emit — an offline pin that only covered the links that happen to live in
+ * arrays would pass while a hand-typed one carried the `.html` form.
+ */
+const SITE_HOME = `${SITE}/`;
+const SITE_TOOLS_INDEX = `${SITE}/tools/`;
+/** Also the last entry of the Learn column; one constant, so they cannot part. */
+const SITE_STILL_TRUE = `${SITE}/learn/still-true`;
+
 /**
  * The masthead nav, verbatim from `/tools/index.html`. `Tools` is marked as the
  * current section because that is the section this tool lives in — the site
@@ -43,7 +58,7 @@ const SITE = 'https://eqlsource.com';
 export const SITE_NAV: ReadonlyArray<{ href: string; label: string; here?: boolean; find?: boolean }> = [
   { href: `${SITE}/dungeons/`, label: 'Dungeons' },
   { href: `${SITE}/raids/`, label: 'Raids' },
-  { href: `${SITE}/tools/`, label: 'Tools', here: true },
+  { href: SITE_TOOLS_INDEX, label: 'Tools', here: true },
   { href: `${SITE}/tools/index-search`, label: 'The Index' },
   { href: `${SITE}/learn/`, label: 'Learn' },
   { href: `${SITE}/sources`, label: 'Accuracy' },
@@ -71,10 +86,11 @@ const TOOL_NAV: ReadonlyArray<{ href: string; label: string; match: string[] }> 
    */
   { href: href.upgrades(), label: 'Upgrades', match: ['upgrades'] },
   /*
-   * The site's own `/tools/planar-gear.html`, absorbed. It sits in the rail
-   * rather than under a set because the question it answers — which planar
-   * pieces are open to my trio — is one a reader arrives with, before they have
-   * saved a character.
+   * The site's own Planar gear targets, absorbed. That page has since been
+   * withdrawn — `/tools/planar-gear` 301s here — so this rail entry is now the
+   * only place it exists. It sits in the rail rather than under a set because
+   * the question it answers — which planar pieces are open to my trio — is one
+   * a reader arrives with, before they have saved a character.
    */
   { href: href.planar, label: 'Planar', match: ['planar'] },
   { href: href.items, label: 'Items', match: ['items'] },
@@ -82,6 +98,53 @@ const TOOL_NAV: ReadonlyArray<{ href: string; label: string; match: string[] }> 
 
 /** The name this tool is published under on the site's `/tools/` index. */
 export const TOOL_NAME = '50 Upgrades';
+
+/**
+ * The site's tool set — the footer's `Tools` column, and a hand-copy of the
+ * `Tools` column in the footer `https://eqlsource.com/tools/` serves. Label,
+ * URL and order are that column's, read 2026-08-18; `site-foot-drift.test.ts`
+ * checks the copy against the original and skips loudly when it cannot reach
+ * it.
+ *
+ * It held eight entries. Three of them — `/tools/character`,
+ * `/tools/planar-gear`, `/tools/inventory` — were withdrawn and now 301 to
+ * `/tools/50-upgrades.html`, which 307s to `/tools/50-upgrades`: two hops to a
+ * page about *this* tool. They did not break, which is exactly why they
+ * survived a pass. A footer that offers a reader three pages the site has
+ * taken down is stale whether or not the redirect rule is still there to
+ * catch them.
+ *
+ * And it did not list this tool at all — checked before it was fixed:
+ * `grep -n '50-upgrades' SiteChrome.tsx` returned nothing. The one page in the
+ * site's tool index that this tool is in a position to know about first-hand
+ * was the one page it left out of the index it publishes.
+ *
+ * **How this tool lists itself.** As a link, to the site's own page for it, and
+ * marked `aria-current`. Three things decided that, in order:
+ *
+ *  - `/tools/50-upgrades` is a real document and a real destination — 200, and
+ *    the site's own account of this planner rather than the planner itself, so
+ *    the link goes somewhere a reader cannot already be. It is not a link to
+ *    nowhere and it is not a link to here.
+ *  - the site's own `/tools/50-upgrades` page links itself from this same
+ *    column, so a plain link is that column's convention, not a lapse in it.
+ *  - but a reader standing inside the tool should be told which of the six they
+ *    are in, and the masthead already has a device for exactly that. This is
+ *    `aria-current="true"` — "the current item of a set" — not `"page"`, which
+ *    would claim the link's target is the document you are reading. It is not.
+ *
+ * Every href is extensionless. The `.html` form 307s, and all 32 of this
+ * chrome's outbound links were moved off it deliberately; `CHROME_LINKS` pins
+ * that.
+ */
+export const SITE_TOOLS: ReadonlyArray<{ href: string; label: string; here?: boolean }> = [
+  { href: `${SITE}/tools/index-search`, label: 'The Index' },
+  { href: `${SITE}/tools/sky-ledger`, label: 'Sky Ledger' },
+  { href: `${SITE}/tools/50-upgrades`, label: TOOL_NAME, here: true },
+  { href: `${SITE}/tools/race-unlocks`, label: 'Race unlock tracker' },
+  { href: `${SITE}/tools/combo-calculator`, label: 'Race and primary calculator' },
+  { href: `${SITE}/tools/faction-impact`, label: 'Faction impact checker' },
+];
 
 /* ------------------------------------------------------------- masthead */
 
@@ -108,7 +171,7 @@ function SiteBar({ route }: { route: Route }) {
   return (
     <header className="site-bar">
       <div className="shell">
-        <a className="mark" href={`${SITE}/`}>
+        <a className="mark" href={SITE_HOME}>
           <span className="m1">EQL Source</span>
           <span className="m2">Survey</span>
         </a>
@@ -152,9 +215,9 @@ function ToolBar({ route }: { route: Route }) {
             its air at this tracking. A plain space collapses against the
             .24em and the slashes crowd the words. */}
         <p className="crumb">
-          <a href={`${SITE}/`}>EQL Source</a>
+          <a href={SITE_HOME}>EQL Source</a>
           <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
-          <a href={`${SITE}/tools/`}>Tools</a>
+          <a href={SITE_TOOLS_INDEX}>Tools</a>
           <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
           <span className="crumb-here">{TOOL_NAME}</span>
         </p>
@@ -178,7 +241,7 @@ function ToolBar({ route }: { route: Route }) {
 
 interface Column {
   head: string;
-  links: ReadonlyArray<{ href: string; label: string }>;
+  links: ReadonlyArray<{ href: string; label: string; here?: boolean }>;
 }
 
 const FOOT: ReadonlyArray<Column> = [
@@ -205,19 +268,8 @@ const FOOT: ReadonlyArray<Column> = [
       { href: href.contamination, label: 'What the scanner finds here' },
     ],
   },
-  {
-    head: 'Tools',
-    links: [
-      { href: `${SITE}/tools/character`, label: 'Character sheet' },
-      { href: `${SITE}/tools/index-search`, label: 'The Index' },
-      { href: `${SITE}/tools/sky-ledger`, label: 'Sky Ledger' },
-      { href: `${SITE}/tools/race-unlocks`, label: 'Race unlock tracker' },
-      { href: `${SITE}/tools/combo-calculator`, label: 'Race and primary calculator' },
-      { href: `${SITE}/tools/faction-impact`, label: 'Faction impact checker' },
-      { href: `${SITE}/tools/planar-gear`, label: 'Planar gear targets' },
-      { href: `${SITE}/tools/inventory`, label: 'Inventory reader' },
-    ],
-  },
+  /* The six the site publishes, in its order. See `SITE_TOOLS`. */
+  { head: 'Tools', links: SITE_TOOLS },
   {
     head: 'Dungeons',
     links: [
@@ -240,7 +292,7 @@ const FOOT: ReadonlyArray<Column> = [
   {
     head: 'Learn',
     links: [
-      { href: `${SITE}/learn/still-true`, label: 'Is it still true?' },
+      { href: SITE_STILL_TRUE, label: 'Is it still true?' },
       { href: `${SITE}/learn/difficulty`, label: 'What difficulty changes' },
       { href: `${SITE}/learn/motes`, label: 'Motes' },
       { href: `${SITE}/learn/raid-access`, label: 'How raid access works' },
@@ -267,6 +319,41 @@ const FOOT: ReadonlyArray<Column> = [
 const FINDING =
   'https://github.com/samusmylove47-maker/eql-source/issues/new?template=finding.yml';
 
+/**
+ * Every `eqlsource.com` href this component can render, in one list, so a unit
+ * test can pin properties of the whole set without a browser.
+ *
+ * The filter is the same one `e2e/routes.spec.ts` uses on the rendered DOM —
+ * `a[href^="https://eqlsource.com"]` — so the two agree on what counts as a
+ * chrome link. `href.landing` and its siblings are in-app hashes and are not
+ * outbound; `FINDING` is GitHub's and is not the site's.
+ *
+ * Three counts, none of which is the other two, so that nobody reconciles them
+ * by adjusting one:
+ *
+ *  - **39** entries here, because the nav and the footer are allowed to offer
+ *    the same page and do: `/tools/`, `/tools/index-search`, `/dungeons/`,
+ *    `/raids/`, `/sources`, `/search` and `/learn/still-true` are each written
+ *    twice;
+ *  - **32** distinct destinations, which is the number the drift and `.html`
+ *    assertions are about and the number `routes.spec.ts`'s comment cites;
+ *  - **40** matching anchors in the built page, one more than 39 because
+ *    `${SITE}/` is written once and rendered twice — the wordmark and the first
+ *    breadcrumb step.
+ *
+ * Measured together against the current file rather than carried forward:
+ * `CHROME_LINKS.length`, `new Set(CHROME_LINKS).size`, and
+ * `document.querySelectorAll('a[href^="https://eqlsource.com"]').length` on a
+ * `VITE_BASE=/EQL50ups/` preview at 1440 and at 390.
+ */
+export const CHROME_LINKS: ReadonlyArray<string> = [
+  SITE_HOME,
+  SITE_TOOLS_INDEX,
+  SITE_STILL_TRUE,
+  ...SITE_NAV.map((entry) => entry.href),
+  ...FOOT.flatMap((column) => column.links.map((link) => link.href)),
+].filter((link) => link.startsWith(SITE));
+
 export function SiteFooter() {
   return (
     <footer className="site-foot">
@@ -278,7 +365,12 @@ export function SiteFooter() {
               <ul>
                 {column.links.map((link) => (
                   <li key={`${column.head}:${link.href}:${link.label}`}>
-                    <a href={link.href}>{link.label}</a>
+                    {/* `true`, not `page`: this marks the current item of a
+                        set, and the href's target is a different document
+                        from the one being read. See `SITE_TOOLS`. */}
+                    <a href={link.href} aria-current={link.here ? 'true' : undefined}>
+                      {link.label}
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -304,7 +396,7 @@ export function SiteFooter() {
             <strong>Found something the site gets wrong, or something the wiki does?</strong> That
             is the most useful thing anyone can send us, and every finding is credited by name.{' '}
             <a href={FINDING}>Send a finding</a> ·{' '}
-            <a href={`${SITE}/learn/still-true`}>see what is already open</a>.
+            <a href={SITE_STILL_TRUE}>see what is already open</a>.
           </p>
           <p className="foot-nolog">
             Please do not attach a combat log to a public issue — they can carry private chat. Say
