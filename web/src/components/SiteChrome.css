@@ -71,7 +71,16 @@
  *
  * `EQL Source` is Cinzel — an inscriptional Roman capital, "the letterform of
  * things carved", per their own note — at `.1em`, beside `SURVEY` in mono at
- * their widest tracking. Their size is 18.5px; this scale's nearest step is 17.
+ * their widest tracking, at the site's own 18.5px.
+ *
+ * It reached that size by getting its own rung. It used to share `--fs-heading`
+ * with item names, which wanted 17px and could not give it up: the doll's
+ * clamp boxes are width-critical. So the mark sat 1.5px under the site's, and
+ * because the two halves of the lockup are baseline-aligned in a flex row, the
+ * narrower `EQL SOURCE` dragged `SURVEY` left of where the site puts it. One
+ * token, two jobs, opposite constraints — a second source of truth in CSS
+ * form. `--fs-mark` is the fix, and `tokens.css` carries the argument.
+ *
  * Weight is declared 800 and clamps to Cinzel's 700 master, which is what the
  * variable file actually holds; the *declared* weight is what the type audit
  * reads, and 800 is on the scale where 700 is not.
@@ -88,7 +97,7 @@
 .mark .m1 {
   font-family: var(--serif);
   font-weight: var(--fw-num);
-  font-size: var(--fs-heading);
+  font-size: var(--fs-mark);
   letter-spacing: var(--track-mark);
   text-transform: uppercase;
   color: var(--text-strong);

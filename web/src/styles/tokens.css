@@ -434,6 +434,29 @@
    * the gap is real, the fix is not free, and the probe is the check.
    */
   --fs-heading: 17px;
+  /*
+   * 18.5px, and it belongs to the wordmark alone.
+   *
+   * The rung above was carrying two jobs with opposite constraints: item names,
+   * which are width-critical inside a `-webkit-line-clamp` box, and `EQL
+   * SOURCE` in the masthead, which is width-critical in the other direction —
+   * it has to match a mark rendered a step larger on the site it is claiming to
+   * be part of. One token cannot serve both: closing the shared rung to 18.5px
+   * pushed the paper doll onto a vertically cut line, which is the measurement
+   * recorded in the note above.
+   *
+   * So the wordmark gets its own rung at the site's own size. This is not an
+   * exception to the scale, it is a step on it: `visual-system.spec.ts`'s
+   * `TYPE_SCALE_FIXED` lists it, so anything else that renders 18.5px is legal
+   * only because somebody added it here on purpose.
+   *
+   * Measured off the live site's `assets/site.css` rather than matched by eye,
+   * and the reason it matters is `SURVEY`: the two halves of the lockup are
+   * baseline-aligned in a flex row, so a narrower `EQL SOURCE` drags the mono
+   * half left of where the site puts it. Item names are untouched at 17px,
+   * which is the whole point of splitting the token.
+   */
+  --fs-mark: 18.5px;
   --fs-large: clamp(20px, 2.2vw, 30px);
   /*
    * The display tier is fluid, because the site's is.

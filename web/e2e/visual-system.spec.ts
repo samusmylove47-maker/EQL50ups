@@ -35,7 +35,16 @@ import { createCharacter, expect, openSlotPicker, test } from './helpers';
  * The fixed tiers stay fixed on purpose. A table of numbers that reflows its
  * own type is harder to read, not easier.
  */
-const TYPE_SCALE_FIXED = ['10px', '11px', '13px', '15px', '17px'];
+/*
+ * 18.5px is `--fs-mark`, and only the masthead wordmark may render it. It is a
+ * step rather than an exception for the same reason 17px is: it is declared in
+ * `tokens.css` and listed here, so a stray 18.5px anywhere else fails this
+ * assertion rather than passing as "near enough the heading size".
+ *
+ * It exists because `--fs-heading` was sizing the wordmark and item names at
+ * once, and the two want opposite things — see the note at the token.
+ */
+const TYPE_SCALE_FIXED = ['10px', '11px', '13px', '15px', '17px', '18.5px'];
 const FLUID_TOKENS = ['--fs-large', '--fs-title', '--fs-hero'];
 
 async function typeScaleFor(page: import('@playwright/test').Page): Promise<string[]> {

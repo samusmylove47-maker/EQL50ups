@@ -207,7 +207,59 @@ function SiteBar({ route }: { route: Route }) {
 
 /* ------------------------------------------------------- breadcrumb rail */
 
+/**
+ * The screen the reader is on, or `null` on this tool's own landing.
+ *
+ * A breadcrumb that reads identically on every route encodes nothing, and
+ * `DESIGN.md`'s rule is that a decorative mark should encode something true.
+ * This one used to stop at `50 Upgrades` on all ten routes, which made the
+ * deepest segment a label for the tool rather than a position inside it.
+ *
+ * `null` on the landing is deliberate rather than a gap: the trail's last
+ * segment is *where you are*, and on the landing that is the tool. A fourth
+ * segment there would either repeat the third or invent a name \u2014 `Home` \u2014 for
+ * a page whose name is already `50 Upgrades`.
+ *
+ * The switch is exhaustive over `Route` on purpose. `router.ts` owns that
+ * union, and a `default` here would let a route added there arrive with a
+ * breadcrumb that silently stops one level short; `tsc` fails the build
+ * instead. `share` names the act rather than the payload, and `not-found`
+ * names the failure, because both are real positions a reader can be in.
+ */
+export function screenName(route: Route): string | null {
+  switch (route.name) {
+    case 'landing':
+      return null;
+    case 'characters':
+      return 'Characters';
+    case 'new-character':
+      return 'New character';
+    case 'character':
+      return 'Character';
+    case 'set':
+      // The tab is the screen: three tabs that share a route are three places.
+      return { gear: 'Gear', exaltations: 'Exaltations', weights: 'Weights' }[route.tab];
+    case 'set-compare':
+      return 'Compare sets';
+    case 'upgrades':
+      return 'Upgrades';
+    case 'items':
+      return 'Items';
+    case 'planar':
+      return 'Planar';
+    case 'sources':
+      return 'Sources';
+    case 'contamination':
+      return 'What the scanner finds';
+    case 'share':
+      return 'Shared set';
+    case 'not-found':
+      return 'Not found';
+  }
+}
+
 function ToolBar({ route }: { route: Route }) {
+  const screen = screenName(route);
   return (
     <div className="tool-bar">
       <div className="shell">
@@ -219,7 +271,18 @@ function ToolBar({ route }: { route: Route }) {
           <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
           <a href={SITE_TOOLS_INDEX}>Tools</a>
           <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
-          <span className="crumb-here">{TOOL_NAME}</span>
+          {/* On a deeper screen the tool's name stops being where you are and
+              becomes a step you can walk back to, so it becomes a link \u2014 to
+              this app's own landing, not to the site's page about it. */}
+          {screen === null ? (
+            <span className="crumb-here">{TOOL_NAME}</span>
+          ) : (
+            <>
+              <a href={href.landing}>{TOOL_NAME}</a>
+              <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
+              <span className="crumb-here">{screen}</span>
+            </>
+          )}
         </p>
         <nav className="tool-nav" aria-label="Primary">
           {TOOL_NAV.map((entry) => (
