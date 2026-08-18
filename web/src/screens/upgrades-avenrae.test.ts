@@ -114,6 +114,24 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
     { filters: { ...DEFAULT_SET_FILTERS }, basis: { kind: 'worn' } },
   );
 
+  /*
+   * No slot may be recommended on a weapon number the stat sheet will not read
+   * back.
+   *
+   * This screen shipped with a Throwing Boulder ranked fifth at +30.9 EP, above
+   * real armour gains, because the rank scorer paid for damage ratio in every
+   * slot except the two Any Slots while `computeTotals` reads a weapon only
+   * from PRIMARY and SECONDARY. A player told to go farm Permafrost for an
+   * Ammo slot would have gained nothing measurable.
+   */
+  it('never recommends a slot on damage the set cannot use', () => {
+    const offenders = report.rows
+      .filter((row) => row.position.type !== 'PRIMARY' && row.position.type !== 'SECONDARY')
+      .filter((row) => Boolean(row.candidate?.item?.wp))
+      .map((row) => `${row.position.type}: ${row.candidate?.item?.n}`);
+    expect(offenders).toEqual([]);
+  });
+
   it('reads the export into a set the ranking can work on', () => {
     // 22 filled worn positions in the export; the Shadow Rage Helm is the one
     // the importer withholds, because no catalog carries its stats.

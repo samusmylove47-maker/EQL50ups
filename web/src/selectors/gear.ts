@@ -293,9 +293,25 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
   if (cached) return cached;
 
   const pool = itemsForSlot(catalog, slot);
-  // An "Any Slot" is a worn position, not a hand: `computeTotals` reports no
-  // weapon from it, so scoring must not pay for damage or ratio there either.
-  const weaponCounts = slot !== 'ANY';
+  /*
+   * Only a hand pays for damage.
+   *
+   * `computeTotals` records a weapon when the position is PRIMARY or SECONDARY
+   * and from nowhere else (see engine/stats.ts). Scoring has to use the same
+   * rule or it credits a candidate for a contribution the set will never show.
+   *
+   * This previously read `slot !== 'ANY'`, which excluded the Any Slots for
+   * exactly this reason and then let every other slot through. AMMO was the
+   * visible consequence: a Throwing Boulder scored 30.9 EP on its ratio alone
+   * and ranked fifth on the upgrades screen, above real armour gains, for a
+   * number that could never reach the stat sheet.
+   *
+   * RANGE is deliberately on the excluded side. A bow does fire in the real
+   * game, but this engine does not model ranged attacks anywhere, so paying for
+   * ratio there would be inventing a benefit the rest of the app cannot see.
+   * That gap is real and is better left visible than papered over here.
+   */
+  const weaponCounts = slot === 'PRIMARY' || slot === 'SECONDARY';
   // Compiled once for the whole pass rather than re-derived per item; see
   // `rankScorer`. Identical to `scoreItem(...).total`, asserted in `ep.test`.
   const score = rankScorer(weights, { weaponCounts, ...(existing ? { existing } : {}) });

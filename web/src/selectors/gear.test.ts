@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { activeContext, buildCharacter, type Character } from '../engine/character';
+import { computeTotals } from '../engine/stats';
 import { SLOT_POSITIONS } from '../engine/constants';
 import { tier } from '../engine/upgrade';
 import type { GearSet, Item } from '../engine/types';
@@ -558,5 +559,78 @@ describe('describeAutoFill', () => {
     const text = describeAutoFill({ ...base, skipped: ['Head'] });
     expect(text).toContain('weights are not all zero');
     expect(text).not.toContain('filters');
+  });
+});
+
+/*
+ * Ranking may only pay for a weapon in a slot where the stat sheet will read
+ * one back.
+ *
+ * `computeTotals` records a weapon when the position is PRIMARY or SECONDARY
+ * and from nowhere else. The rank scorer used to credit damage and ratio for
+ * every slot except the two Any Slots, so a Throwing Boulder scored 30.9 EP on
+ * ratio alone and ranked fifth on the upgrades screen — above real armour
+ * gains — for a number that could never reach the set.
+ *
+ * The test pins the two rules together rather than restating the second one, so
+ * that changing which positions carry a weapon fails here too.
+ */
+describe('weapon credit follows the positions that actually hold a weapon', () => {
+  const blade = (slot: string): Item => ({
+    key: `blade-${slot}`.toLowerCase(),
+    n: `[fixture] test blade ${slot}`,
+    sl: [slot],
+    cl: ['ALL'],
+    ra: ['ALL'],
+    st: {},
+    sv: {},
+    fl: [],
+    av: true,
+    wp: { dmg: 40, dly: 30, skill: '1H Slashing' },
+  } as unknown as Item);
+
+  function poolOf(slot: string): CatalogState {
+    const item = blade(slot);
+    const state = useCatalog.getState();
+    return {
+      ...state,
+      items: [item],
+      byName: new Map([[item.n.toLowerCase(), item]]),
+      bySlot: new Map([[slot, [item]]]) as CatalogState['bySlot'],
+    } as CatalogState;
+  }
+
+  const rank = (slot: string, ratioWeight: number) =>
+    rankSlotItems(poolOf(slot), {
+      slot: slot as Parameters<typeof rankSlotItems>[1]['slot'],
+      context: WARRIOR_CTX,
+      weights: { RATIO: ratioWeight },
+      upgrade: tier(0),
+    })[0]?.score ?? 0;
+
+  it('pays for ratio in the hands', () => {
+    for (const slot of ['PRIMARY', 'SECONDARY']) {
+      expect(rank(slot, 20), slot).toBeGreaterThan(rank(slot, 0));
+    }
+  });
+
+  it('pays nothing for ratio anywhere the stat sheet ignores weapons', () => {
+    // AMMO is the one a user actually saw; RANGE and an armour slot are here
+    // because the old rule let every non-ANY slot through, not just AMMO.
+    for (const slot of ['AMMO', 'RANGE', 'CHEST', 'ANY']) {
+      expect(rank(slot, 20), slot).toBe(rank(slot, 0));
+    }
+  });
+
+  it('agrees with computeTotals about which positions hold a weapon', () => {
+    const paid = ['PRIMARY', 'SECONDARY', 'AMMO', 'RANGE', 'CHEST', 'ANY']
+      .filter((slot) => rank(slot, 20) > rank(slot, 0));
+    const reported = ['PRIMARY', 'SECONDARY', 'AMMO', 'RANGE', 'CHEST', 'ANY'].filter((position) => {
+      const totals = computeTotals([
+        { position, item: blade(position), upgrade: tier(0) },
+      ]);
+      return Boolean(totals.weapons.primary ?? totals.weapons.secondary);
+    });
+    expect(paid).toEqual(reported);
   });
 });
