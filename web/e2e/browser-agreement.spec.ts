@@ -22,7 +22,9 @@
  * default is not a warning. Both halves are asserted together.
  */
 
-import { createCharacter, expect, expectCleanText, expectNoHorizontalScroll, test } from './helpers';
+import {
+  createCharacter, expect, expectCleanText, expectNoHorizontalScroll, test, token,
+} from './helpers';
 
 const BLOCKED = 'red';
 const USABLE = 'green';
@@ -67,20 +69,27 @@ async function search(page: import('@playwright/test').Page, term: string) {
  * point of the finding was what the reader's eye actually meets.
  */
 async function nameColours(page: import('@playwright/test').Page) {
-  return page.evaluate(() => {
+  // Resolved from the tokens rather than written out as literals, so a
+  // repalette cannot turn this into an assertion about a colour the app no
+  // longer has. See `token` in helpers.ts.
+  const swatch = {
+    red: await token(page, '--item-blocked'),
+    green: await token(page, '--item-usable'),
+    plain: await token(page, '--text-strong'),
+    receded: await token(page, '--text-dim'),
+  };
+  return page.evaluate((colours) => {
     const tally: Record<string, number> = { red: 0, green: 0, plain: 0, receded: 0, other: 0 };
     for (const tr of document.querySelectorAll('table.data tbody tr')) {
       const button = tr.querySelector('td:first-child button');
       if (!button) continue;
       const colour = getComputedStyle(button).color;
-      if (colour === 'rgb(200, 100, 84)') tally.red! += 1;
-      else if (colour === 'rgb(143, 174, 130)') tally.green! += 1;
-      else if (colour === 'rgb(244, 238, 227)') tally.plain! += 1;
-      else if (colour === 'rgb(148, 141, 129)') tally.receded! += 1;
+      const hit = Object.entries(colours).find(([, value]) => value === colour);
+      if (hit) tally[hit[0]]! += 1;
       else tally.other! += 1;
     }
     return tally;
-  });
+  }, swatch);
 }
 
 const epOf = async (page: import('@playwright/test').Page) =>

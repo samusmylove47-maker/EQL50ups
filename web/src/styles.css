@@ -239,7 +239,7 @@ h2[tabindex='-1']:focus-visible {
  * The four type roles existed and did no work where the product is. A walk of
  * every visible text node counted 660 runs on the item browser, of which *one*
  * was ≥16px and *none* were in the heading face; 528 were 13px. The set editor
- * managed one Oswald run in 430. The cause was that `--condensed` was bound to
+ * managed one condensed-face run in 430. The cause was that `--condensed` was bound to
  * six selectors — all card and dialog titles, all at 15px — and the item name
  * was not among them, so the most important text in a gear planner was set in
  * the same 13px reading face as the stat line under it, separated by weight
@@ -268,7 +268,7 @@ table.data .cell-item .iname,
   font-weight: var(--fw-num);
   letter-spacing: var(--track-heading);
   /*
-   * 1.3, not the 1.2 this rule shipped with, because Oswald's descender is
+   * 1.3, not the 1.2 this rule shipped with, because the condensed face's descender is
    * deeper than the line box 1.2 gives it and every one of these five surfaces
    * clips (`overflow: hidden` is what `text-overflow: ellipsis` requires, and
    * CSS will not let one axis clip while the other stays visible).

@@ -1,105 +1,127 @@
 # Visual language: matching eqlsource.com
 
-Transcribed from a screenshot of `eqlsource.com/sources` supplied by the owner on
-2026-08-17. This project will eventually be absorbed into that site, so it should already
-look like it belongs there.
+**Read off eqlsource.com's own stylesheet on 2026-08-17**, after the site became
+reachable from this container. Everything below is measured. The earlier version of this
+document was transcribed by eye from a single screenshot and got almost every specific
+value wrong; what it got wrong, and why, is recorded at the end because the failures are
+more instructive than the numbers.
 
-I have **not** been able to load the site itself — this container's egress proxy refuses
-`eqlsource.com` — so everything below is read off one full-page screenshot of a single
-page. Colours are eyeballed from that image and are starting values, not sampled truth.
-Anything marked *(unverified)* needs a second look once more of the site is visible.
-
----
-
-## The character of it
-
-Editorial, not gamer. Dark, warm, and quiet, with a magazine's sense of hierarchy: a
-high-contrast display serif for section titles, a heavy condensed sans for card headings,
-monospace for labels and navigation, and a humanist sans for reading text. Generous
-whitespace, wide gutters, and a strict two-column grid. Nothing glows, nothing gradients,
-nothing is rounded more than slightly.
-
-The restraint is the point. It reads like a reference work that expects to be trusted,
-which is exactly the claim the sourcing hierarchy makes.
-
----
-
-## Colour
-
-Everything is warm-shifted — the blacks are brown-black, not blue-black. This is the single
-biggest departure from our current palette, which is cool grey.
-
-| Role | Value *(eyeballed)* | Notes |
-|---|---|---|
-| Page background | `#0a0908` | Near-black, warm |
-| Card / panel | `#131110` | Barely lifted off the page |
-| Border | `#2a2622` | Warm, low contrast |
-| Display + heading text | `#f4eee3` | Warm cream, not white |
-| Body text | `#b3aa9d` | Warm grey |
-| Emphasis inside body | `#d9d0c2` | Bold runs read brighter, not heavier |
-| Muted / eyebrow / nav | `#8a8378` | |
-
-### Tier accents
-
-Each card carries a **2px accent line along its top edge only**, colour-coded by tier
-standing. This is the one place colour is allowed to carry meaning.
-
-| Tier | Accent *(eyeballed)* |
-|---|---|
-| M, 1, 2 — trusted | sage green `#8fae82` |
-| 3, 4 — corroborating | steel blue `#7595b8` |
-| 5 — marked on sight | brick red `#c1584a` |
-
-The red is used exactly once, for the tier the standard says to distrust. That discipline —
-one warning colour, spent deliberately — is worth copying directly.
+Source: `https://eqlsource.com/assets/site.css`.
 
 ---
 
 ## Type
 
-| Role | Face | Treatment |
+Four faces, one job each.
+
+| Role | Face | Where |
 |---|---|---|
-| Wordmark `EQL SOURCE` | display serif | uppercase, wide tracking |
-| Section title `THE HIERARCHY` | display serif, high contrast | uppercase, large, slight tracking |
-| Section number `01` | mono | small, muted, sits to the left of the title |
-| Nav `DUNGEONS RAIDS TOOLS…` | mono | uppercase, wide tracking, muted |
-| Card eyebrow `TIER M · STRONGEST` | mono | uppercase, wide tracking, `·` as separator |
-| Card title `OUR OWN COMBAT LOGS` | heavy condensed sans | uppercase, tight, cream |
-| Body | humanist sans | ~1.65 line height, generous measure |
+| display | **Cinzel** 500/600/700 | wordmark, `h1.display`, `h2.sec` — the top two levels only |
+| heading | **Saira Condensed** 600/700 | display below those: card titles, panel headings |
+| data | **IBM Plex Mono** 400/500/600 | nav, eyebrows, labels, tags, numerals |
+| prose | **Public Sans** 400/600 | running text |
 
-Exact families are *(unverified)* — I am reading shapes off a screenshot. The closest
-widely-available matches, and what the implementation should target:
+Their own note on Cinzel: *"an inscriptional Roman capital — the letterform of things
+carved."* It replaces Saira Condensed at the top two levels only.
 
-- display serif → **Playfair Display** (fallback: `Georgia, 'Times New Roman', serif`)
-- condensed sans → **Oswald** 600/700 (fallback: `'Arial Narrow', system-ui, sans-serif`)
-- body → **Lato** (fallback: `system-ui, -apple-system, sans-serif`)
-- mono → **JetBrains Mono** (fallback: `ui-monospace, 'SF Mono', Menlo, monospace`)
-
-Every one of these needs a real fallback stack that still reads correctly, because I cannot
-load a font in this container to check it, and a webfont that fails to arrive must not
-collapse the design.
+Stacks as declared: `"Cinzel",Georgia,serif` · `"Saira Condensed",sans-serif` ·
+`"IBM Plex Mono",monospace` · `"Public Sans",system-ui,-apple-system,sans-serif`.
 
 ---
 
-## Layout
+## Colour
 
-- Two-column card grid, roughly equal columns, wide gutter (~24px).
-- Cards: ~28px internal padding, ~2px radius, 1px border, 2px top accent.
-- Section title sits above the grid with its number outdented to the left.
-- A closing callout below the grid: left vertical rule, no box, body text with a bold lead-in.
-- Nav is centred, wraps to a second line rather than compressing.
+### Surfaces — three levels, and only three
+
+| Token | Value | Role |
+|---|---|---|
+| `--surface-0` | `#0B0704` | the page |
+| `--surface-1` | `#191309` | a panel resting on it |
+| `--surface-2` | `#282013` | a panel lifted off it — hover, input wells, table heads |
+
+**These are measured, not chosen.** Their build reads the DXT1 endpoint colours out of
+every zone texture in the game's own `.s3d` archives; Norrath's grounds come back at hue
+15–30 — a warm umber-black — across 2.6 million samples, and 62% of all saturated colour
+in the game art is warm. Their comment: the site had been a cool slate, *"the wrong
+temperature, provably, and that is most of why it read as a developer tool rather than as
+a reference for this game."*
+
+### Rules
+
+| Token | Value | Contrast vs page |
+|---|---|---|
+| `--rule` | `#544833` | 2.25:1 |
+| `--rule2` | `#6B5C46` | 3.10:1 — the WCAG 1.4.11 bar for a boundary that carries meaning |
+
+An audit on their side found their entire structural vocabulary living in a 1.04–1.31:1
+band, with `--rule` appearing 48 times without ever reaching a reader's eye: *"A page whose
+every boundary is mathematically invisible reads as a wall of text no matter how good the
+palette is."*
+
+### Text ramp — every step clears AA on the darkest surface it is drawn on
+
+`--bone #F2EADA` · `--txt #DFD6C4` · `--mut #B5AA95` · `--dim #9A8F7C` · `--faint #978C7C`
+
+### Signal
+
+`--ok #5FA37E` · `--warn #C9453A` / `--warn-t #D46C64` · `--ember #C4482E` /
+`--ember-t #D76C55` · `--instr #7FB2C7` · `--brass #C9922E` / `--brass-t #D9A63F`.
+
+The `-t` suffix is worth stealing outright: the plain token is for rules, borders and bars;
+the `-t` variant is the same hue lifted to 4.5:1 for text. Ten zone accents `--z01`–`--z10`
+sit outside this system.
 
 ---
 
-## What to carry into this project
+## Scale
 
-1. **Rewarm the whole palette.** Our tokens are cool grey; theirs are brown-black and cream.
-2. **Adopt the four-role type system** — display serif, condensed sans, humanist sans, mono —
-   in place of the current single system-ui stack.
-3. **Steal the tier accent bar outright.** We already need to show data provenance per
-   `SOURCING-STANDARD.md`, and they have solved exactly that problem: a coloured top edge
-   plus a mono eyebrow naming the tier. Our item cards and stat rows should use the same
-   vocabulary, so a Tier M number and a Tier 5 number are distinguishable at a glance.
-4. **Spend red once.** Reserve it for untrusted or unverified data, nothing else.
-5. **Keep it token-driven.** Every value above lives in `web/src/styles/tokens.css` so that
-   correcting my eyeballed colours later is a token edit, not a refactor.
+- **Type**: 10 / 11.5 / 13.5 / 15.5 / 18.5 / 22 / 29 / 42px, plus `clamp()` steps for
+  lede, h2, h1 and hero.
+- **Space**: 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64px.
+- **Radius**: `--r: 4px`. One value, everywhere.
+- **Tracking**: `.16em` / `.2em` / `.24em` for uppercase, `-.018em` tight.
+- **Measure**: 66ch, 78ch wide. Shell `--max: 1240px`.
+- **Line height**: `.9` / `1.05` / `1.3` / `1.6`.
+
+---
+
+## The card, which is the device worth copying
+
+```css
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--c, var(--rule2));   /* the standing accent */
+  border-radius: var(--r);
+  box-shadow: var(--shadow-1);
+  padding: 20px 21px 18px;
+}
+.card:hover { background: var(--surface-2); transform: translateY(-2px); }
+```
+
+`--c` is set per card and defaults to `--rule2`, so an unattributed card still has a top
+edge. The eyebrow is tinted from the same variable but **blended toward `--bone`** —
+`color-mix(in srgb, var(--c, var(--dim)) 68%, var(--bone))` — because, in their words, the
+accent *"is chosen as a chrome accent, not a text colour, and several fall short of 4.5:1
+at this size."*
+
+Their tier chip is separate: mono, uppercase, `border: 1px solid currentColor`, with a 5px
+square `::before` in the same colour.
+
+---
+
+## What the eyeballed version got wrong
+
+Recorded because this project's whole discipline is that an inference is not evidence, and
+a screenshot read by eye is an inference.
+
+- **All four typefaces.** Playfair Display for Cinzel is the instructive miss: right
+  category — a high-contrast serif — but Playfair is a Didone, a printer's face from the
+  age of steel nibs, where Cinzel is carved Roman capital. Also Oswald for Saira Condensed,
+  Lato for Public Sans, JetBrains Mono for IBM Plex Mono.
+- **The rules, badly.** Guessed `#2a2622`, which measured **1.33:1** — within a whisker of
+  the 1.31:1 they had already audited and fixed as invisible. The same bug was reproduced
+  independently, on a screen far denser with tables than theirs.
+- **The surfaces**, each about a step too cool and too dark.
+- **The radius**: "≤2px" against their actual 4px.
+- **The eyebrow**: assumed neutral, actually blended from the accent toward bone.

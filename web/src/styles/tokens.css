@@ -26,15 +26,26 @@
 
 :root {
   /* ---- Ground ---------------------------------------------------------- *
-   * Brown-black. The doc gives page #0a0908, card #131110, border #2a2622;
-   * those three are taken verbatim. The rest of the ramp is interpolated
-   * around them at the same hue.
+   * eqlsource.com's own measured values, read off its stylesheet — not the
+   * numbers this file previously carried, which were eyeballed from a
+   * screenshot and were all wrong by a visible margin.
+   *
+   * Their surfaces are `--surface-0 #0B0704`, `--surface-1 #191309`,
+   * `--surface-2 #282013`, and they are not a designer's choice: their build
+   * reads the DXT1 endpoint colours out of every zone texture in the game's own
+   * .s3d archives, and Norrath's grounds come back at hue 15–30 across 2.6
+   * million samples, 62% of the saturated colour in the art being warm. The
+   * ground is measured from the game this app is about.
+   *
+   * Three levels and only three, which is their rule and a good one: page,
+   * panel resting on it, panel lifted off it. `--bg-inset` and `--bg-hover`
+   * have no counterpart there and stay interpolated at the same hue.
    */
-  --bg-page: #0a0908;
-  --bg-panel: #131110;
-  --bg-panel-raised: #1b1815;
-  --bg-inset: #0f0d0c;
-  --bg-hover: #241f1b;
+  --bg-page: #0b0704;
+  --bg-panel: #191309;
+  --bg-panel-raised: #282013;
+  --bg-inset: #0f0a06;
+  --bg-hover: #221a0f;
   /*
    * Not decoration: `.figure-cell.on` is the one surface that has to be
    * *visibly* lighter than `--bg-inset`, because the equipment map's whole job
@@ -44,35 +55,58 @@
    */
   --bg-active: #332c26;
 
-  --line: #2a2622;
-  --line-strong: #3d3730;
+  /* ---- Rules ----------------------------------------------------------- *
+   * These were the worst defect in the skin, and it was found by reading
+   * eqlsource's CSS rather than by looking at ours.
+   *
+   * Their own comment records an audit on 16 Aug 2026: their entire structural
+   * vocabulary — every hairline, every divider, every card edge — measured
+   * between 1.04 and 1.31:1, and `--rule` at 1.31:1 appeared 48 times without
+   * ever reaching a reader's eye. "A page whose every boundary is
+   * mathematically invisible reads as a wall of text no matter how good the
+   * palette is."
+   *
+   * Ours measured **1.33:1**. Eyeballing the border off a screenshot
+   * reproduced their bug almost exactly, on a screen far denser with tables
+   * than theirs. Their fixed values are taken verbatim: `--rule` at 2.25:1 is
+   * a hairline you can see, `--rule2` clears 3:1, the WCAG 1.4.11 bar for a
+   * non-text boundary that carries meaning.
+   */
+  --line: #544833;
+  --line-strong: #6b5c46;
 
   /* ---- Type ------------------------------------------------------------ *
    * The doc's four text values: cream #f4eee3, body #b3aa9d, bold-run
    * emphasis #d9d0c2, muted #8a8378.
    */
-  --text: #b3aa9d;
-  --text-strong: #f4eee3;
+  --text: #dfd6c4;
+  --text-strong: #f2eada;
   /*
    * "Bold runs read brighter, not heavier" — the doc's emphasis value, for
    * `<strong>` inside running text.
    */
-  --text-emph: #d9d0c2;
+  --text-emph: #e9e1d0;
   /*
    * A notch brighter than the doc's #8a8378 muted. This token carries the slot
    * labels, table headers and nav — 11px uppercase text printed dozens of
    * times a screen — and #8a8378 measures 5.02:1 on `--bg-panel` against
    * #948d81's 5.73:1. The doc's muted is used one step down, as `--text-faint`.
    */
-  --text-dim: #948d81;
+  --text-dim: #b5aa95;
   /*
    * ≈4.6:1 over `--bg-panel`, the floor the previous skin established after
    * finding 78% of the page's text on the two dimmest greys — with the slot
    * label, the thing that says which row you are reading, dimmest of all at
    * 3.08:1 underneath a *brighter* stat line. Measures 4.57:1.
    */
-  --text-faint: #847c70;
+  --text-faint: #9a8f7c;
   /* Rules, disabled glyphs and other non-words. 3:1 belongs here, not on text. */
+  /*
+   * Kept deliberately below the text ramp: 3.16:1 on `--bg-panel`. Their
+   * `--faint` was briefly pasted here and measured 5.59:1, a hair off
+   * `--text-faint`'s 5.79 — two tokens that no longer said anything different.
+   * Disabled is supposed to look disabled.
+   */
   --ink-quiet: #6b645a;
 
   /* ---- Accent ---------------------------------------------------------- */
@@ -112,7 +146,7 @@
    */
   --source-trusted: #8fae82;
   --source-corroborating: #7595b8;
-  --source-distrust: #c86454;
+  --source-distrust: #d46c64;
 
   /*
    * Item name colour follows the client, which tints by *usability* rather
@@ -149,7 +183,7 @@
    * reserved and unused rather than guessed at.
    */
   --item-usable: #8fae82;
-  --item-blocked: #c86454;
+  --item-blocked: #d46c64;
   --item-caution: #d9a441;
 
   /* ---- Semantics ------------------------------------------------------- */
@@ -160,7 +194,7 @@
    * 4.85:1 on the panel and 4.55:1 on the raised panel a table row hovers to.
    * Same brick, one step up.
    */
-  --loss: #c86454;
+  --loss: #d46c64;
 
   /*
    * At-cap is not a warning. It used to share `#d9a441` with era labels, the
@@ -173,7 +207,7 @@
    */
   --at-cap: #6fb5aa;
   --warn: #d9a441;
-  --danger: #c86454;
+  --danger: #d46c64;
 
   /*
    * The upgrade tier ramp — the app's headline differentiator, made visible at
@@ -255,9 +289,17 @@
    * that used to be capsules — buttons, the stepper, the bulk strip, the tier
    * chip, the compare status chip — are now flat-cornered.
    */
-  --radius: 2px;
-  --radius-lg: 2px;
-  --radius-pill: 2px;
+  /*
+   * 4px, which is eqlsource's own `--r`, read off its stylesheet.
+   *
+   * The design note this file was built from said "radius <= 2px", eyeballed
+   * from a screenshot. That was wrong: their cards, chips, inputs and tier
+   * pills all take a single 4px token. 2px read as sharper and more severe
+   * than the site it was imitating.
+   */
+  --radius: 4px;
+  --radius-lg: 4px;
+  --radius-pill: 4px;
 
   /* ---- Type scale ------------------------------------------------------ */
   /*
@@ -283,16 +325,15 @@
    * the most important text in a gear planner — sat at 13px in the reading
    * face, indistinguishable from the stat line beside it.
    *
-   * 17px rather than 20px because the face that takes this step is Oswald, and
-   * the rows it lands on are width-critical. Measured with canvas `measureText`
-   * over the 100 names on page 1 of the catalog, Oswald 17/700 sets **18%
-   * wider** than the Lato 13/600 it replaces — a mean of 131.4px against
-   * 111.3px, and +40.3px on the worst name of the hundred. Oswald's condensation
-   * pays for most of a four-point rise but not for all of it, so the cost was
-   * checked rather than assumed: at 1440px **0 of 100** names in the browser
-   * ellipsise and 1 does at 1280 and below, and `visual-system.spec.ts`'s clip
-   * probe still finds no doll row cutting its own text at any width down to
-   * 360px. `--fs-large` would not have survived either check.
+   * 17px rather than 20px because the face that takes this step is condensed
+   * and the rows it lands on are width-critical. The width budget was measured
+   * with canvas `measureText` over the 100 names on page 1 of the catalog when
+   * this step was introduced, against Oswald; the face is now Saira Condensed,
+   * which is a different set of metrics, so that specific 18%-wider figure no
+   * longer describes what ships and is not repeated here. What still holds is
+   * the check rather than the estimate: `visual-system.spec.ts`'s clip probe
+   * finds no doll row cutting its own text at any width down to 360px, and the
+   * layout suite passes at every width. `--fs-large` did not survive either.
    */
   --fs-micro: 10px;
   --fs-small: 11px;
@@ -328,11 +369,10 @@
    * Three weights. There were five (300/400/600/700/800) on a single screen,
    * which is a hierarchy nobody can learn.
    *
-   * Note for the webfonts below: Lato ships 400/700 and has no 600, so
-   * `--fw-emph` resolves to Lato 700; Oswald tops out at 700, so `--fw-num`
-   * resolves to Oswald 700. Both are the intended weights for those faces and
-   * both keep the *declared* weight on the declared scale, which is what the
-   * type audit reads.
+   * Note for the webfonts below: Public Sans ships 400/600, Saira Condensed
+   * 600/700 and Cinzel 500/600/700, so `--fw-num` at 800 clamps to the heaviest
+   * master the face actually has. The *declared* weight stays on the declared
+   * scale, which is what the type audit reads.
    */
   --fw-body: 400;
   --fw-emph: 600;
@@ -341,10 +381,10 @@
   /* ---- Type roles ------------------------------------------------------ *
    * Four faces, one job each, replacing the single system-ui stack.
    *
-   *   display   section titles and the wordmark        Playfair Display
-   *   heading   card and panel headings, uppercase     Oswald 600/700
-   *   body      running text, item names, stat rows    Lato
-   *   num       labels, eyebrows, nav, numbers         JetBrains Mono
+   *   display   section titles and the wordmark        Cinzel
+   *   heading   card and panel headings, uppercase     Saira Condensed 600/700
+   *   body      running text, stat rows                Public Sans
+   *   num       labels, eyebrows, nav, numbers         IBM Plex Mono
    *
    * **Every stack below has to survive the webfont never arriving.** They are
    * loaded from Google Fonts by `index.html` with `display=swap`, so a reader
@@ -358,21 +398,37 @@
    * **`Liberation Sans` is in the heading stack for the same reason
    * `Helvetica Neue` is**, and it is what makes the fallback state hold four
    * roles instead of three. Measured with CDP `getPlatformFontsForNode` on a
-   * Linux box with the two font hosts blocked: none of Oswald, Arial Narrow,
-   * Liberation Sans Narrow or Helvetica Neue is installed there, so headings
-   * fell through to `system-ui` — and so does `--font` below. Both roles
-   * painted in DejaVu Sans, and a card heading was separated from body text by
-   * size and case alone. `Helvetica Neue` already covers this on macOS; this is
-   * the entry that covers it on Linux. Neither is narrow, and neither is meant
-   * to be: the job here is to be a *different* grotesque from the body face
-   * when the narrow ones are absent. Where Oswald or Arial Narrow do exist
-   * this changes nothing.
+   * Linux box with the webfonts blocked: none of the narrow faces named in the
+   * stack is installed there, so headings fell through to `system-ui` — and so
+   * does `--font` below. Both roles painted in DejaVu Sans, and a card heading
+   * was separated from body text by size and case alone. `Helvetica Neue`
+   * already covers this on macOS; this is the entry that covers it on Linux.
+   * Neither is narrow, and neither is meant to be: the job here is to be a
+   * *different* grotesque from the body face when the narrow ones are absent.
+   * Where the real face or Arial Narrow does exist this changes nothing.
+   *
+   * The fonts are now self-hosted from `public/fonts/`, so this fallback is a
+   * belt-and-braces path rather than the common one — but it is still the state
+   * a reader gets if the woff2 requests fail, so it still has to hold.
    */
-  --font-display: 'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif;
-  --font-heading: 'Oswald', 'Arial Narrow', 'Liberation Sans Narrow', 'Helvetica Neue',
-    'Liberation Sans', system-ui, sans-serif;
-  --font: 'Lato', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  --font-num: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+  /*
+   * The four faces eqlsource.com actually uses, read off its own stylesheet
+   * rather than guessed from a screenshot.
+   *
+   * Every one of the previous four was wrong. Playfair Display for Cinzel is
+   * the instructive miss: Playfair is a Didone, a printer's face from the age
+   * of steel nibs, and Cinzel is an inscriptional Roman capital — the
+   * letterform of things *carved*, which is the entire register a game about
+   * Norrath's ruins wants. Right category, wrong argument.
+   *
+   * Cinzel takes the top two heading levels only; Saira Condensed carries
+   * display below those. That split is theirs and it is deliberate.
+   */
+  --font-display: 'Cinzel', Georgia, 'Liberation Serif', 'Times New Roman', serif;
+  --font-heading: 'Saira Condensed', 'Arial Narrow', 'Liberation Sans Narrow',
+    'Helvetica Neue', 'Liberation Sans', system-ui, sans-serif;
+  --font: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-num: 'IBM Plex Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
 
   /* ---- Tracking -------------------------------------------------------- *
    * Uppercase needs air, and how much depends on the face. Four values, one

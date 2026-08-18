@@ -212,13 +212,13 @@ test('the item name carries the heading role on every surface that lists items',
 
   // The doll.
   const doll = await nameRole(page, '.slot-item');
-  expect(doll.family, 'doll row name').toMatch(/Oswald/);
+  expect(doll.family, 'doll row name').toMatch(/Saira Condensed/);
   expect(doll.size, 'doll row name').toBe(17);
 
   // The picker.
   await openSlotPicker(page, 0);
   const picker = await nameRole(page, '.result-name .iname');
-  expect(picker.family, 'picker row name').toMatch(/Oswald/);
+  expect(picker.family, 'picker row name').toMatch(/Saira Condensed/);
   expect(picker.size, 'picker row name').toBe(17);
   // A dialog title must out-rank the rows it introduces; at `--fs-mid` it did not.
   const title = await nameRole(page, '.modal-head h2');
@@ -230,7 +230,7 @@ test('the item name carries the heading role on every surface that lists items',
   await page.locator('table.data tbody tr').first().waitFor({ timeout: 30_000 });
   await page.waitForTimeout(1200);
   const browser = await nameRole(page, 'table.data tbody .cell-item .iname');
-  expect(browser.family, 'browser row name').toMatch(/Oswald/);
+  expect(browser.family, 'browser row name').toMatch(/Saira Condensed/);
   expect(browser.size, 'browser row name').toBe(17);
 
   // …and it is not one run in six hundred. Every name on the page has it.
@@ -238,7 +238,7 @@ test('the item name carries the heading role on every surface that lists items',
     const runs = [...document.querySelectorAll<HTMLElement>('table.data tbody .cell-item .iname')];
     return {
       total: runs.length,
-      heading: runs.filter((el) => /Oswald/.test(getComputedStyle(el).fontFamily)).length,
+      heading: runs.filter((el) => /Saira Condensed/.test(getComputedStyle(el).fontFamily)).length,
     };
   });
   expect(audit.total, 'a full page of rows').toBeGreaterThan(50);

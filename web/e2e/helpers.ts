@@ -150,3 +150,29 @@ export async function pickerMatchCount(page: Page): Promise<number> {
   expect(digits, `no match count in "${text}"`).toBeTruthy();
   return Number(digits?.[0]);
 }
+
+/**
+ * Resolve a design token to the `rgb(...)` string the browser actually paints.
+ *
+ * Several specs used to carry colour literals — `rgb(117, 149, 184)`,
+ * `rgb(200, 100, 84)` — copied out of `tokens.css` by hand. When the palette
+ * was corrected against eqlsource.com's real measured values, those literals
+ * became assertions about a colour the app no longer had, and two specs failed
+ * for describing the old skin rather than for finding a defect.
+ *
+ * Reading the token means the test asserts the *relationship* it cares about —
+ * "this name is painted with `--item-blocked`" — and survives a repalette,
+ * which is the thing it was always trying to say.
+ */
+export async function token(page: import('@playwright/test').Page, name: string): Promise<string> {
+  return page.evaluate((varName) => {
+    const probe = document.createElement('span');
+    probe.style.color = `var(${varName})`;
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    document.body.append(probe);
+    const value = getComputedStyle(probe).color;
+    probe.remove();
+    return value;
+  }, name);
+}
