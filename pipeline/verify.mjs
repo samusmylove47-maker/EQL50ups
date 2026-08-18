@@ -158,6 +158,33 @@ assert('meta claims no content licence, and says how that was checked',
 assert('no payload string asserts a licence the source has not granted',
   !/CC BY-SA/i.test(meta.attribution ?? ''),
   `meta.attribution still asserts a licence: ${meta.attribution}`);
+/*
+ * The slot arithmetic has to add up inside the payload.
+ *
+ * `slots.worn` is 18 slot TYPES; a reader asking "how many slots" wants the 23
+ * POSITIONS, because Ear, Wrist and Fingers are each worn twice and there are
+ * two Any Slots on top. Nothing published that until 2026-08-18, so the only
+ * route to 23 was presumption — the same family as reading
+ * counts.purge.shipped where counts.items was meant.
+ */
+{
+  const pos = meta.slots?.positions;
+  assert('the payload publishes slot positions, not just slot types',
+    pos != null && typeof pos.total === 'number',
+    'meta.slots.positions.total is the field a reader-facing slot count must come from');
+  if (pos) {
+    assert('slot positions add up',
+      pos.worn + pos.any === pos.total &&
+      pos.types + (pos.doubled?.length ?? 0) === pos.worn &&
+      pos.types === (meta.slots?.worn?.length ?? -1),
+      `types ${pos.types} + doubled ${pos.doubled?.length} = worn ${pos.worn}; ` +
+      `worn + any ${pos.any} = total ${pos.total}; slots.worn.length ${meta.slots?.worn?.length}`);
+    assert('every doubled slot is a real worn slot type',
+      (pos.doubled ?? []).every((t) => (meta.slots?.worn ?? []).includes(t)),
+      JSON.stringify(pos.doubled));
+  }
+}
+
 assert('meta records source provenance with commit SHAs',
   Array.isArray(meta.provenance?.repos) && meta.provenance.repos.length >= 4 &&
   meta.provenance.repos.every((r) => /^[0-9a-f]{40}$/.test(r.sha ?? '')),

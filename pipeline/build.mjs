@@ -48,6 +48,18 @@ const SLOTS = [
 const SLOT_SET = new Set(SLOTS);
 /** EQL-specific: two "Any Slot" positions exist in the client. See ANY-eligibility below. */
 const ANY_SLOT = 'ANY';
+/**
+ * Slot types that occupy TWO worn positions each.
+ *
+ * A character wears two earrings, two bracers and two rings, so `EAR`, `WRIST`
+ * and `FINGERS` are one slot type and two places to put something. This is
+ * mirrored from `web/src/engine/constants.ts` DOUBLED_SLOTS and cross-checked
+ * against it by a test, because the payload must not be able to disagree with
+ * the app about how many places a player has.
+ */
+const DOUBLED_SLOTS = ['EAR', 'WRIST', 'FINGERS'];
+/** The two EQL-specific Any Slots, which classic EverQuest did not have. */
+const ANY_POSITIONS = 2;
 /** Shard holding items with no worn slot (food, components, containers, quest items). */
 const NO_SLOT_SHARD = 'OTHER';
 
@@ -2429,7 +2441,41 @@ const meta = {
     order: ERA_ORDER,
     policy: 'ships iff era rank <= CURRENT_ERA rank, or the item is in the live client export, or the player named it; everything else is quarantined to pipeline/quarantine.json and never reaches the payload. Era-less is unconfirmed, not presumed classic: the few era-less items that do ship are the ones Tier 0 vouches for, and they carry eraUnknown:true. Everything shipped is available (av:true) — there is no client-side era gate.',
   },
-  slots: { worn: SLOTS, any: ANY_SLOT, otherShard: NO_SLOT_SHARD, anyPolicy: 'items with an:1 may be placed in either "Any Slot" position; no ANY shard is emitted (it would duplicate every worn item)' },
+  slots: {
+    worn: SLOTS,
+    any: ANY_SLOT,
+    otherShard: NO_SLOT_SHARD,
+    anyPolicy: 'items with an:1 may be placed in either "Any Slot" position; no ANY shard is emitted (it would duplicate every worn item)',
+    /**
+     * How many places a character has to put something — which is NOT
+     * `slots.worn.length`.
+     *
+     * `worn` is a list of slot TYPES and there are 18 of them. A reader being
+     * told "how many slots does this plan" wants POSITIONS, and there are 23:
+     * three of those types are worn twice (two earrings, two bracers, two
+     * rings) for 21 worn positions, plus the two EQL-specific Any Slots.
+     *
+     * 18 + 2 = 20 is the arithmetic somebody does when the doubling is not
+     * published, and it is wrong. It was published nowhere until 2026-08-18,
+     * so the figure could only be reached by presuming — which is precisely
+     * what produced the counts.items / counts.purge.shipped confusion. A number
+     * that is right in one field and wrong in another is indistinguishable from
+     * a correct one until the two diverge.
+     *
+     * **`positions.total` is the field to print.**
+     */
+    positions: {
+      total: SLOTS.length + DOUBLED_SLOTS.length + ANY_POSITIONS,
+      worn: SLOTS.length + DOUBLED_SLOTS.length,
+      any: ANY_POSITIONS,
+      types: SLOTS.length,
+      doubled: DOUBLED_SLOTS,
+      note:
+        'total = worn + any. worn = one position per slot type, plus a second for each of ' +
+        'doubled. `slots.worn.length` is the count of slot TYPES (18) and answers a different ' +
+        'question; print `positions.total` when a reader is told how many slots a set has.',
+    },
+  },
 
   /**
    * The per-item provenance contract, published so a consumer can render the

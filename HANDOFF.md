@@ -79,6 +79,15 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   and the substitution is stated when reporting. Recorded once, in `CLAUDE.md` §5, so the
   next session does not rediscover it. *(Director, 2026-08-18.)*
 
+### Payload contract
+
+- **`slots.positions.total` is the field a reader-facing slot count comes from.** It is 23.
+  `slots.worn` is a list of 18 slot *types* and answers a different question; 18 + 2 = 20 is
+  the arithmetic presumption gives, because three types are worn twice. Published
+  2026-08-18 with `worn`, `any`, `types`, `doubled` and a note, so the number never has to
+  be derived again. `verify.mjs` asserts the arithmetic closes and a vitest asserts the
+  payload agrees with the app's own `TOTAL_POSITIONS`. *(Director, 2026-08-18.)*
+
 ### Sourcing
 
 - **No content licence is asserted.** `eqlwiki` publishes none — checked 2026-08-18;
@@ -99,19 +108,58 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 
 ## To the Director
 
-### Done today
+### The slot figure: print `slots.positions.total`
 
-- **`CLAUDE.md` §5 written.** One note: **this repository had no `CLAUDE.md`**, so I
-  created it and the section numbering is mine — §5 is *Environment and toolchain*, and the
-  browser finding is the first thing in it, stated as a structural fact with the three
-  practical consequences (geometry checkable, hop not, mirror is the substitute). If you
-  meant a file that already exists somewhere I cannot see, say so and I will move it rather
-  than leave two.
-- The three rulings are graduated into *Standing* above. The two post-drop items are
-  recorded there as queued rather than left in this exchange, so nothing here is waiting on
-  you.
+**23 is right, 18 is right, and they answer different questions — so neither of us should
+have had to presume.** Computed from the app's own constants:
+
+```
+types           = 18          <- this is meta.slots.worn, a list of slot TYPES
+doubled         = EAR, WRIST, FINGERS
+worn positions  = 21          <- 18 types + a second position for each of the three
+any positions   = 2           <- the EQL-specific Any Slots
+total           = 23          <- TOTAL_POSITIONS in web/src/engine/constants.ts
+```
+
+Session A could not reconcile it because **the doubling was published nowhere**. A
+character wears two earrings, two bracers and two rings; without that, the only available
+sum is 18 + 2 = 20. The README's "twenty-three slots, including the two EQL-specific Any
+Slots" is true in total and incomplete in its explanation, which is exactly the shape of
+the `counts.items` / `counts.purge.shipped` fault — right in one field, wrong in another,
+indistinguishable until they diverge.
+
+**Added rather than left to presumption**, since you pre-authorised it:
+
+```json
+"slots": { "worn": [ …18 types… ], "any": "ANY",
+  "positions": { "total": 23, "worn": 21, "any": 2, "types": 18,
+                 "doubled": ["EAR","WRIST","FINGERS"], "note": "…" } }
+```
+
+Two guards so it cannot drift: `verify.mjs` asserts `types + doubled = worn`,
+`worn + any = total`, `types === slots.worn.length`, and that every doubled entry is a real
+worn type; and `web/src/data/slot-positions.test.ts` asserts the payload agrees with the
+app's `TOTAL_POSITIONS`. The pipeline deliberately does not import from `web/src`, so the
+two copies of the doubling exist on purpose and that test is the seam that forces them to
+agree.
+
+**The catalogue did not move.** `items-index.json` and every shard are byte-identical —
+`git diff --numstat web/public/data/items-index.json web/public/data/items/` returns 0
+changed files. `counts.items` is still 3,663. `meta.json` gains the `positions` key and a
+new `builtAt`; `contamination.json` moves only its two timestamps and `sourceLines`
+31336 → 31365, which is the 29 comment lines written into `tokens.css` in the previous
+commit — the freshness gate doing its job.
+
+**Session A will need to re-vendor `meta.json`** to pick up the new key. Nothing existing
+changed shape or type, so a stale snapshot keeps working and simply lacks the field.
+
+### Already landed
+
+- **The Chromium finding is recorded** — `CLAUDE.md` §5, pushed in `89eb6b0`, before this
+  message arrived. Structural fact, the reset-not-certificate-error trap that makes it look
+  retryable, and the three consequences. Nothing to do.
 
 ### State
 
-Holding. No features, no pipeline run, `web/public/data` untouched. The catalogue is frozen
-at `counts.items` **3,663** — refresh whenever you are ready.
+Holding, and the catalogue stays frozen through the drop. Post-drop queue is in *Standing*
+and I will not start it until you release it.
