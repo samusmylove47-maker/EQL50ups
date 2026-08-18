@@ -14,7 +14,7 @@ import { downloadJson } from '../lib/download';
 import { publishPickerDefaults, resetPickerDefaults } from '../lib/pickerDefaults';
 import { queueImportNotice, takeImportNotice } from '../lib/importNotice';
 import {
-  importedSetName, summarizeImport, toSlotMap, type InventoryImport,
+  importedSetName, summarizeImport, toSlotMap, withheldMap, type InventoryImport,
 } from '../lib/inventoryImport';
 import { filtersFor } from '../lib/setFilters';
 import {
@@ -185,9 +185,10 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
    */
   const applyInventory = (result: InventoryImport, target: ImportTarget) => {
     const slots = toSlotMap(result);
+    const withheld = withheldMap(result);
     setDialog(null);
     if (target === 'current') {
-      state.applySlots(gearSet.id, slots, true);
+      state.applySlots(gearSet.id, slots, true, withheld);
       setMessage(summarizeImport(result));
       return;
     }

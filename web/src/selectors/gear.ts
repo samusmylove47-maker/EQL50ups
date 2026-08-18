@@ -12,6 +12,7 @@ import {
   SLOT_POSITIONS, type SlotPosition,
 } from '../engine/constants';
 import { canUse, type LoadoutContext } from '../engine/character';
+import { usabilityOf } from '../lib/itemStyle';
 import { computeTotals, resolveItem, type StatTotals } from '../engine/stats';
 import { rankScorer, type ScoreContext, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
@@ -218,8 +219,53 @@ export function resolvedEntries(views: readonly SlotView[]): ResolvedEntry[] {
   return out;
 }
 
-export function totalsFor(views: readonly SlotView[], excludePosition?: string): StatTotals {
-  const entries = resolvedEntries(views).filter((e) => e.position !== excludePosition);
+/**
+ * Entries this loadout cannot actually wear.
+ *
+ * A set can hold one of these without anybody having done anything wrong: it
+ * was imported from another character, built before the trio changed, or shared
+ * by someone with different classes. The game would simply refuse the item, so
+ * its stats are not real for this character.
+ *
+ * `unjudged` — no character, or a character with no classes — is NOT unusable.
+ * Absent a loadout to judge against, dropping an item would be a guess, and the
+ * set would silently lose stats for no stated reason.
+ */
+export function unusableEntries(
+  views: readonly SlotView[],
+  context: LoadoutContext | undefined,
+): ResolvedEntry[] {
+  if (!context?.classes.length) return [];
+  // Reuses the predicate the doll tints names with, so the stat sheet and the
+  // red name can never disagree about the same item.
+  return resolvedEntries(views).filter(
+    (entry) => usabilityOf(entry.item, context) === 'blocked',
+  );
+}
+
+/**
+ * The set's totals.
+ *
+ * When a `context` is supplied, items that loadout cannot equip are left out.
+ * They used to be summed: an imported Monk-only sash folded its haste into the
+ * headline numbers of a Warrior set, with no warning, and every downstream
+ * consumer — the stat sheet, the cap-aware scoring context, the compare
+ * screen's spend — inherited the lie. The doll tinted the name red and nothing
+ * else disagreed with it.
+ *
+ * Callers that omit `context` get the old unfiltered sum, which is correct for
+ * them: `setDiff` compares two sets that may belong to different characters,
+ * and has no single loadout to judge either by.
+ */
+export function totalsFor(
+  views: readonly SlotView[],
+  excludePosition?: string,
+  context?: LoadoutContext,
+): StatTotals {
+  const unusable = new Set(unusableEntries(views, context).map((entry) => entry.position));
+  const entries = resolvedEntries(views).filter(
+    (entry) => entry.position !== excludePosition && !unusable.has(entry.position),
+  );
   return computeTotals(entries);
 }
 

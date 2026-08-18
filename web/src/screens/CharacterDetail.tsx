@@ -16,7 +16,7 @@ import { ClassPicker } from '../components/ClassPicker';
 import { InventoryImportDialog } from '../components/InventoryImportDialog';
 import { Modal } from '../components/Modal';
 import { queueImportNotice } from '../lib/importNotice';
-import { importedSetName, summarizeImport, toSlotMap } from '../lib/inventoryImport';
+import { importedSetName, summarizeImport, toSlotMap, withheldMap } from '../lib/inventoryImport';
 import { href, navigate } from '../router';
 import { setsForCharacter, useApp } from '../state/store';
 
@@ -187,7 +187,7 @@ export function CharacterDetail({ id }: { id: string }) {
               character.id,
               importedSetName(sets.map((s) => s.name)),
             );
-            state.applySlots(created.id, toSlotMap(result), true);
+            state.applySlots(created.id, toSlotMap(result), true, withheldMap(result));
             setImporting(false);
             // The report travels to the set the reader is about to land on.
             queueImportNotice(summarizeImport(result));

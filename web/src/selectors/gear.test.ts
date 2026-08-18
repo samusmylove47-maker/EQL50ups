@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { activeContext, buildCharacter, type Character } from '../engine/character';
 import { computeTotals } from '../engine/stats';
 import { SLOT_POSITIONS } from '../engine/constants';
-import { tier } from '../engine/upgrade';
-import type { GearSet, Item } from '../engine/types';
+import { tier, BASE_STATE } from '../engine/upgrade';
+import type { EquippedItem, GearSet, Item } from '../engine/types';
 import { useCatalog, type CatalogState } from '../data/catalog';
 import { DEFAULT_SET_FILTERS, type SetFilters } from '../lib/setFilters';
 import {
@@ -15,8 +15,10 @@ import {
   statVector,
   summarizeItem,
   totalsFor,
+  unusableEntries,
   ratioText,
   unstattedForSlot,
+  type SlotView,
 } from './gear';
 
 const WARRIOR: Character = buildCharacter({
@@ -632,5 +634,65 @@ describe('weapon credit follows the positions that actually hold a weapon', () =
       return Boolean(totals.weapons.primary ?? totals.weapons.secondary);
     });
     expect(paid).toEqual(reported);
+  });
+});
+
+/*
+ * An item the game would refuse contributes nothing to the sheet.
+ *
+ * A set can hold one without anyone erring: imported from another character,
+ * built before the trio changed, shared by someone with different classes. It
+ * used to be summed anyway — a Monk-only sash folded its haste into a Warrior
+ * set's headline numbers, and the cap-aware scoring context inherited it. The
+ * doll tinted the name red and nothing else disagreed.
+ */
+describe('totals exclude what the loadout cannot wear', () => {
+  const monkSash: Item = {
+    key: 'monk-sash',
+    n: '[fixture] monk sash',
+    sl: ['WAIST'],
+    cl: ['MNK'],
+    ra: ['ALL'],
+    st: { AC: 10, STR: 5 },
+    sv: {},
+    fl: [],
+    av: true,
+  } as unknown as Item;
+
+  function viewsWith(item: Item): SlotView[] {
+    return SLOT_POSITIONS.map((position) => ({
+      position,
+      equipped:
+        position.id === 'WAIST'
+          ? ({ itemName: item.n, upgrade: BASE_STATE } as unknown as EquippedItem)
+          : undefined,
+      item: position.id === 'WAIST' ? item : undefined,
+      unresolved: false,
+    }));
+  }
+
+  const views = viewsWith(monkSash);
+
+  it('drops it when a loadout can judge it', () => {
+    expect(totalsFor(views, undefined, WARRIOR_CTX).ac).toBe(0);
+    expect(unusableEntries(views, WARRIOR_CTX).map((e) => e.item.n)).toEqual([monkSash.n]);
+  });
+
+  it('keeps it when the same loadout can wear it', () => {
+    const monk = activeContext(buildCharacter({
+      id: 'm', name: 'Monk', classes: ['MNK'], level: 50,
+    }));
+    expect(totalsFor(views, undefined, monk).ac).toBe(10);
+    expect(unusableEntries(views, monk)).toEqual([]);
+  });
+
+  /*
+   * Unjudged is not unusable. With no character there is nothing to judge
+   * against, and silently dropping stats would be a guess presented as a total.
+   */
+  it('keeps it when there is no loadout to judge against', () => {
+    expect(totalsFor(views).ac).toBe(10);
+    expect(totalsFor(views, undefined, undefined).ac).toBe(10);
+    expect(unusableEntries(views, undefined)).toEqual([]);
   });
 });

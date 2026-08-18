@@ -152,6 +152,17 @@ export interface UpgradeProgress {
 export interface UpgradeOptions {
   filters: SetFilters;
   basis: CompareBasis;
+  /**
+   * Positions an import found occupied but could not score, by item name —
+   * `GearSet.withheld`.
+   *
+   * These read as empty from `views` alone, because the importer deliberately
+   * refuses to equip an item with no published stats. Without this the ranking
+   * measured a candidate against nothing and reported the whole item as gain:
+   * Avenrae wears a `Shadow Rage Helm +5`, and Head was offered a Hammerhead
+   * Helm at "+20.0 EP" as though the position were bare.
+   */
+  withheldSlots?: Record<string, string>;
 }
 
 /**
@@ -318,13 +329,20 @@ export function* upgradeSteps(
   for (const view of views) {
     const position = view.position;
     const slot = position.type as SlotCode;
-    // An Any Slot is a worn position rather than a hand, so damage and ratio
-    // buy nothing there — the same rule `rankSlotItems` scores under.
-    const weaponCounts = slot !== 'ANY';
+    // Only a hand pays for damage: `computeTotals` reads a weapon from PRIMARY
+    // and SECONDARY and nowhere else, and this must score the worn item under
+    // the same rule `rankSlotItems` scores the candidates under. Reading
+    // `slot !== 'ANY'` here paid an Ammo slot for ratio it never contributes.
+    const weaponCounts = slot === 'PRIMARY' || slot === 'SECONDARY';
     const wornUpgrade = view.equipped ? normalizeState(view.equipped.upgrade) : BASE_STATE;
     const candidateUpgrade =
       basis.kind === 'worn' ? wornUpgrade : normalizeState(basis.upgrade);
-    const existing = scoreContextFrom(totalsFor(views, position.id));
+    // Cap headroom comes from what the character actually wears; an item this
+    // loadout cannot equip contributes none of it.
+    const existing = scoreContextFrom(totalsFor(views, position.id, context));
+    // The export filled this position with something we cannot score, so the
+    // slot is occupied even though `view.equipped` is empty.
+    const withheldName = options.withheldSlots?.[position.id];
 
     const ranked = narrow(
       rankSlotItems(catalog, { slot, context, weights, upgrade: candidateUpgrade, existing }),
@@ -340,7 +358,9 @@ export function* upgradeSteps(
       ? 'worn-unresolved'
       : view.item && statsAreUnknown(view.item)
         ? 'worn-unstatted'
-        : null;
+        : withheldName
+          ? 'worn-unstatted'
+          : null;
 
     const wornEp =
       view.item && !reason
@@ -355,7 +375,7 @@ export function* upgradeSteps(
       candidateUpgrade,
       wornEp,
       weaponCounts,
-      wornName: view.equipped?.itemName,
+      wornName: view.equipped?.itemName ?? withheldName,
       reason,
       provisional: (ranked[0]?.score ?? 0) - wornEp,
     });
@@ -851,6 +871,7 @@ export function Upgrades({ id }: { id: string }) {
         upgradeSteps(catalog, views, context, weights, {
           filters: { era: filterEra, source: filterSource, hideNoDrop: filterHideNoDrop },
           basis,
+          withheldSlots: gearSet.withheld,
         }),
         (value) => {
           if (!cancelled) setProgress(value);

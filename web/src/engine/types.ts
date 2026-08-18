@@ -133,6 +133,21 @@ export interface GearSet {
   loadoutId?: string;
   /** Position id (e.g. `EAR_1`, `ANY_2`) to equipped item. */
   slots: Record<string, EquippedItem | undefined>;
+  /**
+   * Positions an import found occupied but could not score, by item name.
+   *
+   * The importer refuses to equip an item with no published stats, because a
+   * slot contributing zero to every total would show a complete-looking set
+   * with the numbers of a naked head. That is right, but it leaves the position
+   * indistinguishable from genuinely empty — and the upgrades ranking then
+   * measured a candidate against nothing and reported the whole item as gain.
+   * Recording the name keeps "wearing something we cannot measure" separate
+   * from "wearing nothing".
+   *
+   * Optional: sets saved before this existed carry none, and read as empty
+   * exactly as they did.
+   */
+  withheld?: Record<string, string>;
   /** Equivalency point weights, by stat key. */
   weights: Record<string, number>;
   notes?: string;

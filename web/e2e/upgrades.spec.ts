@@ -136,3 +136,50 @@ test('with no character at all it says so rather than ranking nothing', async ({
   await expectCleanText(page);
   await expectNoHorizontalScroll(page);
 });
+
+/*
+ * The source-standing band has to be findable.
+ *
+ * `.iwin` quotes the game client, whose first row is a red title bar. The band
+ * was a 2px brick rule laid straight on that gradient and measured as one band
+ * with it — at 4x you could not find the join, so the device carried no
+ * information on the one surface it shipped on. It now sits on the top edge of
+ * the content, against the window's stone.
+ */
+test('the source-standing band is visible against what sits above it', async ({ page }) => {
+  await createCharacter(page, { name: 'Avenrae', classes: [0, 1, 2] });
+  await page.goto('/#/upgrades');
+  await settle(page);
+  await page.locator('.upg-row').first().getByRole('button', { name: /^Open/ }).click();
+
+  const win = page.locator('.modal .iwin');
+  await expect(win).toBeVisible();
+
+  const seen = await win.evaluate((el) => {
+    const parse = (c: string) => (c.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+    const body = el.querySelector('.iwin-body') as HTMLElement | null;
+    if (!body) return null;
+    const band = getComputedStyle(body);
+    // What the band is drawn against: the window's own stone, one pixel below.
+    const ground = getComputedStyle(el).backgroundColor;
+    const [r1, g1, b1] = parse(band.borderTopColor);
+    const [r2, g2, b2] = parse(ground);
+    return {
+      standing: el.getAttribute('data-standing'),
+      width: parseFloat(band.borderTopWidth),
+      distance: Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2),
+      titleIsGradient: getComputedStyle(
+        el.querySelector('.iwin-title') as HTMLElement,
+      ).backgroundImage.includes('gradient'),
+    };
+  });
+
+  expect(seen).not.toBeNull();
+  expect(seen!.standing).toBeTruthy();
+  expect(seen!.width).toBeGreaterThanOrEqual(2);
+  // The title bar is still the client's red gradient — the band simply is not
+  // sitting on it any more.
+  expect(seen!.titleIsGradient).toBe(true);
+  // Comfortably separable from the ground it now sits on.
+  expect(seen!.distance).toBeGreaterThan(60);
+});

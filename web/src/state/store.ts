@@ -121,7 +121,17 @@ export interface AppState extends PersistedState {
    * `setExaltation` calls would be forty renders and forty scheduled writes for
    * something the reader experienced as pressing Import once.
    */
-  applySlots: (setId: string, slots: Record<string, EquippedItem>, replace: boolean) => void;
+  applySlots: (
+    setId: string,
+    slots: Record<string, EquippedItem>,
+    replace: boolean,
+    /**
+     * Positions the import found occupied but could not score. Recorded so the
+     * upgrades ranking can tell "wearing something unmeasurable" from "empty",
+     * instead of reporting a whole item as gain against nothing.
+     */
+    withheld?: Record<string, string>,
+  ) => void;
   setWeights: (setId: string, weights: WeightProfile) => void;
   setNotes: (setId: string, notes: string) => void;
   adoptPlan: (plan: SharedPlan) => { characterId: string; setId: string };
@@ -457,7 +467,7 @@ export const useApp = create<AppState>((set, get) => {
       });
     },
 
-    applySlots(setId, slots, replace) {
+    applySlots(setId, slots, replace, withheld) {
       mutateSet(setId, (s) => {
         const next: Record<string, EquippedItem | undefined> = replace ? {} : { ...s.slots };
         for (const [position, equipped] of Object.entries(slots)) {
@@ -471,7 +481,13 @@ export const useApp = create<AppState>((set, get) => {
           }
           next[position] = item;
         }
-        return { ...s, slots: next };
+        const carried = replace ? (withheld ?? {}) : { ...(s.withheld ?? {}), ...(withheld ?? {}) };
+        // A position that now holds a real item is no longer withheld.
+        for (const position of Object.keys(next)) delete carried[position];
+        const out = { ...s, slots: next };
+        if (Object.keys(carried).length) out.withheld = carried;
+        else delete out.withheld;
+        return out;
       });
     },
 

@@ -98,10 +98,13 @@ export function SetWorkspace({
   // picker and re-filters every list without touching the set itself.
   const context = useMemo(() => (character ? activeContext(character) : undefined), [character]);
   const views = useMemo(() => slotViews(gearSet, catalog), [gearSet, catalog]);
-  const totals = useMemo(() => totalsFor(views), [views]);
+  // `context` is passed so an item this loadout cannot equip is left out of the
+  // headline numbers. Without it a Monk-only sash imported into a Warrior set
+  // folded its haste into the totals while the doll tinted its name red.
+  const totals = useMemo(() => totalsFor(views, undefined, context), [views, context]);
   const contextTotals = useMemo(
-    () => (openSlot ? totalsFor(views, openSlot) : totals),
-    [views, openSlot, totals],
+    () => (openSlot ? totalsFor(views, openSlot, context) : totals),
+    [views, openSlot, totals, context],
   );
   const bulk = useMemo(() => bulkStateOf(views), [views]);
 

@@ -4005,6 +4005,37 @@ table.data tr.rowlink:focus-visible {
   border-top: 2px solid var(--line-strong);
 }
 
+/*
+ * The item window is the exception, because its top edge is not its own.
+ *
+ * `.iwin` deliberately quotes the game client, whose first row is a red title
+ * bar. A 2px brick rule laid on that gradient measured as one band with it —
+ * at 4x you could not find the join, so the device was carrying no information
+ * on the one surface it shipped on. The standing moves down to the top edge of
+ * the *content*, against the window's stone, where it reads. Same rule, same
+ * meaning, one element lower.
+ */
+.iwin[data-standing] {
+  border-top-width: 1px;
+  border-top-color: var(--stone-shade);
+}
+
+.iwin[data-standing] .iwin-body {
+  border-top: 2px solid var(--line-strong);
+}
+
+.iwin[data-standing='trusted'] .iwin-body {
+  border-top-color: var(--source-trusted);
+}
+
+.iwin[data-standing='corroborating'] .iwin-body {
+  border-top-color: var(--source-corroborating);
+}
+
+.iwin[data-standing='distrust'] .iwin-body {
+  border-top-color: var(--source-distrust);
+}
+
 [data-standing='trusted'] {
   border-top-color: var(--source-trusted);
 }
@@ -4036,4 +4067,30 @@ table.data tr.rowlink:focus-visible {
   letter-spacing: var(--track-nav);
   text-transform: uppercase;
   color: var(--text-emph);
+}
+
+/*
+ * An equipped item this loadout cannot wear is left out of the totals, and says
+ * so. Dropping the stats silently would trade one wrong number for a different
+ * wrong number that is harder to notice.
+ */
+.doll-unusable {
+  margin: var(--s3) 0 0;
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--source-distrust);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  line-height: 1.55;
+}
+
+.doll-unusable-head {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--source-distrust);
 }

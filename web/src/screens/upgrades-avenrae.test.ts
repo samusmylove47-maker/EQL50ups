@@ -20,7 +20,7 @@ import { tier } from '../engine/upgrade';
 import type { GearSet, Item } from '../engine/types';
 import type { CatalogState } from '../data/catalog';
 import { normalizeCatalog, statsAreUnknown, type SlotCode } from '../data/normalize';
-import { itemIdIndex, readInventory, toSlotMap } from '../lib/inventoryImport';
+import { itemIdIndex, readInventory, toSlotMap, withheldMap } from '../lib/inventoryImport';
 import { DEFAULT_SET_FILTERS } from '../lib/setFilters';
 import { slotViews } from '../selectors/gear';
 import { computeUpgrades, isLore } from './Upgrades';
@@ -111,7 +111,11 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
     slotViews(importedSet, state),
     CONTEXT,
     importedSet.weights,
-    { filters: { ...DEFAULT_SET_FILTERS }, basis: { kind: 'worn' } },
+    {
+      filters: { ...DEFAULT_SET_FILTERS },
+      basis: { kind: 'worn' },
+      withheldSlots: withheldMap(imported),
+    },
   );
 
   /*
@@ -130,6 +134,27 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
       .filter((row) => Boolean(row.candidate?.item?.wp))
       .map((row) => `${row.position.type}: ${row.candidate?.item?.n}`);
     expect(offenders).toEqual([]);
+  });
+
+  /*
+   * Avenrae is wearing a Shadow Rage Helm +5. No catalog carries its stats, so
+   * the importer will not equip it — correctly, since a slot contributing zero
+   * to every total would show a complete-looking set with a naked head.
+   *
+   * The consequence was that Head then read as EMPTY, and the ranking offered a
+   * Hammerhead Helm at "+20.0 EP" as though the position were bare. It is not
+   * bare, and the gain against an unmeasured item is arithmetic against a zero
+   * nobody observed. Head belongs in the not-comparable list.
+   */
+  it('knows the head is occupied by something it cannot measure', () => {
+    expect(withheldMap(imported).HEAD).toBe('Shadow Rage Helm');
+
+    const ranked = report.rows.find((row) => row.position.id === 'HEAD');
+    expect(ranked, 'HEAD must not be ranked as an empty slot').toBeUndefined();
+
+    const held = report.withheld.find((row) => row.position.id === 'HEAD');
+    expect(held?.wornName).toBe('Shadow Rage Helm');
+    expect(held?.reason).toBe('worn-unstatted');
   });
 
   it('reads the export into a set the ranking can work on', () => {

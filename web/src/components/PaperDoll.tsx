@@ -19,7 +19,7 @@ import type { LoadoutContext } from '../engine/character';
 import { scoreItem, type WeightProfile } from '../engine/ep';
 import type { StatTotals } from '../engine/stats';
 import type { UpgradeState } from '../engine/upgrade';
-import { resolvedEntries, type SlotView } from '../selectors/gear';
+import { resolvedEntries, unusableEntries, type SlotView } from '../selectors/gear';
 import { CharacterFigure } from './CharacterFigure';
 import { SlotCard } from './SlotCard';
 import { StatPanel } from './StatPanel';
@@ -89,6 +89,8 @@ export function PaperDoll({
     [views, weights],
   );
 
+  const unusable = unusableEntries(views, context);
+
   return (
     <>
       <div className="doll">
@@ -121,6 +123,19 @@ export function PaperDoll({
           ))}
         </div>
       </div>
+
+      {unusable.length ? (
+        <p className="doll-unusable" role="note">
+          <span className="doll-unusable-head">Not counted</span>
+          {' '}
+          {unusable.length === 1 ? 'One equipped item is' : `${unusable.length} equipped items are`}
+          {' '}outside what this loadout can wear, so{' '}
+          {unusable.length === 1 ? 'its stats are' : 'their stats are'} left out of the totals
+          below — the game would refuse{' '}
+          {unusable.length === 1 ? 'it' : 'them'} too:{' '}
+          {unusable.map((entry) => entry.item.n).join(', ')}.
+        </p>
+      ) : null}
 
       <StatPanel totals={totals} vitals="hoisted" />
     </>

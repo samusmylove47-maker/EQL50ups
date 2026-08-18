@@ -846,6 +846,22 @@ export function summarizeImport(result: InventoryImport): string {
 /* ---------------------------------------------------------------- applying */
 
 /** The slot map this import would write, keyed by paper-doll position id. */
+/**
+ * Worn positions the export filled with an item this build cannot score.
+ *
+ * Companion to `toSlotMap`: that returns what can be equipped, this returns
+ * what was deliberately not. Only `kind: 'item'` entries count — an exaltation
+ * donor with no stats does not occupy the position, its host does.
+ */
+export function withheldMap(result: InventoryImport): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const entry of result.unstatted) {
+    if (entry.kind !== 'item') continue;
+    out[entry.positionId] = entry.exportName;
+  }
+  return out;
+}
+
 export function toSlotMap(result: InventoryImport): Record<string, EquippedItem> {
   const slots: Record<string, EquippedItem> = {};
   for (const entry of result.positions) {
