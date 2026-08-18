@@ -54,6 +54,30 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   `--fs-mid` are half a pixel under the site's ladder. Half a pixel is below what a reader
   perceives, and moving four tokens reflows every screen for no perceptible gain.
   *(Director, 2026-08-18.)*
+- **`--fs-heading` stays at 17px until a layout change pays for it.** Closing it to the
+  site's 18.5px pushes the paper doll's `-webkit-line-clamp` onto a vertically cut line at
+  1100px. The measurement is recorded at the token so nobody retries it blind. A ruling
+  that breaks the paper doll is a wrong ruling. *(Director, 2026-08-18: revert accepted.)*
+
+### Queued — ruled, applied after the drop
+
+- **Split the heading token.** One token sizing both the wordmark and
+  item names, with opposite constraints, is a second source of truth in CSS form and will
+  keep producing this. Give the wordmark its own 18.5px rung; leave item names at 17px. The
+  bar itself already holds position exactly, so the 13px inside the lockup is polish, not a
+  seam failure. First thing after the drop. *(Director, 2026-08-18: approved, post-drop.)*
+- **The breadcrumb carries the current screen.** One that reads
+  identically on six routes encodes nothing, and `DESIGN.md`'s rule is that a decorative
+  mark should encode something true. Keep three segments on the landing, where there is no
+  deeper screen to name. *(Director, 2026-08-18: approved, post-drop.)*
+
+### Environment
+
+- **No headless browser in this toolchain reaches an external host; only `curl` does.**
+  Three sessions hit this independently. Geometry and type are checkable against a local
+  build; the network hop is not; a local mirror of the far side is the accepted substitute,
+  and the substitution is stated when reporting. Recorded once, in `CLAUDE.md` §5, so the
+  next session does not rediscover it. *(Director, 2026-08-18.)*
 
 ### Sourcing
 
@@ -75,106 +99,19 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 
 ## To the Director
 
-### 1. B5 could not be applied as ruled, and the reason changes the ruling
+### Done today
 
-**`--fs-heading` cannot go to 18.5px without a layout change, and the rung is doing a
-second job you were not told about.**
+- **`CLAUDE.md` §5 written.** One note: **this repository had no `CLAUDE.md`**, so I
+  created it and the section numbering is mine — §5 is *Environment and toolchain*, and the
+  browser finding is the first thing in it, stated as a structural fact with the three
+  practical consequences (geometry checkable, hop not, mirror is the substitute). If you
+  meant a file that already exists somewhere I cannot see, say so and I will move it rather
+  than leave two.
+- The three rulings are graduated into *Standing* above. The two post-drop items are
+  recorded there as queued rather than left in this exchange, so nothing here is waiting on
+  you.
 
-Attempted, measured, reverted. Evidence:
+### State
 
-```
-clipped text at 1100px (slot body 135px)
-  slot-item: "Summoned: Jolum's Brilliant Bauble"
-```
-
-`.slot-item` on the paper doll is a `-webkit-line-clamp` box. At 1100px the doll's slot
-body is 135px wide; that name wants **216.7px at 17px and 235.8px at 18.5px**, so it was
-already wrapping, and the extra 1.5px pushes it past the clamp onto a line that is cut
-vertically. `visual-system.spec.ts`'s clip probe catches it — it compares the height the
-content wants against the height it gets, which `scrollWidth === clientWidth` cannot see
-on an already-shrunk row. Raising the clamp changes the height of every row on the doll:
-a layout change, not a token change, and exactly the churn the ruling was avoiding.
-
-**But the rung is not only on item names — it is on the wordmark, at the seam.** Measured
-across the crossing at 1440, both sides rendering the same self-hosted faces:
-
-| | site `/upgrades` | this tool |
-|---|---|---|
-| `.mark .m1` font | Cinzel | Cinzel |
-| `.mark .m1` size | **18.5px** | **17px** |
-| `.mark .m1` letter-spacing | 1.85px | 1.7px |
-| `.mark .m1` x | 140 | 140 |
-| `.mark .m2` ("Survey") x | **292** | **279** |
-
-The wordmark is the first thing a reader sees on both sides of the crossing, and it
-shrinks by 1.5px as they cross. The shorter wordmark drags "Survey" 13px left with it.
-
-**Recommendation, not applied:** split the token. Give the wordmark its own rung at
-18.5px, matching the site exactly where nothing constrains its width, and leave item names
-at 17px where the clamp binds. That is one token addition, no layout change, and it closes
-the only part of the gap a reader meets at the boundary. Your call — the original ruling
-assumed one job for one token, and there are two.
-
-### 2. The seam, walked — and a limitation you should know about
-
-**I cannot browse the real boundary from this container.** Headless Chromium reaches no
-external host: `net::ERR_CONNECTION_RESET` for `eqlsource.com` *and* for our own
-`github.io` deploy, with and without the proxy passed explicitly. `curl` works because it
-trusts the proxy CA; Chromium does not, and I will not disable TLS verification to force
-it. So I mirrored the site's `/upgrades` page locally from `curl`, served it beside the
-sub-path build, substituted our self-hosted faces for the Google Fonts link the browser
-also cannot reach, and walked that. Geometry and type are real; the network hop is not.
-
-What a reader sees, 1440 and 390:
-
-- **The masthead holds its position exactly.** Wordmark x=140 at 1440 and x=18 at 390, on
-  both sides. Bar height 59px both. Ground colour identical. Nothing jumps.
-- **The nav shifts 17px.** First nav link x=704 on the site page, x=721 in the tool; the
-  last lands within 2px (1222 vs 1224). Small, and only visible if you are looking.
-- **The tool marks `TOOLS` with a box; the site's `/upgrades` page does not.** Visible in
-  the screenshots. It reads as "you are here", which is true, but it is a difference at
-  the crossing rather than a continuation of it.
-- **The tool adds a second rail the site page has none of** — breadcrumb on the left, tool
-  nav (Home / Characters / Upgrades / Planar / Items) on the right. This is the clearest
-  signal a reader gets that they have entered something, and I think it is the right one:
-  it appears *below* an unchanged masthead, so the site frame stays put and the tool's own
-  navigation arrives underneath it.
-- **The breadcrumb is true on every route, and identical on every route.** It reads
-  `EQL Source / Tools / 50 Upgrades` on `/`, `#/items`, `#/upgrades`, `#/planar`,
-  `#/sources` and `#/contamination`. It never lies and it never localises: the tool nav
-  does that job. Worth a ruling — it could carry the current screen as a fourth segment.
-- **The way back is the masthead**, and it works: seven absolute links, all 200 direct.
-  The breadcrumb's own `EQL Source` and `Tools` segments are also links back.
-- **No horizontal scroll on any route at either width**, and no page errors.
-
-Nothing about the crossing reads as *leaving* the site. It reads as going one level deeper
-into it, which I believe is what you want.
-
-### 3. The catalogue is frozen, and the 3,653 you are seeing is not stale
-
-**Confirmed: the catalogue will not move today.** No pipeline run, no data change, no
-feature work. The planar "Pick by hand" first impression stays parked.
-
-**The two numbers are both live and both correct — they are different fields.** Read from
-the deploy just now:
-
-```
-counts.items                        = 3663   <- the catalogue: what the app loads and ranks
-counts.purge.shipped                = 3653   <- survivors of the era purge ONLY
-counts.purge.admittedOutsideScrape  = 10
-counts.purge.catalog                = 3663
-builtAt                             = 2026-08-18T06:36:13.565Z
-```
-
-3,653 + 10 = 3,663. The ten are the existence-only records under rule 7 — items a Tier M
-source *names* and no source *describes*, which ship with no slot, no class, no era and no
-stats, and are never ranked. They were never in the scrape, so they are not "survivors" of
-a purge and are correctly absent from `purge.shipped`.
-
-So a snapshot reading 3,653 is not stale; it is reading the narrower field. If the intent
-is "how many items does the planner hold", the field is **`counts.items`** (or
-`counts.purge.catalog`, which is the same number by construction). If the intent is "how
-many survived the era purge", 3,653 is right and should be labelled as such.
-
-Whichever you vendor, it is stable as of `builtAt` above and will not move until you
-schedule the refresh.
+Holding. No features, no pipeline run, `web/public/data` untouched. The catalogue is frozen
+at `counts.items` **3,663** — refresh whenever you are ready.
