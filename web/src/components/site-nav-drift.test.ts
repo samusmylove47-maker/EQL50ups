@@ -18,7 +18,33 @@
  *    loudly, when the site is unreachable — a network outage is not a defect in
  *    this repository, and a test that fails for it would be turned off within a
  *    week.
+ *
+ * -------------------------------------------------------------------------
+ * WHY THIS FILE RUNS IN `node` AND NOT IN `jsdom`
+ *
+ * The pragma below is load-bearing, and it was added after discovering that the
+ * live half of this test had **never once run**. `vitest.config.ts` sets
+ * `environment: 'jsdom'` for the whole suite, because the screen tests render
+ * the app shell. jsdom supplies its own `fetch`, and that one ignores the proxy
+ * variables this container routes all egress through, so every call returned
+ * HTTP 403 and the test took its own skip path — reporting `5 passed` while
+ * checking nothing against the site:
+ *
+ *   npx vitest run src/components/site-nav-drift.test.ts --reporter=verbose
+ *   # stderr: [site-nav-drift] SKIPPED — HTTP 403        <- before
+ *   # 675ms, no skip line                                <- after
+ *
+ * That is the failure mode the loud skip was written to prevent, arriving by a
+ * route the skip could not distinguish: a proxy refusing the call looks exactly
+ * like a site being down. Under `node` the real `fetch` honours the proxy — see
+ * `NODE_USE_ENV_PROXY` in `vitest.config.ts`, set there so this works from a
+ * bare `npx vitest run` rather than only when somebody remembers a flag. CI has
+ * no proxy and reaches the site directly, so the variable is inert there.
+ *
+ * Nothing in this file touches the DOM, so `node` costs it nothing.
  */
+
+// @vitest-environment node
 
 import { describe, expect, it } from 'vitest';
 import { SITE_NAV } from './SiteChrome';

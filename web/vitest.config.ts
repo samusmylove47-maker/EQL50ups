@@ -24,6 +24,21 @@ export default mergeConfig(
     test: {
       environment: 'jsdom',
       include: ['src/**/*.test.{ts,tsx}'],
+      /*
+       * So the two drift checks can actually reach eqlsource.com.
+       *
+       * They opt out of `jsdom` per-file (`// @vitest-environment node`) because
+       * jsdom's `fetch` ignores proxy configuration; Node's own `fetch` honours
+       * it, but only when asked to. Without this, egress from a test in this
+       * container is refused with HTTP 403, both files take their loud-skip
+       * path, and the live half of the drift checking silently never runs —
+       * which is what was happening until 2026-08-18.
+       *
+       * Inert anywhere the environment sets no proxy, CI included: it names
+       * variables to honour rather than a proxy to use, so where there is none
+       * the fetch goes direct exactly as before.
+       */
+      env: { NODE_USE_ENV_PROXY: '1' },
     },
   }),
 );
