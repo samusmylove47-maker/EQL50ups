@@ -13,6 +13,80 @@ import {
 import { scalePrimary, scaleDamage, scaleFlat, scaleWeight, voidBonus, damageRatio } from './upgrade';
 import type { Item, EquippedItem } from './types';
 
+/* --------------------------------------------------- haste, and what it isn't */
+
+/**
+ * Haste is the one figure in this app whose **unit is not established**, and
+ * every surface that prints it says so from here rather than from its own copy
+ * of the sentence.
+ *
+ * The repository's own contamination scanner (`pipeline/contamination.mjs`,
+ * signature `haste-pct`) counts 27 unmarked classic haste figures in what this
+ * project ships, 5 of them in our own source. This is the record of what is
+ * known, what is not, and what one screenshot would settle.
+ *
+ * **What is measured (Tier M).** The client's Stats window has a row headed
+ * `Attack Speed %` (`research/validation/UI-REFERENCE.md` §B3), so the *total*
+ * the game shows a player is a percentage. Separately, Cloak of Flames reads
+ * HASTE 36 at +0 and was observed at 43 at +7 in a live client window
+ * (`TIER0-VALIDATION.md` §5): the per-item figure scales as a flat additive
+ * quantity through exaltation.
+ *
+ * **What is not.** Whether the per-item number this catalog carries *is* that
+ * percentage. Classic haste was a percentage that divided weapon delay. The
+ * eqltools/eqlwiki Haste Guide says Legends uses flat attack-speed values under
+ * a level-scaled cap; eqlwiki's own item field is still documented as "worn
+ * haste %". The two best sources in the field disagree, and every haste figure
+ * in this catalog is scraped from the one that still says percentage.
+ *
+ * **So we print the number and refuse to print the unit.** Not a percent sign,
+ * which would assert the disputed reading; not a blank, which would hide a
+ * figure the catalog holds; not zero, which would be an invention. The figure,
+ * marked, with this attached — the site's own rule that a classic figure
+ * carrying a badge is doing its job and the same figure printed bare is the
+ * fault this project exists to prevent.
+ */
+export const HASTE_PROVENANCE = {
+  /** Chip text wherever the figure appears. Short enough for a 112px tile. */
+  chip: 'Classic unit',
+  /** One line, for a `title` on a surface with no room for the paragraph. */
+  short:
+    'The number is the wiki’s classic haste field. Whether Legends reads it as a percentage or as a flat attack-speed value is unsettled, so no unit is printed.',
+  classic:
+    'Classic: haste was a percentage that divided weapon delay, and the number on the item was the number in the tooltip.',
+  legends:
+    'Legends: the eqltools Haste Guide describes flat attack-speed values under a level-scaled cap, while eqlwiki still documents its own item field as “worn haste %”. The two best sources disagree, and every haste figure here is scraped from the one that still says percentage.',
+  /** The contamination page's device: name the evidence that would end it. */
+  settle:
+    'One screenshot settles it: a Legends item tooltip showing its haste line beside the character’s Attack Speed reading, on a character wearing that item and nothing else hasted.',
+} as const;
+
+/**
+ * "Only the single highest worn haste applies; they do not sum."
+ *
+ * This app applies that rule — in `computeTotals` below and, since it must be
+ * the same rule in both places, in `ep.ts`'s scoring. It is stated here because
+ * **it is an assumption and not a measurement**, and an assumption applied
+ * silently is indistinguishable from a fact.
+ *
+ * Its standing: classic EverQuest worked this way, and the eqltools Haste Guide
+ * says Legends does too — a named community guide, Tier 3 under
+ * `research/SOURCING-STANDARD.md`, which is corroboration and not observation.
+ * Nothing in this repository has measured two hasted items on one character.
+ *
+ * The alternative was to sum them, which is not a neutral fallback: it is the
+ * other candidate answer, asserted. Choosing the corroborated one and labelling
+ * it is the only move here that adds no claim of its own.
+ */
+export const HASTE_STACKING = {
+  chip: 'Classic rule',
+  rule: 'Only the highest worn haste counts. They do not add up.',
+  standing:
+    'Assumed, not measured. Classic EverQuest worked this way and the eqltools Haste Guide says Legends does too — a named community guide, which corroborates rather than observes. No session in this repository has put two hasted items on one character.',
+  settle:
+    'One screenshot settles it: a character’s Attack Speed reading with two hasted items worn, beside the same reading with one.',
+} as const;
+
 export interface StatTotals {
   attributes: Record<Attribute, number>;
   saves: Record<Save, number>;
@@ -20,7 +94,20 @@ export interface StatTotals {
   hp: number;
   mana: number;
   endurance: number;
+  /**
+   * The highest single worn haste figure — see `HASTE_STACKING`. Carries no
+   * unit; see `HASTE_PROVENANCE` before printing one beside it.
+   */
   haste: number;
+  /**
+   * How many worn items carry a haste figure at all.
+   *
+   * Exists so a panel can say "two items carry one, the larger is counted"
+   * rather than showing a total that silently discards the other. Without it
+   * the highest-wins rule is invisible on exactly the sets where it changes the
+   * answer.
+   */
+  hasteSources: number;
   attack: number;
   hpRegen: number;
   manaRegen: number;
@@ -46,7 +133,7 @@ function emptyTotals(): StatTotals {
   const saves = Object.fromEntries(SAVES.map((s) => [s, 0])) as Record<Save, number>;
   return {
     attributes, saves,
-    ac: 0, hp: 0, mana: 0, endurance: 0, haste: 0, attack: 0,
+    ac: 0, hp: 0, mana: 0, endurance: 0, haste: 0, hasteSources: 0, attack: 0,
     hpRegen: 0, manaRegen: 0, endRegen: 0, weight: 0,
     heroic: Object.fromEntries(HEROIC_MODS.map((m) => [m.key, 0])),
     spellMods: Object.fromEntries(SPELL_MODS.map((m) => [m.key, 0])),
@@ -250,9 +337,18 @@ export function computeTotals(
       totals.skillMods[k] = (totals.skillMods[k] ?? 0) + v;
     }
 
-    // Only the single highest worn haste applies; they do not sum.
+    /*
+     * Only the single highest worn haste applies; they do not sum. That rule
+     * is `HASTE_STACKING` above — an assumption carried from classic and
+     * corroborated by a community guide, not something this repository has
+     * measured — and `hasteSources` is what lets the panel say so on the sets
+     * where it actually changes the total.
+     */
     const haste = r.flat.HASTE ?? 0;
-    if (haste > totals.haste) totals.haste = haste;
+    if (haste) {
+      totals.hasteSources += 1;
+      if (haste > totals.haste) totals.haste = haste;
+    }
 
     if (r.weapon) {
       if (position === 'PRIMARY') totals.weapons.primary = r.weapon;

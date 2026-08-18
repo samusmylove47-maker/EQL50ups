@@ -104,9 +104,32 @@ describe.skipIf(!existsSync(QUARANTINE))('the era purge on the page matches the 
 });
 
 describe.skipIf(!existsSync(META))('the transcribed ship count agrees with the published catalog', () => {
-  it('matches meta.counts.items', () => {
-    const meta = JSON.parse(readFileSync(META, 'utf8')) as { counts?: { items?: number } };
-    expect(readPurge(meta)?.shipped).toBe(meta.counts?.items);
+  /*
+   * `shipped` used to equal the whole catalog, because the era purge was the
+   * only gate an item could pass. It is not any more: an item EQL Source has
+   * measured dropping, or names in its ID table, can be in the game while
+   * appearing in no wiki scrape at all, and those records are admitted after the
+   * purge rather than inside it — a purge of 11,252 scraped records cannot
+   * sensibly report a number that was never scraped.
+   *
+   * So the assertion is rewritten to the identity that is now true rather than
+   * relaxed to an inequality: the purge's survivors plus the records admitted
+   * from outside the scrape are the catalog, exactly.
+   */
+  it('reconciles with meta.counts.items, purge survivors plus outside admissions', () => {
+    // Read straight off the payload rather than through `readPurge`, which
+    // narrows to the fields the page renders.
+    const meta = JSON.parse(readFileSync(META, 'utf8')) as {
+      counts?: {
+        items?: number;
+        purge?: { shipped?: number; admittedOutsideScrape?: number; catalog?: number };
+      };
+    };
+    const purge = meta.counts?.purge;
+    expect(purge).toBeTruthy();
+    expect((purge?.shipped ?? 0) + (purge?.admittedOutsideScrape ?? 0)).toBe(meta.counts?.items);
+    // And the payload states the total itself, so a page never has to add up.
+    expect(purge?.catalog).toBe(meta.counts?.items);
   });
 });
 
@@ -222,7 +245,15 @@ describe.skipIf(!existsSync(META))('the page renders the shipped provenance meta
      */
     expect(text).toMatch(/numeric game item IDs/i);
     expect(text).toMatch(/\b297\b/);
-    expect(text).toMatch(/\b289\b/);
+    /*
+     * 299, not 289. There are two observed ID sources now — this repository's
+     * client export and EQL Source's published `items.v1.json`, which is read
+     * from `/outputfile inventory` dumps across many more characters — so the
+     * number of catalog records carrying an ID can exceed the export's own row
+     * count. The old assertion said that could not happen; it can, and the
+     * payload now names both sources instead of implying there is one.
+     */
+    expect(text).toMatch(/\b299\b/);
   });
 
   it('credits the upstream repositories, pinned, and the licence', async () => {

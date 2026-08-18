@@ -75,6 +75,56 @@ export type ExistenceEvidence =
   | 'player-report';
 
 /**
+ * How far the survey behind a drop zone has got, as `zones.v1.json` reports it.
+ *
+ * A drop row that names a zone and says nothing about how well that zone is
+ * known reads as a complete answer. Only zones with a published survey record
+ * carry one of these; an unsurveyed zone is simply absent, never a zero.
+ */
+export interface ZoneSurvey {
+  /** The zone string as a combat log spells it — "Nagafen's Lair - Group". */
+  zone: string;
+  slug: string;
+  /** The zone's own name, without the log's difficulty suffix. */
+  title: string;
+  /** `partial` or `full`, in the publisher's vocabulary. */
+  survey: string;
+  /** Facets measured from logs, out of `facets` a full survey would hold. */
+  measured: number;
+  facets: number;
+}
+
+/**
+ * One mob measured dropping one item.
+ *
+ * **A COUNT, NEVER A RATE.** That is the publisher's own first rule for
+ * `sightings.v1.json` and it is this project's rule independently: `seen` and
+ * `sessions` are the evidence behind a row, not a published finding. Nothing
+ * anywhere may divide one of these by the other, or by anything else, and no
+ * percentage may be derived from them. A drop seen once is seen once.
+ */
+export interface MeasuredDrop {
+  /** The mob, named as the log named it. */
+  mob: string;
+  /** How many times the drop was seen. A count. */
+  seen: number;
+  /** How many dated sessions those sightings came from. A count. */
+  sessions: number;
+  /** Zone strings the sessions ran in. */
+  zones?: string[];
+  /** The survey behind each of those zones, where one is published. */
+  zs?: ZoneSurvey[];
+  /** First and last session date, as published — "10 Aug 2026". */
+  first?: string;
+  last?: string;
+  /**
+   * The mob was named by the log rather than by a survey roster we had already
+   * written. It is no less measured; it is less expected.
+   */
+  offRoster?: boolean;
+}
+
+/**
  * One catalog entry. Short keys keep the shipped payload small; the accessors
  * below are the only place that shortness leaks into application code.
  */
@@ -130,6 +180,17 @@ export interface Item {
    */
   vf?: string[];
   src?: ItemSource;
+  /**
+   * Measured drop sources — EQL Source's parsed combat logs, attached by the
+   * pipeline from `sightings.v1.json`, sorted by `seen` descending.
+   *
+   * Deliberately **not** merged into `src`. `src` is the wiki's account of
+   * where an item comes from; this is a record of the game producing it, on
+   * dated sessions, parsed rather than remembered. Merging them would launder
+   * one into the other, and the whole point of Tier M is that it is a
+   * different class of claim.
+   */
+  ms?: MeasuredDrop[];
   /** Set when stats were recovered by text-parsing rather than structured data. */
   parsed?: string;
 }

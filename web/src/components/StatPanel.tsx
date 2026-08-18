@@ -34,9 +34,12 @@ import {
   SKILL_DAMAGE_MODS,
   SPELL_MODS,
 } from '../engine/constants';
-import { withCap, type StatTotals } from '../engine/stats';
+import {
+  HASTE_PROVENANCE, HASTE_STACKING, withCap, type StatTotals,
+} from '../engine/stats';
 import { dec, finite, num } from '../lib/format';
 import { ratioText } from '../selectors/gear';
+import './StatPanel.css';
 
 interface RowProps {
   label: string;
@@ -46,9 +49,20 @@ interface RowProps {
   /** Decimal places, for the one quantity that is not a whole number. */
   places?: number;
   className?: string;
+  /**
+   * A provenance chip under the figure, in eqlsource's own tier-chip device.
+   *
+   * Used by exactly one row — see `Vitals` — because exactly one number in this
+   * panel is printed in a unit nobody has confirmed. It rides on the row rather
+   * than beside the panel so that it travels with the figure: the Vitals block
+   * is hoisted into the gear page's character panel, where none of this file's
+   * prose goes with it, and a badge that is off screen when the reader decides
+   * is not a badge.
+   */
+  mark?: { text: string; tone: string; title: string };
 }
 
-function StatRow({ label, value, cap, suffix, places, className }: RowProps) {
+function StatRow({ label, value, cap, suffix, places, className, mark }: RowProps) {
   const raw = finite(value);
   const capped = cap !== undefined ? withCap(raw, cap) : null;
   const shown = capped ? capped.value : raw;
@@ -75,6 +89,11 @@ function StatRow({ label, value, cap, suffix, places, className }: RowProps) {
           </span>
         ) : null}
       </span>
+      {mark ? (
+        <span className={`tier ${mark.tone}`} title={mark.title}>
+          {mark.text}
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -140,10 +159,82 @@ export function Vitals({ totals }: { totals: StatTotals }) {
       <StatRow className="vital" label="End" value={totals.endurance} />
       <StatRow className="vital" label="AC" value={totals.ac} />
       <StatRow className="vital" label="Attack" value={totals.attack} />
-      <StatRow className="vital" label="Atk Speed" value={totals.haste} suffix="%" />
+      {/*
+        Atk Speed used to print `36%`.
+
+        The label is right and it is the client's own: `research/validation/
+        UI-REFERENCE.md` §B3 records the game's Stats window heading this row
+        `Attack Speed %`, so the *total a player sees in the game* is a
+        percentage, and that much is Tier M.
+
+        The percent sign was wrong, because the number under it is not that
+        total. It is the wiki's per-item haste field, and the two best sources
+        in the field disagree about whether that field is the same percentage or
+        a flat attack-speed value on another scale (`HASTE_PROVENANCE`). Putting
+        the client's unit on the wiki's number asserted the disputed reading and
+        printed it as confirmed — laundering, in one character.
+
+        So: the figure, no unit, and a chip that says which of the two facts is
+        which. Not a blank — the catalog holds the number and hiding it helps
+        nobody; not a zero — that would be an invention.
+      */}
+      <StatRow
+        className="vital"
+        label="Atk Speed"
+        value={totals.haste}
+        {...(totals.haste
+          ? {
+              mark: {
+                text: HASTE_PROVENANCE.chip,
+                tone: 't5',
+                title: `${HASTE_PROVENANCE.short} ${HASTE_PROVENANCE.settle}`,
+              },
+            }
+          : {})}
+      />
       {/* One decimal: rounding printed the same weight as 1.7 in one place and
           2 in the other. */}
       <StatRow className="vital" label="Equipped Wt" value={totals.weight} places={1} />
+    </div>
+  );
+}
+
+/**
+ * The paragraph the chip on the Vitals tile cannot hold.
+ *
+ * The contamination page's shape, on the panel that prints the figure: what the
+ * classic game did, what Legends is said to do, what this app therefore prints,
+ * and the single artefact that would end the argument. Rendered only when a
+ * haste figure is actually on screen — a caveat about a number nobody is
+ * looking at is noise, and this project spends its warnings where the reader is.
+ */
+export function HasteNote({ totals }: { totals: StatTotals }) {
+  if (!totals.haste) return null;
+  return (
+    <div className="stat-note" data-standing="distrust">
+      <div className="stat-note-head">
+        <span className="tier t5" title={HASTE_PROVENANCE.short}>
+          {HASTE_PROVENANCE.chip}
+        </span>
+        <span className="section-label">Atk Speed carries an unconfirmed unit</span>
+      </div>
+      <p className="hint">
+        {HASTE_PROVENANCE.classic} {HASTE_PROVENANCE.legends} This panel therefore prints the
+        figure with no unit at all. The row's label is the client's own — the game's Stats
+        window does head it <b>Attack Speed %</b> — but the number under it is the wiki's, and
+        the two have not been shown to be the same thing.
+      </p>
+      <p className="hint">
+        <b>{HASTE_STACKING.rule}</b>{' '}
+        {totals.hasteSources > 1
+          ? `${num(totals.hasteSources)} worn items carry a haste figure and only the largest is counted here. `
+          : ''}
+        {HASTE_STACKING.standing}
+      </p>
+      <p className="hint">
+        {HASTE_PROVENANCE.settle} Send one and this note gets shorter.{' '}
+        <a href="#/contamination">What else this build inherited</a>.
+      </p>
     </div>
   );
 }
@@ -177,6 +268,14 @@ export function StatPanel({ totals, vitals = 'inline' }: StatPanelProps) {
       </div>
 
       {vitals === 'inline' ? <Vitals totals={totals} /> : null}
+
+      {/*
+        Renders whether the Vitals block is here or hoisted, because the figure
+        it is about is on screen either way — the gear page puts the tiles in
+        the character panel and this panel below them, and a caveat that only
+        appears on one of the two tabs is a caveat the reader can miss.
+      */}
+      <HasteNote totals={totals} />
 
       <div className="stat-columns">
         {/*

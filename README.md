@@ -95,8 +95,11 @@ does not:
 - **Item flags are unreliable.** The catalog still uses classic EverQuest's
   `NO DROP` where the client says `No Trade`, conflates Lore with Lore-Equipped,
   and barely records Placeable. Do not trust a flag filter for a loot decision.
-- **Eight items in a sampled inventory exist in no wiki catalog** at all. The
-  importer names them rather than guessing.
+- **Some items exist in no wiki catalog at all.** Ten do today. They ship as
+  existence-only records — the game is known to have produced them and nothing
+  else about them is known — rather than being reported and dropped, which is
+  what used to happen to the four of them that came out of the sampled
+  inventory. See *Patch day* below.
 - **Some items are known to exist with no stats at all.** The Berserker planar
   set Shadow Rage is one: the player told us what it is, three of its six pieces
   are in no wiki catalog, and nothing anywhere records their numbers. They ship
@@ -126,14 +129,17 @@ does not:
 
 ## Data
 
-3,533 items, ~290 KiB gzipped, built by `pipeline/build.mjs` from community
-wiki scrapes pinned to specific commits, plus a small, fully enumerated set of
-Tier 0 corrections where the running game contradicts the wiki. Coverage against
-a real inventory export: **97.3%**.
+3,663 items, ~334 KiB gzipped, built by `pipeline/build.mjs` from community
+wiki scrapes pinned to specific commits, from EQL Source's four published
+datasets, plus a small, fully enumerated set of Tier 0 corrections where the
+running game contradicts the wiki. Coverage against a real inventory export:
+**100%**.
 
-The raw scrape holds 11,252 items. 7,719 of them are content from expansions
+The raw scrape holds 11,252 items. 7,599 of them are content from expansions
 this game does not have, or carry no era at all, and are quarantined into
 `pipeline/quarantine.json` rather than shipped — see `research/SOURCING-STANDARD.md`.
+3,653 survive that purge; the other 10 were never in the scrape at all and are
+admitted afterwards on Tier M evidence alone.
 What ships is pre-Kunark content, plus every item the player's own client export
 proves, plus the player-confirmed Shadow Rage set. Era-less is treated as
 unconfirmed, not presumed classic.
@@ -143,6 +149,45 @@ Item data derives from the **EverQuest Legends Wiki**, used under **CC BY-SA
 Company LLC. This project is unaffiliated with Daybreak or Game Jawn.
 
 ---
+
+## Patch day
+
+The game is actively patched, and the item a patch adds is exactly the item no wiki has a
+page for yet. That case used to require a code change: an item with no catalog record could
+only ship if somebody typed it into a table in `pipeline/build.mjs`, which is how the six
+Shadow Rage records got here. It does not any more.
+
+```bash
+node pipeline/refresh.mjs           # what changed upstream? writes nothing
+node pipeline/refresh.mjs --apply   # vendor it, and record what was published
+node pipeline/build.mjs && node pipeline/verify.mjs
+```
+
+`refresh.mjs` re-fetches the four datasets EQL Source publishes at
+`https://eqlsource.com/data/`, records each one's published hash and version in
+`pipeline/sources/eqlsource/manifest.json` alongside our own SHA-256 of the exact bytes, and
+prints a diff against what is vendored: items added and removed, **IDs that moved**, new
+sightings, new mobs, new zones, coverage facets that changed grade. Its last section says
+what a rebuild would newly admit to the catalog — before the rebuild. `--from DIR` diffs a
+directory the owner handed over instead of fetching; `--check` exits non-zero if anything
+moved; `--json` prints the diff for a machine.
+
+**Any item with Tier M existence evidence and no catalog record now ships automatically**,
+with `statsUnknown: true`, an `evidence` string naming the file that proves it, and nothing
+else: no slot, no class, no era, no stats. It is withheld from ranking and auto-fill, and it
+cannot be equipped, because nothing has observed where it goes. The name of a helm makes its
+slot obvious, and obvious is not observed. That closed a gap that was already open — four
+items in the sampled inventory existed in no wiki catalog at all and were reported and then
+dropped; Tier 0 name coverage is now **100%**.
+
+Drop rows carry the survey behind their zone, so a source in a partly-surveyed dungeon reads
+as partly surveyed. EQL Source grades each zone on five coverage facets, and their own rule
+is the one this follows: *"Verified means checked against source. It does not mean
+complete."* Castle Mistmoore is verified in full and three of its five facets are measured.
+A zone the logs name and no survey covers is listed by name and carries no grade at all.
+
+**`research/PATCH-DAY.md` is the runbook** — the exact sequence when the logs arrive, what to
+read in each report, what to do when a number looks wrong, and when to stop and ask.
 
 ## Working on it
 

@@ -249,7 +249,14 @@ function buildGroups(a: StatTotals, b: StatTotals): DiffGroup[] {
         plain('ENDUR', 'Endurance', a.endurance, b.endurance),
         plain('AC', 'AC', a.ac, b.ac),
         plain('ATTACK', 'Attack', a.attack, b.attack),
-        plain('HASTE', 'Attack Speed', a.haste, b.haste, { suffix: '%' }),
+        /*
+         * No percent sign, for the reason `HASTE_PROVENANCE` in `engine/stats.ts`
+         * sets out at length: the label is the client's own, the number under it
+         * is the wiki's per-item haste field, and two sources disagree about
+         * whether they are the same quantity. The stat panel carries the full
+         * note; this row must at minimum stop asserting the disputed reading.
+         */
+        plain('HASTE', 'Attack Speed', a.haste, b.haste),
         plain('WEIGHT', 'Equipped Weight', a.weight, b.weight, { places: 1, neutral: true }),
       ],
     },

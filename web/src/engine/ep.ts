@@ -20,7 +20,18 @@ export type WeightProfile = Record<string, number>;
 
 export interface ScoreContext {
   /** Totals already contributed by the rest of the set, for cap awareness. */
-  existing?: { attributes: Partial<Record<Attribute, number>>; saves: Partial<Record<Save, number>> };
+  existing?: {
+    attributes: Partial<Record<Attribute, number>>;
+    saves: Partial<Record<Save, number>>;
+    /**
+     * The highest haste already worn elsewhere in the set — see `hasteCredit`.
+     *
+     * Optional, and absent means zero, which is the same answer as "nothing
+     * else is hasted". A caller that omits it gets the old unconditional sum
+     * for haste and nothing else changes.
+     */
+    haste?: number;
+  };
   capAware?: boolean;
   /**
    * Whether the position being scored actually swings the item.
@@ -50,6 +61,33 @@ export interface ScoreBreakdown {
  */
 function creditable(amount: number, already: number, cap: number): { counted: number; wasted: number } {
   const counted = Math.min(already + amount, cap) - Math.min(already, cap);
+  return { counted, wasted: amount - counted };
+}
+
+/**
+ * How much of an item's haste this character would actually feel.
+ *
+ * Haste does not accumulate. `computeTotals` keeps the single highest worn
+ * figure and discards the rest — `HASTE_STACKING` in `engine/stats.ts` states
+ * that rule, its standing (assumed from classic, corroborated by a named guide,
+ * measured by nobody here) and what would settle it. **This function is the
+ * same rule, in the scorer**, and it exists because the two disagreed:
+ * `scoreItem` added every haste item at full weight while the stat panel below
+ * it showed only the largest, so the ranking promised a gain the panel then
+ * refused to show. The repository's own contamination scanner catches this as
+ * signature `haste-stacking`.
+ *
+ * Measured, like `creditable`, as the movement of the total a character sees:
+ * `max(already, amount) - already`. A 21 offered to someone already wearing a
+ * 36 counts nothing, because they would feel nothing.
+ *
+ * Note what this deliberately does **not** do: it does not drop haste from
+ * scoring. Weighting it at zero would assert that haste is worth nothing, which
+ * is an answer nobody has measured either — the same failure in the other
+ * direction. The figure keeps its weight and carries its provenance.
+ */
+function hasteCredit(amount: number, already: number): { counted: number; wasted: number } {
+  const counted = Math.max(already, amount) - already;
   return { counted, wasted: amount - counted };
 }
 
@@ -86,7 +124,25 @@ export function scoreItem(
   add('HP', resolved.hp);
   add('MANA', resolved.mana);
   add('ENDUR', resolved.endurance);
-  for (const [key, amount] of Object.entries(resolved.flat)) add(key, amount);
+  /*
+   * Flat stats, in `FLAT_KEYS` order — which `rankScorer` reproduces exactly so
+   * the two running sums stay float-identical. HASTE is the first of them and
+   * the one that does not add: see `hasteCredit`.
+   */
+  for (const [key, amount] of Object.entries(resolved.flat)) {
+    if (key !== 'HASTE') {
+      add(key, amount);
+      continue;
+    }
+    const weight = weights.HASTE ?? 0;
+    if (!amount || !weight) continue;
+    const { counted, wasted } = capAware
+      ? hasteCredit(amount, ctx.existing?.haste ?? 0)
+      : { counted: amount, wasted: 0 };
+    const points = counted * weight;
+    total += points;
+    parts.push({ key: 'HASTE', amount, weight, points, capped: wasted });
+  }
   for (const [key, amount] of Object.entries(resolved.skillMods)) add(key, amount);
 
   if (resolved.weapon && (ctx.weaponCounts ?? true)) {
@@ -105,6 +161,8 @@ type PlanEntry =
   | { kind: 'save'; key: Save; weight: number; already: number }
   | { kind: 'scaled'; key: string; alt?: string; weight: number }
   | { kind: 'flat'; key: string; weight: number }
+  /** HASTE. Its own kind because it takes the highest, never the sum. */
+  | { kind: 'haste'; weight: number; already: number }
   | { kind: 'ratio'; weight: number }
   | { kind: 'dmg'; weight: number };
 
@@ -154,7 +212,14 @@ export function rankScorer(
   }
   for (const key of FLAT_KEYS) {
     const weight = weightOf(key);
-    if (weight) plan.push({ kind: 'flat', key, weight });
+    if (!weight) continue;
+    // Same slot in the order, different arithmetic. `scoreItem` branches on the
+    // key at exactly this point, which is what keeps the two sums identical.
+    if (key === 'HASTE') {
+      plan.push({ kind: 'haste', weight, already: capAware ? (ctx.existing?.haste ?? 0) : 0 });
+    } else {
+      plan.push({ kind: 'flat', key, weight });
+    }
   }
   for (const mod of SKILL_DAMAGE_MODS) {
     const weight = weightOf(mod.key);
@@ -206,6 +271,13 @@ export function rankScorer(
           if (amount) total += amount * entry.weight;
           break;
         }
+        case 'haste': {
+          const base = st.HASTE;
+          if (!base) break;
+          const amount = scaleFlat(base, upgrade);
+          if (amount) total += hasteCredit(amount, entry.already).counted * entry.weight;
+          break;
+        }
         case 'ratio': {
           const wp = item.wp;
           if (!wp) break;
@@ -237,6 +309,19 @@ export const PRESET_PROFILES: ReadonlyArray<{
     id: 'melee-dps',
     label: 'Melee DPS',
     description: 'Favours weapon ratio, Strength, Dexterity and Agility.',
+    /*
+     * `HASTE: 2` is kept deliberately, and it is the one weight in this file
+     * that is not simply a taste.
+     *
+     * Two sources disagree about what the per-item haste figure even means
+     * (`HASTE_PROVENANCE` in `engine/stats.ts`), so 2 points per unit cannot be
+     * defended as a measured exchange rate. Nor can zero: dropping haste from
+     * the profile would assert that it is worth nothing, which is the same kind
+     * of invented answer in the opposite direction and costs a reader the one
+     * stat a melee character most wants ranked. It stays, at the number it has
+     * always been, and every surface that shows a haste figure carries the mark
+     * that says what is and is not known about it.
+     */
     weights: { RATIO: 40, STR: 1, DEX: 0.8, AGI: 0.5, STA: 0.6, HP: 0.1, AC: 0.3, HASTE: 2 },
   },
   {

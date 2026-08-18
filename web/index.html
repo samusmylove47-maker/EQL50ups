@@ -6,21 +6,35 @@
     <meta name="color-scheme" content="dark" />
     <meta
       name="description"
-      content="EQL Upgrades — a fast, shareable gear planner for EverQuest Legends."
+      content="50 Upgrades — a gear planner for EverQuest Legends trios. Rank every slot by what it actually gains, with the source tier of every number on screen. No account; sets travel in the link."
     />
-    <title>EQL Upgrades</title>
+    <!--
+      Titled the way the site titles its pages: "<page> — EQL Source", as in
+      "Tools — EQL Source" and "Sky Ledger — EQL Source". This tool is one page
+      of that site, published on its /tools/ index, not a site of its own.
+    -->
+    <title>50 Upgrades — EQL Source</title>
+    <meta property="og:title" content="50 Upgrades — EQL Source" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="EQL Source" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <!--
-      The four type roles from research/DESIGN-EQLSOURCE.md: Playfair Display for
-      section titles and the wordmark, Oswald for card and panel headings, Lato
-      for reading text, JetBrains Mono for labels, nav and numbers.
+      The four type roles read off eqlsource.com's own stylesheet: Cinzel for
+      the wordmark and the top two heading levels, Saira Condensed for display
+      below those, IBM Plex Mono for nav, eyebrows, labels and numerals, Public
+      Sans for running text. (An earlier version of this comment named Playfair
+      Display, Oswald, Lato and JetBrains Mono — the four faces a previous pass
+      guessed at from a screenshot, none of which the site uses. The miss is
+      recorded in research/DESIGN-EQLSOURCE.md because it is instructive.)
 
-      Self-hosted, deliberately. These were briefly loaded from fonts.googleapis.com
-      with a comment claiming `display=swap` kept the page paintable if that host
-      never answered. It does not: `swap` governs the font-face swap, not the
-      stylesheet, and a <link rel="stylesheet"> blocks rendering until it resolves
-      or the socket gives up. Measured on a network where the host is unreachable,
-      first paint went from 68ms to 12,884ms — a blank page for thirteen seconds.
+      Self-hosted, deliberately — and this is the one place this app must NOT
+      follow the site, which links the same four faces from fonts.googleapis.com.
+      They were briefly loaded that way here too, with a comment claiming
+      `display=swap` kept the page paintable if that host never answered. It
+      does not: `swap` governs the font-face swap, not the stylesheet, and a
+      <link rel="stylesheet"> blocks rendering until it resolves or the socket
+      gives up. Measured on a network where the host is unreachable, first paint
+      went from 68ms to 12,884ms — a blank page for thirteen seconds.
 
       An app whose own landing copy promises "no account, no server: your sets
       live in this browser" should not hand a third party the power to stop it

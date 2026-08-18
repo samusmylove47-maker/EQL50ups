@@ -120,6 +120,21 @@ textarea {
   color: inherit;
 }
 
+/*
+ * Inline code, once, for the whole app.
+ *
+ * Three screens had each written their own version of this rule and the fourth
+ * had not, so `<code>/outputfile inventory</code>` on the planar screen painted
+ * in DejaVu Sans Mono at the user-agent's default size — a fifth typeface, on a
+ * page whose whole claim is that its four are measured off the site's own
+ * stylesheet. A base rule is the fix, because the next screen will not remember
+ * either. The per-screen rules that add a colour still win on specificity.
+ */
+code {
+  font-family: var(--font-num);
+  font-size: 0.9em;
+}
+
 a {
   color: var(--accent);
   text-decoration: none;
@@ -328,115 +343,29 @@ p.hint,
   flex-direction: column;
 }
 
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  display: flex;
-  align-items: stretch;
-  gap: var(--s4);
-  padding: 0 var(--gutter);
-  height: 52px;
-  background: color-mix(in srgb, var(--bg-page) 92%, transparent);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--line);
-}
-
 /*
- * The wordmark: display serif, uppercase, wide tracking — the doc's treatment
- * of `EQL SOURCE`, applied to `EQL Upgrades` so the two read as siblings.
+ * The masthead, the breadcrumb rail and the footer moved out of this file.
  *
- * The second word used to be azure, which was a sixth job for a colour granted
- * exactly five (§A6) and the loudest thing in the bar. The distinction is now
- * made the way the rest of the page makes it, with lightness: `EQL` cream,
- * `Upgrades` quiet.
- */
-.brand {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  font-family: var(--serif);
-  color: var(--text-strong);
-  font-weight: var(--fw-emph);
-  letter-spacing: var(--track-display);
-  text-transform: uppercase;
-  font-size: var(--fs-mid);
-  flex: none;
-  min-width: 0;
-}
-
-.brand em {
-  color: var(--text-dim);
-  font-style: normal;
-}
-
-/*
- * The nav was a fixed 272px block that neither wrapped nor shrank, so its
- * right edge sat at x=440 in a 390px viewport and every screen scrolled
- * sideways. It now shrinks with the bar and its items truncate rather than
- * push.
- */
-.topbar nav {
-  display: flex;
-  gap: var(--s1);
-  margin-left: auto;
-  min-width: 0;
-  overflow: hidden;
-}
-
-/*
- * An inset ring, because the nav clips.
+ * They are not this app's chrome any more: they are eqlsource.com's, read off
+ * that site's own stylesheet and reproduced in
+ * `components/SiteChrome.{tsx,css}` so a reader who arrives from `/tools/` can
+ * walk back out again. What used to live here — a `.topbar` carrying an
+ * `EQL Upgrades` wordmark and a four-item nav, and a one-line `.footer` —
+ * described a standalone site, and this is not one. It is one of three
+ * flagship tools on eqlsource.com.
  *
- * `overflow: hidden` above is what stops a 272px nav pushing the page 50px
- * wide, and the app's ring is a 2px `box-shadow` spread — drawn entirely
- * outside the link's border box, i.e. entirely outside this clipping parent.
- * The top and bottom edges rendered nothing on every screen in the app, and the
- * first and last link lost a third edge each. Same defect as
- * `.stat-group > summary`, found by the same broadened walk.
+ * Two rules survived the move rather than being re-decided over there:
+ *
+ *   - the tool's own nav marks the current page with the same 2px accent
+ *     underline the set editor's tab row uses, because they mark the same kind
+ *     of thing. The site nav one row above marks a *section*, and takes the
+ *     site's own boxed rule instead;
+ *   - the nav wraps rather than clipping. It was once a fixed 272px block that
+ *     neither wrapped nor shrank, so its right edge sat at x=440 in a 390px
+ *     viewport and every screen scrolled sideways. The `overflow: hidden` that
+ *     was hung on it to hide that is gone too, along with the inset focus ring
+ *     it forced.
  */
-.topbar nav a:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--accent);
-}
-
-/*
- * One active-state language. The nav used to mark its current item with a
- * filled blue pill while the tab row 120px below marked its current item with
- * a blue underline — two vocabularies for one idea. Both underline now.
- */
-.topbar nav a {
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding: 0 var(--s3);
-  /* Nav is mono, uppercase, widely tracked and muted — the doc's nav role. */
-  font-family: var(--mono);
-  color: var(--text-dim);
-  font-size: var(--fs-small);
-  font-weight: var(--fw-body);
-  letter-spacing: var(--track-nav);
-  text-transform: uppercase;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.topbar nav a:hover {
-  color: var(--text-strong);
-}
-
-.topbar nav a[aria-current='page'] {
-  color: var(--text-strong);
-}
-
-.topbar nav a[aria-current='page']::after {
-  content: '';
-  position: absolute;
-  left: var(--s2);
-  right: var(--s2);
-  bottom: 0;
-  height: 2px;
-  background: var(--accent);
-  border-radius: var(--radius) var(--radius) 0 0;
-}
 
 /*
  * Wide gutters and a generous top: the doc's layout is air first.
@@ -452,13 +381,19 @@ p.hint,
  * data to show and loses a column of it at 1,200. Air belongs between things
  * and around sentences; taking 200px off every screen to get it would have
  * been the same mistake in the opposite direction.
+ *
+ * The width is now `--shell-max`, which the masthead, the breadcrumb rail and
+ * the footer all read as well — eqlsource's `.shell` rule: one width, one
+ * gutter, so the wordmark, the crumb, the first column of content and the
+ * first footer column sit on a single left edge. They did not before, because
+ * the masthead was setting its own padding and no width at all.
  */
 .page {
   flex: 1;
   width: 100%;
-  max-width: 1400px;
+  max-width: var(--shell-max);
   margin: 0 auto;
-  padding: var(--s6) var(--gutter) var(--s7);
+  padding: var(--s6) var(--gut) var(--s7);
 }
 
 .page-head {
@@ -468,16 +403,6 @@ p.hint,
   gap: var(--s4);
   flex-wrap: wrap;
   margin-bottom: var(--s4);
-}
-
-.footer {
-  border-top: 1px solid var(--line);
-  padding: var(--s4) var(--gutter);
-  color: var(--faint);
-  font-size: var(--fs-small);
-  display: flex;
-  gap: var(--s4);
-  flex-wrap: wrap;
 }
 
 /* --- 5. Controls -------------------------------------------------------- */
@@ -3339,6 +3264,44 @@ table.data {
  * to the words. Above 360px it stays.
  */
 @media (max-width: 360px) {
+  /*
+   * The hero headline comes down a step on the narrowest phones, because
+   * Cinzel is wide and `EVERQUEST` is nine letters.
+   *
+   * An inscriptional Roman capital sets much wider than the condensed
+   * grotesque this app used before it — eqlsource's own note on the swap says
+   * so, and brought their hero ceiling down from 104px to 76px for the same
+   * reason. Measured here: at `--fs-hero` the word `EVERQUEST` alone is 306px,
+   * so at 320px it hangs 4px past the page's right edge and the document
+   * scrolls sideways. A single word cannot wrap and must not be hyphenated in
+   * a display line, so the size moves instead. `--fs-title` is the next step
+   * down on the declared scale — 30px, not a bespoke value — and takes the
+   * same word to 209px, inside the 284px a 320px viewport leaves.
+   *
+   * `--fs-hero` still renders everywhere the type audit looks (1440px), which
+   * is why this is a step change rather than a `clamp()`: eight steps and only
+   * eight.
+   */
+  .hero h1 {
+    font-size: var(--fs-title);
+  }
+
+  /*
+   * …and the card beside it gives up its inner margin for the same 4px.
+   *
+   * `.hero-art` wraps the 23-slot demo figure, whose grid is five 48px cells
+   * on a 4px gap — 256px that cannot compress, because a slot glyph below 48px
+   * stops being a glyph. With `--card-pad` on both sides that is 306px of
+   * min-content in the 284px a 320px viewport leaves after the gutters, and
+   * because the hero is a single-column grid at this width the whole track
+   * takes that measurement: the headline, the lede and the buttons were all
+   * stretched to 306px and hung off the right edge with it. The padding is the
+   * only part of the number that is free.
+   */
+  .hero-art {
+    padding: var(--s2);
+  }
+
   .slot {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -4001,8 +3964,21 @@ table.data tr.rowlink:focus-visible {
  * `data-standing` attribute, not a refactor.
  */
 
+/*
+ * `--c`, the per-card standing accent — eqlsource's own device, taken by name.
+ *
+ * Their card is `border-top:2px solid var(--c,var(--rule2))`, with `--c` set on
+ * the element and defaulting to the strong rule so an unattributed card still
+ * has a top edge. Ours said the same thing three times in `border-top-color`,
+ * which meant the accent could be read by the border and by nothing else. Now
+ * it is a custom property, so the eyebrow below can be mixed from it — which is
+ * the half of their card this app had not copied.
+ *
+ * `unattributed` deliberately sets no `--c`. It is not a tier and it gets no
+ * hue; both the rule and the eyebrow fall back to neutral.
+ */
 [data-standing] {
-  border-top: 2px solid var(--line-strong);
+  border-top: 2px solid var(--c, var(--line-strong));
 }
 
 /*
@@ -4037,36 +4013,211 @@ table.data tr.rowlink:focus-visible {
 }
 
 [data-standing='trusted'] {
-  border-top-color: var(--source-trusted);
+  --c: var(--source-trusted);
+  border-top-color: var(--c);
 }
 
 [data-standing='corroborating'] {
-  border-top-color: var(--source-corroborating);
+  --c: var(--source-corroborating);
+  border-top-color: var(--c);
 }
 
 [data-standing='distrust'] {
-  border-top-color: var(--source-distrust);
+  --c: var(--source-distrust);
+  border-top-color: var(--c);
 }
 
 /*
- * The eyebrow that names it: mono, uppercase, widely tracked, with `·` as the
- * separator — the doc's `TIER M · STRONGEST`.
+ * The eyebrow, blended from `--c` toward cream. Theirs, verbatim, minus the
+ * inline comment their copy carries on the first declaration ("legible
+ * fallback where color-mix is unsupported"):
  *
- * **The rule carries the colour and the eyebrow carries the words**, which is
- * how the doc has it: its colour table gives the tier accents to the top edge
- * and lists the eyebrow only under "muted / eyebrow / nav". Tinting the words
- * as well was tried and abandoned — the item window's stone is the lightest
- * ground in the app, and a 10px brick eyebrow measured 3.68:1 on it, which is
- * a caption nobody with ordinary eyesight should have to lean into. The two
- * standings are already told apart by what they say.
+ *     .card .kicker{
+ *       color:var(--dim);
+ *       color:color-mix(in srgb, var(--c,var(--dim)) 68%, var(--bone))}
+ *
+ * with the reason attached: a card's `--c` "is chosen as a chrome accent, not a
+ * text colour, and several fall short of 4.5:1 at this size. Blending toward
+ * --bone lifts every one of them over the floor without reassigning any zone
+ * accent."
+ *
+ * This app's eyebrows were neutral — the accent stopped at the rule and the
+ * words beside it were `--text-dim` whatever the card was about. Same 68/32
+ * mix, same two-declaration fallback. Measured on `--bg-panel`, where the
+ * Sources cards sit: distrust mixes to `rgb(222,148,138)` at 7.6:1, and the
+ * neutral fallback to `rgb(182,172,154)`, so no step of it approaches the AA
+ * floor.
+ *
+ * Specificity is deliberate. `Sources.css` declares `.src-card-eyebrow` and is
+ * a different file, so a bare class here would win or lose on bundle order;
+ * `.src-card[data-standing]` settles it either way.
  */
+.src-card[data-standing] .src-card-eyebrow {
+  color: var(--text-dim);
+  color: color-mix(in srgb, var(--c, var(--text-faint)) 68%, var(--text-strong));
+}
+
+/* --- 23b. The tier chip ---------------------------------------------------- */
+/*
+ * eqlsource's source-tier badge, adopted as the vocabulary for our standings.
+ *
+ * Theirs, read off `assets/site.css`:
+ *
+ *     .tier{display:inline-flex;align-items:center;gap:5px;
+ *       font-family:"IBM Plex Mono",monospace;font-size:var(--t-2xs);
+ *       letter-spacing:.14em;text-transform:uppercase;padding:2px 6px;
+ *       border:1px solid currentColor;border-radius:var(--r);
+ *       vertical-align:middle;white-space:nowrap}
+ *     .tier::before{content:"";width:5px;height:5px;background:currentColor;
+ *       flex:0 0 5px}
+ *
+ * It is worth taking whole rather than approximating, because a reader who has
+ * used Sky Ledger or read `/sources` has already learnt it: a small squared
+ * bullet, a hairline box, mono capitals, and a colour that names the tier. A
+ * badge that is *nearly* that shape is a badge they have to learn twice.
+ *
+ * **The colour convention comes with it.** Their comment on `.t5`: "t5 was
+ * #C9453A — 3.2:1, below AA at this size. Lifted to 4.5:1, same hue. The tier
+ * badges are load-bearing: an unreadable one is worse than a missing one." So
+ * the chip takes the `-t` tokens, never the plain ones. The plain tokens stay
+ * on the rules and bars above, which is the whole point of having two.
+ *
+ * NAMING. `.tier` here is the *source* tier, per `research/SOURCING-STANDARD.md`.
+ * `.tier-chip` in §12 is the `+0`…`+10` upgrade level on an item. The two
+ * vocabularies never touch, and the near-identical class names are an accident
+ * of both sites calling their ladder a tier. Do not merge them.
+ */
+/*
+ * One declaration for the device, two names for it. `.tier` is the class
+ * eqlsource uses and the one a future surface should reach for;
+ * `.standing-label` is what `ItemWindow.tsx` already renders and is not mine
+ * to rename. They are the same chip and must not drift into two.
+ *
+ * The one difference is `white-space`: theirs is `nowrap` because their chips
+ * say `TIER 2` and nothing else, while this app's labels are whole clauses —
+ * `TIER M · STATS READ OFF THE CLIENT` — inside a window that can be 280px
+ * wide. `.standing-label` is allowed to wrap rather than to overflow.
+ */
+.tier,
 .standing-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  align-self: flex-start;
+  max-width: 100%;
+  padding: var(--s0) var(--s1);
+  border: 1px solid currentColor;
+  border-radius: var(--radius);
   font-family: var(--mono);
   font-size: var(--fs-micro);
   font-weight: var(--fw-body);
   letter-spacing: var(--track-nav);
   text-transform: uppercase;
-  color: var(--text-emph);
+  vertical-align: middle;
+  /* No tier stated is the neutral chip, and it is still a chip: "we are not
+     claiming anything about this" is a claim worth drawing. */
+  color: var(--text-faint);
+}
+
+.tier {
+  white-space: nowrap;
+}
+
+.tier::before,
+.standing-label::before {
+  content: '';
+  flex: 0 0 5px;
+  width: 5px;
+  height: 5px;
+  background: currentColor;
+}
+
+/*
+ * The four standings this catalog can actually hold, on their ramp.
+ *
+ * **These three classes are published and not yet bound, and that is stated
+ * rather than hidden.** `ItemWindow.tsx` renders its chips as bare
+ * `.standing-label` divs carrying no per-chip tier attribute, and that file
+ * belongs to another lane; the chips below therefore take their colour from
+ * the *band* on the window, which is coarser — `trusted` covers Tier M and
+ * Tier 2 alike, so a Tier 2 chip currently reads green where an eqlsource
+ * reader would expect `.t2` steel. The chip's text names the exact tier, so
+ * nothing on screen is false, but the colour is one step less precise than the
+ * word beside it. Putting `tM`/`t2`/`t5` on the element is a one-line change
+ * in that component and these rules are already here for it.
+ *
+ * Their scale is `.t1`–`.t5` plus `.tM`, and `.tM` is `--ok` green — a live
+ * client reading outranks every read source. Ours: `tier-M` is the same green,
+ * `tier-2` is structured wiki data, `tier-5` is the brick the standard says to
+ * mark on sight, and `unattributed` takes the neutral chip because it is not a
+ * tier at all. Tiers 1, 3 and 4 do not occur here: no patch note, community
+ * guide or aggregator supplies an item stat in this project, so no class is
+ * declared for them rather than one being declared and left unused.
+ */
+.tier.tM {
+  color: var(--source-trusted-t);
+  border-color: color-mix(in srgb, var(--source-trusted) 60%, var(--line));
+}
+
+.tier.t2 {
+  color: var(--source-corroborating-t);
+  border-color: color-mix(in srgb, var(--source-corroborating) 60%, var(--line));
+}
+
+.tier.t5 {
+  color: var(--source-distrust-t);
+  border-color: color-mix(in srgb, var(--source-distrust) 60%, var(--line));
+}
+
+/*
+ * The eyebrow that names the standing, which is now that chip.
+ *
+ * It used to be a plain mono caption in `--text-emph`, and the comment here
+ * said why the words could not be tinted: "the item window's stone is the
+ * lightest ground in the app, and a 10px brick eyebrow measured 3.68:1 on it".
+ * That was a true measurement of the wrong colour. The fix is the `-t`
+ * convention this app took from eqlsource in the same pass — `--source-distrust`
+ * measures 3.63:1 on that stone and `--source-distrust-t` measures 4.87:1, same
+ * hue — so the rule can carry the colour AND the words can, which is how the
+ * site itself does it.
+ *
+ * `ItemWindow.tsx` renders these as bare `.standing-label` divs and the DOM has
+ * no per-chip tier attribute, so the colour is taken from the band on the
+ * window. The band is coarser than the tier: `trusted` covers Tier M and
+ * Tier 2 alike. The chip's *text* still names the exact tier, so nothing is
+ * lost — but a future pass that puts `.tM`/`.t2`/`.t5` on the elements
+ * themselves would be strictly better, and the classes above are already there
+ * for it.
+ */
+.iwin[data-standing='trusted'] .standing-label {
+  color: var(--source-trusted-t);
+  border-color: color-mix(in srgb, var(--source-trusted) 60%, var(--line));
+}
+
+.iwin[data-standing='corroborating'] .standing-label {
+  color: var(--source-corroborating-t);
+  border-color: color-mix(in srgb, var(--source-corroborating) 60%, var(--line));
+}
+
+.iwin[data-standing='distrust'] .standing-label {
+  color: var(--source-distrust-t);
+  border-color: color-mix(in srgb, var(--source-distrust) 60%, var(--line));
+}
+
+/*
+ * …with one correction the band cannot express.
+ *
+ * The window prints two chips when it has both facts, and they are about
+ * different things: the first says how we know the item EXISTS, the second says
+ * where its NUMBERS came from. Existence evidence is Tier M in all four of its
+ * forms — a watched drop, a live export, the published ID table, a player
+ * report — so painting it brick because the *stats* are Tier 5 would state the
+ * opposite of the truth on the one row that is certain. Where two chips are
+ * present, the first is the existence claim and stays green.
+ */
+.iwin .standing-label:has(+ .standing-label) {
+  color: var(--source-trusted-t);
+  border-color: color-mix(in srgb, var(--source-trusted) 60%, var(--line));
 }
 
 /*

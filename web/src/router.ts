@@ -24,12 +24,26 @@ export type Route =
   | { name: 'upgrades'; id: string }
   | { name: 'items' }
   /**
+   * Planar armour targets across all five sets a trio can draw on — the site's
+   * own `/tools/planar-gear.html`, absorbed. A top-level route rather than a
+   * tab on a gear set because it answers a question you can ask before you have
+   * saved anything: "of the eighteen planar sets, which pieces are mine".
+   */
+  | { name: 'planar' }
+  /**
    * Where every number on screen came from, and what is known to be wrong with
    * it. A route rather than a section of a README because
    * `research/SOURCING-STANDARD.md` rule 5 puts uncertainty on screen, and
    * because `meta.dataReliability` is already in the browser's memory.
    */
   | { name: 'sources' }
+  /**
+   * What this repository's own contamination scanner finds in this repository.
+   * A sibling of `sources` rather than a section of it: Sources says where the
+   * numbers came from, this says which of them carry a convention from a game
+   * whose mechanics changed, counted, with our own faults first.
+   */
+  | { name: 'contamination' }
   | { name: 'share'; payload: string }
   | { name: 'not-found'; path: string };
 
@@ -50,7 +64,9 @@ export function parseHash(hash: string): Route {
   if (head === 'character' && second === 'new') return { name: 'new-character' };
   if (head === 'character' && second) return { name: 'character', id: decodeURIComponent(second) };
   if (head === 'items') return { name: 'items' };
+  if (head === 'planar') return { name: 'planar' };
   if (head === 'sources') return { name: 'sources' };
+  if (head === 'contamination') return { name: 'contamination' };
   if (head === 'upgrades') return { name: 'upgrades', id: '' };
   // Checked before the tab branch for the reason `compare` is: `upgrades` is
   // not a `SetTab`, so without this it would fall through and quietly render
@@ -112,7 +128,9 @@ export const href = {
   newCharacter: '#/character/new',
   character: (id: string) => `#/character/${encodeURIComponent(id)}`,
   items: '#/items',
+  planar: '#/planar',
   sources: '#/sources',
+  contamination: '#/contamination',
   set: (id: string, tab: SetTab = 'gear') => (tab === 'gear' ? `#/set/${id}` : `#/set/${id}/${tab}`),
   compare: (id: string, id2 = '') =>
     id2 ? `#/set/${id}/compare/${encodeURIComponent(id2)}` : `#/set/${id}/compare`,

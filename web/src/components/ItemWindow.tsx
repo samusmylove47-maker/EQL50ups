@@ -24,6 +24,7 @@ import { CLASS_NAMES, type ClassCode } from '../engine/constants';
 import { canUseClass, canUseRace, levelCheck } from '../engine/character';
 import type { Item } from '../engine/types';
 import { statsAreUnknown } from '../data/normalize';
+import { HASTE_PROVENANCE, HASTE_STACKING } from '../engine/stats';
 import { scaleWeight, type UpgradeState } from '../engine/upgrade';
 import { dec, num, signed } from '../lib/format';
 import {
@@ -96,6 +97,7 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
   const glyphSlot = slot ?? item.sl[0] ?? 'ANY';
   const standing = sourceStanding(item);
   const existence = existenceMark(item);
+  const hasHaste = rest.some((s) => s.key === 'HASTE');
 
   return (
     <div className={`iwin${wide ? ' wide' : ''}`} data-standing={standing.band}>
@@ -162,10 +164,36 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
               {rest.map((s) => (
                 <span key={s.key} className="iwin-stat">
                   <i>{statLabel(s.key)}</i>
-                  <b>{signed(s.value)}</b>
+                  {/*
+                    One stat in this window is printed in a unit nobody has
+                    confirmed, and it is marked here rather than only on the
+                    totals panel — this is the surface a player reads while
+                    deciding whether to farm the item, and a caveat two screens
+                    away is a caveat they will not see. The dagger rides inside
+                    the value so the 126px stat cell keeps its two columns; the
+                    chip and the sentence it stands for are directly below.
+                  */}
+                  <b>
+                    {signed(s.value)}
+                    {s.key === 'HASTE' ? (
+                      <sup title={HASTE_PROVENANCE.short}>†</sup>
+                    ) : null}
+                  </b>
                 </span>
               ))}
             </div>
+            {hasHaste ? (
+              <div className="iwin-effect">
+                <span className="tier t5" title={HASTE_PROVENANCE.short}>
+                  † {HASTE_PROVENANCE.chip}
+                </span>{' '}
+                <span className="iwin-dim">
+                  {HASTE_PROVENANCE.classic} {wide ? `${HASTE_PROVENANCE.legends} ` : ''}No unit is
+                  printed beside the figure, because which one applies here is unsettled.{' '}
+                  {HASTE_STACKING.rule} {wide ? HASTE_STACKING.standing : ''}
+                </span>
+              </div>
+            ) : null}
           </>
         ) : null}
 

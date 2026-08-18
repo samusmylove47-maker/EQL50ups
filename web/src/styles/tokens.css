@@ -148,6 +148,39 @@
   --source-corroborating: #7595b8;
   --source-distrust: #d46c64;
 
+  /* ---- …and the same three hues, lifted for text -----------------------
+   * eqlsource's own convention, read off its stylesheet and worth stealing
+   * outright: *"the plain token is for rules, borders and bars; the `-t`
+   * variant is the same hue lifted to 4.5:1 for text."* They carry `--warn` /
+   * `--warn-t`, `--ember` / `--ember-t`, `--brass` / `--brass-t` on exactly
+   * this rule.
+   *
+   * It is the convention this file needed, and §23 of `styles.css` had already
+   * hit the wall it exists for: the source rule was allowed to carry the
+   * colour and the eyebrow beside it was forced to stay neutral, because *"the
+   * item window's stone is the lightest ground in the app, and a 10px brick
+   * eyebrow measured 3.68:1 on it"*. That is not a reason to leave the words
+   * grey. It is a reason to have a second token.
+   *
+   * **Measured against `--stone`**, which is the lightest ground any of the
+   * three is ever drawn on — `color-mix(--bg-panel-raised 88%, --client-gold)`
+   * ≈ `#3d3019`, the item window's panel. Ratios on `--bg-panel`, where the
+   * Sources cards draw them, are higher throughout.
+   *
+   *   trusted        #8fae82 measures 5.03:1 on the stone already, so the lift
+   *                  is zero and the token is an alias. Declared anyway, so a
+   *                  rule that wants text can say `-t` for all three without
+   *                  knowing which of them needed help.
+   *   corroborating  #7595b8 measures 3.99:1 — under AA, and it is the app's
+   *                  accent, which may not be quietly brightened. `-t` takes
+   *                  `--accent-hot`, the accent's own lifted step: 5.34:1.
+   *   distrust       #d46c64 measures 3.63:1, which is the 3.68 §23 recorded.
+   *                  Same hue, lifted: 4.87:1.
+   */
+  --source-trusted-t: #8fae82;
+  --source-corroborating-t: #8fadd2;
+  --source-distrust-t: #e08b7f;
+
   /*
    * Item name colour follows the client, which tints by *usability* rather
    * than by a rarity tier — EverQuest Legends has no rarity tier. Across the
@@ -278,6 +311,45 @@
   /* The doc's card: ~28px of internal padding. 24px is the nearest step. */
   --card-pad: var(--s5);
 
+  /* ---- The shell ------------------------------------------------------- *
+   * eqlsource's chrome is a `.shell`: one `max-width` and one gutter, shared
+   * by the masthead, the page and the footer, so the wordmark, the breadcrumb,
+   * the first column of content and the first footer column all sit on one
+   * left edge. Three elements in this app were setting that width
+   * independently and the masthead was not one of them, so the frame and the
+   * content it framed did not line up.
+   *
+   * Their `--max` is 1240px. Ours stays 1400 for the reason `styles.css` §4
+   * records — the item browser's six-column table loses a column at 1200 —
+   * and the *rule* is what is being adopted, not the number.
+   */
+  /*
+   * 1240px, which is eqlsource.com's own `--max`.
+   *
+   * This was 1400 so the item table could hold six columns, and the cost was
+   * measured rather than argued: at 1440 the site's wordmark, breadcrumb, first
+   * paragraph and first footer column all sit at x=140, and this app's sat at
+   * x=60. Crossing from a site page into this tool jerked the masthead 80px
+   * left — the one movement a reader notices before reading a word, on a tool
+   * whose whole claim is that it belongs to that site.
+   *
+   * The table keeps its own wider container where the six-column argument still
+   * holds; the FRAME does not follow it.
+   */
+  --shell-max: 1240px;
+  /*
+   * Their gutter, verbatim: `--gut: clamp(18px,4vw,40px)`. This app's page
+   * edge was a flat 24px, which is 16px tighter than the site's at a desktop
+   * width and 6px looser at 320px — the chrome sat closer to the glass than
+   * the site it is a page of, at exactly the width where you would put the two
+   * windows side by side. Distinct from `--gutter`, which is this app's
+   * *internal* grid gap and is not an edge.
+   */
+  --gut: clamp(18px, 4vw, 40px);
+  /* Their masthead height, verbatim: `--bar-h: 58px`. The mobile nav hangs off
+     it, so it is a token rather than a literal on both sides. */
+  --bar-h: 58px;
+
   /*
    * One corner, and it is nearly square.
    *
@@ -340,9 +412,25 @@
   --fs-body: 13px;
   --fs-mid: 15px;
   --fs-heading: 17px;
-  --fs-large: 20px;
-  --fs-title: 30px;
-  --fs-hero: 44px;
+  --fs-large: clamp(20px, 2.2vw, 30px);
+  /*
+   * The display tier is fluid, because the site's is.
+   *
+   * Measured at 1440 against eqlsource.com: their interior h1 is 72–78px and
+   * ours was 30px; their h2 40px against our 20px; their lede 18.5px against
+   * our 15px. `grep 'font-size:.*clamp'` returned 25 hits in their stylesheet
+   * and 0 in all eight of ours. The consequence was visible on the planar
+   * screen, where the page title and a statistic beneath it were both exactly
+   * 30px — the name of the page weighing the same as one number on it.
+   *
+   * The floors are this app's old fixed values, so nothing shrinks at phone
+   * widths, where the app already measured close to the site. The ceilings are
+   * theirs. Only the display tier moves; the reading and data tiers stay fixed,
+   * because a table of numbers that reflows its own type is harder to read, not
+   * easier.
+   */
+  --fs-title: clamp(30px, 4.4vw, 56px);
+  --fs-hero: clamp(44px, 6.6vw, 84px);
 
   /*
    * Relative, and deliberately not on the scale above: this sizes the ▲/▼
@@ -443,6 +531,18 @@
   --track-display: 0.06em;
   /* Condensed sans, uppercase: Oswald is tight by design and stays that way. */
   --track-heading: 0.03em;
+  /*
+   * Two more steps, and both are measured off eqlsource rather than chosen.
+   * Their uppercase mono runs on `.16em` / `.2em` / `.24em`, and the widest is
+   * what the site chrome is set in: the `SURVEY` half of the wordmark, the
+   * breadcrumb, and every footer column heading take `--tr-widest: .24em`.
+   * The wordmark's own `EQL SOURCE` takes `.1em`, which is neither the display
+   * tracking this app uses elsewhere (.06em) nor the nav's — it is a third
+   * value on their side and copying it is the point of the exercise.
+   */
+  --track-wide: 0.16em;
+  --track-widest: 0.24em;
+  --track-mark: 0.1em;
 
   /*
    * Two states, two values. The app shipped five different opacities meaning

@@ -116,3 +116,77 @@ describe('the stat panel prints the Tier 0 numbers', () => {
     expect(find('Backstab')).toContain('10');
   });
 });
+
+/**
+ * Haste, which is the one figure on this panel printed in a unit nobody has
+ * confirmed.
+ *
+ * The row used to read `36%`. The label is the client's own — the game's Stats
+ * window does head it `Attack Speed %` — but the number under it is the wiki's
+ * per-item haste field, and two sources disagree about whether that field is
+ * that percentage or a flat attack-speed value on another scale. A percent sign
+ * on it asserted the disputed reading and printed it as settled.
+ *
+ * These tests pin the honest shape: the figure, no unit, a mark on the tile, and
+ * the paragraph beside it. The day a Legends haste tooltip settles the question,
+ * they are rewritten to the new truth rather than deleted.
+ */
+describe('the haste figure carries its provenance instead of a percent sign', () => {
+  const CLOAK: Item = {
+    id: null, n: 'Cloak of Flames', sl: ['BACK'], cl: ['ALL'], ra: ['ALL'],
+    st: { HASTE: 36 }, sv: {}, fl: [], av: true,
+  };
+  const BELT: Item = {
+    id: null, n: 'Belt of Contention', sl: ['WAIST'], cl: ['ALL'], ra: ['ALL'],
+    st: { HASTE: 21 }, sv: {}, fl: [], av: true,
+  };
+
+  function vital(label: string): string {
+    const rows = [...container.querySelectorAll('.stat-row.vital')];
+    return rows.find((r) => (r.textContent ?? '').startsWith(label))?.textContent ?? '';
+  }
+
+  it('prints the number and refuses to print the unit', () => {
+    render(computeTotals([{ position: 'BACK', item: CLOAK, upgrade: tier(0) }]));
+    const row = vital('Atk Speed');
+    expect(row).toContain('36');
+    expect(row).not.toContain('36%');
+  });
+
+  it('marks the tile itself, so the badge travels with the hoisted Vitals block', () => {
+    render(computeTotals([{ position: 'BACK', item: CLOAK, upgrade: tier(0) }]));
+    const rows = [...container.querySelectorAll('.stat-row.vital')];
+    const speed = rows.find((r) => (r.textContent ?? '').startsWith('Atk Speed'));
+    expect(speed?.querySelector('.tier.t5')).toBeTruthy();
+  });
+
+  it('states both readings, picks neither, and names what would settle it', () => {
+    render(computeTotals([{ position: 'BACK', item: CLOAK, upgrade: tier(0) }]));
+    const body = text();
+    expect(body).toContain('Atk Speed carries an unconfirmed unit');
+    expect(body).toMatch(/percentage that divided weapon delay/i);
+    expect(body).toMatch(/flat attack-speed/i);
+    expect(body).toMatch(/screenshot/i);
+  });
+
+  it('states the highest-wins rule as an assumption, and says what it discarded', () => {
+    render(
+      computeTotals([
+        { position: 'BACK', item: CLOAK, upgrade: tier(0) },
+        { position: 'WAIST', item: BELT, upgrade: tier(0) },
+      ]),
+    );
+    const body = text();
+    expect(vital('Atk Speed')).toContain('36');
+    expect(body).toMatch(/Only the highest worn haste counts/i);
+    expect(body).toMatch(/2 worn items carry a haste figure/i);
+    expect(body).toMatch(/assumed, not measured/i);
+  });
+
+  it('says nothing at all about haste on a set that has none', () => {
+    render(computeTotals([]));
+    expect(container.querySelector('.stat-note')).toBeNull();
+    expect(vital('Atk Speed')).toContain('0');
+    expect(container.querySelector('.stat-row.vital .tier')).toBeNull();
+  });
+});

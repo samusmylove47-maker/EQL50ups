@@ -1,0 +1,51 @@
+{
+ "note": "Written by pipeline/refresh.mjs. `publishedHash` is upstream's own `hash` field, recorded not recomputed — the algorithm behind it is not published, so it is a label to compare, not a checksum to verify. `sha256` is ours, over the exact bytes vendored, and it is what proves the file on disk is the file that was fetched.",
+ "source": "https://eqlsource.com/data/",
+ "terms": "EQL Source, https://eqlsource.com — use with attribution; read the provenance before trusting a value.",
+ "datasets": {
+  "items.v1.json": {
+   "kind": "items",
+   "title": "Item name to game ID",
+   "role": "Tier M existence evidence, and the join key. An item named here is in the game.",
+   "url": "https://eqlsource.com/data/items.v1.json",
+   "version": "1.0.0",
+   "publishedHash": "519cde8b25db1101",
+   "bytes": 9797,
+   "sha256": "2d3349b01b22b68498a8319c8c9f514ca0e58e1eca0a15bb4b36eea716ac4ab6",
+   "vendoredAt": "2026-08-18T03:42:16.414Z"
+  },
+  "sightings.v1.json": {
+   "kind": "sightings",
+   "title": "Measured drop sources",
+   "role": "Tier M existence evidence and the drop rows shown on an item. A COUNT, never a rate.",
+   "url": "https://eqlsource.com/data/sightings.v1.json",
+   "version": "1.0.0",
+   "publishedHash": "1fb7dad3694443ff",
+   "bytes": 206684,
+   "sha256": "dc6427a8cdac1ba9b2535c9471eb29fa83396520de50fb500dbad93339b24294",
+   "vendoredAt": "2026-08-18T03:42:16.414Z"
+  },
+  "zones.v1.json": {
+   "kind": "zones",
+   "title": "Surveyed dungeons",
+   "role": "How far the survey behind a drop source has got, so a partial one cannot read as complete.",
+   "url": "https://eqlsource.com/data/zones.v1.json",
+   "version": "1.0.0",
+   "publishedHash": "9ccb68b87a450128",
+   "bytes": 15525,
+   "sha256": "c2b544fac2520cda2f325eefc9d201118d8ca1f6e6b897b7764ab5cf9edfee04",
+   "vendoredAt": "2026-08-18T03:42:16.414Z"
+  },
+  "sky.v1.json": {
+   "kind": "sky",
+   "title": "Plane of Sky class unlocks",
+   "role": "Vendored and diffed; not read by the build yet. Kept in step so it is here when it is wanted.",
+   "url": "https://eqlsource.com/data/sky.v1.json",
+   "version": "1.0.0",
+   "publishedHash": "c8d41d080e92f873",
+   "bytes": 128324,
+   "sha256": "9161a0cccf630dee31104db84353f8f7b2d7f0b1decbba9e182738ecd2d3b72b",
+   "vendoredAt": "2026-08-18T03:42:16.415Z"
+  }
+ }
+}

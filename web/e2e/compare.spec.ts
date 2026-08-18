@@ -129,10 +129,19 @@ test('the diff page is keyboard reachable with a visible ring', async ({ page })
   await page.goto(`/#/set/${first}/compare/${second}`);
   await expect(page.locator('.cmp-slots')).toBeVisible();
 
-  // Walk in from the top of the document and stop on the first control the
-  // diff itself owns.
+  /*
+   * Walk in from the top of the document and stop on the first control the
+   * diff itself owns.
+   *
+   * The budget was 12, which was the old chrome's five links plus slack. The
+   * chrome is eqlsource.com's now — a wordmark, seven site-section links, two
+   * breadcrumb links and the tool's own four — so the walk crosses fourteen
+   * stops before it reaches `<main>`. That is a real cost of the frame and it
+   * is stated here rather than hidden: raise this number only when the chrome
+   * genuinely grows, never to make a red test go away.
+   */
   await page.locator('body').click({ position: { x: 5, y: 5 } });
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 24; i++) {
     await page.keyboard.press('Tab');
     const inside = await page.evaluate(() =>
       Boolean(document.activeElement?.closest('.cmp')),

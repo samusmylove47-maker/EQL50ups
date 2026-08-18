@@ -121,11 +121,18 @@ test('it holds up at every width, and explains itself with no set', async ({ pag
   await expectCleanText(page);
 
   // The nav gained a fourth item with this screen; on the narrowest phone it
-  // scrolls rather than printing its labels over each other.
+  // wraps rather than printing its labels over each other.
+  //
+  // `.topbar nav a` until the chrome became eqlsource.com's. The app's own nav
+  // is `.tool-nav` now, on the breadcrumb rail below the site masthead — see
+  // `components/SiteChrome`. Same assertion, same defect it guards against,
+  // new selector; the site nav above it is checked the same way.
   await page.setViewportSize({ width: 320, height: 900 });
   await page.waitForTimeout(200);
   const clipped = await page.evaluate(() =>
-    [...document.querySelectorAll('.topbar nav a')].some((a) => a.scrollWidth > a.clientWidth + 1),
+    [...document.querySelectorAll('.tool-nav a, .site-nav a')].some(
+      (a) => a.scrollWidth > a.clientWidth + 1,
+    ),
   );
   expect(clipped, 'a nav label narrower than its own text').toBe(false);
 });

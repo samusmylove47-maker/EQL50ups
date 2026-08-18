@@ -8,16 +8,19 @@
  * same number the slot's own picker prints.
  */
 
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { canUse, makeContext } from '../engine/character';
 import { scoreItem, type WeightProfile } from '../engine/ep';
 import { tier, type UpgradeState } from '../engine/upgrade';
 import type { GearSet, Item } from '../engine/types';
 import { useCatalog, type CatalogState } from '../data/catalog';
+import { normalizeCatalog } from '../data/normalize';
 import { rankSlotItems, scoreContextFrom, slotViews, statDeltas, totalsFor } from '../selectors/gear';
 import { DEFAULT_SET_FILTERS, type SetFilters } from '../lib/setFilters';
 import {
-  acquisitionLines, computeUpgrades, hasAnyWeight, isLore, unweightedLosses, weightedDeltas,
+  acquisitionLines, computeUpgrades, dateSpan, hasAnyWeight, isLore, measuredDrops,
+  totalSightings, unweightedLosses, weightedDeltas, zoneTallies,
   type CompareBasis, type UpgradeReport,
 } from './Upgrades';
 
@@ -398,5 +401,200 @@ describe('the report as a whole', () => {
     const result = report(gearSet());
     const sum = result.rows.reduce((total, row) => total + row.gain, 0);
     expect(result.totalGain).toBeCloseTo(sum, 10);
+  });
+});
+
+/**
+ * The measured half, which is the reason this tool is worth opening.
+ *
+ * `acquisitionLines` above says where a wiki page claims an item comes from.
+ * These functions say where the game was watched producing it. The rule that
+ * governs every one of them is the publisher's own first rule for
+ * `sightings.v1.json` and this project's rule independently: **a count, never a
+ * rate.** No test here asserts a percentage, because no code path may produce
+ * one, and the last test in the file is a scan of the source that says so.
+ */
+describe('the measured drop data', () => {
+  const NAGAFEN = {
+    zone: "Nagafen's Lair - Group",
+    slug: 'nagafenslair',
+    title: "Nagafen's Lair",
+    survey: 'partial',
+    measured: 4,
+    facets: 5,
+  };
+
+  const BOULDER = item({
+    n: 'Throwing Boulder',
+    sl: ['AMMO'],
+    ms: [
+      {
+        mob: 'King Tranix', seen: 7, sessions: 7, zones: [NAGAFEN.zone], zs: [NAGAFEN],
+        first: '10 Aug 2026', last: '12 Aug 2026',
+      },
+      {
+        mob: 'Fire Giant Warrior', seen: 73, sessions: 5, zones: [NAGAFEN.zone], zs: [NAGAFEN],
+        first: '10 Aug 2026', last: '12 Aug 2026',
+      },
+      {
+        mob: 'An ice giant priest', seen: 18, sessions: 5,
+        zones: ['The Permafrost Caverns - Group'],
+        first: '10 Aug 2026', last: '11 Aug 2026', offRoster: true,
+      },
+    ],
+  });
+
+  it('orders the sources by how often the drop was seen, not by payload order', () => {
+    expect(measuredDrops(BOULDER).map((row) => row.mob)).toEqual([
+      'Fire Giant Warrior', 'An ice giant priest', 'King Tranix',
+    ]);
+  });
+
+  it('returns nothing for an item nobody has watched, rather than an empty claim', () => {
+    expect(measuredDrops(item({ n: 'Unwatched', sl: ['HEAD'] }))).toEqual([]);
+    expect(measuredDrops(item({ n: 'Empty', sl: ['HEAD'], ms: [] }))).toEqual([]);
+  });
+
+  /*
+   * `seen` adds because each sighting is one drop attributed to one mob.
+   * `sessions` must not: one evening can produce two mobs, and summing the
+   * column would print a sample size larger than the sample.
+   */
+  it('adds the sightings and refuses to add the sessions', () => {
+    expect(totalSightings(measuredDrops(BOULDER))).toBe(98);
+    const rows = measuredDrops(BOULDER);
+    const sessionSum = rows.reduce((n, row) => n + row.sessions, 0);
+    expect(sessionSum).toBe(17);
+    // Nothing exported from the screen reports that number, because it is not
+    // a count of anything: the same session appears in three rows.
+    expect(totalSightings(rows)).not.toBe(sessionSum);
+  });
+
+  it('spans the dates it can read and withholds the span when it cannot', () => {
+    expect(dateSpan(measuredDrops(BOULDER))).toEqual({ first: '10 Aug 2026', last: '12 Aug 2026' });
+    expect(dateSpan([{ mob: 'X', seen: 1, sessions: 1, first: 'last tuesday' }])).toBeNull();
+    expect(dateSpan([{ mob: 'X', seen: 1, sessions: 1 }])).toBeNull();
+  });
+
+  it('rolls the listed upgrades up by zone, counting each item once per zone', () => {
+    const rows = [
+      { candidate: { item: BOULDER } },
+      { candidate: { item: item({
+        n: 'Second',
+        sl: ['HEAD'],
+        ms: [{ mob: 'Magus Rokyl', seen: 7, sessions: 7, zones: [NAGAFEN.zone], zs: [NAGAFEN] }],
+      }) } },
+      { candidate: { item: item({ n: 'Unwatched', sl: ['FEET'] }) } },
+    ] as unknown as UpgradeReport['rows'];
+
+    const tallies = zoneTallies(rows);
+    expect(tallies.map((t) => t.zone)).toEqual([
+      "Nagafen's Lair - Group", 'The Permafrost Caverns - Group',
+    ]);
+    // Two items listed in Nagafen's, even though three drop rows name it.
+    expect(tallies[0]?.items).toBe(2);
+    expect(tallies[0]?.seen).toBe(87);
+    expect(tallies[0]?.survey?.measured).toBe(4);
+    // No published survey for Permafrost, so none is invented.
+    expect(tallies[1]?.survey).toBeNull();
+    expect(tallies[1]?.title).toBe('The Permafrost Caverns - Group');
+  });
+
+  it('has nothing to roll up when nothing on the list has been measured', () => {
+    const rows = [
+      { candidate: { item: item({ n: 'Unwatched', sl: ['FEET'] }) } },
+    ] as unknown as UpgradeReport['rows'];
+    expect(zoneTallies(rows)).toEqual([]);
+  });
+
+  /**
+   * The rule, enforced against the file rather than against a render.
+   *
+   * Every other test here can be satisfied by code that also, somewhere, prints
+   * `73 / 5 = 14.6 per session`. This one cannot: it reads the screen's own
+   * source and fails if any arithmetic is performed on a sighting count at all.
+   * A drop seen once is seen once, and nothing in this project may turn that
+   * into a rate.
+   */
+  it('performs no division and prints no percentage on a measured figure', () => {
+    const source = readFileSync('src/screens/Upgrades.tsx', 'utf8');
+    const strip = (text: string) =>
+      text
+        // Comments discuss rates and percentages by name; the rule is about
+        // what the code does, not about what it is allowed to explain.
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/^\s*\/\/.*$/gm, '')
+        // Prose legitimately contains the word "rate" when denying there is one.
+        .replace(/'[^'\n]*'|"[^"\n]*"|`[^`]*`/g, "''");
+    const between = (from: string, to: string) => {
+      const start = source.indexOf(from);
+      const end = source.indexOf(to, start + 1);
+      expect(start, `marker ${from}`).toBeGreaterThan(-1);
+      expect(end, `marker ${to}`).toBeGreaterThan(start);
+      return strip(source.slice(start, end));
+    };
+
+    const whole = strip(source);
+    // Nowhere in the screen is a sighting count an operand of a division.
+    expect(whole).not.toMatch(/\b(?:seen|sessions|sightings)\s*\//);
+    expect(whole).not.toMatch(/\/\s*(?:row|drop|tally)?\.?(?:seen|sessions|sightings)\b/);
+
+    /*
+     * And inside the two regions that build the measured card there is no
+     * percent sign at all — not on a figure, not on a bar, not anywhere. The
+     * EP bar elsewhere on the row is a width relative to the best gain and is
+     * deliberately outside this scope; nothing about a drop is.
+     */
+    for (const region of [
+      between('export function measuredDrops', 'export function acquisitionLines'),
+      between('function MeasuredDrops(', 'function SourceBlock('),
+      between('<section className="upg-zones"', '</section>'),
+    ]) {
+      expect(region).not.toContain('%');
+      expect(region).not.toMatch(/toFixed|toLocaleString\(.*style/);
+    }
+  });
+});
+
+/**
+ * The measured data survives the trip from the pipeline to the screen.
+ *
+ * Every function above was tested against a hand-built row, which proves the
+ * logic and nothing about the payload. This reads what the build actually
+ * wrote and normalises it exactly as the app does, because the failure this
+ * guards against is silent and total: the normaliser constructs a fresh item
+ * and copies named fields, so a new field that nobody adds to it is dropped
+ * between the shard and the screen with no error anywhere.
+ */
+describe('the shipped payload reaches the screen with its sightings intact', () => {
+  const DIR = 'public/data/items';
+
+  it('carries measured drops on the items the build says carry them', () => {
+    if (!existsSync(DIR)) return; // a checkout with no build is not a failure
+    let raw = 0;
+    let normalised = 0;
+    let rows = 0;
+    for (const file of readdirSync(DIR)) {
+      const payload = JSON.parse(readFileSync(`${DIR}/${file}`, 'utf8')) as {
+        items?: Array<{ ms?: unknown[] }>;
+      };
+      raw += (payload.items ?? []).filter((entry) => Array.isArray(entry.ms) && entry.ms.length)
+        .length;
+      for (const shipped of normalizeCatalog(payload)) {
+        const drops = measuredDrops(shipped);
+        if (!drops.length) continue;
+        normalised += 1;
+        rows += drops.length;
+        for (const drop of drops) {
+          expect(drop.mob.length).toBeGreaterThan(0);
+          expect(Number.isInteger(drop.seen)).toBe(true);
+          expect(drop.seen).toBeGreaterThanOrEqual(0);
+          expect(Number.isInteger(drop.sessions)).toBe(true);
+        }
+      }
+    }
+    expect(raw).toBeGreaterThan(0);
+    expect(normalised).toBe(raw);
+    expect(rows).toBeGreaterThanOrEqual(normalised);
   });
 });

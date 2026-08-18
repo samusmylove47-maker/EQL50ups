@@ -70,3 +70,44 @@ describe('item window weight tracks the upgrade level', () => {
     expect(text).not.toMatch(/NaN|undefined|\[object Object\]/);
   });
 });
+
+/**
+ * The haste line, marked where a player actually decides.
+ *
+ * This window is the surface someone reads while working out whether an item is
+ * worth farming. A caveat that lives only on the totals panel two screens away
+ * is a caveat that arrives after the decision, so the mark rides on the figure
+ * here as well — a dagger inside the value, and the sentence it stands for
+ * directly below the stat grid.
+ */
+describe('a haste figure is never printed bare', () => {
+  const CLOAK: Item = {
+    id: null, n: 'Cloak of Flames', sl: ['BACK'], cl: ['ALL'], ra: ['ALL'],
+    st: { HASTE: 36, AC: 10 }, sv: {}, fl: [], av: true,
+  };
+
+  it('marks the value and explains the mark in the same window', () => {
+    const text = render(<ItemWindow item={CLOAK} upgrade={tier(0)} wide />);
+    expect(text).toContain('Haste');
+    expect(text).toContain('+36');
+    expect(text).not.toContain('36%');
+    expect(text).toContain('†');
+    expect(text).toContain('Classic unit');
+    expect(text).toMatch(/percentage that divided weapon delay/i);
+    expect(text).toMatch(/Only the highest worn haste counts/i);
+  });
+
+  it('keeps the narrow hover card to the short form of the same claim', () => {
+    const text = render(<ItemWindow item={CLOAK} upgrade={tier(0)} />);
+    expect(text).toContain('Classic unit');
+    expect(text).toMatch(/percentage that divided weapon delay/i);
+    // The two-source paragraph is the dialog's job; 330px cannot hold it.
+    expect(text).not.toMatch(/flat attack-speed/i);
+  });
+
+  it('says nothing about haste on an item that has none', () => {
+    const text = render(<ItemWindow item={EARTHSHAKER} upgrade={tier(0)} wide />);
+    expect(text).not.toContain('Classic unit');
+    expect(text).not.toContain('†');
+  });
+});

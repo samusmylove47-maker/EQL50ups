@@ -276,6 +276,10 @@ export function scoreContextFrom(totals: StatTotals): ScoreExisting {
   return {
     attributes: { ...totals.attributes },
     saves: { ...totals.saves },
+    // Haste is context-dependent in a way no cap is: only the highest worn
+    // figure counts at all, so an item's haste is worth nothing to a character
+    // already wearing more. See `hasteCredit` in `engine/ep.ts`.
+    haste: totals.haste,
   };
 }
 
@@ -305,7 +309,9 @@ function contextSignature(existing: ScoreExisting | undefined): string {
   if (!existing) return '-';
   const attrs = Object.entries(existing.attributes).map(([k, v]) => `${k}${Math.round(finite(v))}`);
   const saves = Object.entries(existing.saves).map(([k, v]) => `${k}${Math.round(finite(v))}`);
-  return [...attrs, ...saves].join('');
+  // Haste changes the score without changing any attribute or save, so leaving
+  // it out of the key would serve a ranking computed against a different set.
+  return [...attrs, ...saves, `H${Math.round(finite(existing.haste))}`].join('');
 }
 
 const rankCache = new Map<string, ScoredItem[]>();

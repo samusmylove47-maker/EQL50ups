@@ -43,6 +43,49 @@ const SOURCED: Item = {
   src: { z: ['Lower Guk'], m: ['a ghoul cavalier'], q: ['The Harvester'] },
 };
 
+/**
+ * An item the game has been watched producing, with the wiki's account beside
+ * it. Both halves matter: the screen has to show that the two are different
+ * classes of claim, which it cannot do with only one of them.
+ */
+const MEASURED: Item = {
+  id: null,
+  n: '[Fixture] Throwing Boulder',
+  sl: ['AMMO'],
+  cl: ['ALL'],
+  ra: ['ALL'],
+  st: { AC: 30, STR: 14 },
+  sv: {},
+  fl: ['FIXTURE'],
+  av: true,
+  era: 'Classic',
+  ex: 'measured-drop',
+  src: { z: ['Nagafen\u2019s Lair'], m: ['a fire giant'] },
+  ms: [
+    {
+      mob: 'Fire Giant Warrior',
+      seen: 73,
+      sessions: 5,
+      zones: ["Nagafen's Lair - Group"],
+      zs: [{
+        zone: "Nagafen's Lair - Group", slug: 'nagafenslair', title: "Nagafen's Lair",
+        survey: 'partial', measured: 4, facets: 5,
+      }],
+      first: '10 Aug 2026',
+      last: '12 Aug 2026',
+    },
+    {
+      mob: 'An ice giant priest',
+      seen: 18,
+      sessions: 5,
+      zones: ['The Permafrost Caverns - Group'],
+      first: '10 Aug 2026',
+      last: '11 Aug 2026',
+      offRoster: true,
+    },
+  ],
+};
+
 /** A real item nobody has published stats for — the Shadow Rage case. */
 const UNSTATTED: Item = {
   id: null,
@@ -140,7 +183,7 @@ beforeEach(() => {
   vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) =>
     setTimeout(() => cb(Date.now()), 0) as unknown as number,
   );
-  seedCatalog([SOURCED, UNSTATTED]);
+  seedCatalog([SOURCED, UNSTATTED, MEASURED]);
 });
 
 afterEach(() => {
@@ -305,5 +348,128 @@ describe('the upgrades screen', () => {
       if (!rows().length) break;
     }
     expect(text()).toContain('Nothing outranks what you are wearing');
+  });
+});
+
+/**
+ * The measured drop data on screen.
+ *
+ * This is the single biggest reason to open this tool rather than a wiki page,
+ * so these tests are about whether it *lands*: that it is present, that it
+ * leads, that it is visibly a different class of claim from the wiki account
+ * below it, that it carries its own standing mark, and that every figure on it
+ * is a count with its sample size attached.
+ */
+describe('the measured drops lead, and are marked as measured', () => {
+  function measuredRow(): HTMLElement | undefined {
+    return rows().find((row) => row.querySelector('.upg-measured')) as HTMLElement | undefined;
+  }
+
+  it('shows the mob, the zone, the count, the sample size and the dates', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const row = measuredRow();
+    expect(row, 'a row for the measured fixture item').toBeTruthy();
+    const card = (row?.querySelector('.upg-measured')?.textContent ?? '').replace(/\s+/g, ' ');
+
+    expect(card).toContain('Fire Giant Warrior');
+    expect(card).toContain("Nagafen's Lair - Group");
+    expect(card).toContain('73 seen');
+    expect(card).toContain('over 5 sessions');
+    expect(card).toContain('10 Aug 2026');
+    expect(card).toContain('12 Aug 2026');
+    expect(card).toContain('partial survey · 4 of 5 facets measured');
+    // Measured, but named by the log rather than by a roster we had written.
+    expect(card).toContain('off roster');
+  });
+
+  it('carries a Tier M mark and the sourcing standard’s trusted rule', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const card = measuredRow()?.querySelector('.upg-measured');
+    expect(card?.getAttribute('data-standing')).toBe('trusted');
+    expect(card?.querySelector('.tier.tM')?.textContent).toContain('Tier M');
+  });
+
+  it('puts the measured card above the wiki account, not among it', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const source = measuredRow()?.querySelector('.upg-source');
+    const children = [...(source?.children ?? [])];
+    expect(children[0]?.classList.contains('upg-measured')).toBe(true);
+    // And the wiki lines are held in their own block, labelled as transcribed.
+    const wiki = source?.querySelector('.upg-wiki')?.textContent ?? '';
+    expect(wiki).toContain('Transcribed');
+    expect(wiki).toContain('not measured');
+    expect(wiki).toContain('a fire giant');
+  });
+
+  it('states the count rule on the card, and prints no percentage on it', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const card = (measuredRow()?.querySelector('.upg-measured')?.textContent ?? '')
+      .replace(/\s+/g, ' ');
+    expect(card).toContain('A count, never a rate');
+    expect(card).toContain('a dry streak is a ceiling, not a zero');
+    expect(card).not.toContain('%');
+    // 73 + 18, added because each sighting is one event. Sessions are not added.
+    expect(card).toContain('91 sightings across 2 mobs');
+  });
+
+  it('answers “so where do I go” with counts of items and sightings', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const zones = container.querySelector('.upg-zones');
+    expect(zones, 'the where-to-go section').toBeTruthy();
+    const body = (zones?.textContent ?? '').replace(/\s+/g, ' ');
+    expect(body).toContain('Where to go');
+    expect(body).toContain("Nagafen's Lair - Group");
+    expect(body).toContain('73 sightings');
+    expect(body).toContain('partial survey · 4 of 5 facets measured');
+    expect(body).toContain('no published survey for this zone');
+    expect(body).not.toContain('%');
+  });
+
+  it('counts the measured rows in the headline, and says what the rest are', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const body = text();
+    expect(body).toContain('Measured dropping in game');
+    expect(body).toContain('watched dropping');
+  });
+
+  /*
+   * Scannability. A player deciding what to farm tonight reads a list of
+   * twenty-three rows; if the measured half only exists inside the detail
+   * block, they have to open every one to find it.
+   */
+  it('marks the row itself, so a measured upgrade is findable without opening it', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const row = measuredRow();
+    expect(row?.querySelector('.upg-seenmark')?.textContent).toContain('91 sightings');
+    const wikiOnly = rows().find(
+      (other) => (other.textContent ?? '').includes('[Fixture] Girdle of the Deep'),
+    );
+    expect(wikiOnly?.querySelector('.upg-seenmark')).toBeNull();
+  });
+
+  it('says a wiki-only item is a wiki-only item rather than showing it a blank', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const wikiOnly = rows().find(
+      (row) => (row.textContent ?? '').includes('[Fixture] Girdle of the Deep'),
+    );
+    expect(wikiOnly, 'the wiki-sourced fixture row').toBeTruthy();
+    expect(wikiOnly?.querySelector('.upg-measured')).toBeNull();
+    expect(wikiOnly?.textContent).toContain('Nobody has measured this item dropping');
   });
 });

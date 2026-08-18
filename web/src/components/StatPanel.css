@@ -1,0 +1,56 @@
+/*
+ * The one caveat this panel carries.
+ *
+ * Every other number on the stat sheet is a sum of catalog fields whose unit
+ * nobody disputes. Attack Speed is not, so it gets the eqlsource card device —
+ * a 2px standing rule on the top edge and a mono tier chip — and nothing else
+ * on the panel does. Spending the device once is what keeps it meaning
+ * something; `styles.css` §23 makes the same argument about red.
+ *
+ * Declares no colour and no type size of its own: every value resolves to a
+ * token, per `tokens.css`'s third rule. `[data-standing='distrust']` already
+ * supplies `--c` and the top border from §23, so this file only has to lay the
+ * block out.
+ */
+
+.stat-note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin-top: var(--s3);
+  padding: var(--s3);
+  background: var(--bg-inset);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.stat-note-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.stat-note p {
+  margin: 0;
+  max-width: 78ch;
+  line-height: 1.6;
+}
+
+/*
+ * The chip on a Vitals tile.
+ *
+ * `.stat-row.vital` is a column, so the chip lands under the figure it marks.
+ * The tile can be 112px wide, which is narrower than `CLASSIC UNIT` at the
+ * chip's own tracking — so the tracking is relaxed here rather than the label
+ * being cut. A truncated badge is worse than no badge: it reads as a word the
+ * reader failed to recognise instead of as a warning.
+ */
+.stat-row.vital > .tier {
+  margin-top: var(--s0);
+  max-width: 100%;
+  letter-spacing: var(--track-display);
+  white-space: normal;
+}

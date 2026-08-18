@@ -368,9 +368,248 @@
 .upg-source {
   display: flex;
   flex-direction: column;
-  gap: var(--s0);
+  gap: var(--s2);
   min-width: 0;
   flex: 1 1 340px;
+}
+
+/* ------------------------------------------------------- the measured card */
+/*
+ * The one block on this screen made of observations rather than of scrapes, so
+ * it is the one block drawn as a card: eqlsource's device — an inset ground, a
+ * hairline box and the 2px standing rule that `[data-standing='trusted']` in
+ * §23 puts on its top edge. The wiki lines below it stay as plain rows.
+ *
+ * The visual weight is the argument. A reader scanning a row should be able to
+ * tell, without reading a word, that one of these two accounts was measured and
+ * the other was transcribed; if they read alike, the card has failed however
+ * accurate its labels are.
+ */
+/*
+ * The standing rule is written out rather than left to `[data-standing]` in
+ * styles.css §23. Both selectors carry the same specificity, so which one wins
+ * would come down to the order Vite happens to concatenate two files in —
+ * `.upg-held` below already states its own for exactly this reason. The
+ * attribute stays on the element because it is the fact; this is the paint.
+ */
+.upg-measured {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  background: var(--bg-inset);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--source-trusted);
+  border-radius: var(--radius);
+  padding: var(--s2) var(--s3) var(--s3);
+  min-width: 0;
+}
+
+.upg-kpi[data-standing='trusted'] {
+  border-top: 2px solid var(--source-trusted);
+}
+
+.upg-measuredhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+  min-width: 0;
+}
+
+.upg-measuredsum {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+
+.upg-drops {
+  list-style: none;
+  margin: var(--s1) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+/*
+ * One measured source. The mob leads because it is what a player looks for on
+ * screen; the count sits on its own line in mono so the sample sizes down the
+ * card line up and can be compared at a glance without being read one by one.
+ */
+.upg-drop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  gap: 0 var(--s3);
+  padding-left: var(--s2);
+  border-left: 2px solid var(--source-trusted);
+  min-width: 0;
+}
+
+.upg-dropmob {
+  grid-column: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: var(--fs-small);
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* Measured, but not expected: the log named this mob and no roster did. */
+.upg-dropoff {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.upg-dropzone {
+  grid-column: 1;
+  font-size: var(--fs-small);
+  color: var(--text);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.upg-dropseen {
+  grid-column: 2;
+  grid-row: 1;
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* The count itself is the only lifted numeral on the card. */
+.upg-dropseen b {
+  color: var(--text-strong);
+  font-weight: var(--fw-num);
+}
+
+.upg-dropmeta {
+  grid-column: 2;
+  grid-row: 2;
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  text-align: right;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.upg-dropsurvey {
+  grid-column: 1 / -1;
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  overflow-wrap: anywhere;
+}
+
+.upg-dropmore,
+.upg-dropnote {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+  line-height: 1.6;
+  max-width: 88ch;
+}
+
+/* The wiki account, held together as one block so its label governs all of it. */
+.upg-wiki {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s0);
+  min-width: 0;
+}
+
+/* -------------------------------------------------------------- where to go */
+
+.upg-zones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--source-trusted);
+  border-radius: var(--radius-lg);
+  padding: var(--s3) var(--s4);
+  min-width: 0;
+}
+
+.upg-zonelist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.upg-zone {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 140px) minmax(0, 140px) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--s1) var(--s3);
+  padding: var(--s1) 0;
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+
+.upg-zonename {
+  font-size: var(--fs-body);
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.upg-zonecount,
+.upg-zoneseen {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.upg-zonecount b {
+  color: var(--text-strong);
+  font-weight: var(--fw-num);
+}
+
+.upg-zonesurvey {
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/*
+ * The dagger that ties a haste figure to the sentence explaining its unit. It
+ * is a mark on a number, so it takes the colour the sourcing standard spends on
+ * data it says to distrust — the same hue the tier chip beside the sentence
+ * carries, so the two read as one device.
+ */
+.upg-daggermark {
+  color: var(--source-distrust-t);
+  margin-left: var(--s0);
+  cursor: help;
 }
 
 .upg-srcline {
@@ -401,6 +640,16 @@
 
 .upg-more {
   color: var(--text-faint);
+}
+
+/*
+ * The measured mark on the row itself, in the tier's own colour so it reads as
+ * the same claim the card below spells out. It is the one tint on the sub-line,
+ * which is what makes a measured row findable in a list of twenty-three.
+ */
+.upg-seenmark {
+  color: var(--source-trusted-t);
+  cursor: help;
 }
 
 .upg-source-none {
@@ -514,5 +763,27 @@
 
   .upg-srclabel {
     flex-basis: 72px;
+  }
+
+  /*
+   * The zone table stacks rather than squeezing. Four columns inside a phone's
+   * width put "Nagafen's Lair - Group" into a 90px well and broke it mid-word,
+   * which is the failure the note at the top of this file records the doll
+   * shipping twice.
+   */
+  .upg-zone {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s0);
+  }
+
+  .upg-drop {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .upg-dropseen,
+  .upg-dropmeta {
+    grid-column: 1;
+    grid-row: auto;
+    text-align: left;
   }
 }

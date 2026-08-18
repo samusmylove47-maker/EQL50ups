@@ -49,9 +49,24 @@ const EXPECTED_STANDING = {
   'tier-M': 5,
   'tier-2': 2045,
   'tier-5': 126,
-  unattributed: 1477,
+  unattributed: 1487,
 } as const;
-const EXPECTED_TOTAL = 3653;
+/*
+ * 3,663 — ten more than the 3,653 the purge ships, and the ten are the point.
+ *
+ * An item can be in the game and in no wiki scrape: EQL Source measured it
+ * dropping, or its ID table names it, or this repository's own client export
+ * printed it and nothing else has ever described it. Those records used to be
+ * counted, reported and then dropped — the README called it out as a known limit
+ * ("eight items in a sampled inventory exist in no wiki catalog at all"), and the
+ * only way one could ship was to be typed into a table in build.mjs by hand.
+ * They are now admitted automatically as existence-only records, which is what a
+ * brand-new drop looks like on the morning of a patch.
+ *
+ * `unattributed` absorbs all ten, because a record with no stats has nothing to
+ * attribute. `tier-2` and `tier-5` are untouched: nothing here prints a number.
+ */
+const EXPECTED_TOTAL = 3663;
 /**
  * Four marks now, in strength order, and the two new ones come from EQL Source's
  * own published datasets rather than from this repository.
@@ -70,9 +85,9 @@ const EXPECTED_TOTAL = 3653;
  * measurement — which is exactly what Tier M is for.
  */
 const EXPECTED_EXISTENCE = {
-  'measured-drop': 275,
-  'live-export': 190,
-  'eqlsource-id': 93,
+  'measured-drop': 277,
+  'live-export': 197,
+  'eqlsource-id': 95,
 } as const;
 
 describe.skipIf(!published)('every shipped item states where its numbers came from', () => {
@@ -98,11 +113,11 @@ describe.skipIf(!published)('every shipped item states where its numbers came fr
     for (const item of items) if (item.ex) tally[item.ex] = (tally[item.ex] ?? 0) + 1;
     expect(tally).toEqual(EXPECTED_EXISTENCE);
 
-    // 558 items are known to exist; 5 have client-verified numbers. If those
+    // 569 items are known to exist; 5 have client-verified numbers. If those
     // two ever coincide, one fact has swallowed the other again.
     const exists = items.filter((i) => i.ex).length;
     const verified = items.filter((i) => i.sd === 'tier-M').length;
-    expect(exists).toBe(558);
+    expect(exists).toBe(569);
     expect(verified).toBe(5);
     expect(exists).not.toBe(verified);
   });
@@ -167,9 +182,16 @@ describe.skipIf(!published)('the standing follows from evidence, never from a gu
     }
   });
 
+  /*
+   * Sixteen now, not six. Six are Shadow Rage — real items whose numbers are
+   * withheld — and ten are existence-only: items Tier M evidence proves the
+   * game produced, that no source describes at all. Both kinds must be silent
+   * about numbers; only the second kind is also silent about slot and class,
+   * and that difference is asserted rather than averaged over.
+   */
   it('never tiers a row whose stats are withheld', () => {
     const withheld = items.filter((i) => i.statsUnknown);
-    expect(withheld.length).toBe(6);
+    expect(withheld.length).toBe(16);
     for (const item of withheld) {
       expect(item.sd, `${item.n}`).toBe('unattributed');
       expect(sourceStanding(item).label).toBe('Unattributed · stats withheld');

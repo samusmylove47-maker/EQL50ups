@@ -42,14 +42,15 @@ import { SLOT_POSITIONS, type SlotPosition } from '../engine/constants';
 import { scoreItem, type WeightProfile } from '../engine/ep';
 import { resolveItem } from '../engine/stats';
 import { BASE_STATE, normalizeState, tier, type UpgradeState } from '../engine/upgrade';
-import type { Item } from '../engine/types';
+import type { Item, MeasuredDrop, ZoneSurvey } from '../engine/types';
 import { statsAreUnknown, type SlotCode } from '../data/normalize';
+import { HASTE_PROVENANCE, HASTE_STACKING } from '../engine/stats';
 import { useCatalog, type CatalogState } from '../data/catalog';
 import { ItemDetail } from '../components/ItemDetail';
 import { itemHoverProps } from '../components/ItemWindow';
 import { SlotGlyph } from '../components/SlotGlyph';
 import { UpgradeStepper } from '../components/UpgradeStepper';
-import { count, dec, ep as epText, finite, num, signed } from '../lib/format';
+import { count, dec, ep as epText, finite, num, pluralize, signed } from '../lib/format';
 import { nextFrame } from '../lib/frames';
 import { eraLabel } from '../lib/itemStyle';
 import {
@@ -540,12 +541,162 @@ function line(key: string, label: string, values: readonly string[], limit: numb
   };
 }
 
+/* --------------------------------------------- what the game was seen doing */
+
 /**
- * Where an item comes from, as the catalog has it.
+ * The measured drop rows for an item, strongest first.
  *
- * This is the half that makes a row worth acting on: an EP number tells you
- * what to want and a zone tells you where to go. Returns an empty list rather
- * than a guess when the corpus records nothing, and the screen says so in
+ * `item.ms` is EQL Source's own sightings, parsed out of combat logs and
+ * attached by the pipeline. It is the single reason to open this tool rather
+ * than a wiki: `acquisitionLines` below says where a page *claims* an item comes
+ * from, and this says where the game was *watched* producing it, on dated
+ * sessions, with the sample size attached.
+ *
+ * **A COUNT, NEVER A RATE.** The publisher's first rule for `sightings.v1.json`
+ * and this project's rule independently. Nothing in this file divides `seen` by
+ * `sessions`, by a kill count, or by anything else, and no percentage is
+ * derived from either. A drop seen once is seen once. Sky Ledger says the same
+ * thing about the mirror case and says it better: a dry streak is a ceiling,
+ * not a zero — a mob that has not been seen dropping an item in these sessions
+ * has not been shown not to drop it.
+ *
+ * Sorted defensively rather than trusting the payload's order, so a re-vendored
+ * file cannot silently reorder what a reader is told to farm.
+ */
+export function measuredDrops(item: Item): MeasuredDrop[] {
+  const rows = item.ms;
+  if (!Array.isArray(rows) || !rows.length) return [];
+  return [...rows]
+    .filter((row) => row && typeof row.mob === 'string' && row.mob.length > 0)
+    .sort((a, b) => b.seen - a.seen || b.sessions - a.sessions || a.mob.localeCompare(b.mob));
+}
+
+/**
+ * The sightings behind a set of rows, added up.
+ *
+ * `seen` totals because each sighting is one drop attributed to one mob, so
+ * adding them counts each event once. **`sessions` deliberately does not**: one
+ * session can produce two mobs, so summing the column would count the same
+ * evening twice and print a sample size larger than the sample. It is reported
+ * per row, where it is true, and nowhere else.
+ */
+export function totalSightings(rows: readonly MeasuredDrop[]): number {
+  return rows.reduce((sum, row) => sum + Math.max(0, row.seen), 0);
+}
+
+/**
+ * The dates a set of rows spans, or null if any of them cannot be read.
+ *
+ * The published form is `10 Aug 2026`. A date this code cannot parse is not
+ * guessed at and not partially rendered: the whole span is withheld and the
+ * per-row dates, which are printed verbatim, carry the fact instead.
+ */
+export function dateSpan(rows: readonly MeasuredDrop[]): { first: string; last: string } | null {
+  let low: { text: string; at: number } | null = null;
+  let high: { text: string; at: number } | null = null;
+  for (const row of rows) {
+    for (const text of [row.first, row.last]) {
+      if (!text) continue;
+      const at = Date.parse(text);
+      if (Number.isNaN(at)) return null;
+      if (!low || at < low.at) low = { text, at };
+      if (!high || at > high.at) high = { text, at };
+    }
+  }
+  if (!low || !high) return null;
+  return { first: low.text, last: high.text };
+}
+
+/** `10 Aug 2026` or `10–12 Aug 2026`, never a range that says the same day twice. */
+function dateText(first?: string, last?: string): string {
+  if (!first && !last) return '';
+  if (!first) return last ?? '';
+  if (!last || last === first) return first;
+  return `${first} – ${last}`;
+}
+
+/** How far the survey behind a drop's zone has got, in words. */
+function surveyText(survey: ZoneSurvey): string {
+  return `${survey.survey} survey · ${num(survey.measured)} of ${num(survey.facets)} facets measured`;
+}
+
+export interface ZoneTally {
+  /** The zone string as the combat log spells it. */
+  zone: string;
+  /** The survey's own name for it, where a survey exists. */
+  title: string;
+  slug: string | null;
+  /** How many listed upgrades have a measured sighting in this zone. A count. */
+  items: number;
+  /** How many sightings, across those items. A count. */
+  seen: number;
+  survey: ZoneSurvey | null;
+}
+
+/**
+ * Where the upgrades on this page were actually seen dropping, by zone.
+ *
+ * The question this whole screen exists to answer ends in "so where do I go
+ * tonight", and no single row answers it: a player wants the zone that carries
+ * the most of their list, not the biggest single gain. This is that, and it is
+ * made of nothing but counts — rows that name the zone, and sightings inside
+ * them. Nothing is divided and no zone is called better than another.
+ *
+ * An item counts once per zone however many of its mobs dropped it there, so
+ * `items` is "upgrades on this list you could come home with", not a tally of
+ * mobs.
+ */
+export function zoneTallies(rows: readonly UpgradeRow[]): ZoneTally[] {
+  const byZone = new Map<string, ZoneTally>();
+  for (const row of rows) {
+    const drops = measuredDrops(row.candidate.item);
+    if (!drops.length) continue;
+    // Per item, not per drop row: two mobs in one zone is one place to go.
+    const seenHere = new Map<string, number>();
+    const surveyHere = new Map<string, ZoneSurvey>();
+    for (const drop of drops) {
+      for (const zone of drop.zones ?? []) {
+        seenHere.set(zone, (seenHere.get(zone) ?? 0) + Math.max(0, drop.seen));
+        const survey = (drop.zs ?? []).find((entry) => entry.zone === zone);
+        if (survey && !surveyHere.has(zone)) surveyHere.set(zone, survey);
+      }
+    }
+    for (const [zone, seen] of seenHere) {
+      const survey = surveyHere.get(zone) ?? null;
+      const tally = byZone.get(zone);
+      if (tally) {
+        tally.items += 1;
+        tally.seen += seen;
+        if (!tally.survey && survey) {
+          tally.survey = survey;
+          tally.title = survey.title;
+          tally.slug = survey.slug || null;
+        }
+      } else {
+        byZone.set(zone, {
+          zone,
+          title: survey?.title ?? zone,
+          slug: survey?.slug || null,
+          items: 1,
+          seen,
+          survey,
+        });
+      }
+    }
+  }
+  return [...byZone.values()].sort(
+    (a, b) => b.items - a.items || b.seen - a.seen || a.zone.localeCompare(b.zone),
+  );
+}
+
+/**
+ * Where an item comes from, as the catalog has it — the wiki's account.
+ *
+ * Half of what makes a row worth acting on: an EP number tells you what to want
+ * and a zone tells you where to go. It is the *transcribed* half, and the screen
+ * labels it as such wherever it prints it, because `measuredDrops` above is the
+ * other half and the two are different classes of claim. Returns an empty list
+ * rather than a guess when the corpus records nothing, and the screen says so in
  * words — "no acquisition data" is a fact about our data, not about the item.
  */
 export function acquisitionLines(item: Item): AcquisitionLine[] {
@@ -603,29 +754,152 @@ function TierChip({ value }: { value: UpgradeState }) {
   );
 }
 
-function SourceBlock({ item, alsoFor = [] }: { item: Item; alsoFor?: string[] }) {
+/** How many measured sources a row lists before it starts counting the rest. */
+const MEASURED_SHOWN = 4;
+
+/**
+ * The measured half, which leads.
+ *
+ * Everything above this on a row is arithmetic over a wiki scrape. This is the
+ * one block on the screen made of observations: a mob that was watched dropping
+ * this item, in a named zone, on dated sessions, with the sample size printed
+ * beside the count. It is drawn as its own card with its own standing mark
+ * rather than as another line in the acquisition list, because merging it into
+ * that list is exactly the laundering the sourcing standard exists to stop —
+ * the reader would have no way to tell which line somebody measured.
+ *
+ * Every figure here is a count. There is no rate on this card, no percentage,
+ * and no division anywhere in the code that builds it.
+ */
+function MeasuredDrops({ rows }: { rows: readonly MeasuredDrop[] }) {
+  const shown = rows.slice(0, MEASURED_SHOWN);
+  const sightings = totalSightings(rows);
+  const span = dateSpan(rows);
+
+  return (
+    <section className="upg-measured" data-standing="trusted" aria-label="Measured drop sources">
+      <header className="upg-measuredhead">
+        <span className="tier tM">Tier M · seen dropping in game</span>
+        <span className="upg-measuredsum">
+          {pluralize(sightings, 'sighting')} across {pluralize(rows.length, 'mob')}
+          {span ? ` · ${dateText(span.first, span.last)}` : ''}
+        </span>
+      </header>
+
+      <ol className="upg-drops">
+        {shown.map((drop) => (
+          <li className="upg-drop" key={`${drop.mob}|${(drop.zones ?? []).join()}`}>
+            <span className="upg-dropmob">
+              {drop.mob}
+              {drop.offRoster ? (
+                <span
+                  className="upg-dropoff"
+                  title="The log named this mob; no survey roster we had written did. No less measured — less expected."
+                >
+                  off roster
+                </span>
+              ) : null}
+            </span>
+            <span className="upg-dropzone">
+              {(drop.zones ?? []).join(' · ') || 'zone not recorded'}
+            </span>
+            <span className="upg-dropseen">
+              <b>{count(drop.seen)}</b> seen
+            </span>
+            <span className="upg-dropmeta">
+              over {pluralize(drop.sessions, 'session')}
+              {drop.first ? ` · ${dateText(drop.first, drop.last)}` : ''}
+            </span>
+            {(drop.zs ?? []).map((survey) => (
+              <span className="upg-dropsurvey" key={survey.zone}>
+                {surveyText(survey)}
+              </span>
+            ))}
+          </li>
+        ))}
+      </ol>
+
+      {rows.length > shown.length ? (
+        <p className="upg-dropmore">
+          {pluralize(rows.length - shown.length, 'further measured source')}, smaller counts than
+          these.
+        </p>
+      ) : null}
+
+      {/*
+        The sentence that keeps every figure above honest, and the reason this
+        card can exist at all. Both halves matter: a count is not a rate, and an
+        absence is not a zero.
+      */}
+      <p className="upg-dropnote">
+        A count, never a rate. These are sightings in parsed combat logs over the sessions named —
+        not a drop chance, which nothing here would support. And a mob absent from this list has not
+        been shown not to drop it: a dry streak is a ceiling, not a zero.
+      </p>
+    </section>
+  );
+}
+
+function SourceBlock({
+  item,
+  drops,
+  alsoFor = [],
+}: {
+  item: Item;
+  /** Passed in rather than recomputed: the row above it already asked. */
+  drops?: readonly MeasuredDrop[];
+  alsoFor?: string[];
+}) {
   const lines = acquisitionLines(item);
+  const measured = drops ?? measuredDrops(item);
   const noDrop = item.fl.includes('NO_DROP');
   const lore = isLore(item);
 
   return (
     <div className="upg-source">
-      {lines.length ? (
-        lines.map((entry) => (
-          <p className="upg-srcline" key={entry.key}>
-            <span className="upg-srclabel">{entry.label}</span>
-            <span className="upg-srctext">
-              {entry.text}
-              {entry.more ? <span className="upg-more"> +{num(entry.more)} more</span> : null}
-            </span>
+      {measured.length ? <MeasuredDrops rows={measured} /> : null}
+
+      {/*
+        The wiki's account, second and labelled as an account.
+
+        It used to be the only thing here and it carried no attribution at all,
+        which read as the app's own statement of where an item comes from. Where
+        a measured card sits above it the contrast does the work; where none
+        does, the label is the only thing telling a reader that these lines were
+        transcribed from a catalog rather than observed.
+      */}
+      <div className="upg-wiki">
+        {lines.length ? (
+          <>
+            <p className="upg-srcline">
+              <span className="upg-srclabel">Also said</span>
+              <span className="upg-srctext">
+                <span className="tier">Transcribed</span>{' '}
+                <span className="upg-more">
+                  {measured.length
+                    ? 'from the wiki catalogs, not measured — kept because it names quests and vendors no combat log can.'
+                    : 'from the wiki catalogs. Nobody has measured this item dropping.'}
+                </span>
+              </span>
+            </p>
+            {lines.map((entry) => (
+              <p className="upg-srcline" key={entry.key}>
+                <span className="upg-srclabel">{entry.label}</span>
+                <span className="upg-srctext">
+                  {entry.text}
+                  {entry.more ? <span className="upg-more"> +{num(entry.more)} more</span> : null}
+                </span>
+              </p>
+            ))}
+          </>
+        ) : (
+          <p className="upg-source-none">
+            {measured.length
+              ? 'No wiki catalog records where this comes from. The sightings above are all anyone has, and they came from the game rather than from a page.'
+              : 'No acquisition data is recorded for this item, and nobody has measured it dropping. That is a gap in our data, not a statement that it cannot be obtained.'}
           </p>
-        ))
-      ) : (
-        <p className="upg-source-none">
-          No acquisition data is recorded for this item — the catalog carries its stats and not its
-          origin. That is a gap in our data, not a statement that it cannot be obtained.
-        </p>
-      )}
+        )}
+      </div>
       {noDrop ? (
         <p className="upg-srcline">
           <span className="upg-srclabel">No Drop</span>
@@ -673,6 +947,7 @@ function Row({
   const { position, candidate } = row;
   const width = scale > 0 ? Math.max(4, Math.round((row.gain / scale) * 100)) : 0;
   const era = eraLabel(candidate.item);
+  const drops = measuredDrops(candidate.item);
 
   return (
     <li className="upg-row">
@@ -725,6 +1000,21 @@ function Row({
           </span>
           <span className="upg-sub">
             {epText(candidate.ep)} EP{era ? ` · ${era}` : ''}
+            {/*
+              The measured mark, at the point of decision rather than only in
+              the detail below. A reader scanning twenty-three rows for what to
+              farm tonight should be able to see which of them the game has
+              actually been observed producing without opening any of them.
+            */}
+            {drops.length ? (
+              <span
+                className="upg-seenmark"
+                title="A mob has been watched dropping this, in parsed combat logs. The sources are listed below. A count, never a rate."
+              >
+                {' · '}
+                {pluralize(totalSightings(drops), 'sighting')}
+              </span>
+            ) : null}
           </span>
         </div>
 
@@ -769,6 +1059,20 @@ function Row({
               <span className={`upg-chip ${delta.delta > 0 ? 'up' : 'down'}`} key={delta.key}>
                 <i>{shortStatLabel(delta.key)}</i>
                 {signed(delta.delta)}
+                {/*
+                  This row's EP was computed with haste in it, so the caveat
+                  belongs on the row and not only in the stat panel: the unit is
+                  disputed, and only the highest worn haste counts at all, which
+                  is why the number here can be smaller than the item's own.
+                */}
+                {delta.key === 'HASTE' ? (
+                  <sup
+                    className="upg-daggermark"
+                    title={`${HASTE_PROVENANCE.short} ${HASTE_STACKING.rule} ${HASTE_STACKING.standing}`}
+                  >
+                    †
+                  </sup>
+                ) : null}
               </span>
             ))}
           </div>
@@ -778,6 +1082,16 @@ function Row({
             every point of regeneration the character had without a single
             figure above moving.
           */}
+          {row.deltas.some((delta) => delta.key === 'HASTE') ? (
+            <p className="upg-unweighted">
+              <span className="upg-srclabel">† Haste</span>
+              <span>
+                {HASTE_PROVENANCE.classic} {HASTE_PROVENANCE.legends} No unit is printed here
+                because which one applies is unsettled. {HASTE_STACKING.rule}{' '}
+                {HASTE_STACKING.standing}
+              </span>
+            </p>
+          ) : null}
           {row.unweighted.length ? (
             <p className="upg-unweighted">
               <span className="upg-srclabel">Gives up</span>
@@ -790,7 +1104,7 @@ function Row({
             </p>
           ) : null}
         </div>
-        <SourceBlock item={candidate.item} alsoFor={row.alsoFor} />
+        <SourceBlock item={candidate.item} drops={drops} alsoFor={row.alsoFor} />
       </div>
     </li>
   );
@@ -929,6 +1243,16 @@ export function Upgrades({ id }: { id: string }) {
 
   const rows = report?.rows ?? [];
   const best = rows[0]?.gain ?? 0;
+  /*
+   * The measured half of the page, rolled up once for the header rather than
+   * recomputed inside three renders. Both figures are counts: rows whose
+   * candidate has been watched dropping, and the zones those sightings were in.
+   */
+  const measuredRows = useMemo(
+    () => rows.filter((row) => measuredDrops(row.candidate.item).length > 0),
+    [rows],
+  );
+  const tallies = useMemo(() => zoneTallies(rows), [rows]);
   const applied = describeActiveFilters(filters);
   const basisText =
     basis.kind === 'worn'
@@ -1066,7 +1390,59 @@ export function Upgrades({ id }: { id: string }) {
                 re-ranks the rest.
               </span>
             </div>
+            {/*
+              The figure this tool exists for, given the same weight as the EP.
+              A gain tells a player what to want; this tells them the want is
+              answerable, and the section below tells them where. Zero is a real
+              answer and is printed as one.
+            */}
+            <div className="upg-kpi" data-standing={measuredRows.length ? 'trusted' : undefined}>
+              <span className="section-label">Measured dropping in game</span>
+              <strong className="upg-kpivalue">
+                {num(measuredRows.length)}
+                <span className="upg-kpiof">/{num(rows.length)}</span>
+              </strong>
+              <span className="hint">
+                {measuredRows.length
+                  ? 'Listed upgrades a mob has been watched dropping, in parsed combat logs. The rest are the wiki’s word.'
+                  : 'Nothing on this list has been watched dropping yet. That is a gap in the logs, not a statement about the items.'}
+              </span>
+            </div>
           </div>
+
+          {tallies.length ? (
+            <section className="upg-zones" aria-label="Where these upgrades were measured dropping">
+              <header className="upg-sectionhead">
+                <h2 className="section-label">Where to go</h2>
+                <span className="tier tM">Tier M · measured</span>
+                <span className="hint">
+                  Zones these listed upgrades were seen dropping in — counts of items and
+                  sightings, never a rate, and never a ranking of one zone over another.
+                </span>
+              </header>
+              <ol className="upg-zonelist">
+                {tallies.map((tally) => (
+                  <li className="upg-zone" key={tally.zone}>
+                    <span className="upg-zonename">{tally.zone}</span>
+                    <span className="upg-zonecount">
+                      <b>{num(tally.items)}</b> of {num(rows.length)} listed
+                    </span>
+                    <span className="upg-zoneseen">{pluralize(tally.seen, 'sighting')}</span>
+                    <span className="upg-zonesurvey">
+                      {tally.survey
+                        ? surveyText(tally.survey)
+                        : 'no published survey for this zone'}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p className="upg-dropnote">
+                A partial survey is a partial survey: what is measured here is what the logs cover,
+                and a zone with fewer facets measured is less known, not worse. Items with no
+                sighting at all are absent from this list rather than shown at zero.
+              </p>
+            </section>
+          ) : null}
 
           {rows.length ? (
             <ol className="upg-list">

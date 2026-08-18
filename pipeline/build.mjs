@@ -953,13 +953,91 @@ const EQLS_ID_BY_NAME = new Map(Object.entries(EQLS_ITEMS.data?.items ?? {}));
 /** Display name -> [{ mob, seen, sessions }], measured rather than transcribed. */
 const EQLS_SIGHT_BY_NAME = new Map(Object.entries(EQLS_SIGHTINGS.data?.items ?? {}));
 
+const EQLS_SKY = loadEqlSource('sky.v1.json');
+
+// --- BEGIN zone survey (fed by pipeline/refresh.mjs) ------------------------
 /**
- * Zone slug -> how far verification has got, so a measured drop can say whether
- * the zone behind it is fully surveyed or only partly.
+ * How far the survey behind a drop source has got.
+ *
+ * `zones.v1.json` carries, per zone, five coverage facets — bosses, loot,
+ * difficulty, inherited claims, farming — each graded `measured` (from their own
+ * logs), `sourced` (from a document) or `none`, plus a `verify_level` which is a
+ * *sourcing hygiene* check and not a measure of usefulness. The publisher's own
+ * notes are emphatic about the difference, and about the consequence:
+ *
+ *   "Verified means checked against source. It does not mean complete."
+ *
+ * That sentence is the whole reason this block exists. A planner that prints
+ * "drops from Castle Mistmoore" and stops has implied the zone is understood.
+ * Three of Mistmoore's five facets are measured; the app is now able to say
+ * which, and to say nothing at all for a zone with no survey record rather than
+ * printing a zero nobody measured.
+ *
+ * The two files spell zone names differently — a session line says "The Castle
+ * of Mistmoore", sometimes with a " - Group" difficulty suffix; the survey title
+ * says "Castle Mistmoore". Folding the difficulty suffix, the articles and the
+ * joining prepositions matches those without asserting anything about the game.
+ * Anything that still does not match is reported as unsurveyed. Attaching a
+ * survey to the nearest-looking zone would be an inference, and a wrong survey
+ * badge is worse than an absent one.
  */
-const EQLS_ZONE_VERIFY = new Map(
-  (EQLS_ZONES.data?.zones ?? []).map((z) => [String(z.title ?? '').trim(), z.verify_level ?? null]),
-);
+const ZONE_STOPWORDS = new Set(['the', 'of', 'a', 'an']);
+function zoneTokens(name) {
+  return nameKey(name)
+    .replace(/\s*-\s*(group|raid|solo)\s*$/i, '')
+    .replace(/[^a-z0-9' ]+/g, ' ')
+    .split(/\s+/)
+    .filter((t) => t && !ZONE_STOPWORDS.has(t))
+    .join(' ');
+}
+
+/** Derive the survey state of one published zone record. Never hand-set. */
+function zoneSurveyOf(z) {
+  const facets = Object.entries(z.coverage ?? {}).map(([facet, v]) => ({ facet, level: v?.level ?? 'none' }));
+  const measured = facets.filter((f) => f.level === 'measured').length;
+  const sourced = facets.filter((f) => f.level === 'sourced').length;
+  const survey = !facets.length
+    ? 'unstated'
+    : measured === facets.length
+      ? 'measured'
+      : facets.every((f) => f.level === 'none')
+        ? 'none'
+        : 'partial';
+  return {
+    slug: z.slug ?? null,
+    title: String(z.title ?? '').trim(),
+    survey,
+    measured,
+    sourced,
+    facets: facets.length,
+    // Carried through as published; graded above, never re-graded.
+    coverage: Object.fromEntries(facets.map((f) => [f.facet, f.level])),
+    verify: z.verify_level ?? null,
+    score: z.coverage_score ?? null,
+    ...(z.levels ? { levels: z.levels } : {}),
+    ...(z.url ? { url: z.url } : {}),
+  };
+}
+
+const EQLS_ZONE_SURVEYS = (EQLS_ZONES.data?.zones ?? []).map(zoneSurveyOf);
+const EQLS_ZONE_BY_TOKENS = new Map(EQLS_ZONE_SURVEYS.map((z) => [zoneTokens(z.title), z]));
+/** Zone names a session mentions that no survey covers. Reported, not guessed at. */
+const unsurveyedZoneNames = new Set();
+
+/**
+ * The survey behind one zone string as a log spells it.
+ *
+ * Returns the compact form that rides on a drop row: enough for the app to say
+ * "partial survey, 3 of 5 facets measured" and link the zone, and no more.
+ */
+function surveyForZoneName(name) {
+  const clean = String(name ?? '').trim();
+  if (!clean || clean === 'null') return null;
+  const z = EQLS_ZONE_BY_TOKENS.get(zoneTokens(clean));
+  if (!z) { unsurveyedZoneNames.add(clean); return null; }
+  return { zone: clean, slug: z.slug, title: z.title, survey: z.survey, measured: z.measured, facets: z.facets };
+}
+// --- END zone survey --------------------------------------------------------
 
 const eqlsIdByKey = new Map();
 const eqlsSightByKey = new Map();
@@ -1552,6 +1630,7 @@ for (const spec of TIER0_KNOWN_ITEMS) {
   tier0Applied.push(`${spec.n}: added as a known item with no stat data (id ${rec.id ?? 'none'})`);
 }
 
+
 records.sort((a, b) => a.key.localeCompare(b.key));
 
 // ---------------------------------------------------------------------------
@@ -1648,6 +1727,191 @@ for (const rec of records) {
   rec.av = true;
   delete rec.ur;
 }
+
+// --- BEGIN patch-day ingestion (fed by pipeline/refresh.mjs) ----------------
+/**
+ * The general case of what `TIER0_KNOWN_ITEMS` does by hand.
+ *
+ * Shadow Rage Helm shipped because somebody typed it into a table above. That
+ * worked for one set on one afternoon, and it is useless on a patch day: when a
+ * revamped dungeon lands, the items that drop out of it are exactly the items no
+ * wiki has a page for yet, and requiring a code change per item means they are
+ * simply absent from the planner for as long as the change takes.
+ *
+ * So the rule is generalised rather than the list extended. **Any** item with
+ * Tier M existence evidence and no catalog record anywhere ships automatically:
+ *
+ *   - it appears in `data/sightings.v1.json` — a mob was measured dropping it in
+ *     parsed combat logs, which is the strongest existence evidence there is; or
+ *   - it appears in `data/items.v1.json` — the name-to-game-ID table read out of
+ *     `/outputfile inventory` dumps; or
+ *   - it appears in this repository's own client export,
+ *     `research/validation/tier0-inventory-Avenrae.txt`, and resolved to no
+ *     catalog record. That case was already known and already reported — the
+ *     README calls it out as "eight items in a sampled inventory exist in no
+ *     wiki catalog at all" — and it was reported and then dropped. It is the
+ *     same fact as the other two and it now takes the same path.
+ *
+ * What ships is deliberately almost empty:
+ *
+ *   `n`   the published name, spelled exactly as the source spells it
+ *   `id`  the observed numeric game ID, where one was observed
+ *   `ms`  the measured drop rows, attached below like any other item's
+ *   `statsUnknown: true` and an `evidence` string naming what proved it
+ *
+ * No slot. No class. No era. No stats. The name of a piece of armour makes its
+ * slot *obvious* and obvious is not observed — the pipeline has been wrong about
+ * exactly this before, when a wiki era tag was read as structural confirmation
+ * that five armour sets were EQL content. An item with no slot cannot be
+ * equipped, ranked or auto-filled here, which is the correct behaviour for an
+ * item nothing has described: the planner can say "this exists and we have
+ * nothing on it" instead of either hiding it or inventing a row.
+ *
+ * `xo` marks the class of record so a consumer can tell it apart from a
+ * `statsUnknown` record that *does* carry a slot and a class from a source.
+ * Both are honest; they are honest about different amounts.
+ */
+const EXISTENCE_ONLY_ADMITTED = [];
+const existenceAliases = [];
+{
+  const stamp = (src) => `${src.version ? `v${src.version}` : 'unversioned'}${src.hash ? `, hash ${src.hash}` : ''}`;
+  const usedIds = new Set(records.map((r) => r.id).filter((v) => v != null));
+  const candidates = new Map();
+  for (const [key, { name, id }] of eqlsIdByKey) {
+    if (!candidates.has(key)) candidates.set(key, { key, name, id: null, why: [] });
+    const c = candidates.get(key);
+    c.id = id ?? c.id;
+    c.why.push(
+      `named in EQL Source's published item-name-to-game-ID table (data/items.v1.json ${stamp(EQLS_ITEMS)}), ` +
+      `built from /outputfile inventory dumps, as item #${id}`,
+    );
+  }
+  for (const [key, { name, rows }] of eqlsSightByKey) {
+    if (!candidates.has(key)) candidates.set(key, { key, name, id: null, why: [] });
+    const total = rows.reduce((n, r) => n + (int(r.seen) ?? 0), 0);
+    const mobs = [...new Set(rows.map((r) => String(r.mob ?? '').trim()).filter(Boolean))];
+    candidates.get(key).why.unshift(
+      `measured dropping from ${mobs.slice(0, 3).join(', ')}${mobs.length > 3 ? ` and ${mobs.length - 3} more` : ''} ` +
+      `in EQL Source's parsed combat logs (data/sightings.v1.json ${stamp(EQLS_SIGHTINGS)}), seen ${total} time(s)`,
+    );
+  }
+  /*
+   * And this repository's own export. `idByKey` holds only the names that
+   * resolved onto a catalog record; anything left in `idStats.unmatched` is a
+   * line the client printed for an item nothing else has ever described.
+   */
+  for (const [name, id] of TIER0_IDS) {
+    const key = nameKey(name);
+    if (!candidates.has(key)) candidates.set(key, { key, name, id: null, why: [] });
+    const c = candidates.get(key);
+    c.name = name;                                     // the client's own spelling wins
+    c.id = id;
+    c.localExport = true;
+    c.why.unshift(
+      'held in a live client inventory export (research/validation/tier0-inventory-Avenrae.txt) ' +
+      `as item #${id}`,
+    );
+  }
+
+  /*
+   * The same name, spelled differently, is not a new item.
+   *
+   * `Executioner's Axe` in the ID table is `An Executioners Axe` in the catalog,
+   * and both are item #5407. Admitting the first as a brand-new record would put
+   * two rows in the planner for one item — the exact failure this whole path is
+   * meant to prevent, arriving from the other direction. So a candidate is
+   * resolved against the catalog on the loose key first, and only a candidate
+   * that matches nothing at all is admitted.
+   *
+   * A trailing `*` is kept significant. The catalog already ships
+   * `Shimmering Pearl*` and `Short Sword*` as separate items from their unstarred
+   * namesakes, and the client prints `Backpack*` (#32601) beside `Backpack`
+   * (#17005): two items, two IDs, one asterisk between them.
+   */
+  const aliasKey = (s) => looseKey(s) + (/\*\s*$/.test(String(s ?? '').trim()) ? '*' : '');
+  const aliasIndex = new Map();
+  for (const rec of records) {
+    const ak = aliasKey(rec.n);
+    if (!aliasIndex.has(ak)) aliasIndex.set(ak, []);
+    aliasIndex.get(ak).push(rec);
+  }
+
+  /*
+   * Shipped records, not all records. This runs after the era purge on purpose:
+   * these items were never in the wiki scrape, so counting them among the 11,252
+   * records the purge sorted through would misreport what the scrape held. It
+   * also closes a real hole — a record the wiki flags `non_legends` is
+   * quarantined ahead of every other test, so an item EQL Source has *measured
+   * dropping* could be held out by a wiki flag and then skipped here for having
+   * a record. Judged against what actually ships, it is admitted instead.
+   */
+  const shippedKeys = new Set(records.map((r) => r.key));
+  for (const c of [...candidates.values()].sort((a, b) => a.key.localeCompare(b.key))) {
+    if (shippedKeys.has(c.key)) continue;              // a source describes it; nothing to admit
+    if (KNOWN_ITEM_KEYS.has(c.key)) continue;          // hand-listed above, with slot and class evidence
+    const aliases = aliasIndex.get(aliasKey(c.name)) ?? [];
+    if (aliases.length) {
+      const idMismatch = c.id != null && aliases.every((a) => a.id != null && a.id !== c.id);
+      /*
+       * And the evidence follows the item to its catalog spelling.
+       *
+       * `Dark Cauldron` was measured dropping; the catalog calls it `A Dark
+       * Cauldron`; the sighting was keyed by the published name and therefore
+       * reached nothing. The row existed, the item existed, and the two never
+       * met. Registering the alias under the catalog's key is what makes the
+       * drop rows, the existence mark and the ship decision all see the same
+       * item. Only a 1:1 resolution does this — an ambiguous one is reported and
+       * left alone, because guessing which of two records earned a Tier M mark
+       * is exactly the kind of inference this pipeline refuses.
+       */
+      if (aliases.length === 1 && !idMismatch) {
+        const target = aliases[0];
+        const sighted = eqlsSightByKey.get(c.key);
+        if (sighted && !eqlsSightByKey.has(target.key)) eqlsSightByKey.set(target.key, sighted);
+        const named = eqlsIdByKey.get(c.key);
+        if (named && !eqlsIdByKey.has(target.key)) eqlsIdByKey.set(target.key, named);
+      }
+      existenceAliases.push(
+        `"${c.name}"${c.id != null ? ` (#${c.id})` : ''} is the catalog's ` +
+        `${aliases.map((a) => `"${a.n}"${a.id != null ? ` (#${a.id})` : ''}`).join(' / ')}` +
+        `${aliases.length > 1 ? ' — AMBIGUOUS, resolved to none of them' : ''}` +
+        `${idMismatch ? ' — !! the IDs disagree' : ''}`,
+      );
+      continue;
+    }
+    const observedId = idByKey.get(c.key) ?? c.id ?? null;
+    // A numeric ID is a join key. Two records claiming one is worse than one
+    // record claiming none, so a collision drops the ID rather than the record.
+    const id = observedId != null && !usedIds.has(observedId) ? observedId : null;
+    if (observedId != null && id == null) {
+      tier0Missed.push(`existence-only "${c.name}" declares id ${observedId}, already claimed by another record — shipped without an id`);
+    }
+    if (id != null) usedIds.add(id);
+    // The export is the source of the id, so a record admitted from it joins the
+    // export's own index and is marked `live-export` below like any other line
+    // in that file. Same file, same evidence, same mark.
+    if (c.localExport && id != null) idByKey.set(c.key, id);
+    const rec = {
+      key: c.key,
+      id,
+      n: c.name,
+      eraUnknown: true,
+      av: true,
+      statsUnknown: true,
+      xo: true,
+      evidence:
+        `Confirmed to exist: ${c.why.join('; also ')}. No catalog record exists for it in any wiki source, ` +
+        'so its stats, slot, class and era are all unknown — stated as unknown rather than guessed from the name.',
+      es: 'eqlsource.tier-M-existence',
+    };
+    records.push(rec);
+    recordByKey.set(c.key, rec);
+    EXISTENCE_ONLY_ADMITTED.push(rec);
+  }
+}
+// --- END patch-day ingestion ------------------------------------------------
+
+records.sort((a, b) => a.key.localeCompare(b.key));
 
 // ---------------------------------------------------------------------------
 // Stamp the two source facts onto every surviving record
@@ -1752,11 +2016,19 @@ for (const rec of records) {
         const zones = [...new Set((row.sessions ?? []).map((s) => String(s.zone ?? '').trim()))]
           .filter(Boolean);
         const dates = (row.sessions ?? []).map((s) => s.date).filter(Boolean);
+        /*
+         * `zs` — the survey behind each of those zones. A drop row that names a
+         * zone and says nothing about how well that zone is known reads as a
+         * complete answer. Only zones with a published survey record appear
+         * here: an unsurveyed one is simply absent, never a zero.
+         */
+        const surveys = zones.map(surveyForZoneName).filter(Boolean);
         return {
           mob: String(row.mob ?? '').trim(),
           seen: int(row.seen) ?? 0,
           sessions: (row.sessions ?? []).length,
           ...(zones.length ? { zones } : {}),
+          ...(surveys.length ? { zs: surveys } : {}),
           ...(dates.length ? { first: dates[0], last: dates[dates.length - 1] } : {}),
           ...(row.off_roster ? { offRoster: true } : {}),
         };
@@ -1863,6 +2135,11 @@ const skillSuspects = records
 const INDEX_FIELDS = [
   'id', 'n', 'ic', 'sl', 'cl', 'ra', 'st', 'sv', 'wp', 'wt', 'fl',
   'era', 'av', 'eraUnknown', 'statsUnknown', 'evidence', 'an',
+  // `xo` rides the index for the same reason `statsUnknown` does: the picker
+  // ranks off the index alone, and a record that only reveals it has no slot,
+  // no class and no stats once its shard lands is one the picker has already
+  // scored by then.
+  'xo',
   // The two source facts ride the index, not just the detail shards: the item
   // browser lists from the index, and a provenance mark that only exists on a
   // hover window is a mark 3,500 rows never get.
@@ -2169,6 +2446,61 @@ const meta = {
       clientVerifiedRejected: statsVerifiedRejected,
     },
   },
+  // --- BEGIN patch-day ingestion (fed by pipeline/refresh.mjs) --------------
+  /**
+   * The upstream snapshot this payload was built from.
+   *
+   * Published so that "which version of the data is the site showing?" is a
+   * question the site can answer about itself. `hash` and `version` are the
+   * publisher's own; `pipeline/sources/eqlsource/manifest.json` additionally
+   * records our SHA-256 of the exact bytes, which is what proves the file on
+   * disk is the file that was fetched.
+   */
+  upstream: {
+    source: 'https://eqlsource.com/data/',
+    refreshedBy: 'pipeline/refresh.mjs',
+    manifest: 'pipeline/sources/eqlsource/manifest.json',
+    datasets: [
+      { file: 'items.v1.json', version: EQLS_ITEMS.version, hash: EQLS_ITEMS.hash, rows: EQLS_ID_BY_NAME.size },
+      { file: 'sightings.v1.json', version: EQLS_SIGHTINGS.version, hash: EQLS_SIGHTINGS.hash, rows: EQLS_SIGHT_BY_NAME.size },
+      { file: 'zones.v1.json', version: EQLS_ZONES.version, hash: EQLS_ZONES.hash, rows: EQLS_ZONE_SURVEYS.length },
+      { file: 'sky.v1.json', version: EQLS_SKY.version, hash: EQLS_SKY.hash, rows: Object.keys(EQLS_SKY.data?.classes ?? {}).length },
+    ],
+  },
+
+  /**
+   * The surveys behind the zones a drop can name.
+   *
+   * `survey` is derived from the coverage facets and never typed: `measured`
+   * only when every facet is measured, `partial` when some are, `none` when
+   * none are. The publisher's own note is the rule this implements — *"Verified
+   * means checked against source. It does not mean complete."* — so `verify` is
+   * carried separately and must not be presented as completeness.
+   *
+   * `unsurveyed` names the zones a session mentions that no survey covers. They
+   * are listed rather than scored: a blank on the source is shown as nothing
+   * here, never as a zero.
+   */
+  zones: {
+    source: 'https://eqlsource.com/data/zones.v1.json',
+    version: EQLS_ZONES.version,
+    hash: EQLS_ZONES.hash,
+    field: 'ms[].zs',
+    principle:
+      'A drop row that names a zone and says nothing about how well that zone is known reads as a ' +
+      'complete answer. Verified means checked against source; it does not mean complete.',
+    surveyLevels: [
+      { code: 'measured', means: 'every coverage facet is measured from EQL Source\'s own logs' },
+      { code: 'partial', means: 'some facets are measured or sourced and some are not — the survey is under way, not finished' },
+      { code: 'none', means: 'the zone has a record and nothing in it is measured or sourced' },
+      { code: 'unstated', means: 'the zone record carries no coverage facets at all' },
+    ],
+    facets: ['bosses', 'loot', 'difficulty', 'inherited', 'farming'],
+    surveyed: EQLS_ZONE_SURVEYS.sort((a, b) => a.title.localeCompare(b.title)),
+    unsurveyed: [...unsurveyedZoneNames].sort((a, b) => a.localeCompare(b)),
+  },
+  // --- END patch-day ingestion ----------------------------------------------
+
   classes: CLASSES,
   races: RACES,
   statKeys: STAT_KEYS,
@@ -2249,6 +2581,28 @@ const meta = {
         .filter((r) => r.statsUnknown)
         .map((r) => ({ n: r.n, id: r.id, sl: r.sl, cl: r.cl, era: r.era ?? null })),
     },
+    // --- BEGIN patch-day ingestion (fed by pipeline/refresh.mjs) ------------
+    /**
+     * The strictest case: an item Tier M evidence proves exists, that no source
+     * describes at all. Admitted automatically, so a drop that lands on patch
+     * day appears in the planner without a code change, and admitted with
+     * nothing attached, because nothing has been observed but the name.
+     */
+    existenceOnly: {
+      confidence: 'existence-certain-everything-else-absent',
+      marker: 'xo',
+      count: records.filter((r) => r.xo).length,
+      rule:
+        'ships iff EQL Source names it — measured dropping in data/sightings.v1.json, or listed in the ' +
+        'name-to-game-ID table data/items.v1.json — and no wiki source carries a record for it',
+      withheld: ['sl', 'cl', 'era', 'st', 'sv', 'wp', 'ra', 'fl', 'wt'],
+      policy:
+        'no slot, no class, no era, no stats. It cannot be equipped, ranked, scored or auto-filled, ' +
+        'because nothing about it has been measured except that the game produced it. The name of a ' +
+        'piece of armour makes its slot obvious; obvious is not observed.',
+      items: records.filter((r) => r.xo).map((r) => ({ n: r.n, id: r.id, ex: r.ex ?? null })),
+    },
+    // --- END patch-day ingestion --------------------------------------------
   },
   counts: {
     items: records.length,
@@ -2286,6 +2640,15 @@ const meta = {
       before: report.purge.before,
       shipped: report.purge.shipped,
       quarantined: report.purge.quarantined,
+      /*
+       * `shipped` counts what survived the purge, and the catalog is larger than
+       * that. The difference is the existence-only records, which were never in
+       * the wiki scrape and so were never candidates for the purge: they are
+       * admitted afterwards on Tier M evidence alone. Published so the two
+       * numbers reconcile on the page rather than looking like a discrepancy.
+       */
+      admittedOutsideScrape: records.filter((r) => r.xo).length,
+      catalog: records.length,
       shipReasons: Object.entries(report.purge.shipReasons).map(([reason, items]) => ({ reason, items })),
       quarantineReasons: Object.entries(report.purge.quarantineReasons).map(([reason, items]) => ({ reason, items })),
     },
@@ -2316,11 +2679,21 @@ const meta = {
        * on `/sources` where a reader can see them disagree. `SOURCING-STANDARD`
        * rule "never invent a number" applies to the prose about the data as
        * much as to the data.
+       *
+       * There are two observed sources now, not one, and the second is larger
+       * than the first: EQL Source publishes its own name-to-ID table read from
+       * `/outputfile inventory` dumps across many characters. `applied` counts
+       * records carrying an ID from either, which is why it can exceed the
+       * export's own row count — and why the export is named separately rather
+       * than left to imply it is the only source.
        */
       note:
-        `No wiki scrape carries numeric game item IDs. These ${TIER0_IDS.size} name->id pairs ` +
-        `are the only observed IDs; ${withId} of them matched a catalog record by name and were applied.`,
+        `No wiki scrape carries numeric game item IDs. Two observed sources carry them: this ` +
+        `repository's client export (${TIER0_IDS.size} name->id pairs) and EQL Source's published ` +
+        `table data/items.v1.json (${EQLS_ID_BY_NAME.size} pairs). ${withId} catalog records carry ` +
+        `an ID from one of them.`,
       observed: TIER0_IDS.size,
+      observedEqlSource: EQLS_ID_BY_NAME.size,
       applied: withId,
     },
   },
@@ -2383,6 +2756,21 @@ if (!QUIET) {
   L(`  records shipped with statsUnknown (real item, no stats anywhere): ${statsUnknownCount}`);
   for (const line of tier0Missed) L(`  !! ${line}`);
   L('');
+  // --- BEGIN patch-day ingestion (fed by pipeline/refresh.mjs) --------------
+  L('-- Tier M existence with no catalog record (admitted automatically) --');
+  L(`  upstream: ${meta.upstream.datasets.map((d) => `${d.file} v${d.version ?? '?'} ${d.hash ?? '(no hash)'}`).join('   ')}`);
+  L(`  admitted: ${EXISTENCE_ONLY_ADMITTED.length} existence-only records — statsUnknown, no slot, no class, no era, never ranked`);
+  for (const r of EXISTENCE_ONLY_ADMITTED) L(`    ${r.n}${r.id != null ? ` (#${r.id})` : ''}  ex=${r.ex ?? '(none)'}`);
+  L(`  resolved to an existing record instead of admitted (same item, different spelling): ${existenceAliases.length}`);
+  for (const line of existenceAliases) L(`    ${line}`);
+  L('');
+  L('-- zone surveys behind measured drops --');
+  for (const z of meta.zones.surveyed) {
+    L(`  ${z.title.padEnd(22)} ${String(z.survey).padEnd(9)} ${z.measured}/${z.facets} facets measured   verify=${z.verify ?? 'none'}   score=${z.score ?? '-'}`);
+  }
+  L(`  zones a session names with no survey record: ${meta.zones.unsurveyed.length ? meta.zones.unsurveyed.join(', ') : '(none)'}`);
+  L('');
+  // --- END patch-day ingestion ----------------------------------------------
   L('-- source standing: two facts, stamped on every shipped record --');
   L('  existence (`ex`) — is this item in the game? (the export carries no stat values)');
   for (const code of [EXISTENCE_EXPORT, EXISTENCE_REPORT]) {

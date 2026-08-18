@@ -17,7 +17,42 @@ import { createCharacter, expect, openSlotPicker, test } from './helpers';
  * nothing for the name of the thing a row is *about*. It is a step on the
  * scale, not an exception to it — the assertion below is what keeps it one.
  */
-const TYPE_SCALE = ['10px', '11px', '13px', '15px', '17px', '20px', '30px', '44px'];
+/*
+ * The reading and data tiers are fixed; the display tier is fluid.
+ *
+ * `--fs-large`, `--fs-title` and `--fs-hero` are `clamp()` now, because
+ * eqlsource.com's whole display tier is — 25 clamps in their stylesheet against
+ * 0 in ours, and the consequence was measurable: their interior h1 renders
+ * 72–78px at 1440 where ours rendered 30px, so the name of a page weighed the
+ * same as one statistic printed beneath it.
+ *
+ * A closed list of pixel values cannot describe that, and loosening the
+ * assertion to "anything goes above 20px" would delete the check. So the
+ * allowed display sizes are READ OUT OF THE TOKENS at runtime: whatever those
+ * three clamps resolve to at this viewport is legal, and nothing else is. The
+ * scale stays closed; it is just no longer constant.
+ *
+ * The fixed tiers stay fixed on purpose. A table of numbers that reflows its
+ * own type is harder to read, not easier.
+ */
+const TYPE_SCALE_FIXED = ['10px', '11px', '13px', '15px', '17px'];
+const FLUID_TOKENS = ['--fs-large', '--fs-title', '--fs-hero'];
+
+async function typeScaleFor(page: import('@playwright/test').Page): Promise<string[]> {
+  const fluid = await page.evaluate((tokens) => {
+    const probe = document.createElement('span');
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    document.body.append(probe);
+    const out = tokens.map((token) => {
+      probe.style.fontSize = `var(${token})`;
+      return getComputedStyle(probe).fontSize;
+    });
+    probe.remove();
+    return out;
+  }, FLUID_TOKENS);
+  return [...new Set([...TYPE_SCALE_FIXED, ...fluid])];
+}
 const WEIGHTS = ['400', '600', '800'];
 
 /*
@@ -175,7 +210,11 @@ test('every rendered size and weight comes off the declared scale — on all thr
   for (const [name, go] of screens) {
     await go();
     const type = await typeAudit(page);
-    expect(type.sizes.filter((s) => !TYPE_SCALE.includes(s)), `off-scale font sizes on the ${name}`).toEqual([]);
+    const scale = await typeScaleFor(page);
+    expect(
+      type.sizes.filter((s) => !scale.includes(s)),
+      `off-scale font sizes on the ${name} (scale: ${scale.join(', ')})`,
+    ).toEqual([]);
     expect(
       type.weights.filter((w) => !WEIGHTS.includes(w)),
       `off-scale font weights on the ${name}: ${type.offenders.join(' | ')}`,
@@ -416,6 +455,38 @@ test('no enabled text run on any product screen is below WCAG AA', async ({ page
     const result = await page.evaluate(CONTRAST_PROBE);
     expect(result.seen, `${name} should have text to measure`).toBeGreaterThan(20);
     expect(result.bad, `sub-AA text on the ${name}`).toEqual([]);
+
+    /*
+     * And again narrow, because a control that only exists at one width is
+     * only audited at that width.
+     *
+     * This sweep ran at the project's 1440-wide default for two rounds and
+     * reported zero. The masthead's `.burger` is `display: none` above 760px,
+     * so it was never in a single measurement — and it shipped with no
+     * `background` at all, which meant Chromium's `ButtonFace`
+     * (`rgb(107,107,107)` under `color-scheme: dark`) under `--text-dim`:
+     * **2.32:1, on every screen in the app, below 760px.** A zero from a sweep
+     * that cannot see half the components is not a zero.
+     */
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(250);
+    const narrow = await page.evaluate(CONTRAST_PROBE);
+    expect(narrow.seen, `${name} at 390px should have text to measure`).toBeGreaterThan(20);
+    expect(narrow.bad, `sub-AA text on the ${name} at 390px`).toEqual([]);
+
+    // The burger's open panel is a different ground again, and it is the only
+    // way to reach the site nav at this width.
+    const burger = page.locator('.burger');
+    if (await burger.isVisible()) {
+      await burger.click();
+      await page.locator('.site-nav.open').waitFor({ timeout: 5_000 });
+      await page.waitForTimeout(200);
+      const opened = await page.evaluate(CONTRAST_PROBE);
+      expect(opened.bad, `sub-AA text on the ${name} with the site nav open`).toEqual([]);
+      await burger.click();
+    }
+    await page.setViewportSize({ width: 1440, height: 950 });
+    await page.waitForTimeout(250);
 
     // …and again with a pointer resting on the screen's own row, which is a
     // different set of colours wherever hovering lifts the ground.

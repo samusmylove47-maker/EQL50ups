@@ -417,6 +417,27 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
 // The marker's whole value is that it is honest, so the payload must not be
 // able to carry it and a stat at the same time: a record that says "nothing
 // measured this" while shipping numbers is worse than either state alone.
+//
+// There are now TWO kinds of `statsUnknown` record, and the difference is how
+// much is known, not how much is guessed:
+//
+//   without `xo`  a source describes the item — Shadow Rage Helm has a slot from
+//                 its own name in a live inventory line and a class from the
+//                 player's report — and only the numbers are missing. Slot and
+//                 class are therefore REQUIRED, exactly as before.
+//
+//   with `xo`     nothing describes it at all. Tier M evidence proves the game
+//                 produced it and that is the entire content of the record. Slot
+//                 and class are therefore FORBIDDEN, because the only way to
+//                 fill them would be to read them off the name.
+//
+// This assertion used to require a slot and a class of every `statsUnknown`
+// record, which was true of the six hand-listed ones and is false of the class
+// of record that ships automatically on patch day. It is rewritten to the new
+// truth rather than relaxed: each kind is now checked against what it is
+// actually entitled to carry, and `xo` is additionally re-derived below from the
+// vendored datasets and the client export, so an existence-only record cannot
+// appear in the payload without evidence outside build.mjs naming it.
 {
   const bad = [];
   const flagged = items.filter((it) => it.statsUnknown === true);
@@ -427,11 +448,57 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
     if (typeof it.evidence !== 'string' || it.evidence.trim().length < 20) {
       bad.push(`${it.n}: statsUnknown with no evidence string`);
     }
-    if (!(it.sl ?? []).length) bad.push(`${it.n}: statsUnknown with no slot`);
-    if (!(it.cl ?? []).length) bad.push(`${it.n}: statsUnknown with no class list`);
+    if (it.xo === true) {
+      if ((it.sl ?? []).length) bad.push(`${it.n}: existence-only but claims slots ${(it.sl ?? []).join(',')}`);
+      if ((it.cl ?? []).length) bad.push(`${it.n}: existence-only but claims classes ${(it.cl ?? []).join(',')}`);
+      if (it.era != null) bad.push(`${it.n}: existence-only but claims era ${it.era}`);
+      if (it.eraUnknown !== true) bad.push(`${it.n}: existence-only without eraUnknown`);
+      if (it.an) bad.push(`${it.n}: existence-only but marked Any-Slot eligible`);
+      if (!it.ex) bad.push(`${it.n}: existence-only with no existence mark — it ships on nothing`);
+    } else {
+      if (!(it.sl ?? []).length) bad.push(`${it.n}: statsUnknown with no slot and not marked existence-only`);
+      if (!(it.cl ?? []).length) bad.push(`${it.n}: statsUnknown with no class list and not marked existence-only`);
+    }
   }
   assert('statsUnknown records carry evidence and no fabricated stats', bad.length === 0,
     `${bad.length} malformed statsUnknown records`, bad);
+
+  /*
+   * Every `xo` record is re-derived from the sources, never trusted from the
+   * build. An item may ship on existence evidence alone only if EQL Source's
+   * published data or this repository's own client export actually names it.
+   */
+  {
+    const eqlsDir = join(ROOT, 'pipeline', 'sources', 'eqlsource');
+    const readEqls = (file) => {
+      const p = join(eqlsDir, file);
+      return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')).data : null;
+    };
+    const vouched = new Set([
+      ...Object.keys(readEqls('items.v1.json')?.items ?? {}),
+      ...Object.keys(readEqls('sightings.v1.json')?.items ?? {}),
+    ].map(nameKey));
+    if (existsSync(TIER0)) {
+      for (const line of readFileSync(TIER0, 'utf8').split(/\r?\n/)) {
+        const f = line.split('\t');
+        if (f.length < 3) continue;
+        const [loc, name, id] = f;
+        if (!name || name === 'Empty' || name === 'Name' || loc === 'Location') continue;
+        if (!Number.isFinite(Number(id)) || Number(id) <= 0) continue;
+        vouched.add(nameKey(name.replace(/\s*\(Exaltation\)\s*/g, ' ').replace(/\s*\+\d+\s*/g, ' ').trim()));
+      }
+    }
+    const unvouched = items.filter((it) => it.xo === true && !vouched.has(nameKey(it.n))).map((i) => i.n);
+    assert('every existence-only record is named by a Tier M source', unvouched.length === 0,
+      `${unvouched.length} records ship on existence evidence nothing carries`, unvouched);
+    const marked = items.filter((it) => it.xo === true);
+    const unflagged = marked.filter((it) => it.statsUnknown !== true).map((i) => i.n);
+    assert('every existence-only record is also statsUnknown', unflagged.length === 0,
+      `${unflagged.length} records claim to describe nothing while shipping as ordinary data`, unflagged);
+    assert('meta counts the existence-only records it shipped',
+      meta.dataReliability?.existenceOnly?.count === marked.length,
+      `meta=${meta.dataReliability?.existenceOnly?.count} payload=${marked.length}`);
+  }
   assert('meta counts the statsUnknown records it shipped',
     meta.counts?.statsUnknown === flagged.length,
     `meta=${meta.counts?.statsUnknown} payload=${flagged.length}`);
@@ -444,6 +511,72 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
   assert('statsUnknown survives into the detail shards', detailOnly.length === 0,
     `${detailOnly.length} records lose the marker between index and shard`,
     detailOnly.map((i) => i.n));
+}
+
+// ---------------------------------------------------------------------------
+// 7c. Zone surveys — a partial survey must not read as a complete one
+// ---------------------------------------------------------------------------
+//
+// A drop row that names a zone and says nothing about how well that zone is
+// known reads as a finished answer. EQL Source's own note on the file is the
+// rule: "Verified means checked against source. It does not mean complete."
+//
+// Everything below is re-derived from the vendored `zones.v1.json` rather than
+// trusted from meta: the grade is computed from the coverage facets, so a
+// hand-set one would be caught here.
+{
+  const zonesPath = join(ROOT, 'pipeline', 'sources', 'eqlsource', 'zones.v1.json');
+  const published = existsSync(zonesPath)
+    ? JSON.parse(readFileSync(zonesPath, 'utf8')).data?.zones ?? []
+    : [];
+  const emitted = meta.zones?.surveyed ?? [];
+  if (!published.length) {
+    warn('zones', 'no vendored zones.v1.json; zone surveys not checked');
+  } else {
+    assert('every published zone reaches the payload', emitted.length === published.length,
+      `payload ${emitted.length} vs source ${published.length}`);
+
+    const bad = [];
+    const bySlug = new Map(published.map((z) => [z.slug, z]));
+    for (const z of emitted) {
+      const src = bySlug.get(z.slug);
+      if (!src) { bad.push(`${z.title}: no zone with slug ${z.slug} in the source`); continue; }
+      const levels = Object.values(src.coverage ?? {}).map((f) => f?.level ?? 'none');
+      const measured = levels.filter((l) => l === 'measured').length;
+      const want = !levels.length
+        ? 'unstated'
+        : measured === levels.length ? 'measured'
+          : levels.every((l) => l === 'none') ? 'none' : 'partial';
+      if (z.survey !== want) bad.push(`${z.title}: survey=${z.survey}, facets say ${want}`);
+      if (z.measured !== measured) bad.push(`${z.title}: measured=${z.measured}, facets say ${measured}`);
+      if (z.facets !== levels.length) bad.push(`${z.title}: facets=${z.facets}, source has ${levels.length}`);
+      // The two grades are separate facts and must stay separate: a zone can be
+      // verified in full and only partly surveyed. Castle Mistmoore is one.
+      if (z.verify !== (src.verify_level ?? null)) {
+        bad.push(`${z.title}: verify=${z.verify}, source says ${src.verify_level}`);
+      }
+    }
+    assert('every zone survey grade follows from its coverage facets', bad.length === 0,
+      `${bad.length} zones carry a grade their facets do not support`, bad);
+
+    // And a drop row may only cite a survey that was actually published.
+    const slugs = new Set(emitted.map((z) => z.slug));
+    const cited = [];
+    for (const [, shard] of shards) {
+      for (const it of shard.items ?? []) {
+        for (const row of it.ms ?? []) {
+          for (const s of row.zs ?? []) {
+            if (!slugs.has(s.slug)) cited.push(`${it.n} <- ${row.mob}: cites zone ${s.slug}`);
+            if (!(row.zones ?? []).includes(s.zone)) {
+              cited.push(`${it.n} <- ${row.mob}: survey for ${s.zone}, which the row does not name`);
+            }
+          }
+        }
+      }
+    }
+    assert('every survey cited on a drop row is one that was published', cited.length === 0,
+      `${cited.length} drop rows cite an unpublished survey`, cited);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -829,6 +962,64 @@ if (!existsSync(TIER0)) {
     }
     assert('the provenance mark is the right way round on the two items it was measured on',
       bad.length === 0, `${bad.length} inverted marks`, bad);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The contamination page may not quote source that no longer says that
+// ---------------------------------------------------------------------------
+
+/*
+ * The self-audit page reads `data/contamination.json`, and every code finding
+ * on it carries an `example` of the form `path:line — text`, rendered under the
+ * heading "OUR OWN SOURCE, QUOTED".
+ *
+ * That file is produced by `pipeline/contamination.mjs`, which is NOT part of
+ * `build.mjs`. It went stale the first time it mattered: the haste badge shipped
+ * at 04:02 and the scan was from 03:42, so the page spent the evening accusing
+ * `StatPanel.tsx` of printing a percent sign it no longer printed, and quoting a
+ * line of source that had become a comment. A page whose whole purpose is honest
+ * self-audit publishing a false accusation about its own repository is the worst
+ * failure available here, and it is invisible to every other check.
+ *
+ * So the quotes are re-read against the working tree. A quote that no longer
+ * matches its line is a hard failure with one fix: re-run the scanner.
+ */
+{
+  const path = join(OUT, 'contamination.json');
+  if (existsSync(path)) {
+    const report = readJSON(path);
+    const cache = new Map();
+    const readLines = (file) => {
+      if (!cache.has(file)) {
+        const full = join(ROOT, file);
+        cache.set(file, existsSync(full) ? readFileSync(full, 'utf8').split(/\r?\n/) : null);
+      }
+      return cache.get(file);
+    };
+
+    const stale = [];
+    let checked = 0;
+    for (const sig of report.signatures ?? []) {
+      for (const site of sig.codeSites ?? []) {
+        if (!site?.file || !site?.line || !site?.text) continue;
+        checked += 1;
+        const lines = readLines(site.file);
+        if (!lines) { stale.push(`${site.file}: quoted but the file is gone`); continue; }
+        const actual = (lines[site.line - 1] ?? '').trim();
+        // The scanner truncates long lines with an ellipsis; compare the stem.
+        const quoted = String(site.text).replace(/…$/, '');
+        if (!actual.startsWith(quoted)) {
+          stale.push(`${site.file}:${site.line} quotes ${JSON.stringify(quoted.slice(0, 60))} but the line reads ${JSON.stringify(actual.slice(0, 60))}`);
+        }
+      }
+    }
+    assert('every line the contamination page quotes still reads that way',
+      stale.length === 0,
+      `${stale.length} of ${checked} quoted source lines are stale — re-run node pipeline/contamination.mjs`,
+      stale);
+  } else {
+    warn('contamination report', 'no data/contamination.json in the payload; the self-audit page will be empty');
   }
 }
 

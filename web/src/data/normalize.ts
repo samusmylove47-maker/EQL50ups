@@ -12,7 +12,8 @@
 
 import { SLOT_TYPES, type SlotType } from '../engine/constants';
 import type {
-  ExistenceEvidence, Item, ItemEffect, ItemSource, SourceStanding, WeaponData,
+  ExistenceEvidence, Item, ItemEffect, ItemSource, MeasuredDrop, SourceStanding, WeaponData,
+  ZoneSurvey,
 } from '../engine/types';
 import { finite } from '../lib/format';
 
@@ -175,6 +176,62 @@ function normalizeSource(raw: unknown): ItemSource | undefined {
   return Object.keys(src).length ? src : undefined;
 }
 
+/**
+ * Measured drop rows, carried through with every count re-read as a count.
+ *
+ * A row is kept only if it names a mob, because a sighting attributed to
+ * nothing is a sighting nobody can act on. `seen` and `sessions` are coerced to
+ * non-negative integers and **never combined**: this module does no arithmetic
+ * on them at all, which is the shape the publisher's first rule for this
+ * dataset takes in code — "a COUNT, never a rate".
+ *
+ * A zone survey rides along only when it is complete enough to state; a partial
+ * record would print "0 of 0 facets" and read as a measurement of nothing.
+ */
+function normalizeMeasured(raw: unknown): MeasuredDrop[] {
+  if (!Array.isArray(raw)) return [];
+  const out: MeasuredDrop[] = [];
+  for (const entry of raw) {
+    if (!isRecord(entry)) continue;
+    const mob = typeof entry.mob === 'string' ? entry.mob.trim() : '';
+    if (!mob) continue;
+    const row: MeasuredDrop = {
+      mob,
+      seen: Math.max(0, Math.trunc(finite(entry.seen))),
+      sessions: Math.max(0, Math.trunc(finite(entry.sessions))),
+    };
+    const zones = stringList(entry.zones);
+    if (zones.length) row.zones = zones;
+
+    const surveys: ZoneSurvey[] = [];
+    if (Array.isArray(entry.zs)) {
+      for (const z of entry.zs) {
+        if (!isRecord(z)) continue;
+        const zone = typeof z.zone === 'string' ? z.zone.trim() : '';
+        const title = typeof z.title === 'string' ? z.title.trim() : '';
+        const survey = typeof z.survey === 'string' ? z.survey.trim() : '';
+        const facets = Math.max(0, Math.trunc(finite(z.facets)));
+        if (!zone || !title || !survey || !facets) continue;
+        surveys.push({
+          zone,
+          slug: typeof z.slug === 'string' ? z.slug : '',
+          title,
+          survey,
+          measured: Math.max(0, Math.trunc(finite(z.measured))),
+          facets,
+        });
+      }
+    }
+    if (surveys.length) row.zs = surveys;
+
+    if (typeof entry.first === 'string' && entry.first.trim()) row.first = entry.first.trim();
+    if (typeof entry.last === 'string' && entry.last.trim()) row.last = entry.last.trim();
+    if (entry.offRoster === true) row.offRoster = true;
+    out.push(row);
+  }
+  return out;
+}
+
 /** One catalog entry, or null when the payload has no usable name. */
 export function normalizeItem(raw: unknown, fallbackName?: string): Item | null {
   if (!isRecord(raw)) return null;
@@ -238,6 +295,9 @@ export function normalizeItem(raw: unknown, fallbackName?: string): Item | null 
 
   const src = normalizeSource(raw.src ?? raw.source);
   if (src) item.src = src;
+
+  const measured = normalizeMeasured(raw.ms);
+  if (measured.length) item.ms = measured;
 
   if (typeof raw.parsed === 'string') item.parsed = raw.parsed;
 

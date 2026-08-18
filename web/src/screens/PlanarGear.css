@@ -1,0 +1,699 @@
+/*
+ * Planar gear targets.
+ *
+ * Written to `research/DESIGN-EQLSOURCE.md`, which is measured off
+ * eqlsource.com's own stylesheet rather than eyeballed off a screenshot. The
+ * devices reproduced here are theirs:
+ *
+ *   numbered section   a mono ordinal in the rule colour beside a condensed
+ *                      heading, over a hairline. Their "01 A piece can only be
+ *                      spent once".
+ *   .card              `background: --surface-1; border: 1px solid --rule;
+ *                      border-top: 2px solid var(--c, --rule2)` — the standing
+ *                      accent, per card, defaulting to the strong rule so an
+ *                      unattributed card still has a top edge. `--c` is set by
+ *                      the global `[data-standing]` rule in `styles.css` §23,
+ *                      which is where that device already lives; this file
+ *                      spends it rather than redeclaring it.
+ *   .note              a 2px left rule and no box. The site spends its boxes on
+ *                      data and its rules on argument.
+ *   callout            figure, label, one sentence of consequence.
+ *   eyebrow tint       `color-mix(in srgb, var(--c) 68%, var(--bone))` — their
+ *                      own rule, because the accent "is chosen as a chrome
+ *                      accent, not a text colour, and several fall short of
+ *                      4.5:1 at this size".
+ *
+ * Every colour, size, face, space and radius resolves to a token from
+ * `styles/tokens.css`. This file declares no hex value, no font stack and no
+ * type size of its own. The only literals are grid minimums, two measure caps
+ * and one breakpoint — the same exception `Contamination.css` and
+ * `SetCompare.css` take.
+ */
+
+.pl {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------- head */
+
+.pl-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding-bottom: var(--s5);
+  border-bottom: 1px solid var(--line);
+}
+
+.pl-head-eyebrow {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.pl-head-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  line-height: 1.1;
+  margin: 0;
+}
+
+/*
+ * The headline's second half, set apart the way the live pages set it apart.
+ * Not italic: an inscriptional capital has no italic, and leaning one is
+ * inventing a style the face does not have.
+ */
+.pl-head-title em {
+  font-style: normal;
+  color: var(--text-dim);
+}
+
+.pl-head-lede {
+  max-width: 68ch;
+  font-size: var(--fs-mid);
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0;
+}
+
+.pl-head-lede em {
+  font-style: normal;
+  font-weight: var(--fw-emph);
+  color: var(--text-emph);
+}
+
+/* --------------------------------------------------------------- callouts */
+
+.pl-callouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--s4);
+}
+
+.pl-callout {
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.pl-callout[data-tone='good'] {
+  border-top-color: var(--source-trusted);
+}
+
+.pl-callout[data-tone='bad'] {
+  border-top-color: var(--source-distrust);
+}
+
+.pl-callout-figure {
+  font-family: var(--font-heading);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-num);
+  line-height: 1.05;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.pl-callout[data-tone='good'] .pl-callout-figure {
+  color: var(--source-trusted-t);
+}
+
+.pl-callout[data-tone='bad'] .pl-callout-figure {
+  color: var(--source-distrust-t);
+}
+
+.pl-callout-label {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.pl-callout-body {
+  margin: var(--s1) 0 0;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--text);
+}
+
+/* ----------------------------------------------------------------- notes */
+
+/*
+ * A left rule and no box. `sig` is the bone rule the site spends on the one
+ * statement a page is really making — here, that nothing unmeasured is ranked.
+ */
+.pl-note {
+  border-left: 2px solid var(--line-strong);
+  padding: var(--s1) 0 var(--s1) var(--s4);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  color: var(--text);
+  max-width: 78ch;
+}
+
+.pl-note strong {
+  color: var(--text-emph);
+  font-weight: var(--fw-emph);
+}
+
+.pl-note em {
+  font-style: normal;
+  font-weight: var(--fw-emph);
+  color: var(--text-emph);
+}
+
+.pl-note-sig {
+  border-left-color: var(--text-strong);
+}
+
+.pl-note-sig strong {
+  color: var(--text-strong);
+}
+
+.pl-note-warn {
+  border-left-color: var(--source-distrust);
+}
+
+.pl-note-warn strong {
+  color: var(--source-distrust-t);
+}
+
+/* -------------------------------------------------------------- sections */
+
+.pl-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  min-width: 0;
+}
+
+.pl-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--line);
+}
+
+.pl-section-num {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  letter-spacing: var(--track-wide);
+  color: var(--text-faint);
+}
+
+.pl-section-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--fs-large);
+  font-weight: var(--fw-emph);
+  letter-spacing: var(--track-heading);
+  text-transform: uppercase;
+  color: var(--text-strong);
+}
+
+.pl-lede {
+  margin: 0;
+  max-width: var(--measure);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+
+.pl-body {
+  margin: 0;
+  max-width: var(--measure);
+  font-size: var(--fs-body);
+  line-height: 1.75;
+  color: var(--text);
+}
+
+.pl-body em {
+  font-style: normal;
+  font-weight: var(--fw-emph);
+  color: var(--text-emph);
+}
+
+.pl-hint {
+  margin: 0;
+  max-width: 78ch;
+  font-size: var(--fs-small);
+  line-height: 1.65;
+  color: var(--text-faint);
+}
+
+.pl-hint strong,
+.pl-hint em {
+  font-style: normal;
+  color: var(--text-dim);
+  font-weight: var(--fw-emph);
+}
+
+.pl-warn {
+  color: var(--source-distrust-t);
+}
+
+.pl-warn strong {
+  color: var(--source-distrust-t);
+}
+
+.pl-absent {
+  margin: 0;
+  font-size: var(--fs-body);
+  color: var(--text-faint);
+  padding: var(--s4) 0;
+}
+
+/* --------------------------------------------------------------- controls */
+
+.pl-adopt,
+.pl-weight-pick,
+.pl-send {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s4);
+}
+
+.pl-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.pl-field > span {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.pl-field select {
+  background: var(--bg-inset);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: var(--s2) var(--s3);
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  min-width: 200px;
+}
+
+/*
+ * A field standing on its own in a section column stretches to the full measure
+ * otherwise, so a race dropdown with four short codes in it ran 1,080px wide.
+ */
+.pl-section > .pl-field {
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.pl-trio-read {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.pl-trio-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  padding: var(--s2) var(--s3);
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  letter-spacing: var(--label-spacing);
+  color: var(--text-strong);
+}
+
+.pl-trio-chip i {
+  font-style: normal;
+  font-family: var(--font);
+  letter-spacing: normal;
+  color: var(--text-faint);
+}
+
+.pl-weights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.pl-weight {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s0) var(--s2);
+}
+
+/* ------------------------------------------------------------------ slots */
+
+.pl-slot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line);
+}
+
+.pl-slot-head h3 {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  font-family: var(--font-heading);
+  font-size: var(--fs-heading);
+  font-weight: var(--fw-emph);
+  letter-spacing: var(--track-heading);
+  text-transform: uppercase;
+  color: var(--text-strong);
+}
+
+/*
+ * "wear 2" is a fact about the body, not a decoration, and it is the one thing
+ * on a Wrist row a reader has to notice before they lock anything.
+ */
+.pl-wear {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: var(--s0) var(--s2);
+}
+
+.pl-slot-sub {
+  margin: var(--s1) 0 0;
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  letter-spacing: var(--label-spacing);
+  color: var(--text-faint);
+}
+
+.pl-none,
+.pl-hidden-note {
+  margin: 0;
+  font-size: var(--fs-small);
+  line-height: 1.6;
+  color: var(--text-faint);
+  max-width: 78ch;
+}
+
+.pl-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--s3);
+}
+
+/*
+ * The card, which is the device worth copying. The top edge takes its colour
+ * from `--c`, set by the global `[data-standing]` rule — so provenance is the
+ * first thing about a card that reaches the eye, before any word is read.
+ */
+.pl-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  min-width: 0;
+}
+
+.pl-card.is-locked {
+  background: var(--bg-panel-raised);
+  border-color: var(--line-strong);
+}
+
+.pl-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+/*
+ * Deliberately NOT `--item-usable`.
+ *
+ * The client tints a name green when the character can equip it, and this page
+ * only ever offers pieces the trio can equip — so every name would take the
+ * green and the signal would be a full-screen tint. `tokens.css` records the
+ * same finding on the paper doll and in the slot picker, and re-points the token
+ * locally there for exactly this reason. The green is spent where a blocked
+ * item can actually appear; here nothing is blocked, so the name is simply the
+ * brightest text on the card.
+ */
+.pl-name {
+  font-family: var(--font-heading);
+  font-size: var(--fs-heading);
+  font-weight: var(--fw-emph);
+  line-height: 1.2;
+  color: var(--text-strong);
+  min-width: 0;
+}
+
+.pl-score {
+  font-family: var(--font-num);
+  font-size: var(--fs-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+/* Not a zero. A word, because a dash is the silence this screen exists to end. */
+.pl-score-none {
+  color: var(--text-faint);
+  font-size: var(--fs-small);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+}
+
+.pl-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+/*
+ * The eyebrow is tinted from the standing accent and blended toward bone —
+ * eqlsource's own rule, because the accent is a chrome colour and several of
+ * them fall short of 4.5:1 at this size.
+ */
+.pl-set {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--c, var(--text-dim)) 68%, var(--text-strong));
+}
+
+/* The badge that repeats: on every card, and on the locked total. */
+.pl-standing {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  border: 1px solid currentcolor;
+  border-radius: var(--radius);
+  padding: var(--s0) var(--s2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* Their tier chip carries a 5px square in the same colour. Copied by name. */
+.pl-standing::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  background: currentcolor;
+  flex: none;
+}
+
+.pl-standing[data-band='trusted'] {
+  color: var(--source-trusted-t);
+}
+
+.pl-standing[data-band='corroborating'] {
+  color: var(--source-corroborating-t);
+}
+
+.pl-standing[data-band='distrust'] {
+  color: var(--source-distrust-t);
+}
+
+.pl-existence {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.pl-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s3);
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+.pl-stats b {
+  color: var(--text);
+  font-weight: var(--fw-emph);
+  font-variant-numeric: tabular-nums;
+}
+
+.pl-fx,
+.pl-src,
+.pl-withheld {
+  margin: 0;
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--text-faint);
+}
+
+.pl-fx i,
+.pl-withheld {
+  font-style: normal;
+  color: var(--text-faint);
+}
+
+.pl-lock {
+  margin-top: auto;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  padding: var(--s2) var(--s3);
+  cursor: pointer;
+}
+
+.pl-lock:hover {
+  background: var(--bg-hover);
+  color: var(--text-strong);
+}
+
+.pl-lock.on {
+  border-color: var(--accent);
+  color: var(--accent-hot);
+}
+
+/* ------------------------------------------------------------------ total */
+
+.pl-total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s4);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: var(--s4);
+}
+
+.pl-total-count,
+.pl-total-stat {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.pl-total-count b,
+.pl-total-stat b {
+  color: var(--text-strong);
+  font-weight: var(--fw-emph);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * A quotation, not a panel. Somebody's actual words, so they get the site's
+ * argument treatment — a left rule — rather than being boxed like data.
+ */
+.pl-quote {
+  margin: 0;
+  max-width: 78ch;
+  border-left: 2px solid var(--line-strong);
+  padding: var(--s1) 0 var(--s1) var(--s4);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+
+/* -------------------------------------------------------------- uncovered */
+
+.pl-uncovered {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.pl-uncovered span {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: var(--s0) var(--s2);
+}
+
+/* ------------------------------------------------------------ narrow view */
+
+@media (max-width: 620px) {
+  .pl-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .pl-adopt,
+  .pl-weight-pick,
+  .pl-send {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pl-field select {
+    min-width: 0;
+    width: 100%;
+  }
+}

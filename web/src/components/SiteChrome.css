@@ -1,0 +1,467 @@
+/*
+ * Site chrome.
+ *
+ * Measured off `https://eqlsource.com/assets/site.css` (fetched 2026-08-18),
+ * not eyeballed off a screenshot — the last pass that eyeballed this site got
+ * all four typefaces and every rule colour wrong, and that failure is recorded
+ * at the end of `research/DESIGN-EQLSOURCE.md`.
+ *
+ * Their selectors are kept verbatim so the two sheets can be diffed:
+ * `.site-bar`, `.shell`, `.mark`/`.m1`/`.m2`, `.site-nav`, `.burger`,
+ * `.crumb`, `.site-foot`, `.foot-grid`, `.foot-contact`, `.foot-nolog`,
+ * `.foot-legal`. Their values are translated through this app's tokens rather
+ * than pasted, because this app's type scale has eight steps where theirs has
+ * twelve and an off-scale size is a defect the browser suite fails on.
+ *
+ * Where the number is theirs it says so. Where it is ours it says why.
+ */
+
+/* ---------------------------------------------------------------- shell */
+
+/*
+ * One width and one gutter for the masthead, the page and the footer, so the
+ * wordmark, the breadcrumb, the first column of content and the first footer
+ * column all sit on one left edge. Theirs is `--max: 1240px`; ours is 1400 for
+ * the reason `styles.css` §4 records, and it is the *rule* being adopted.
+ */
+.shell {
+  width: 100%;
+  max-width: var(--shell-max);
+  margin: 0 auto;
+  padding: 0 var(--gut);
+  min-width: 0;
+}
+
+/*
+ * The frame travels with the reader on a desktop: the site bar says which site
+ * this is, the tool bar says which page of the tool you are on, and both are
+ * worth keeping while a 3,533-row table scrolls under them. On a phone that is
+ * 118px of a 844px screen, so below their 760px breakpoint only the site bar
+ * stays and the tool rail scrolls away with the content it labels.
+ */
+.chrome {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+/* ------------------------------------------------------------- masthead */
+
+.site-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  /* Theirs: `rgba(11,7,4,.88)` over a 10px backdrop blur. `#0b0704` is
+     `--bg-page`, so this is the same recipe through the token. */
+  background: color-mix(in srgb, var(--bg-page) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-bar .shell {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  height: var(--bar-h);
+}
+
+/*
+ * The wordmark, which is the single most load-bearing thing on the page: it is
+ * what tells a reader arriving from `/tools/` that they have not left.
+ *
+ * `EQL Source` is Cinzel — an inscriptional Roman capital, "the letterform of
+ * things carved", per their own note — at `.1em`, beside `SURVEY` in mono at
+ * their widest tracking. Their size is 18.5px; this scale's nearest step is 17.
+ * Weight is declared 800 and clamps to Cinzel's 700 master, which is what the
+ * variable file actually holds; the *declared* weight is what the type audit
+ * reads, and 800 is on the scale where 700 is not.
+ */
+.mark {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  flex: 0 0 auto;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.mark .m1 {
+  font-family: var(--serif);
+  font-weight: var(--fw-num);
+  font-size: var(--fs-heading);
+  letter-spacing: var(--track-mark);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mark .m2 {
+  font-family: var(--mono);
+  font-weight: var(--fw-body);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--track-widest);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.mark:hover .m2 {
+  color: var(--text-dim);
+}
+
+.site-nav {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/*
+ * Their nav, exactly: mono, uppercase, tracked, muted, in a transparent 1px
+ * box that fills in on hover. The current *section* — Tools, because that is
+ * where this tool is published — takes the stronger rule, which is how they
+ * mark `a[aria-current]`.
+ *
+ * This is deliberately NOT the same active-state device as the tool nav one
+ * row below. They mark two different things: this one says which part of the
+ * site you are in, that one says which page of this tool you are reading, and
+ * the tool's own tab rows already use the underline.
+ */
+.site-nav a {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: var(--s2) var(--s3);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  white-space: nowrap;
+}
+
+.site-nav a:hover {
+  color: var(--text-strong);
+  border-color: var(--line);
+  background: var(--bg-panel);
+}
+
+.site-nav a[aria-current] {
+  color: var(--text-strong);
+  border-color: var(--line-strong);
+}
+
+/*
+ * The burger. It sets no `background`, and for one round that meant it did not
+ * get the masthead's ground — it got Chromium's `ButtonFace`, which under
+ * `color-scheme: dark` is `rgb(107,107,107)`. A mid-grey pill in an umber-black
+ * bar, with its label at **2.32:1**: the only sub-AA text run in the app, on
+ * every screen, at every width below 760px.
+ *
+ * It survived a round because the browser suite's contrast sweep runs at the
+ * project's default 1440-wide viewport, where this button is `display: none`.
+ * A control that only exists at one width is only audited at that width, so the
+ * sweep now runs at 390 too — see `visual-system.spec.ts`.
+ *
+ * `background: transparent` is the fix and it is not cosmetic: it is what makes
+ * the declared `--text-dim` land on the declared `--bg-page`, which is where it
+ * was measured to clear AA in the first place.
+ */
+.burger {
+  display: none;
+  margin-left: auto;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* Matches `.site-nav a:hover`, so the control and the links it opens agree. */
+.burger:hover,
+.burger[aria-expanded='true'] {
+  color: var(--text-strong);
+  background: var(--bg-panel);
+}
+
+/* --------------------------------------------------------- tool rail */
+
+/*
+ * The breadcrumb rail. Their tool pages carry the crumb inside a hero block
+ * because each is one document; this one has ten routes, so the crumb shares a
+ * rail with the tool's own navigation. Panel ground, so it reads as a shelf
+ * under the site bar rather than as part of it.
+ */
+.tool-bar {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.tool-bar .shell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s4);
+  min-height: 38px;
+  padding-top: var(--s1);
+  padding-bottom: var(--s1);
+}
+
+/*
+ * Theirs, including the part that looks like a mistake and is not: the trail
+ * is `--faint` and the *links back* are `--mut`, so the way out is brighter
+ * than where you already are.
+ */
+.crumb {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--track-widest);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  min-width: 0;
+}
+
+.crumb a {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.crumb a:hover {
+  color: var(--text-strong);
+}
+
+.tool-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+/*
+ * One active-state language *inside the tool*: the tab rows on the set editor
+ * mark their current item with a 2px accent underline, and so does this. The
+ * nav used to be a fixed 272px block that neither wrapped nor shrank, pushing
+ * the page 50px wide at 390px; it wraps now, which is why nothing here clips
+ * and no ancestor needs `overflow: hidden` to hide the fact.
+ */
+.tool-nav a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--s2) var(--s3);
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.tool-nav a:hover {
+  color: var(--text-strong);
+}
+
+.tool-nav a[aria-current='page'] {
+  color: var(--text-strong);
+}
+
+.tool-nav a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  left: var(--s2);
+  right: var(--s2);
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* ----------------------------------------------------------- the footer */
+
+/*
+ * The site's footer, reproduced because this tool is a page of that site and a
+ * page of a site lets you leave it. Six columns rather than five: the tool's
+ * own pages come first, then the site's.
+ */
+.site-foot {
+  border-top: 1px solid var(--line);
+  background: var(--bg-panel);
+  padding: var(--s7) 0;
+}
+
+.foot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: var(--s6);
+}
+
+.foot-grid > * {
+  min-width: 0;
+}
+
+.foot-grid h4 {
+  margin: 0 0 var(--s3);
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-emph);
+  letter-spacing: var(--track-widest);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.foot-grid ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.foot-grid li {
+  margin-bottom: var(--s2);
+}
+
+.foot-grid a {
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.foot-grid a:hover {
+  color: var(--text-strong);
+}
+
+/*
+ * The catalog's own account of itself. The site has no equivalent — its pages
+ * are built, not loaded — so this is ours, set in the footer's own mono at the
+ * quietest step that still clears AA on this panel (5.8:1).
+ */
+.foot-build {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s4);
+  margin: var(--s6) 0 0;
+  max-width: var(--measure);
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+}
+
+/*
+ * Theirs, and the quiet ground is the point: `background: rgba(255,255,255,.02)`
+ * inside a 1px rule. A raised panel was tried here and it shouted — the block
+ * is an invitation, not a warning, and it sits at the bottom of a page whose
+ * loudest thing should still be the data.
+ */
+.foot-contact {
+  margin: var(--s5) 0 0;
+  padding: var(--s4) 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--tint) 2%, transparent);
+}
+
+.foot-contact p {
+  margin: 0;
+  max-width: var(--measure);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.foot-contact strong {
+  color: var(--text-strong);
+}
+
+/*
+ * Underlined, because theirs are: `.foot-contact a` is the one place on that
+ * page where a link sits inside a sentence, and it never sets
+ * `text-decoration: none`. The colour is this app's own link accent rather
+ * than their `--instr-t`, which measures the same job at the same weight.
+ */
+.foot-contact a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.foot-nolog {
+  margin-top: var(--s2) !important;
+  font-size: var(--fs-small) !important;
+  color: var(--text-faint) !important;
+}
+
+/*
+ * Their `.foot-legal` is not full-bleed, and that is the site's `p` rule
+ * showing through: every paragraph on it is capped at a reading measure, the
+ * legal note included, so the rule above it stops at the same place the words
+ * do. A 1,320px-wide line of 10px mono is not a paragraph, it is a ticker.
+ */
+.foot-legal {
+  margin: var(--s6) 0 0;
+  padding-top: var(--s5);
+  border-top: 1px solid var(--line);
+  max-width: var(--measure);
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.08em;
+  line-height: 1.8;
+  color: var(--text-faint);
+}
+
+/* ------------------------------------------------------------ narrow */
+
+/*
+ * Their breakpoint, 760px, and their behaviour: the nav becomes a panel
+ * hanging off the bar rather than a row that wraps into three lines and
+ * doubles the masthead's height.
+ */
+@media (max-width: 760px) {
+  .chrome {
+    position: static;
+  }
+
+  .burger {
+    display: block;
+  }
+
+  .site-nav {
+    position: absolute;
+    top: var(--bar-h);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: var(--s1) 0;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .site-nav:not(.open) {
+    display: none;
+  }
+
+  .site-nav a {
+    padding: var(--s3) var(--gut);
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+  }
+
+  .tool-bar .shell {
+    justify-content: flex-start;
+  }
+}

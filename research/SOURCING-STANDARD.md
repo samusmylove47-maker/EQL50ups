@@ -36,14 +36,19 @@ upgrade maths was corrected twice against the game after a third-party model dis
 
 **Our item catalog is Tier 2, and it is contaminated.** The catalog is built from
 `eqlwiki.com` scrapes. Tier 5 warns that large parts of that wiki are a Project 1999
-import — and the item tables carry the same inheritance. As of 2026-08-17 the raw scrape
-held **11,252 items, of which 7,719 were content from expansions that do not exist in
-EverQuest Legends** or carried no era at all: Scars of Velious (2,828), no era in any
-source (2,331), Ruins of Kunark (1,457), epic quests (867), the Chardok revamp (145), the
+import — and the item tables carry the same inheritance. The raw scrape holds
+**11,252 items, of which 7,599 are content from expansions that do not exist in
+EverQuest Legends** or carry no era at all: Scars of Velious (2,828), no era in any
+source (2,230), Ruins of Kunark (1,438), epic quests (867), the Chardok revamp (145), the
 Fear/Hate revamp (53), pages the wiki itself flags as not-in-Legends (26), and Shadows of
-Luclin (12). **3,533 items ship.** The rest are quarantined, in full and by name, in
+Luclin (12). **3,653 items survive the purge**, and a further **10 ship that were never in
+the scrape at all** — see rule 7 — for **3,663 shipped in total**. The rest are quarantined, in full and by name, in
 `pipeline/quarantine.json`, so restoring any of them is a table entry rather than a
 re-scrape.
+
+*(Figures read off `web/public/data/meta.json`, which the build computes. An earlier
+version of this paragraph was typed by hand and went stale the first time the catalog
+moved; the counts in it are now derived from the same file the site reads.)*
 
 This was not a subtle failure. A previous session read the wiki's `FearHateRevamp` era tag,
 inferred that its five sets (Legionnaire Scale, Greenmist, of the Righteous, of the Untamed,
@@ -84,3 +89,21 @@ An inference is never evidence. That is the whole point of the hierarchy.
 
 6. **Date everything.** Scrapes are pinned to commits and carry a snapshot date. Anything
    older than the last patch is treated as stale, per Tier 4's rule.
+
+7. **Tier M existence ships the item, with nothing attached.** An item can be in the game
+   and in no catalog anywhere — that is what a patch produces, every time. Where a Tier M
+   source *names* an item and no source *describes* it, the item ships as an
+   **existence-only record**: `statsUnknown: true`, `xo: true`, an `evidence` string naming
+   the file that proves it, and no slot, no class, no era and no stats. It is never ranked,
+   scored or auto-filled.
+
+   The three qualifying sources are a measured drop in `sightings.v1.json`, a name in
+   `items.v1.json`, and a line in this repository's own client export. **No code change is
+   required for a new item**, which is the point: the rule is general, and
+   `pipeline/refresh.mjs` plus `research/PATCH-DAY.md` are how it is exercised.
+
+   What must **not** happen is filling the blanks from the name. `Mistmoore Cudgel` is
+   obviously a weapon and obviously not a hat; obvious is not observed, and this is the
+   exact reasoning that once read a wiki era tag as structural confirmation of five armour
+   sets that are not in the game. An empty field is a fact about the evidence and it is
+   published as one.

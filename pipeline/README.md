@@ -3,9 +3,10 @@
 Turns the four community EverQuest Legends item scrapes in `research/data/` into the
 compact JSON the web app loads from `web/public/data/`.
 
-Two scripts, no dependencies beyond Node 22 builtins, both deterministic:
+Three scripts, no dependencies beyond Node 22 builtins, all deterministic:
 
 ```bash
+node pipeline/refresh.mjs    # re-fetch EQL Source's four datasets, diff, report; --apply to vendor
 node pipeline/build.mjs      # normalize + emit web/public/data/
 node pipeline/verify.mjs     # assert data quality; exit 1 on hard failure
 ```
@@ -229,11 +230,34 @@ It is the only reason the thirteen Kunark-tagged items in the table above ship a
 
 ---
 
+## Patch day, and items no source describes
+
+`refresh.mjs` re-fetches the four datasets EQL Source publishes at
+`https://eqlsource.com/data/`, records each one's published `hash` and `version` — plus our own
+SHA-256 over the exact bytes — in `pipeline/sources/eqlsource/manifest.json`, and prints a diff
+against what is vendored: items added and removed, **IDs that moved**, new sightings, new mobs,
+new zones, coverage facets that changed grade, and what a rebuild would newly admit to the
+catalog. It writes nothing without `--apply`, and refuses to apply a file that is not the dataset
+it claims to be. `research/PATCH-DAY.md` is the runbook.
+
+**Any item with Tier M existence evidence and no catalog record ships automatically**, as an
+existence-only record: `statsUnknown: true`, `xo: true`, an `evidence` string naming the file
+that proves it, and no slot, no class, no era, no stats. Three sources qualify — a measured drop
+in `sightings.v1.json`, a name in `items.v1.json`, a line in the client export — and a candidate
+that resolves onto an existing catalog record under a different spelling (`Executioner's Axe` is
+the catalog's `An Executioners Axe`, both #5407) is attached to that record rather than admitted
+twice. This is the general rule that `TIER0_KNOWN_ITEMS` below is the hand-written special case
+of; a new drop needs no code change.
+
+Each measured drop row also carries `zs`, the survey behind the zone it names, derived from that
+zone's five coverage facets and never hand-set. A zone the logs name and no survey covers is
+listed in `meta.zones.unsurveyed` and carries no grade at all.
+
 ## Tier 0 corrections
 
 Two tables at the top of `build.mjs` — `TIER0_CORRECTIONS` (fields the sources got wrong) and
-`TIER0_KNOWN_ITEMS` (items no source has at all) — are the **only** place this pipeline overrides
-its inputs. They exist because the project ranks the running game above every community source, and
+`TIER0_KNOWN_ITEMS` (items no source has at all, *with* an evidenced slot and class) — are the
+**only** place this pipeline overrides its inputs. They exist because the project ranks the running game above every community source, and
 they are kept tiny, fully enumerated and individually cited so that "Tier 0 says so" can never
 become a licence to guess. `verify.mjs` §9b re-asserts their outcome against the shipped payload
 independently, so a table that stops matching the catalog fails the build rather than silently

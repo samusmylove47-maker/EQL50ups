@@ -1,0 +1,685 @@
+/*
+ * Contamination.
+ *
+ * The live page this copies — eqlsource.com/learn/contamination — carries its
+ * own <style> block on top of the site stylesheet, so its devices are readable
+ * exactly as authored and are reproduced here in the app's own token names:
+ *
+ *   .score     a flex strip of figures, 1px gutters showing the rule colour
+ *              through, figure in the condensed heading face at ~30px, label in
+ *              mono uppercase at ~9.5px.
+ *   .note      a 2px left rule and no box. Never a panel: the site spends its
+ *              boxes on data and its rules on argument.
+ *   table      9.5px mono uppercase column heads over a --line-strong rule,
+ *              hairline row separators, numerals right-aligned in mono.
+ *
+ * Every value resolves to a token from `styles/tokens.css`. This file declares
+ * no colour, no face and no type size of its own. The only literals are grid
+ * minimums, two measure caps and the breakpoints — the same exception the other
+ * screen stylesheets take.
+ *
+ * On the two-colour question the design doc is explicit and it is worth
+ * restating where it is used: the plain token is for rules, borders and bars;
+ * the text-safe variant is the same hue lifted to 4.5:1. `--source-distrust`
+ * and `--source-trusted` in this project's tokens are already the lifted
+ * values — #d46c64 is eqlsource's own t5 after the AA fix — so they are used
+ * for the numerals directly, and `--line-strong` carries the boundaries.
+ */
+
+.cn {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------- head */
+
+.cn-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding-bottom: var(--s5);
+  border-bottom: 1px solid var(--line);
+}
+
+.cn-head-eyebrow {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.cn-head-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  line-height: 1.1;
+  margin: 0;
+}
+
+/*
+ * The headline's second half, set apart the way the live page sets it apart —
+ * `h1.display em` there, and not italic. An inscriptional capital has no
+ * italic; leaning it would be inventing a style the face does not have.
+ */
+.cn-head-title em {
+  font-style: normal;
+  color: var(--text-dim);
+}
+
+.cn-head-lede {
+  max-width: 68ch;
+  font-size: var(--fs-mid);
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0;
+}
+
+.cn-head-lede em {
+  color: var(--text-emph);
+  font-style: normal;
+  font-weight: var(--fw-emph);
+}
+
+/* ------------------------------------------------------------ score strip */
+
+/*
+ * 1px gaps over a --line background, so the separators are the grid itself
+ * rather than borders that have to be cancelled at the ends.
+ */
+.cn-score {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.cn-score-cell {
+  background: var(--bg-panel);
+  padding: var(--s4) var(--s5);
+  flex: 1 1 190px;
+  min-width: 0;
+}
+
+.cn-score-cell b {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-num);
+  color: var(--text-strong);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cn-score-cell[data-tone='good'] b {
+  color: var(--source-trusted);
+}
+
+.cn-score-cell[data-tone='bad'] b {
+  color: var(--source-distrust);
+}
+
+.cn-score-cell span {
+  display: block;
+  margin-top: var(--s2);
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+
+/*
+ * The strip's own caveat. It sits directly under the figures because a headline
+ * whose shape is explained two screens later is a headline optimised to alarm.
+ */
+.cn-score-note {
+  margin: 0;
+  max-width: 78ch;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+/* ------------------------------------------------------------------ notes */
+
+.cn-note {
+  border-left: 2px solid var(--line-strong);
+  padding: var(--s1) 0 var(--s1) var(--s4);
+  max-width: 78ch;
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text-dim);
+}
+
+.cn-note strong {
+  color: var(--text-emph);
+  font-weight: var(--fw-emph);
+}
+
+.cn-note-sig {
+  border-left-color: var(--text-strong);
+}
+
+.cn-note-sig strong {
+  color: var(--text-strong);
+}
+
+.cn-note-warn {
+  border-left-color: var(--source-distrust);
+}
+
+.cn-note-warn strong {
+  color: var(--source-distrust);
+}
+
+.cn-note-ok {
+  border-left-color: var(--source-trusted);
+}
+
+.cn-note-ok strong {
+  color: var(--source-trusted);
+}
+
+/* --------------------------------------------------------------- callouts */
+
+.cn-callouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--s4);
+}
+
+/*
+ * The card device from the design doc: a 2px standing accent on the top edge
+ * over a 1px hairline everywhere else, on the panel surface. `--tone` picks the
+ * accent; without one it falls back to the strong rule, so an untinted callout
+ * still has a top edge.
+ */
+.cn-callout {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: var(--s4) var(--s5) var(--s5);
+  min-width: 0;
+}
+
+.cn-callout[data-tone='good'] {
+  border-top-color: var(--source-trusted);
+}
+
+.cn-callout[data-tone='bad'] {
+  border-top-color: var(--source-distrust);
+}
+
+.cn-callout-figure {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-num);
+  line-height: 1;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.cn-callout[data-tone='good'] .cn-callout-figure {
+  color: var(--source-trusted);
+}
+
+.cn-callout[data-tone='bad'] .cn-callout-figure {
+  color: var(--source-distrust);
+}
+
+.cn-callout-label {
+  display: block;
+  margin-top: var(--s2);
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+
+.cn-callout-body {
+  margin: var(--s3) 0 0;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.cn-callout-body em {
+  color: var(--text-emph);
+  font-style: normal;
+}
+
+/* --------------------------------------------------------------- sections */
+
+.cn-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  min-width: 0;
+}
+
+/*
+ * The number is outdented into the margin where there is room for it and tucked
+ * back inline where there is not, so it never eats the title's measure on a
+ * phone.
+ */
+.cn-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+}
+
+.cn-section-num {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  letter-spacing: var(--track-nav);
+  color: var(--text-faint);
+  flex: 0 0 auto;
+}
+
+.cn-section-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-large);
+  font-weight: var(--fw-num);
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  line-height: 1.1;
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  .cn-section-head {
+    margin-left: calc(-1 * var(--s6));
+  }
+
+  .cn-section-num {
+    width: var(--s5);
+    text-align: right;
+  }
+}
+
+.cn-lede {
+  max-width: 72ch;
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text-dim);
+}
+
+/* ----------------------------------------------------------------- legend */
+
+.cn-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+/*
+ * The tier-chip device: mono, uppercase, a 1px border in the current colour and
+ * a 5px square in the same colour before it. Borrowed exactly, because it is
+ * the site's one way of saying "this label is a standing, not a category".
+ */
+.cn-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  padding: var(--s0) var(--s2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius);
+  white-space: nowrap;
+}
+
+.cn-chip::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  background: currentColor;
+  flex: 0 0 5px;
+}
+
+.cn-chip i {
+  font-style: normal;
+  color: var(--text-faint);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.cn-chip-bad {
+  color: var(--source-distrust);
+}
+
+.cn-chip-ok {
+  color: var(--source-trusted);
+}
+
+/* ------------------------------------------------------------------ table */
+
+/*
+ * Wide content scrolls inside its own container. The page body must never
+ * scroll sideways, and a signature table with a 78ch prose column in it will
+ * always be wider than a phone.
+ */
+.cn-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+}
+
+.cn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-body);
+  min-width: 660px;
+}
+
+.cn-table th {
+  text-align: left;
+  font-weight: var(--fw-body);
+}
+
+.cn-table thead th {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: var(--s3) var(--s3);
+  border-bottom: 1px solid var(--line-strong);
+  background: var(--bg-panel-raised);
+  white-space: nowrap;
+}
+
+.cn-table tbody td,
+.cn-table tbody th {
+  padding: var(--s4) var(--s3);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.cn-table tbody tr:last-child td,
+.cn-table tbody tr:last-child th {
+  border-bottom: 0;
+}
+
+.cn-num-col {
+  width: 1%;
+}
+
+/* --------------------------------------------------------- the sig column */
+
+/*
+ * Fixed, so the two count columns sit against the name they belong to.
+ * Left to `auto` the browser gave the signature column every pixel the capped
+ * prose column did not want, and the numbers ended up 300px from their own row
+ * label — a table you have to track across with a finger.
+ */
+.cn-sig {
+  width: 200px;
+}
+
+.cn-sig code {
+  display: block;
+  font-family: var(--font-num);
+  font-size: var(--fs-body);
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.cn-sig-title {
+  display: block;
+  margin-top: var(--s1);
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--text-dim);
+}
+
+.cn-sig-corpus {
+  display: inline-block;
+  margin-top: var(--s2);
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/*
+ * Numerals in mono, right-aligned, tabular. A column of counts that does not
+ * line up is a column a reader has to read rather than scan.
+ */
+.cn-num {
+  font-family: var(--font-num);
+  font-size: var(--fs-mid);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.cn-num[data-tone='bad'] {
+  color: var(--source-distrust);
+}
+
+.cn-num[data-tone='ok'] {
+  color: var(--source-trusted);
+}
+
+.cn-num[data-tone='good'] {
+  color: var(--source-trusted);
+}
+
+/* -------------------------------------------------------- the "what" cell */
+
+/*
+ * The measure cap belongs on the paragraphs, not on the cell. Capping the cell
+ * made the table narrower than its container and handed the slack to the
+ * signature column; capping the text keeps the line length readable and lets
+ * the cell take the rest of the row.
+ */
+.cn-what {
+  min-width: 340px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.cn-what p {
+  margin: 0 0 var(--s3);
+  max-width: 74ch;
+}
+
+.cn-what p:last-child {
+  margin-bottom: 0;
+}
+
+.cn-what b {
+  color: var(--text-strong);
+  font-weight: var(--fw-emph);
+}
+
+.cn-findings {
+  margin: 0 0 var(--s3);
+  padding-left: var(--s4);
+}
+
+.cn-findings li {
+  margin: 0 0 var(--s2);
+}
+
+.cn-findings li:last-child {
+  margin-bottom: 0;
+}
+
+.cn-markrule {
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+}
+
+.cn-markrule b {
+  color: var(--text-dim);
+}
+
+/* --------------------------------------------------- quoted source lines */
+
+.cn-sites {
+  margin: 0 0 var(--s3);
+  padding: var(--s3);
+  background: var(--bg-inset);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.cn-sites-head,
+.cn-found-head {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: var(--s2);
+}
+
+.cn-sites ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.cn-sites-loc {
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  color: var(--text-emph);
+}
+
+.cn-sites-kind {
+  margin-left: var(--s2);
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/*
+ * The quoted line keeps its own whitespace and scrolls rather than wrapping:
+ * a line of source rewrapped at a random column stops being evidence.
+ */
+.cn-sites pre {
+  margin: var(--s1) 0 0;
+  overflow-x: auto;
+  font-family: var(--font-num);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------- found list */
+
+.cn-found {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.cn-found li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: var(--fs-small);
+}
+
+.cn-found code {
+  font-family: var(--font-num);
+  color: var(--text-dim);
+}
+
+.cn-found-split {
+  font-family: var(--font-num);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.cn-found-more {
+  color: var(--text-faint);
+}
+
+.cn-found-none {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+}
+
+/* ------------------------------------------------------------------ misc */
+
+.cn-source {
+  max-width: 78ch;
+  margin: 0;
+  font-size: var(--fs-small);
+  line-height: 1.7;
+  color: var(--text-faint);
+}
+
+.cn-source code {
+  font-family: var(--font-num);
+  color: var(--text-dim);
+}
+
+.cn-source a {
+  color: var(--accent-hot);
+}
+
+.cn-absent {
+  max-width: 78ch;
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--text-dim);
+}
+
+.cn-absent code {
+  font-family: var(--font-num);
+  color: var(--text-emph);
+}
+
+.cn-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
