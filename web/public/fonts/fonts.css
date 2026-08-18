@@ -8,7 +8,15 @@
    weight we asked for. Those get a font-weight RANGE, not a single value.
    Declaring `font-weight: 400` against a variable file tells the browser the
    file *is* 400, so it never instances the axis and paints the default
-   master at every weight — which is how Public Sans rendered as Thin. */
+   master at every weight — which is how Public Sans rendered as Thin.
+
+   SRC PATHS ARE SIBLING-RELATIVE, NOT ROOT-ABSOLUTE. Vite's `base` is
+   configurable (`VITE_BASE`), and under a GitHub Pages project path the app is
+   served from a subdirectory. `url('/fonts/cinzel.woff2')` resolves against the
+   ORIGIN, so all seven faces 404'd there and every page silently fell back to
+   the local stacks — the one failure state that looks like a design choice
+   rather than a bug. This file always sits beside the woff2 files it names, so
+   `./` is correct under any base. */
 
 @font-face {
    /* variable: one file spans this range */
@@ -16,7 +24,7 @@
   font-style: normal;
   font-weight: 500 700;
   font-display: swap;
-  src: url('/fonts/cinzel.woff2') format('woff2');
+  src: url('./cinzel.woff2') format('woff2');
 }
 
 @font-face {
@@ -24,7 +32,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/ibm-plex-mono-400.woff2') format('woff2');
+  src: url('./ibm-plex-mono-400.woff2') format('woff2');
 }
 
 @font-face {
@@ -32,7 +40,7 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/fonts/ibm-plex-mono-500.woff2') format('woff2');
+  src: url('./ibm-plex-mono-500.woff2') format('woff2');
 }
 
 @font-face {
@@ -40,7 +48,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/fonts/ibm-plex-mono-600.woff2') format('woff2');
+  src: url('./ibm-plex-mono-600.woff2') format('woff2');
 }
 
 @font-face {
@@ -49,7 +57,7 @@
   font-style: normal;
   font-weight: 400 600;
   font-display: swap;
-  src: url('/fonts/public-sans.woff2') format('woff2');
+  src: url('./public-sans.woff2') format('woff2');
 }
 
 @font-face {
@@ -57,7 +65,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/fonts/saira-condensed-600.woff2') format('woff2');
+  src: url('./saira-condensed-600.woff2') format('woff2');
 }
 
 @font-face {
@@ -65,5 +73,5 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fonts/saira-condensed-700.woff2') format('woff2');
+  src: url('./saira-condensed-700.woff2') format('woff2');
 }
