@@ -198,7 +198,7 @@ describe('destructive controls keep focus in the document', () => {
   });
 });
 
-describe('the equipment map is shaped like a body', () => {
+describe('the equipment map reproduces the game Equipment tab', () => {
   beforeEach(() => {
     const character = useApp.getState().createCharacter({
       name: 'Avenrae',
@@ -210,59 +210,71 @@ describe('the equipment map is shaped like a body', () => {
     mount(`#/set/${gearSet.id}`);
   });
 
-  it('narrows at the feet, which two comments claimed and the layout did not', () => {
+  /*
+   * The map reproduces the game's Equipment tab, and that is the only thing it
+   * is allowed to be shaped like.
+   *
+   * This used to assert a 5x7 anatomical silhouette that narrowed at the head
+   * and widened at the shoulders — a real measurement of a layout that was
+   * invented rather than observed. The capture settles it: six columns, four
+   * rows, 23 positions, one gap at the left of row 1, and the three doubled
+   * slots mirrored to the outside.
+   */
+  it('reproduces the game grid, position for position', () => {
     const cells = [...container.querySelectorAll<HTMLElement>('.figure-body button')];
     expect(cells).toHaveLength(23);
 
     // jsdom has no layout, but the placement is inline `gridRow`/`gridColumn`,
-    // so the silhouette is readable straight off the style attribute.
-    const rows = new Map<number, number[]>();
+    // so the arrangement is readable straight off the style attribute.
+    const at = new Map<string, string>();
     for (const cell of cells) {
       const row = Number(cell.style.gridRow);
       const column = Number(cell.style.gridColumn);
       expect(Number.isFinite(row) && Number.isFinite(column)).toBe(true);
-      rows.set(row, [...(rows.get(row) ?? []), column]);
+      at.set(`${row},${column}`, cell.getAttribute('data-slot') ?? cell.textContent?.trim() ?? '');
     }
 
-    const extent = (row: number) => {
-      const columns = rows.get(row)!;
-      return Math.max(...columns) - Math.min(...columns) + 1;
-    };
+    const rows = new Map<number, number[]>();
+    for (const cell of cells) {
+      const row = Number(cell.style.gridRow);
+      rows.set(row, [...(rows.get(row) ?? []), Number(cell.style.gridColumn)]);
+    }
     const ordered = [...rows.keys()].sort((a, b) => a - b);
-    const widest = Math.max(...ordered.map(extent));
 
-    expect(extent(ordered[0]!), 'head').toBeLessThan(widest);
-    expect(widest, 'shoulders/chest/waist').toBe(5);
-    // The two Any Slots used to sit in the outer columns at ankle level, which
-    // made the last row exactly as wide as the shoulders.
-    expect(extent(ordered[ordered.length - 1]!), 'feet').toBeLessThan(widest);
-    expect(rows.get(ordered[ordered.length - 1]!)!.sort()).toEqual([2, 3, 4]);
+    // Four rows; 5 cells on the first and 6 on each of the rest.
+    expect(ordered).toHaveLength(4);
+    expect(ordered.map((r) => rows.get(r)!.length)).toEqual([5, 6, 6, 6]);
+
+    // Row 1 is indented by one: the gap is column 1, per the capture.
+    expect([...rows.get(ordered[0]!)!].sort((a, b) => a - b)).toEqual([2, 3, 4, 5, 6]);
+    for (const r of ordered.slice(1)) {
+      expect([...rows.get(r)!].sort((a, b) => a - b), `row ${r}`).toEqual([1, 2, 3, 4, 5, 6]);
+    }
+
+    // Six columns, never five, and never a seventh.
+    const columns = cells.map((c) => Number(c.style.gridColumn));
+    expect(Math.min(...columns)).toBe(1);
+    expect(Math.max(...columns)).toBe(6);
   });
 
   /*
-   * Placement alone was not enough: twenty-three identical tiles with holes
-   * between them read as a pegboard, so the body is now drawn behind them. It
-   * has to stay pure decoration — the grid is one composite widget with a
-   * single tab stop, and a stray focusable or a second accessible name would
-   * undo the thing this panel was rebuilt to fix.
+   * The silhouette is gone, and must stay gone.
+   *
+   * A decorative SVG body used to sit behind the cells, because twenty-three
+   * identical tiles with holes between them read as a pegboard. The answer to
+   * that turned out to be different: the panel now reproduces the game's own
+   * Equipment tab, which a player recognises without needing a picture drawn
+   * behind it. A body under the game's grid would be decoration competing with
+   * recognition.
+   *
+   * This asserts the absence so nobody reinstates it while chasing the
+   * pegboard complaint a second time.
    */
-  it('draws a body behind the cells without adding anything to read or focus', () => {
-    const silhouette = container.querySelector<SVGElement>('.figure-silhouette');
-    expect(silhouette).not.toBeNull();
-    expect(silhouette!.getAttribute('aria-hidden')).toBe('true');
-    expect(silhouette!.getAttribute('focusable')).toBe('false');
-    expect(silhouette!.hasAttribute('tabindex')).toBe(false);
-    expect(silhouette!.querySelector('button,a,input')).toBeNull();
-
-    // Registered to the whole grid, so it cannot drift off the cells it shapes.
-    expect(silhouette!.style.gridColumn).toBe('1 / 6');
-    expect(silhouette!.style.gridRow).toBe('1 / 8');
-
-    // Painted first, so no z-index is needed to keep it under the cells.
-    expect(silhouette!.parentElement?.firstElementChild).toBe(silhouette);
-
-    // And it is still exactly 23 cells, not 24.
-    expect(container.querySelectorAll('.figure-body button')).toHaveLength(23);
+  it('draws no decorative figure behind the cells', () => {
+    expect(container.querySelector('.figure-silhouette')).toBeNull();
+    // Only the slot glyphs, which live inside the cells — nothing drawn behind them.
+    const direct = [...(container.querySelector('.figure-body')?.children ?? [])];
+    expect(direct.filter((el) => el.tagName.toLowerCase() === 'svg')).toEqual([]);
   });
 });
 

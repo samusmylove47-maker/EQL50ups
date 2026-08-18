@@ -108,6 +108,35 @@ Carried over from the build report, all documented in `pipeline/README.md`:
 - **2 items print `SV VOID`** as a base stat, which the engine normally
   synthesizes; flagged so it is not double-counted.
 
+## 7. The client's AC line has a second figure the planner does not model
+
+Shara's Equipment tab (Director capture, 2026-08-18) reads:
+
+```
+AC   20/350 | 110
+```
+
+Three numbers. The planner models the first as a total and knows nothing of the other
+two. `350` is evidently a cap, in the same shape as `Strength 70/510` and
+`SV Magic 25/1000` on the same window — both of which confirm `ATTRIBUTE_CAP` and
+`RESIST_CAP` as Tier M rather than inferred. **`110` is unexplained.**
+
+Candidates, none of them observed: mitigation as against avoidance, a derived defence
+figure, a soft cap, or a class/level contribution shown separately from worn AC. Picking
+one would be precisely the inference `research/SOURCING-STANDARD.md` exists to forbid —
+the same reasoning that once read a wiki era tag as confirmation of five armour sets that
+do not exist.
+
+**Impact: unknown, and that is the finding.** If `110` responds to worn AC then the
+planner's AC total is answering a different question from the one the client answers, and
+a player comparing the two would find them disagreeing with no explanation on screen.
+
+**What would settle it:** two captures of the same character's Equipment tab with
+different gear, so the second figure's response to item AC can be measured. One capture
+cannot distinguish a constant from a function.
+
+Not chased on 2026-08-18 by Director's ruling: record it, do not pursue it today.
+
 ## What would close these gaps
 
 More Tier 0 item screenshots, ideally a spread across armor and weapons, would

@@ -79,6 +79,15 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   and the substitution is stated when reporting. Recorded once, in `CLAUDE.md` §5, so the
   next session does not rediscover it. *(Director, 2026-08-18.)*
 
+### Design decisions — the map
+
+- **The equipment map reproduces the game's Equipment tab, cell for cell.** Six columns,
+  four rows, 23 positions, row 1 indented by one, the three doubled slots mirrored to the
+  outside. It was a 5x7 anatomical silhouette with a decorative SVG body behind it —
+  invented, not observed. The silhouette is removed rather than adapted: the panel's job is
+  to be recognised by someone who has just alt-tabbed out of the client. Recorded as
+  capture 8 in `research/validation/TIER0-VALIDATION.md`. *(Director, 2026-08-18.)*
+
 ### Payload contract
 
 - **`slots.positions.total` is the field a reader-facing slot count comes from.** It is 23.
@@ -87,6 +96,10 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   2026-08-18 with `worn`, `any`, `types`, `doubled` and a note, so the number never has to
   be derived again. `verify.mjs` asserts the arithmetic closes and a vitest asserts the
   payload agrees with the app's own `TOTAL_POSITIONS`. *(Director, 2026-08-18.)*
+
+- **`slots.types` holds the 18 type codes.** The key was `worn` while a character wears 21
+  — the field name described a different quantity from its contents. `positions.worn` is
+  the 21. **BREAKING for anyone reading `slots.worn`.** *(Director, 2026-08-18.)*
 
 ### Sourcing
 
@@ -108,58 +121,65 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 
 ## To the Director
 
-### The slot figure: print `slots.positions.total`
+### The map is fixed, and your hypothesis was the one thing that was already right
 
-**23 is right, 18 is right, and they answer different questions — so neither of us should
-have had to presume.** Computed from the app's own constants:
+The doubled slots were **already mirrored** — `EAR_1`/`EAR_2` flanking, `WRIST_1`/`WRIST_2`
+either side, `FINGERS_1`/`FINGERS_2` outermost. That part matched the game.
+
+The fault was larger. The panel was a **5-column, 7-row anatomical silhouette** with a
+decorative SVG body drawn behind it — ears flanking a helm, a chest-waist spine, weapons
+beside the legs, Any Slots at the ankles — and three files carried comments arguing that
+narrowing at the head and widening at the shoulders "is the whole point". Every position a
+player already knows the place of was somewhere else.
+
+Rendered and measured in a browser against the capture:
 
 ```
-types           = 18          <- this is meta.slots.worn, a list of slot TYPES
-doubled         = EAR, WRIST, FINGERS
-worn positions  = 21          <- 18 types + a second position for each of the three
-any positions   = 2           <- the EQL-specific Any Slots
-total           = 23          <- TOTAL_POSITIONS in web/src/engine/constants.ts
+·          Ear 1      Neck       Face       Head       Ear 2
+Fingers 1  Wrist 1    Arms       Hands      Wrist 2    Fingers 2
+Shoulders  Chest      Back       Waist      Legs       Feet
+Primary    Secondary  Range      Ammo       Any Slot 1 Any Slot 2
 ```
 
-Session A could not reconcile it because **the doubling was published nowhere**. A
-character wears two earrings, two bracers and two rings; without that, the only available
-sum is 18 + 2 = 20. The README's "twenty-three slots, including the two EQL-specific Any
-Slots" is true in total and incomplete in its explanation, which is exactly the shape of
-the `counts.items` / `counts.purge.shipped` fault — right in one field, wrong in another,
-indistinguishable until they diverge.
+The silhouette is **removed, not adapted**. A body drawn behind the game's grid is
+decoration competing with recognition, and there is nothing to adapt it to.
 
-**Added rather than left to presumption**, since you pre-authorised it:
+**Worth naming, because it is not the usual failure.** Nothing here was typed where it
+could have been computed — the layout was measured, asserted in jsdom and re-measured in a
+real browser, and every one of those checks passed against it for weeks. It was **invented
+where it could have been observed.** Nobody looked at the game's own window. Rigour
+downstream of a wrong premise just makes the wrong thing harder to dislodge.
 
-```json
-"slots": { "worn": [ …18 types… ], "any": "ANY",
-  "positions": { "total": 23, "worn": 21, "any": 2, "types": 18,
-                 "doubled": ["EAR","WRIST","FINGERS"], "note": "…" } }
-```
+### A miss of mine you should know about
 
-Two guards so it cannot drift: `verify.mjs` asserts `types + doubled = worn`,
-`worn + any = total`, `types === slots.worn.length`, and that every doubled entry is a real
-worn type; and `web/src/data/slot-positions.test.ts` asserts the payload agrees with the
-app's `TOTAL_POSITIONS`. The pipeline deliberately does not import from `web/src`, so the
-two copies of the doubling exist on purpose and that test is the seam that forces them to
-agree.
+**`e2e/routes.spec.ts` has been red since `ea76d92` and I pushed twice over it.** When the
+32 chrome links moved off the `.html` form, three assertions kept the old spelling. I
+started that suite, the run completed, and I read a different command's output instead of
+its result — then reported "145/145" from a run that predated the change. The rule I broke
+is my own: the command that produced the number has to be the command that answers the
+question.
 
-**The catalogue did not move.** `items-index.json` and every shard are byte-identical —
-`git diff --numstat web/public/data/items-index.json web/public/data/items/` returns 0
-changed files. `counts.items` is still 3,663. `meta.json` gains the `positions` key and a
-new `builtAt`; `contamination.json` moves only its two timestamps and `sourceLines`
-31336 → 31365, which is the 29 comment lines written into `tokens.css` in the previous
-commit — the freshness gate doing its job.
+Fixed, and guarded: the spec now asserts the extensionless form and additionally fails if
+**any** chrome link ends in `.html`, so the dependency on your redirect rule cannot come
+back silently.
 
-**Session A will need to re-vendor `meta.json`** to pick up the new key. Nothing existing
-changed shape or type, so a stale snapshot keeps working and simply lacks the field.
+### From the capture, recorded not chased
 
-### Already landed
+- `Strength 70/510` and `SV Magic 25/1000` put `ATTRIBUTE_CAP` and `RESIST_CAP` on Tier M
+  footing — a second character, far from the first, printing the same denominators.
+- `AC 20/350 | 110` is **gap 7** in `research/validation/KNOWN-DATA-ISSUES.md`. The `110`
+  is unexplained and is not guessed at. What would settle it: two captures of the same
+  character with different gear, so the figure's response to worn AC can be measured. One
+  capture cannot distinguish a constant from a function.
 
-- **The Chromium finding is recorded** — `CLAUDE.md` §5, pushed in `89eb6b0`, before this
-  message arrived. Structural fact, the reset-not-certificate-error trap that makes it look
-  retryable, and the three consequences. Nothing to do.
+### Needs your relay to Session A
+
+`slots.worn` is renamed to `slots.types`. Anything reading `slots.worn` gets `undefined`
+rather than a wrong number, which is the failure mode I'd choose, but it is a break and
+they cannot see it from here.
 
 ### State
 
-Holding, and the catalogue stays frozen through the drop. Post-drop queue is in *Standing*
-and I will not start it until you release it.
+891 unit, 145 e2e, 55 pipeline checks, verify green. Catalogue frozen: `counts.items`
+**3,663**, `items-index.json` and every shard byte-identical. Holding, post-drop queue
+untouched.

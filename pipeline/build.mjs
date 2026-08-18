@@ -2442,13 +2442,23 @@ const meta = {
     policy: 'ships iff era rank <= CURRENT_ERA rank, or the item is in the live client export, or the player named it; everything else is quarantined to pipeline/quarantine.json and never reaches the payload. Era-less is unconfirmed, not presumed classic: the few era-less items that do ship are the ones Tier 0 vouches for, and they carry eraUnknown:true. Everything shipped is available (av:true) — there is no client-side era gate.',
   },
   slots: {
-    worn: SLOTS,
+    /*
+     * The eighteen slot TYPES, named for what they are.
+     *
+     * This key was `worn`, and a character wears 21 — the field name described a
+     * different quantity from its contents, which is the same fault as reading
+     * `counts.purge.shipped` where `counts.items` was meant, in the same file.
+     * `positions.worn` is the 21. This is the list of type codes and nothing else.
+     *
+     * BREAKING: consumers reading `slots.worn` must read `slots.types`.
+     */
+    types: SLOTS,
     any: ANY_SLOT,
     otherShard: NO_SLOT_SHARD,
     anyPolicy: 'items with an:1 may be placed in either "Any Slot" position; no ANY shard is emitted (it would duplicate every worn item)',
     /**
      * How many places a character has to put something — which is NOT
-     * `slots.worn.length`.
+     * `slots.types.length`.
      *
      * `worn` is a list of slot TYPES and there are 18 of them. A reader being
      * told "how many slots does this plan" wants POSITIONS, and there are 23:
@@ -2472,7 +2482,7 @@ const meta = {
       doubled: DOUBLED_SLOTS,
       note:
         'total = worn + any. worn = one position per slot type, plus a second for each of ' +
-        'doubled. `slots.worn.length` is the count of slot TYPES (18) and answers a different ' +
+        'doubled. `slots.types.length` is the count of slot TYPES (18) and answers a different ' +
         'question; print `positions.total` when a reader is told how many slots a set has.',
     },
   },

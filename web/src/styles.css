@@ -1246,22 +1246,23 @@ select {
 }
 
 /*
- * Five columns, seven rows, gaps where the body has none: ears flanking the
- * helm, shoulders and back at the collar, wrists and rings paired either side
- * of a chest-waist spine, weapons beside the legs, and the two Any Slots
- * flanking the feet. The shape narrows at the head, widens at the shoulders and
- * narrows again at the feet — which is the whole point, and is what a 5/5/5/5/3
- * block of identical tiles could never do.
+ * Six columns, four rows: the game's Equipment tab, cell for cell.
  *
- * Measured row extents at `--cell: 48px`: **152 / 48 / 256 / 256 / 256 / 152 /
- * 152**. The bottom row used to measure 256 because the two Any Slots sat in
- * the outer columns at ankle level, so the claim above was false for three
- * reviews; `e2e/visual-system.spec.ts` now measures the extents rather than
- * taking the comment's word for it.
+ * This was a 5x7 anatomical silhouette — ears flanking a helm, a chest-waist
+ * spine, weapons beside the legs — with a comment in this file arguing that
+ * narrowing at the head and widening at the shoulders "is the whole point".
+ * It was the wrong point. A player opens this panel having just looked at the
+ * client's own window, and every position they already know the place of was
+ * somewhere else. Recognition beats resemblance.
+ *
+ * Row 1 holds five cells in six columns, indented by one: the gap is at the
+ * left, read off the capture. `CharacterFigure.tsx` owns the arrangement;
+ * `e2e/visual-system.spec.ts` measures it against the game's grid rather than
+ * taking this comment's word for it.
  */
 .figure-body {
   display: grid;
-  grid-template-columns: repeat(5, var(--cell, 48px));
+  grid-template-columns: repeat(6, var(--cell, 48px));
   grid-auto-rows: var(--cell, 48px);
   gap: var(--s1);
   justify-content: center;

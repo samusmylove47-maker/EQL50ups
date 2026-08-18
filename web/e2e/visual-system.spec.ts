@@ -783,30 +783,45 @@ test('no doll row clips its own text at any width down to 360px', async ({ page 
   await page.setViewportSize({ width: 1440, height: 950 });
 });
 
-test('the equipment map narrows at the head and again at the feet', async ({ page }) => {
+/*
+ * The map is the game's Equipment tab, measured in a real browser.
+ *
+ * This asserted a 5x7 anatomical silhouette — narrow at the head, wide at the
+ * shoulders, narrow at the feet — which was a correct measurement of a layout
+ * that had been invented rather than observed. A capture of the client's own
+ * Equipment window (Director, 2026-08-18) settles the arrangement: six columns,
+ * four rows, 23 positions, row 1 indented by one, the three doubled slots
+ * mirrored to the outside.
+ *
+ * Row extents are the wrong instrument for a grid, so this measures cell
+ * centres against the column they should sit in.
+ */
+test('the equipment map reproduces the game Equipment tab', async ({ page }) => {
   await filledSet(page);
 
-  // Two comments asserted this silhouette while the measured row extents were
-  // 152 / 48 / 256 / 256 / 256 / 152 / 256 — flat at the bottom, because the two
-  // Any Slots sat in the outer columns at ankle level.
-  const extents = await page.evaluate(() => {
-    const rows = new Map<number, { left: number; right: number }>();
-    for (const cell of document.querySelectorAll('.figure-body button')) {
-      const r = cell.getBoundingClientRect();
-      const key = Math.round(r.top);
-      const row = rows.get(key) ?? { left: Infinity, right: -Infinity };
-      rows.set(key, { left: Math.min(row.left, r.left), right: Math.max(row.right, r.right) });
+  const grid = await page.evaluate(() => {
+    const cells = [...document.querySelectorAll<HTMLElement>('.figure-body button')];
+    const rows = new Map<number, number[]>();
+    for (const cell of cells) {
+      const box = cell.getBoundingClientRect();
+      const key = Math.round(box.top);
+      rows.set(key, [...(rows.get(key) ?? []), Math.round(box.left)]);
     }
-    return [...rows.entries()]
-      .sort((a, b) => a[0] - b[0])
-      .map(([, r]) => Math.round(r.right - r.left));
+    const ordered = [...rows.entries()].sort((a, b) => a[0] - b[0]);
+    const lefts = [...new Set(cells.map((c) => Math.round(c.getBoundingClientRect().left)))]
+      .sort((a, b) => a - b);
+    return {
+      cells: cells.length,
+      rowSizes: ordered.map(([, xs]) => xs.length),
+      columns: lefts.length,
+      // Which column index each row starts in, 0-based against the column grid.
+      rowStart: ordered.map(([, xs]) => lefts.indexOf(Math.min(...xs))),
+    };
   });
 
-  expect(extents.length, 'seven anatomical rows').toBe(7);
-  const widest = Math.max(...extents);
-  expect(extents[0], 'the head is narrower than the shoulders').toBeLessThan(widest);
-  expect(extents[extents.length - 1], 'the feet are narrower than the shoulders').toBeLessThan(widest);
-  expect(extents[extents.length - 1], 'the feet are no wider than the legs above them').toBeLessThanOrEqual(
-    extents[extents.length - 2]!,
-  );
+  expect(grid.cells, '23 positions').toBe(23);
+  expect(grid.columns, 'six columns').toBe(6);
+  expect(grid.rowSizes, 'five on the first row, six on the rest').toEqual([5, 6, 6, 6]);
+  // The gap is at the left of row 1 and nowhere else.
+  expect(grid.rowStart, 'row 1 is indented by one column').toEqual([1, 0, 0, 0]);
 });

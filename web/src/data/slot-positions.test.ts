@@ -38,8 +38,11 @@ describe.skipIf(!published)('published slot positions', () => {
 
   it('keeps the two questions distinguishable', () => {
     // The failure this exists to prevent: reading the type count as the slot count.
-    expect(meta.slots.worn.length).toBe(18);
-    expect(meta.slots.worn.length).not.toBe(positions.total);
+    expect(meta.slots.types.length).toBe(18);
+    expect(meta.slots.types.length).not.toBe(positions.total);
+    // The key was `worn` while holding types, which is the fault this whole
+    // block exists to prevent. It must not come back.
+    expect(meta.slots.worn, 'slots.worn was renamed to slots.types').toBeUndefined();
     expect(positions.worn + positions.any).toBe(positions.total);
   });
 });

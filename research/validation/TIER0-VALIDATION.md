@@ -166,3 +166,50 @@ The counts that prompted the question, kept for the record:
 
 The spread is explained by the inconsistent Ornamentation counting above, so no
 further screenshots are needed and no rule should be inferred from it.
+
+---
+
+## 8. The Equipment tab's layout — the paper doll was wrong for its whole life
+
+**Source:** Director capture, 2026-08-18 — Shara's Equipment window, every item removed so
+the slot labels are legible. Counted from the tab itself: 23 positions, 2 Any, 21 worn,
+18 distinct non-Any types, three of them doubled (Ear, Wrist, Finger).
+
+The game arranges them as six columns and four rows:
+
+```
+ .        Ear     Neck    Face    Head    Ear
+ Finger   Wrist   Arms    Hands   Wrist   Finger
+ Should   Chest   Back    Waist   Legs    Feet
+ Pri      Sec     Range   Ammo    Any     Any
+```
+
+Row 1 holds five cells and is indented by one; the gap is at the left.
+
+**What this planner had instead** was a 5-column, 7-row anatomical silhouette — ears
+flanking a helm, shoulders and back at the collar, wrists and rings either side of a
+chest-waist spine, weapons beside the legs, the two Any Slots at the ankles — with a
+decorative SVG body drawn behind it, and comments in three files arguing that narrowing at
+the head and widening at the shoulders "is the whole point". It was coherent, it was
+defended at length, and every position a player already knew the place of was somewhere
+else.
+
+The failure is worth naming precisely, because it is not the usual one. Nothing here was
+*typed where it could have been computed*: the layout was measured, tested and asserted in
+both jsdom and a real browser. It was **invented where it could have been observed** —
+nobody looked at the game's own window. A measurement of the wrong thing is still wrong,
+and no amount of rigour downstream recovers it.
+
+The one thing that was right was the doubling: `EAR_1`/`EAR_2`, `WRIST_1`/`WRIST_2` and
+`FINGERS_1`/`FINGERS_2` were already mirrored to opposite sides rather than sat adjacent,
+which matches the game.
+
+The silhouette is gone rather than adapted. The panel's job is to be recognised by someone
+who has just alt-tabbed out of the client, and a drawn body behind the game's grid would be
+decoration competing with recognition.
+
+Two figures on the same capture confirm constants that were previously inferred:
+`Strength 70/510` and `SV Magic 25/1000` put `ATTRIBUTE_CAP = 510` and `RESIST_CAP = 1000`
+on Tier M footing, on a character far from the one that supplied the first pair. A third,
+`AC 20/350 | 110`, names a quantity this planner does not model at all — recorded as gap 7
+in `KNOWN-DATA-ISSUES.md` rather than guessed at.

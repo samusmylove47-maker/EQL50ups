@@ -161,7 +161,7 @@ assert('no payload string asserts a licence the source has not granted',
 /*
  * The slot arithmetic has to add up inside the payload.
  *
- * `slots.worn` is 18 slot TYPES; a reader asking "how many slots" wants the 23
+ * `slots.types` is 18 slot TYPES; a reader asking "how many slots" wants the 23
  * POSITIONS, because Ear, Wrist and Fingers are each worn twice and there are
  * two Any Slots on top. Nothing published that until 2026-08-18, so the only
  * route to 23 was presumption — the same family as reading
@@ -169,6 +169,9 @@ assert('no payload string asserts a licence the source has not granted',
  */
 {
   const pos = meta.slots?.positions;
+  assert('the slot-type list is named for what it holds',
+    Array.isArray(meta.slots?.types) && meta.slots.worn === undefined,
+    'slots.types must hold the 18 type codes, and the misnamed slots.worn must be gone');
   assert('the payload publishes slot positions, not just slot types',
     pos != null && typeof pos.total === 'number',
     'meta.slots.positions.total is the field a reader-facing slot count must come from');
@@ -176,11 +179,11 @@ assert('no payload string asserts a licence the source has not granted',
     assert('slot positions add up',
       pos.worn + pos.any === pos.total &&
       pos.types + (pos.doubled?.length ?? 0) === pos.worn &&
-      pos.types === (meta.slots?.worn?.length ?? -1),
+      pos.types === (meta.slots?.types?.length ?? -1),
       `types ${pos.types} + doubled ${pos.doubled?.length} = worn ${pos.worn}; ` +
-      `worn + any ${pos.any} = total ${pos.total}; slots.worn.length ${meta.slots?.worn?.length}`);
+      `worn + any ${pos.any} = total ${pos.total}; slots.types.length ${meta.slots?.types?.length}`);
     assert('every doubled slot is a real worn slot type',
-      (pos.doubled ?? []).every((t) => (meta.slots?.worn ?? []).includes(t)),
+      (pos.doubled ?? []).every((t) => (meta.slots?.types ?? []).includes(t)),
       JSON.stringify(pos.doubled));
   }
 }

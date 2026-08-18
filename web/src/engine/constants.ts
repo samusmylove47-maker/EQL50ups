@@ -86,11 +86,22 @@ export const SLOT_POSITIONS: readonly SlotPosition[] = buildPositions();
 export const TOTAL_POSITIONS = SLOT_POSITIONS.length; // 23
 
 /**
- * Attribute and resist ceilings, read directly off the client's Stats window
- * (`Strength 304/510`, `Magic 94/1000`).
+ * Attribute and resist ceilings, read directly off the client's Stats window.
+ *
+ * Confirmed twice now, on two different characters: `Strength 304/510` and
+ * `Magic 94/1000` on the first capture, and `Strength 70/510` and
+ * `SV Magic 25/1000` on Shara's Equipment tab (Director, 2026-08-18). The
+ * denominators are the game's own, printed in its own window, on characters far
+ * apart in progression — so these are Tier M and sourced rather than inferred.
  */
 export const ATTRIBUTE_CAP = 510;
 export const RESIST_CAP = 1000;
+
+/*
+ * The client's AC line carries a second figure this planner does not model —
+ * Shara's sheet reads `AC 20/350 | 110`. Recorded as gap 7 in
+ * research/validation/KNOWN-DATA-ISSUES.md rather than guessed at here.
+ */
 
 /** Ordered as the client's Stats window prints them. */
 export const ATTRIBUTES = ['STR', 'STA', 'INT', 'WIS', 'AGI', 'DEX', 'CHA'] as const;
