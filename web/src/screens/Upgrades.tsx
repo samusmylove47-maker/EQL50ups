@@ -1203,6 +1203,39 @@ export function Upgrades({ id }: { id: string }) {
     filterEra, filterSource, filterHideNoDrop, basis,
   ]);
 
+  /*
+   * These three sit above the `!gearSet` early return, and must stay above it.
+   *
+   * They were below it, and that is a rules-of-hooks violation: the empty-state
+   * return runs fewer hooks than the ranked return, so any render that crosses
+   * that boundary changes this component's hook count and React aborts the
+   * tree. `App.tsx:41-47` calls `hydrate()` from an effect and `store.ts` opens
+   * at `hydrated: false`, so a real page load onto this route crosses it every
+   * time: first paint has no set, the paint after hydration has one.
+   *
+   * Proved rather than argued. `upgrades-screen.test.tsx`'s last test mounts
+   * that crossing, and against the arrangement this replaces it fails at the
+   * `measuredRows` line below:
+   *
+   *   npx vitest run src/screens/upgrades-screen.test.tsx
+   *   # before: 1 failed — Rendered more hooks than during the previous render
+   *   # after:  20 passed
+   *
+   * `rows` moves up with them because they take it as their dependency; it
+   * reads `report`, not `gearSet`, so it is well defined on the empty path too.
+   */
+  const rows = report?.rows ?? [];
+  /*
+   * The measured half of the page, rolled up once for the header rather than
+   * recomputed inside three renders. Both figures are counts: rows whose
+   * candidate has been watched dropping, and the zones those sightings were in.
+   */
+  const measuredRows = useMemo(
+    () => rows.filter((row) => measuredDrops(row.candidate.item).length > 0),
+    [rows],
+  );
+  const tallies = useMemo(() => zoneTallies(rows), [rows]);
+
   if (!gearSet) {
     return (
       <div className="empty-state">
@@ -1241,18 +1274,7 @@ export function Upgrades({ id }: { id: string }) {
     );
   };
 
-  const rows = report?.rows ?? [];
   const best = rows[0]?.gain ?? 0;
-  /*
-   * The measured half of the page, rolled up once for the header rather than
-   * recomputed inside three renders. Both figures are counts: rows whose
-   * candidate has been watched dropping, and the zones those sightings were in.
-   */
-  const measuredRows = useMemo(
-    () => rows.filter((row) => measuredDrops(row.candidate.item).length > 0),
-    [rows],
-  );
-  const tallies = useMemo(() => zoneTallies(rows), [rows]);
   const applied = describeActiveFilters(filters);
   const basisText =
     basis.kind === 'worn'

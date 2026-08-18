@@ -473,3 +473,48 @@ describe('the measured drops lead, and are marked as measured', () => {
     expect(wikiOnly?.textContent).toContain('Nobody has measured this item dropping');
   });
 });
+
+/**
+ * The persisted library arrives after the first paint, always.
+ *
+ * `App.tsx:41-47` calls `hydrate()` from an effect, and `store.ts` starts at
+ * `hydrated: false` with an empty library — so the first render of any route,
+ * on any real page load, sees `sets: []`. On this screen that reaches the
+ * `No set to rank` early return; the render after hydration reaches the ranked
+ * one. Every hook this component calls therefore has to sit *above* that
+ * return, or the two renders call different numbers of hooks and React aborts
+ * the tree with error #310 rather than painting anything at all.
+ *
+ * `itembrowser-agreement.test.tsx` pins the same crossing for the browser
+ * screen. This is the Upgrades half of it, and it is a mount test rather than a
+ * lint rule because the failure is a runtime throw: it is invisible to `tsc`,
+ * invisible to every test that seeds the store before mounting — which is every
+ * other test in this file — and invisible in dev whenever storage happens to be
+ * read back before first paint.
+ */
+describe('the persisted library arrives after the first paint', () => {
+  it('crosses from the empty state to the ranked one without losing the tree', async () => {
+    const setId = build({ slots: { WAIST: { name: '[Fixture] Girdle of the Deep', tier: 0 } } });
+    const { characters, sets, activeCharacterId } = useApp.getState();
+
+    // Rewind to what the browser actually renders first.
+    useApp.setState({ ...emptyState(), hydrated: false, storageStatus: 'ok' });
+
+    await render(`#/set/${setId}/upgrades`);
+    expect(text(), 'the pre-hydration paint is the empty state').toContain('No set to rank');
+
+    // Hydration. Under a rules-of-hooks violation this render throws
+    // `Rendered more hooks than during the previous render` and the container
+    // is emptied, so the assertions below fail on a blank page rather than on
+    // a wrong number.
+    await act(async () => {
+      useApp.setState({
+        characters, sets, activeCharacterId, hydrated: true, storageStatus: 'ok',
+      });
+    });
+    await pump();
+
+    expect(text(), 'the empty state is gone').not.toContain('No set to rank');
+    expect(rows().length, 'the ranking painted rows after hydration').toBeGreaterThan(0);
+  });
+});
