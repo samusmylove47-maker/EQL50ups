@@ -47,13 +47,14 @@ describe('static assets survive a non-root base path', () => {
   it.each(files)('%s references no root-absolute url()', (file) => {
     const offenders = [...withoutComments(readFileSync(file, 'utf8'))
       .matchAll(/url\(\s*['"]?(\/[^'")]*)/g)]
-      .map((m) => m[1]);
+      .flatMap((m) => (m[1] ? [m[1]] : []));
     expect(offenders).toEqual([]);
   });
 
   it('names a real file for every font src', () => {
     const css = withoutComments(readFileSync(join('public', 'fonts', 'fonts.css'), 'utf8'));
-    const srcs = [...css.matchAll(/url\(\s*['"]?\.\/([^'")]+)/g)].map((m) => m[1]);
+    const srcs = [...css.matchAll(/url\(\s*['"]?\.\/([^'")]+)/g)]
+      .flatMap((m) => (m[1] ? [m[1]] : []));
     expect(srcs.length).toBeGreaterThanOrEqual(7);
     const missing = srcs.filter((f) => !existsSync(join('public', 'fonts', f)));
     expect(missing).toEqual([]);
