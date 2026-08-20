@@ -73,6 +73,35 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   `screenName` has no `default` case, so a route added to `Route` fails `tsc` rather than
   arriving one level short. *(Director, 2026-08-18: approved post-drop; applied.)*
 
+### Theme
+
+- **The planner stays dark. eqlsource's light/dark theme is not being followed.** Mine to
+  call, and called 2026-08-20. The site keeps its own imported tools dark and says so where
+  a reader meets them, so a dark tool is the site's published convention rather than an
+  exception to it. Costed: 49 of 95 custom properties are colours, but the extraction is
+  already complete — **zero** colour literals in any declaration across 12 stylesheets — so
+  a second palette is additive and the tokens are an afternoon. The bill is verification:
+  3 test files assert literal colours and 4 carry contrast walks, and
+  `visual-system.spec.ts`'s AA walk alone is 18.8s, the second-slowest check in the suite,
+  every one of them doubling. A theme this repository cannot prove AA on every screen in
+  both modes publishes a contrast failure, and rule 5 says uncertainty goes on screen. The
+  door costs nothing to leave open and nobody should prepare for it. Recorded at
+  `tokens.css` so no future session "completes" it.
+- **The theme landing changes the drift check, not the rendering.** Nothing here loads
+  `site.css`; the chrome is our own CSS and self-hosted fonts. When
+  `site-foot-drift.test.ts` goes red on the merge, that is the check working: wait, re-copy
+  once, re-pin. Do not disable it and do not pre-copy. *(Director, 2026-08-20.)*
+
+### Auditing checks
+
+- **`tools/check-audit/` is the method, and it is portable.** Damage the subject, run the
+  check alone, restore, count what was examined; zero examined exits non-zero. Generic
+  operators cannot reach a string constant, so a generic survivor is `UNPROVEN` and needs a
+  written damage before anyone calls it `DEAD`. Restoration is by in-memory content and a
+  hash comparison, never `git checkout` — an audit runs in a dirty tree by definition.
+  `README.md` also carries the five shapes of *vacuous pass*, which mutation cannot find at
+  all. *(Director, 2026-08-20: write it up so another repository can run it.)*
+
 ### Environment
 
 - **A test that fetches must opt out of `jsdom`, or it is not fetching.** jsdom supplies
@@ -159,102 +188,87 @@ the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
-### The check audit: 82 examined, 2 dead, both fixed
+### 1. The drift check — understood, and nothing pre-empted
 
-Your rule — zero examined is itself a failure. Method: damage the source each check
-guards, run that check alone, restore. The gate got nine hand-built broken payloads.
+Waiting for the merge, then re-copy once and re-pin. Not disabling it, not pre-copying.
 
-| Suite | Examined | Alive | Dead |
-|---|---|---|---|
-| vitest files | 60 | 59 | **1** |
-| browser specs | 20 | 20 | 0 |
-| payload gate (`verify.mjs`) | 9 broken payloads | 9 caught | 0 |
-| contamination scanner | 1 injected code site | detected, right file and line | 0 |
+One thing you may not have from your side: **the theme cannot change how this app looks.**
+Nothing here loads `site.css` and the fonts are self-hosted, so the only thing your merge
+touches is the drift check's expectations. It will go red on markup, not on colour.
 
-The gate got a self-test as well: forcing one `assert()` false does fail the run, so the
-harness is wired to the exit code and not merely printing.
+### 2. The planner stays dark — my call, costed
 
-### Dead check 1 — `load-race.test.ts` was guarding a copy of itself
+Your argument for the imported tools is the one that decided it: a dark *tool* is the
+site's published convention, so following the theme would make this the odd one out among
+tools, which is the opposite of the seam the chrome work closed.
 
-All six tests exercised `foldIndexUnder`, a reimplementation of the merge rule **written
-inside the test file**. The shipped rule is one line of `catalog.ts`'s `load()`. Nothing
-called it. Put back the regression its own header describes — the index replacing `items`
-wholesale:
+Costed honestly, and the tokens are not the bill:
 
 ```
-# catalog.ts:  prior.length ? mergeItems(items, prior).items : items   ->   items
-before:  6 passed in that file · 902 passed in the whole suite
-after:   1 failed | 905 passed — and the failure is the new test, the only one that sees it
+49 of 95 custom properties are colours
+ 0 colour literals in any declaration outside tokens.css, across 12 stylesheets
+   -> the extraction is already done, so a second palette is additive, not a refactor
+ 3 test files assert literal colours
+ 4 carry contrast or compositing walks   <- the expensive half
+   visual-system.spec.ts's AA walk alone is 18.8s, second-slowest check in the suite,
+   and every one of these would run twice
 ```
 
-Fixed by driving the real store through the real race with a stubbed `fetch`. I got the
-race wrong first: awaiting the shard *before* calling `load()` skips the index entirely,
-because `commitShards` sets status `ready` and `load()` returns early on it. The index
-fetch is now held open and released after the shard commits, which is what a slow network
-actually does.
+So: an afternoon of tokens and a doubled verification burden. The reason that settles it
+rather than merely discouraging it is rule 5 — a theme I cannot prove is AA on every screen
+in both modes is a theme that publishes a contrast failure quietly, which is the one thing
+this repository is not allowed to do. **One honest colour, as you put it.**
 
-Also recorded at the file: **swapping the two arguments is not this bug.** `mergeItems`
-merges field by field and an index record has no `rl` to overwrite with, so the flip
-leaves everything green. My first version of that comment claimed otherwise; it was wrong
-and is corrected.
+Recorded at `tokens.css` itself, where somebody would go to implement the alternative, with
+the measurement and the note that the door costs nothing to leave open.
 
-### Dead check 2 — the self-audit page was describing an older tree
+### 3. The audit method, as something you can hand to another repository
 
-`contamination.json` was scanned 18 Aug and reports **31,313** source lines. A fresh scan
-of the *same commit* finds **31,608**. The page whose entire purpose is honest
-self-description was publishing figures four commits out of date, and `verify.mjs` passed
-throughout — it asserted the report *existed*, never that it was *current*.
+`tools/check-audit/` — `audit.py` (Python 3.9+, stdlib only, no VCS required), a config for
+this repository, a wrapper for the one check that writes instead of returning, and a README
+carrying the method.
 
-It now re-scans into a temp file and compares the corpus, so the gate fails on a payload
-that was not regenerated. Report regenerated; catalogue untouched.
+It shells out to whatever command runs a check, so it works against vitest, pytest,
+playwright, `check.py`, `gate_selftest.py`, or a make target. Session A's repository can use
+it unchanged.
 
-### Four vacuous passes, same shape as the 403
+**Two things I got wrong the first time, both now built into the tool:**
 
-Assertions of the form "none of this collection is X", which an empty collection
-satisfies. The type-scale audit was the worst of them: on a screen that failed to render
-it was `[].filter(…)` and reported a pass — the only thing standing between the type scale
-and a screen rendering whatever it likes. It now proves it measured something first (floor
-40; measured 147 on the landing, 495 on the gear tab, 724 in the item browser). Same
-closure for the doll's glyph and tile tints, for `CHROME_LINKS`, and for the equipment
-map's absence assertions.
+- **A generic operator cannot reach a string constant.** My first campaign reported the two
+  drift checks as survivors. They are not dead — no `===`→`!==` will ever move a label. So
+  the tool reports `UNPROVEN` for a generic survivor and refuses to say `DEAD` until a
+  *written* damage aimed at the subject also survives. Reporting those two as dead would
+  have been a false accusation produced by the instrument.
+- **Restoration must not go through version control.** An audit is run in a tree with
+  unstaged work in it — that is *when* people run audits. It holds original content in
+  memory and verifies by hash; it exits 2 and says so if it cannot put a file back.
 
-### The gate now runs in CI, and 145 checks still do not
+**Proved on itself rather than described:**
 
-CI ran `tsc`, `vitest`, `build`. The payload is *committed* rather than built there, so
-`verify.mjs`'s 64 assertions — no licence claimed, slot arithmetic closes, every quoted
-line still reads that way — ran only when somebody remembered. It is a CI step now; it
-reads the payload and writes nothing to it. `build.mjs` is still never run in CI.
+```
+the repo's own set          10 examined, 10 alive   exit 0
+a damage it cannot notice    1 DEAD                 exit 1
+nothing selected             0 examined             exit 2
+after every run              tree restored, hash-verified
+```
 
-**The browser suite is still not in CI: 145 checks, all proven alive today, none of them
-gating the deploy.** That is your call, not mine — it needs a Chromium in the runner, and
-it is the largest remaining gap between "the suite is the deploy gate" and what the gate
-actually is.
+The first run of the config returned two `STALE` rather than two false passes — `meta.json`
+ships minified and I had written the damages with a pretty-printer's spacing. That verdict
+existing is the difference between an audit and a formality.
 
-### The tool I built to find dead checks was itself a dead check
-
-Its first pass reported 133 assertion-less browser specs. It had mistaken Playwright's
-`({ page })` destructuring for the test body. I noticed because the number was absurd, not
-because anything caught it. Recorded rather than quietly fixed — it is the day's lesson
-committed by the instrument built to detect it, and the second time today I printed a
-figure I had not verified (the other: I read a `count` field off the contamination report
-that does not exist, and reported "0 hits" for a scanner that had found four).
-
-### Your other item: the colour tokens are already extracted
-
-Nothing to do. 12 stylesheets outside `tokens.css`, **zero** colour literals in any
-declaration — the 14 `grep` hits are all inside comments, recording measurements. A light
-theme here is a token swap, as you wanted, and whether the planner takes one is still open.
-
-### Standing answers I have applied
-
-Drift stays blocking, and drift and unreachable already fail differently. When it fires I
-update the copy and never the check. I am not waiting on the versioned nav/footer registry
-and will keep diffing the rendering until it exists. The licence proposal is with the owner
-and I am not chasing it. When Session A's theme lands and my footer check goes red, I will
-wait for the merge, re-copy once, and re-pin.
+**And the part mutation cannot find.** The README documents the *vacuous pass* separately,
+because damaging a subject a check never reaches changes nothing and looks merely
+uncovered. Five shapes to grep for, including the one that produced the dead check here: a
+test that reimplements its subject and then tests the copy. That one is invisible to
+mutation, invisible to coverage, and looks more thorough than the real thing.
 
 ### State
 
 Catalogue frozen at 3,663 — `git diff --numstat` over `items-index.json` and every shard is
-**0 files**, across all three pushes today. `tsc` clean · vitest **907 passed / 60 files** ·
-`verify.mjs` **PASSED**, Tier 0 100.0% · playwright **145 passed**.
+**0 files**, across every push. `tsc` clean · vitest **907 passed / 60 files** ·
+`verify.mjs` **PASSED**, Tier 0 100.0% · playwright **145 passed** · check audit
+**10/10 alive**.
+
+The freshness check added yesterday earned itself today: adding the theme note to
+`tokens.css` moved the source line count and `verify.mjs` went red until I regenerated the
+report. That is the gate doing the job it could not do on Monday.
