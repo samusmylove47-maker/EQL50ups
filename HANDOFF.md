@@ -159,176 +159,102 @@ the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
-### Item 1 done, and your brief was wrong about its size — in your favour
+### The check audit: 82 examined, 2 dead, both fixed
 
-**Only three of this tool's links were withdrawn, not six.** You listed six and my own
-earlier note in this file repeated them back to you. Measured before touching anything:
+Your rule — zero examined is itself a failure. Method: damage the source each check
+guards, run that check alone, restore. The gate got nine hand-built broken payloads.
 
-```
-curl -o /dev/null -w '%{http_code} -> %{redirect_url}' https://eqlsource.com/tools/…
-  character         301 -> /tools/50-upgrades.html      withdrawn
-  planar-gear       301 -> /tools/50-upgrades.html      withdrawn
-  inventory         301 -> /tools/50-upgrades.html      withdrawn
-  race-unlocks      200                                 SURVIVES
-  combo-calculator  200                                 SURVIVES
-  faction-impact    200                                 SURVIVES
-  index-search      200    sky-ledger 200    50-upgrades 200
-```
+| Suite | Examined | Alive | Dead |
+|---|---|---|---|
+| vitest files | 60 | 59 | **1** |
+| browser specs | 20 | 20 | 0 |
+| payload gate (`verify.mjs`) | 9 broken payloads | 9 caught | 0 |
+| contamination scanner | 1 injected code site | detected, right file and line | 0 |
 
-`race-unlocks`, `combo-calculator` and `faction-impact` are still served and I have kept
-them. Had I applied the brief as written I would have deleted three working links. The
-`.html` target 307s on to the extensionless form: two hops, final 200.
+The gate got a self-test as well: forcing one `assert()` false does fail the run, so the
+harness is wired to the exit code and not merely printing.
 
-The canonical `/tools/` page lists exactly the six you named, so the consolidation is
-finished as you said — it is the *deletion list* that was over-long, not the count.
+### Dead check 1 — `load-race.test.ts` was guarding a copy of itself
 
-### The footer was also wrong in the other direction: it omitted this tool
-
-`/tools/50-upgrades` was not in the column. Checked before fixing —
-`grep -n '50-upgrades' web/src/components/SiteChrome.tsx` returned nothing. The one entry
-in the site's tool index this repository knows about first-hand was the one entry missing
-from the index it publishes.
-
-It is listed now, marked `aria-current="true"` — the current item of a set. Not `"page"`,
-which would claim the href's target is the document being read; it is not, it is the
-site's own page *about* the planner, and a 200.
-
-### The drift checks were not checking anything
-
-This is the one I would want to hear about first. **The live half of both drift tests had
-never run — not once, including `site-nav-drift`, silently, since the day I wrote it.**
-
-`vitest.config.ts` sets `environment: 'jsdom'`. jsdom brings its own `fetch`, and it
-ignores this container's proxy, so the call returns **HTTP 403** — and a reachability
-check cannot tell HTTP 403 from a site being down. Both files took their loud-skip path
-and the run reported passes.
-
-That is the failure the loud skip was written to prevent, arriving by the one route the
-skip is blind to. I had reported the nav pin to you as a working check. It was not one.
+All six tests exercised `foldIndexUnder`, a reimplementation of the merge rule **written
+inside the test file**. The shipped rule is one line of `catalog.ts`'s `load()`. Nothing
+called it. Put back the regression its own header describes — the index replacing `items`
+wholesale:
 
 ```
-npx vitest run src/components/site-foot-drift.test.ts --reporter=verbose
-  before: stderr "[site-foot-drift] SKIPPED — HTTP 403", 5 passed
-  after:  live test runs, 522ms, no skip line, 5 passed
+# catalog.ts:  prior.length ? mergeItems(items, prior).items : items   ->   items
+before:  6 passed in that file · 902 passed in the whole suite
+after:   1 failed | 905 passed — and the failure is the new test, the only one that sees it
 ```
 
-Fixed with a per-file `// @vitest-environment node` and the proxy variable named in
-`vitest.config.ts`, so a bare `npx vitest run` gets the real check. Proved it *bites*, not
-merely that it runs: relabelling one `SITE_TOOLS` entry to "Sky Ledger DRIFTED" fails the
-live test with the message it was written to give. Reverted.
+Fixed by driving the real store through the real race with a stubbed `fetch`. I got the
+race wrong first: awaiting the shard *before* calling `load()` skips the index entirely,
+because `commitShards` sets status `ready` and `load()` returns early on it. The index
+fetch is now held open and released after the shard commits, which is what a slow network
+actually does.
 
-**One consequence needs your ruling.** This repository's CI can now go red because
-eqlsource.com changed. That is what a drift check is and it is the behaviour you
-specified — but it is a coupling to a repository this session cannot see, and Session A
-can now redden my build by shipping. Keep it, or make the live half advisory. I have kept
-it, because a check that cannot fail is what I just finished removing.
+Also recorded at the file: **swapping the two arguments is not this bug.** `mergeItems`
+merges field by field and an index record has no `rl` to overwrite with, so the flip
+leaves everything green. My first version of that comment claimed otherwise; it was wrong
+and is corrected.
 
-### A live defect found on the way, unrelated to the footer
+### Dead check 2 — the self-audit page was describing an older tree
 
-The Upgrades screen called two hooks *below* its `if (!gearSet)` early return. `App.tsx`
-calls `hydrate()` from an effect and the store opens at `hydrated: false`, so a real page
-load onto that route crosses the boundary **every time**: first paint has no set, the
-paint after hydration has one, the hook count changes, React aborts the tree.
+`contamination.json` was scanned 18 Aug and reports **31,313** source lines. A fresh scan
+of the *same commit* finds **31,608**. The page whose entire purpose is honest
+self-description was publishing figures four commits out of date, and `verify.mjs` passed
+throughout — it asserted the report *existed*, never that it was *current*.
 
-It survived because every test in `upgrades-screen.test.tsx` seeds the store before
-mounting, so every render it had ever done was on the ranked path. Shipped in `eff5732`.
+It now re-scans into a temp file and compares the corpus, so the gate fails on a payload
+that was not regenerated. Report regenerated; catalogue untouched.
 
-Proved rather than argued — the new test mounts the crossing:
+### Four vacuous passes, same shape as the 403
 
-```
-npx vitest run src/screens/upgrades-screen.test.tsx
-  before: 1 failed — Rendered more hooks than during the previous render
-  after:  20 passed
-```
+Assertions of the form "none of this collection is X", which an empty collection
+satisfies. The type-scale audit was the worst of them: on a screen that failed to render
+it was `[].filter(…)` and reported a pass — the only thing standing between the type scale
+and a screen rendering whatever it likes. It now proves it measured something first (floor
+40; measured 147 on the landing, 495 on the gear tab, 724 in the item browser). Same
+closure for the doll's glyph and tile tints, for `CHROME_LINKS`, and for the equipment
+map's absence assertions.
 
-I also cut a claim from the fix's own comment that I could not check: it asserted the bug
-"reproduced on nine specs of the browser suite". I did not measure that, so it is gone and
-the reproducible vitest is cited instead.
+### The gate now runs in CI, and 145 checks still do not
 
-### Verification, with the commands
+CI ran `tsc`, `vitest`, `build`. The payload is *committed* rather than built there, so
+`verify.mjs`'s 64 assertions — no licence claimed, slot arithmetic closes, every quoted
+line still reads that way — ran only when somebody remembered. It is a CI step now; it
+reads the payload and writes nothing to it. `build.mjs` is still never run in CI.
 
-| Check | Command | Result |
-|---|---|---|
-| Types | `npx tsc --noEmit` | clean |
-| Units | `npx vitest run` | **897 passed / 59 files** (896 + the new guard) |
-| Payload gate | `node pipeline/verify.mjs` | **PASSED** — 62 checks, 0 failures, Tier 0 100.0% |
-| Bundle | `npm run build` | clean, 500.92 kB |
-| Browser | `npx playwright test` | **145 passed** (3.1m) |
-| *(re-run after item 2)* | `tsc` · `vitest` · `playwright` | clean · **902 passed / 60 files** · **145 passed** |
-| Sub-path | `VITE_BASE=/EQL50ups/` preview, 6 routes at 1440 and 390 | 40 anchors, 32 distinct, 0 `.html`, 0 withdrawn, self listed once, `aria-current` on 50 Upgrades, scrollX 0, **0 pageerrors, 0 4xx/5xx** |
-| Catalogue | `git status --short web/public/data/` | **0 files** — frozen, `counts.items` 3,663 |
+**The browser suite is still not in CI: 145 checks, all proven alive today, none of them
+gating the deploy.** That is your call, not mine — it needs a Chromium in the runner, and
+it is the largest remaining gap between "the suite is the deploy gate" and what the gate
+actually is.
 
-One push, four commits: `34a90ee` `4a20aed` `00cd509` `8f7b14e`.
+### The tool I built to find dead checks was itself a dead check
 
-**Deploy confirmed live, not inferred from a green suite.** The etag moved
-`"6a843c14-a9e"` -> `"6a84be8f-a9e"`, and the served assets carry it — read from the
-bundle, not the shell:
+Its first pass reported 133 assertion-less browser specs. It had mistaken Playwright's
+`({ page })` destructuring for the test body. I noticed because the number was absurd, not
+because anything caught it. Recorded rather than quietly fixed — it is the day's lesson
+committed by the instrument built to detect it, and the second time today I printed a
+figure I had not verified (the other: I read a `count` field off the contamination report
+that does not exist, and reported "0 hits" for a scanner that had found four).
 
-```
-assets/index-BCbLFY5Q.js   200, 500,956 bytes
-  present: tools/50-upgrades 1 · Faction impact checker 1 · now withdrawn 1
-  absent:  tools/character 0 · tools/planar-gear 0 · tools/inventory 0
-           Inventory reader 0 · Character sheet 0 · CC BY-SA 0
-assets/index-BWw-Q4Ia.css  200
-  .foot-grid a[aria-current]:after{content:"you are here"; …}
-```
+### Your other item: the colour tokens are already extracted
 
-### Item 2 done — and the files were NOT disjoint, as you asked me to check
+Nothing to do. 12 stylesheets outside `tokens.css`, **zero** colour literals in any
+declaration — the 14 `grep` hits are all inside comments, recording measurements. A light
+theme here is a token swap, as you wanted, and whether the planner takes one is still open.
 
-Splitting `--fs-heading` and giving the breadcrumb the current screen both land in
-`web/src/components/SiteChrome.css`, and the breadcrumb also touches `SiteChrome.tsx`.
-One agent, serially, after the first deploy landed. Both are in `34f5c0c`.
+### Standing answers I have applied
 
-**The rung.** `--fs-mark: 18.5px`, the wordmark's alone; item names stay at 17px. The
-fault was never the size, it was one token with two masters, width-critical in opposite
-directions. Measured at 1440 by overriding the token in place:
-
-```
-EQL SOURCE   131.41px -> 143.00px   (+11.59)
-SURVEY       moves right             +11.59
-```
-
-**A correction.** I told you the lockup was dragging `SURVEY` 13px left. Measured, the
-close is worth **11.59px**, not 13. What remains against the site's own rendering I did
-not measure and do not claim — no headless browser here reaches an external host, and I
-did not build a mirror for a figure this small.
-
-The check that failed when this was tried as a single token is the check that clears it
-now: `visual-system.spec.ts`, *no doll row clips its own text at any width down to 360px*
-— passing, with 18.5px on the mark and 17px on the names. 18.5px is listed in
-`TYPE_SCALE_FIXED`, so it is a step on the scale rather than an exception to it.
-
-**The breadcrumb.** Three segments on the landing, four everywhere else:
-
-```
-#/                EQL Source / Tools / 50 Upgrades
-#/upgrades        EQL Source / Tools / 50 Upgrades / Upgrades
-#/contamination   EQL Source / Tools / 50 Upgrades / What the scanner finds
-```
-
-The tool's name becomes a link once it stops being where you are — to this app's landing,
-not the site's page about it. `screenName` switches over `Route` with no `default`, so a
-route added in `router.ts` fails `tsc` rather than arriving one level short; the new test
-covers the case `tsc` cannot see, a route handled by returning `null`. No clipping at 360,
-390, 768 or 1440; it wraps to two lines below 768.
-
-### Licence
-
-`research/LICENSING-PROPOSAL.md`, unsigned. No `LICENSE` file, no existing file changed.
-Three independent decisions, none chosen; §9 is a signature block. It records that no
-terms at all is not neutrality but all-rights-reserved by default, and refuses re-asserting
-any content licence over wiki-derived material, which would repeat this morning's fault.
-
-### Still parked, nothing drawn
-
-`upgrades.eqlsource.com` and its `VITE_BASE` change: not started. The `=50Upgrades` mark:
-a slot is left and nothing has been drawn that could ship.
+Drift stays blocking, and drift and unreachable already fail differently. When it fires I
+update the copy and never the check. I am not waiting on the versioned nav/footer registry
+and will keep diffing the rendering until it exists. The licence proposal is with the owner
+and I am not chasing it. When Session A's theme lands and my footer check goes red, I will
+wait for the merge, re-copy once, and re-pin.
 
 ### State
 
-Catalogue frozen at 3,663; `items-index.json` and every shard untouched this turn — two
-pushes, zero regenerations of `web/public/data`.
-
-Items 1 and 2 are both done. Nothing in the parked list has been started. What is open is
-one ruling from you: whether this repository's CI may go red because eqlsource.com
-changed.
+Catalogue frozen at 3,663 — `git diff --numstat` over `items-index.json` and every shard is
+**0 files**, across all three pushes today. `tsc` clean · vitest **907 passed / 60 files** ·
+`verify.mjs` **PASSED**, Tier 0 100.0% · playwright **145 passed**.
