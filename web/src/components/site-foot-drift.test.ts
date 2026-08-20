@@ -112,6 +112,24 @@ describe("the footer's Tools column", () => {
     );
   });
 
+  /*
+   * Three of the assertions in this file are of the form "none of this
+   * collection is X", and an empty collection satisfies all of them. If
+   * `CHROME_LINKS` ever came back empty — a rename, a bad refactor, an import
+   * that resolved to nothing — this file would report five passes while
+   * checking nothing at all. That is the same shape as the 403 skip, so it is
+   * pinned rather than assumed.
+   *
+   * The three counts are the ones recorded at `CHROME_LINKS`, computed here
+   * rather than trusted: 39 entries over 32 distinct destinations, because the
+   * nav and the footer are allowed to offer the same page and seven do.
+   */
+  it('has a populated link set, so the assertions below are not vacuous', () => {
+    expect(CHROME_LINKS.length, 'entries').toBe(39);
+    expect(new Set(CHROME_LINKS).size, 'distinct destinations').toBe(32);
+    expect(SITE_TOOLS.length, 'tools in the column').toBe(6);
+  });
+
   it('links none of the three tools the site withdrew', () => {
     // Anywhere in the chrome, not just this column — a withdrawn tool moved to
     // another column would still be a withdrawn tool on the page.

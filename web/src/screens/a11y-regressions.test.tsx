@@ -273,7 +273,18 @@ describe('the equipment map reproduces the game Equipment tab', () => {
   it('draws no decorative figure behind the cells', () => {
     expect(container.querySelector('.figure-silhouette')).toBeNull();
     // Only the slot glyphs, which live inside the cells — nothing drawn behind them.
-    const direct = [...(container.querySelector('.figure-body')?.children ?? [])];
+    const body = container.querySelector('.figure-body');
+    /*
+     * Both assertions here are absences, and a panel that failed to render
+     * satisfies them perfectly: `querySelector` returns null, `children` falls
+     * back to `[]`, and the test reports a pass having looked at nothing. So
+     * the panel is proved present first, and the 23 positions with it — the
+     * absence only means something once there is something to be absent from.
+     */
+    expect(body, 'the equipment map did not render, so the absences below prove nothing')
+      .not.toBeNull();
+    const direct = [...(body?.children ?? [])];
+    expect(direct.length, 'the map rendered no cells').toBeGreaterThan(0);
     expect(direct.filter((el) => el.tagName.toLowerCase() === 'svg')).toEqual([]);
   });
 });

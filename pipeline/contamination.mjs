@@ -64,7 +64,14 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
 const DATA = join(ROOT, 'web', 'public', 'data');
 const SRC = join(ROOT, 'web', 'src');
-const OUT = join(DATA, 'contamination.json');
+/*
+ * Where the report lands. `CONTAMINATION_OUT` redirects it, which is what
+ * `verify.mjs` uses to re-scan into a temporary file and compare the result
+ * against the committed one — the gate could previously only tell that a report
+ * existed, not that it still described this tree. See the freshness check
+ * there. Unset, this writes the payload exactly as before.
+ */
+const OUT = process.env.CONTAMINATION_OUT ?? join(DATA, 'contamination.json');
 const VERBOSE = process.argv.includes('--verbose');
 
 const SCHEMA_VERSION = 1;

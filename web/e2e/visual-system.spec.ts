@@ -114,6 +114,16 @@ test('the doll tints the name only, and only when the tint means something', asy
   // take exactly one value — which is a full-screen wash, not a signal.
   expect(new Set(audit.names).size, 'the doll should not paint 23 names one colour that varies never').toBe(1);
   expect(audit.names[0], 'usable names render as ordinary strong text').not.toBe(USABLE);
+  /*
+   * The two assertions below are "none of this collection is tinted", which is
+   * satisfied by an empty collection — so a selector that stops matching would
+   * turn them into passes rather than failures. `names` is already protected by
+   * the `toBe(1)` above; these two were not.
+   */
+  expect(audit.glyphStrokes.length, 'no glyphs found — the strokes assertion would be vacuous')
+    .toBeGreaterThan(0);
+  expect(audit.tiles.length, 'no filled cells found — the tiles assertion would be vacuous')
+    .toBeGreaterThan(0);
   expect(audit.glyphStrokes.filter((c) => c === USABLE), 'glyphs carry no item colour').toEqual([]);
   expect(audit.tiles.filter((c) => c === USABLE), 'tile borders carry no item colour').toEqual([]);
 });
@@ -187,7 +197,22 @@ async function typeAudit(page: import('@playwright/test').Page) {
         offenders.push(`${cs.fontWeight}/${cs.fontSize} on ${el.tagName}.${el.className}`);
       }
     }
-    return { sizes: Object.keys(sizes), weights: Object.keys(weights), offenders: [...new Set(offenders)] };
+    return {
+      sizes: Object.keys(sizes),
+      weights: Object.keys(weights),
+      offenders: [...new Set(offenders)],
+      /*
+       * How many text runs were actually walked.
+       *
+       * Without this the audit below is `[].filter(…)` on a screen that failed
+       * to render — every off-scale assertion is satisfied by having measured
+       * nothing, and the suite reports a pass. That is the shape of the defect
+       * found in the drift checks on 18 Aug, and this file is where it would do
+       * the most damage: it is the only thing standing between the type scale
+       * and a screen quietly rendering whatever it likes.
+       */
+      runs: Object.values(sizes).reduce((a, b) => a + b, 0),
+    };
   });
 }
 
@@ -220,6 +245,16 @@ test('every rendered size and weight comes off the declared scale — on all thr
     await go();
     const type = await typeAudit(page);
     const scale = await typeScaleFor(page);
+    /*
+     * The audit measured something.
+     *
+     * Counts printed by this test on 2026-08-20 at 1440x950: landing page 147
+     * runs, gear tab 495, item browser 724. The floor is 40 — comfortably under
+     * the smallest, so catalog growth and copy edits do not brush it, and far
+     * enough above zero to catch a screen that rendered nothing. Without it the
+     * two assertions below are `[].filter(…)`, which passes.
+     */
+    expect(type.runs, `the ${name} rendered nothing to audit`).toBeGreaterThan(40);
     expect(
       type.sizes.filter((s) => !scale.includes(s)),
       `off-scale font sizes on the ${name} (scale: ${scale.join(', ')})`,

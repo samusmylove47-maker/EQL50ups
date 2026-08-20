@@ -12,7 +12,9 @@
  * Usage: node pipeline/verify.mjs [--verbose]
  */
 
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -1118,6 +1120,53 @@ if (!existsSync(TIER0)) {
      */
     assert('the payload carries a self-audit report', false,
       'no data/contamination.json — run node pipeline/build.mjs, which now produces it');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The self-audit report describes THIS tree, not an older one
+// ---------------------------------------------------------------------------
+
+/*
+ * A report that exists is not a report that is current.
+ *
+ * Everything above checks the committed `contamination.json` for internal
+ * consistency, and it passed while describing a tree 295 source lines behind
+ * the one committed beside it — scanned 2026-08-18, read on 2026-08-20 against
+ * source that had moved four times since. The self-audit page published those
+ * older figures, and the gate had nothing to say, because nothing here compared
+ * the report to the source it claims to be about.
+ *
+ * CI never runs the pipeline, so a stale report is the normal outcome of
+ * forgetting one command. Re-scan into a temp file and compare the corpus
+ * figures; the scan walks `web/src` and takes well under a second.
+ */
+{
+  const path = join(OUT, 'contamination.json');
+  if (existsSync(path)) {
+    const committed = readJSON(path);
+    const tmp = join(tmpdir(), `eql-contamination-${process.pid}.json`);
+    const run = spawnSync(process.execPath, [join(ROOT, 'pipeline', 'contamination.mjs')], {
+      env: { ...process.env, CONTAMINATION_OUT: tmp },
+      encoding: 'utf8',
+    });
+
+    if (run.status !== 0 || !existsSync(tmp)) {
+      assert('the self-audit report can be reproduced', false,
+        `pipeline/contamination.mjs exited ${run.status}: ${(run.stderr || '').trim().slice(0, 300)}`);
+    } else {
+      const fresh = readJSON(tmp);
+      rmSync(tmp, { force: true });
+      const drift = ['sourceFiles', 'sourceLines', 'catalogFiles', 'indexCount']
+        .filter((k) => committed.corpus?.[k] !== fresh.corpus?.[k])
+        .map((k) => `${k}: report says ${committed.corpus?.[k]}, tree has ${fresh.corpus?.[k]}`);
+
+      assert('the self-audit report describes the tree it ships with',
+        drift.length === 0,
+        `the committed report was scanned ${committed.scannedAt} and no longer matches this source — ` +
+          're-run node pipeline/build.mjs and commit web/public/data/',
+        drift);
+    }
   }
 }
 

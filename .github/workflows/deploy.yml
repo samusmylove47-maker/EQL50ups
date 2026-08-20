@@ -41,6 +41,21 @@ jobs:
         working-directory: web
         run: npx vitest run
 
+      # The payload is committed, not built here — so nothing was checking it
+      # at the point that decides whether it ships. `verify.mjs` holds 64
+      # assertions about the file this job is about to publish: that no content
+      # licence is claimed, that the slot arithmetic closes, that every line the
+      # self-audit quotes still reads that way, and that the report describes
+      # this tree rather than an older one. All 64 ran only when somebody
+      # remembered to run them locally.
+      #
+      # It reads the payload and writes nothing to it: the re-scan it performs
+      # is redirected to a temp file by `CONTAMINATION_OUT`. This is the gate,
+      # not the pipeline — `build.mjs` is still never run in CI, because that
+      # would regenerate the catalogue from a scrape nobody reviewed.
+      - name: Payload gate
+        run: node pipeline/verify.mjs
+
       - name: Build
         working-directory: web
         # Pages serves a project site from /<repo>/, so the bundle has to be
