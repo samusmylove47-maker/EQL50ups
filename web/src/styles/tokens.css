@@ -22,6 +22,47 @@
  * colour and the doc's value did not clear WCAG AA on our grounds; each such
  * correction is recorded at the token. Correcting the eyeballing later is an
  * edit to this file, not a refactor.
+ *
+ * ---------------------------------------------------------------------------
+ * THE PLANNER STAYS DARK, AND THAT IS A DECISION RATHER THAN A DELAY
+ *
+ * eqlsource.com is gaining a light/dark theme. This tool is not following it.
+ * Decided 2026-08-20 by the session that owns this repository, the Director
+ * having ruled the call ours; recorded here because this file is where somebody
+ * would come to implement the alternative.
+ *
+ * **The site keeps its own imported tools dark for the same reason**, and says
+ * so where a reader meets them. So a dark planner is the site's published
+ * convention for a tool, not an exception to it — following the theme would
+ * make this the odd one out among tools, which is the opposite of the seam the
+ * chrome work closed.
+ *
+ * **Costed rather than asserted**, and the cost is not the tokens:
+ *
+ *   49 of the 95 custom properties here are colours       (grep -cE '^\\s*--[a-z0-9-]+:\\s*(#|rgba?\\(|color-mix)')
+ *   0  colour literals in any declaration outside this file — the extraction is
+ *      already complete across 12 stylesheets, so a second palette is additive
+ *   3  test files assert literal colours
+ *   4  carry contrast or compositing walks, and those are the expensive half:
+ *      `visual-system.spec.ts`'s AA walk alone is 18.8s, the second-slowest
+ *      check in the suite, and every one of them would have to run twice
+ *
+ * So the tokens are an afternoon and the *verification* is the real bill —
+ * which is the same conclusion Session A reached for the site's imported tools.
+ * A theme this repository cannot prove is AA on every screen in both modes is a
+ * theme that publishes a contrast failure, and `SOURCING-STANDARD.md` rule 5
+ * says uncertainty goes on screen rather than shipping quietly.
+ *
+ * **The door is open and costs nothing to leave open.** Because the extraction
+ * is done, adopting a light theme later is a second `:root` block plus the
+ * verification above — never a refactor. Nobody needs to prepare for it, and
+ * nobody should "finish" it here.
+ *
+ * What the site's theme landing *does* change is `site-foot-drift.test.ts`,
+ * which will go red when the served chrome changes. That is the check working:
+ * wait for the merge, re-copy once, re-pin. It does not change how this app
+ * renders — the chrome is our own CSS and our own self-hosted fonts, and
+ * nothing here loads `site.css`.
  */
 
 :root {
