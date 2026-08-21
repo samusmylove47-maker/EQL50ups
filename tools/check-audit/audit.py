@@ -399,6 +399,23 @@ def audit_check(check: dict, tree: Tree, timeout: int) -> Result:
             rebuild(check, tree.root, timeout)
         rel = path.relative_to(tree.root).as_posix()
 
+        # Some checks REPORT rather than FAIL. `check.py` prints `WARN  ...` and
+        # still exits 0, so a harness reading the exit code alone calls a live
+        # assertion dead — which it did, on a warn-only assertion, before this
+        # existed. `failure_signal: "output"` says the message is the signal.
+        by_output = check.get("failure_signal") == "output"
+        if by_output:
+            if not want:
+                result.verdict = ERROR
+                result.detail = 'failure_signal "output" needs an expect_failure to look for'
+                return result
+            if re.search(want, output, re.I | re.S):
+                result.log.append(f"{rel}: {label} -> REPORTED (exit {0 if passed else 1})")
+                result.verdict = ALIVE
+                return result
+            result.log.append(f"{rel}: {label} -> survived (nothing matching {want!r} printed)")
+            continue
+
         if passed:
             result.log.append(f"{rel}: {label} -> survived")
             continue

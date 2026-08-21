@@ -80,6 +80,7 @@ examined, when anything is DEAD, and when anything is UNPROVEN — because
 | `UNPROVEN` | Survived every generic operator | Write a planned damage. Do not call it dead yet |
 | `DEAD` | Survived a damage aimed at its own subject | Fix the check |
 | `NO_SUBJECT` | Nothing matched to damage | The config is wrong, or the check guards something outside the tree |
+| `NOT_EXERCISED` | The command does not run the code it claims to check | Fix the command. No other verdict about it means anything |
 | `MASKED` | The damaged run went red, but never on the assertion aimed at | Not a verdict on the check — a verdict on the experiment. Damage a later artefact, or rebuild between damage and check |
 | `STALE` | A planned damage's `find` string is gone | Re-aim it — the code moved |
 | `ERROR` | The check was already failing | Fix that first |
@@ -340,4 +341,50 @@ path from command to assertion is longer than one file.
 
 The general rule, and it is the same one twice: **before believing what an
 experiment says about its subject, prove the experiment touched the subject.**
+
+---
+
+## When the check reports instead of failing
+
+The fourth way a verdict can be wrong, and the cheapest to miss.
+
+`check.py` prints `  WARN  {msg}` for an assertion that reports and `  FAIL  {msg}`
+for one that blocks, and it **exits 0 when only warns occurred**. A harness that
+judges by exit code therefore cannot see a warn-only assertion fire at all. Ours
+could not: it damaged the roster-row anchor that gate.py L485 guards, watched
+`check.py` print
+
+```
+  WARN  public/dungeons/najena.html: no roster row found for withheld mob 'Rathyl' — cannot verify
+```
+
+and reported the check **DEAD**, because the exit code was 0. The check was
+working perfectly. That is a false accusation against live code, filed by an
+instrument that was only listening on one channel.
+
+`failure_signal: "output"` is the fix: the message is the signal, and the exit
+code is ignored. It requires an `expect_failure` — without a message to look
+for there is nothing to judge on — and the tool refuses the combination rather
+than guessing.
+
+```json
+"failure_signal": "output",
+"expect_failure": "no roster row found for withheld mob"
+```
+
+Set it on any assertion whose own source calls `warn`, `report`, `console.warn`,
+`log.warning`, or anything else that records without failing. The tell when
+reading a check's source is a severity vocabulary: the moment a checker has two
+levels, half its assertions become invisible to an exit code.
+
+**The same blind spot travels to hand-written self-tests.** The repository this
+was found in has its own version of this method, and its harness reads
+
+```python
+return [l.strip()[6:].strip() for l in out.splitlines() if l.strip().startswith("FAIL")]
+```
+
+so it cannot prove a warn-only assertion either — for the identical reason, in a
+different language, arrived at independently. If your checker has severities,
+check what your self-test filters on before you trust its coverage.
 

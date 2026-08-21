@@ -342,7 +342,9 @@
           "all_occurrences": false
         }
       ],
-      "expect_failure": "public/dungeons/najena\\.html: no roster row found for withheld mob 'Rathyl'"
+      "expect_failure": "public/dungeons/najena\\.html: no roster row found for withheld mob 'Rathyl'",
+      "failure_signal": "output",
+      "_": "gate.py L485 is a `warn(...)`, not a `fail(...)`. check.py prints the message and still exits 0, so judging on the exit code alone reported this live assertion as DEAD. Their own gate_selftest.py:82 filters on lines starting 'FAIL', so it has the same blind spot and cannot prove any warn-only assertion."
     },
     {
       "name": "gate.py via check.py: withheld coordinate reprinted in the named roster",
@@ -439,6 +441,590 @@
         }
       ],
       "expect_failure": "splitpaw: zem_pct is 170 but ZEM 128 gives 171"
+    },
+    {
+      "name": "gate.py via check.py: withheld mob's roster cell renamed so the check cannot find it",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/najena.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "withheld mob's roster cell renamed so the check cannot find it",
+          "find": "<td class=\"nmob\">Rathyl</td><td class=\"loc\">",
+          "replace": "<td class=\"nmob\">Rathyl</td><td class=\"pos\">",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "no roster row found for withheld mob 'Rathyl'",
+      "failure_signal": "output"
+    },
+    {
+      "name": "gate.py via check.py: a withheld coordinate reprinted in the roster",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/najena.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "a withheld coordinate reprinted in the roster",
+          "find": "<td class=\"nmob\">Rathyl</td><td class=\"loc\"><span class=\"wh\">withheld</span></td>",
+          "replace": "<td class=\"nmob\">Rathyl</td><td class=\"loc\">&minus;670, &minus;119</td>",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "prints a coordinate for 'Rathyl', which is withheld"
+    },
+    {
+      "name": "gate.py via check.py: withheld coordinate escapes into the key-chain loot table",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/najena.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "withheld coordinate escapes into the key-chain loot table",
+          "find": "BoneCracker \u00b7 L24 <em>(common)</em>",
+          "replace": "BoneCracker &minus;262, 167 <em>(common)</em>",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "prints '262, 167' beside 'BoneCracker'"
+    },
+    {
+      "name": "gate.py via check.py: meta description asserts a figure the body badges as low-tier",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/planeofhate.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "meta description asserts a figure the body badges as low-tier",
+          "find": "<meta name=\"description\" content=\"A city on three levels",
+          "replace": "<meta name=\"description\" content=\"375 damage. A city on three levels",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "asserts 375 flatly in its meta description while the body qualifies it"
+    },
+    {
+      "name": "gate.py via check.py: page prose contradicts the ledger's respawn by seconds",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/najena.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "page prose contradicts the ledger's respawn by seconds",
+          "find": "Respawn about 19 minutes.",
+          "replace": "Respawn about 4 minutes 27 seconds.",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "says a respawn of 4:27 while the ledger says 4:50"
+    },
+    {
+      "name": "gate.py via check.py: page loses its og:image tag",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/tools/index.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "page loses its og:image tag",
+          "find": "<meta property=\"og:image\" content=\"https://eqlsource.com/assets/og/tools.png\">",
+          "replace": "<meta property=\"og:imagex\" content=\"https://eqlsource.com/assets/og/tools.png\">",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "has no og:image - it will share as a bare link"
+    },
+    {
+      "name": "gate.py via check.py: og:image points at a card that was never generated",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/tools/index.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "og:image points at a card that was never generated",
+          "find": "<meta property=\"og:image\" content=\"https://eqlsource.com/assets/og/tools.png\">",
+          "replace": "<meta property=\"og:image\" content=\"https://eqlsource.com/assets/og/tools-missing.png\">",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "points at share card tools-missing\\.png, which does not exist"
+    },
+    {
+      "name": "gate.py via check.py: an @@TOKEN@@ placeholder reaches the reader",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/raids/plane-of-sky.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "an @@TOKEN@@ placeholder reaches the reader",
+          "find": "<b>22,041</b>",
+          "replace": "<b>@@BIGGEST@@</b>",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "shipped an unrendered placeholder '@@BIGGEST@@'"
+    },
+    {
+      "name": "gate.py via check.py: one plotted mark moved off its own /loc",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/befallen.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "one plotted mark moved off its own /loc",
+          "find": "<circle cx=\"-126\" cy=\"894\"",
+          "replace": "<circle cx=\"-426\" cy=\"894\"",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "the page locator and the floor plan disagree by 300 game units"
+    },
+    {
+      "name": "gate.py via check.py: every mark on one plan flipped below the axis",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/befallen.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "every mark on one plan flipped below the axis",
+          "find": "\" cy=\"",
+          "replace": "\"  cy=\"-",
+          "all_occurrences": true
+        }
+      ],
+      "expect_failure": "17 plotted positions disagree with their floor plan in total"
+    },
+    {
+      "name": "gate.py via check.py: revamp note dropped from the share description",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/mistmoore.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "revamp note dropped from the share description",
+          "find": ". Measured before the 18 August 2026 revamp and not re-measured since.\"",
+          "replace": ". Every figure sourced and dated.\"",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "carries revamped 18 August 2026 in zones-index\\.json, but its share description does not say so"
+    },
+    {
+      "name": "gate.py via check.py: a governed page's ceiling key removed",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "assets/prose-budget.json"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "a governed page's ceiling key removed",
+          "find": "\"tools/sky-ledger.html\"",
+          "replace": "\"tools/sky-ledger-x.html\"",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "tools/sky-ledger\\.html ships with no ceiling in assets/prose-budget\\.json"
+    },
+    {
+      "name": "gate.py via check.py: 60 words of prose added to a page at its ceiling",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/credits.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "60 words of prose added to a page at its ceiling",
+          "find": "<p class=\"hero-lede\">",
+          "replace": "<p>ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast ballast</p><p class=\"hero-lede\" >",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "credits\\.html has grown to [\\d,]+ words against a ceiling of 289"
+    },
+    {
+      "name": "gate.py via check.py: registry names a tool page that does not exist",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "_build/_partials.py"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "registry names a tool page that does not exist",
+          "find": "dict(slug=\"faction-impact\",",
+          "replace": "dict(slug=\"faction-impacts\",",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "TOOLS lists 'faction-impacts' but public/tools/faction-impacts\\.html does not exist",
+      "rebuild": [
+        "bash",
+        "./build.sh"
+      ],
+      "env": {
+        "PATH": "/tmp/claude-0/-home-user-EQL50ups/b71726cd-1814-503f-880d-c245d5982023/scratchpad/shim:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      }
+    },
+    {
+      "name": "gate.py via check.py: a tool dropped from one page's footer",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/index.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "a tool dropped from one page's footer",
+          "find": "<li><a href=\"tools/faction-impact.html\">Faction impact checker</a></li>",
+          "replace": "",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "public/index\\.html: footer does not link tools/faction-impact\\.html"
+    },
+    {
+      "name": "gate.py via check.py: a registered tool loses its card on the hub",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/tools/index.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "a registered tool loses its card on the hub",
+          "find": "<a class=\"card\" href=\"50-upgrades.html\"",
+          "replace": "<a class=\"card\" href=\"./50-upgrades.html\"",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "tools/index\\.html has no card for '50-upgrades'"
+    },
+    {
+      "name": "gate.py via check.py: the hub cards a tool that is not registered",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/tools/index.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "the hub cards a tool that is not registered",
+          "find": "<a class=\"card\" href=\"race-unlocks.html\"",
+          "replace": "<a class=\"card\" href=\"race-unlock.html\"",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "tools/index\\.html cards 'race-unlock', which is not a registered tool"
+    },
+    {
+      "name": "gate.py via check.py: a redirecting .html URL added to the sitemap",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/sitemap.xml"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "a redirecting .html URL added to the sitemap",
+          "find": "  <url><loc>https://eqlsource.com/credits</loc><lastmod>2026-08-21</lastmod><priority>0.6</priority></url>",
+          "replace": "  <url><loc>https://eqlsource.com/ghost.html</loc><lastmod>2026-08-21</lastmod><priority>0.6</priority></url>\n  <url><loc>https://eqlsource.com/credits</loc><lastmod>2026-08-21</lastmod><priority>0.7</priority></url>",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "public/sitemap\\.xml lists https://eqlsource\\.com/ghost\\.html, which 307-redirects"
+    },
+    {
+      "name": "gate.py via check.py: a page's canonical names an address the sitemap does not list",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/credits.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "a page's canonical names an address the sitemap does not list",
+          "find": "<link rel=\"canonical\" href=\"https://eqlsource.com/credits\"",
+          "replace": "<link rel=\"canonical\" href=\"https://eqlsource.com/credits-page\"",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "declares canonical https://eqlsource\\.com/credits-page but the sitemap does not list that address"
+    },
+    {
+      "name": "gate.py via check.py: the only bare :root selector renamed away",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/assets/site.css"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "the only bare :root selector renamed away",
+          "find": ":root{",
+          "replace": ":rootless{",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "public/assets/site\\.css has no :root block"
+    },
+    {
+      "name": "gate.py via check.py: dark ground token changed in the first :root",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/assets/site.css"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "dark ground token changed in the first :root",
+          "find": "--surface-0:#0B0704;",
+          "replace": "--surface-0:#120C06;",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "does not define the dark ground #0B0704"
+    },
+    {
+      "name": "gate.py via check.py: daylight ground injected into the first :root",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/assets/site.css"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "daylight ground injected into the first :root",
+          "find": "--surface-1:#191309;",
+          "replace": "--surface-1:#EFE6D4;",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "defines the daylight ground #EFE6D4"
+    },
+    {
+      "name": "gate.py via check.py: one daylight token block edited and not the other",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/assets/site.css"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "one daylight token block edited and not the other",
+          "find": ":root[data-theme=\"light\"]{\n  --surface-0:#EFE6D4;",
+          "replace": ":root[data-theme=\"light\"]{\n  --surface-0:#EFE6D3;",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "the two daylight token blocks in site\\.css have drifted apart"
+    },
+    {
+      "name": "gate.py via check.py: the theme attribute renamed so no daylight block matches",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/assets/site.css"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "the theme attribute renamed so no daylight block matches",
+          "find": "data-theme",
+          "replace": "data-scheme",
+          "all_occurrences": true
+        }
+      ],
+      "expect_failure": "site\\.css defines no daylight token block at all"
     }
   ]
 }
