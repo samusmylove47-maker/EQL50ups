@@ -1,0 +1,182 @@
+{
+  "_": [
+    "A second repository, to test the portability claim rather than assert it.",
+    "",
+    "This audits `samusmylove47-maker/eql-source` \u2014 a static-site generator in Python with no",
+    "shared code, no shared language and no shared test runner with the repository this config",
+    "lives in. It is kept here rather than there because findings go to that repository's session",
+    "through the Director, never into its tree by this one.",
+    "",
+    "Point `root` at a clone:",
+    "  git clone https://github.com/samusmylove47-maker/eql-source /somewhere",
+    "  python3 tools/check-audit/audit.py tools/check-audit/checks.eql-source.json",
+    "",
+    "Run against 2aeac48b. Every damage below is aimed at what a check says it guards, because",
+    "that repository is prose and data \u2014 generic operators reach almost none of it, which is the",
+    "portability boundary this file exists to document."
+  ],
+  "root": "/workspace/samusmylove47-maker/eql-source",
+  "timeout_seconds": 900,
+  "checks": [
+    {
+      "name": "check.py: a zone the dungeon index does not link",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/index.html"
+      ],
+      "damages": [
+        {
+          "label": "drop every link to a zone",
+          "find": "mistmoore.html",
+          "replace": "mistmoore-gone.html",
+          "all_occurrences": true,
+          "_": "count=1 left `../dungeons/mistmoore.html` in place, so the zone was still linked and only the broken-link check fired. The attribution regex caught that as 'red, but not on this check', which is the tool working."
+        }
+      ],
+      "expect_failure": "does not link \\d+ zone"
+    },
+    {
+      "name": "check.py: the tier badge system in site.css",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/assets/site.css"
+      ],
+      "damages": [
+        {
+          "label": "site.css loses .t3 entirely",
+          "find": ".t3",
+          "replace": ".tTHREE",
+          "all_occurrences": true,
+          "_": "Replacing one occurrence with `.t3-renamed` left `.t3` present as a substring and produced a false DEAD against a live check. The check is `if cls not in css`, so the damage must remove every occurrence."
+        }
+      ],
+      "expect_failure": "site\\.css has lost"
+    },
+    {
+      "name": "check.py: a raid page loading a CDN script",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/raids/eye-of-veeshan.html"
+      ],
+      "damages": [
+        {
+          "label": "a cdnjs script tag",
+          "find": "<head>",
+          "replace": "<head><script src=\"https://cdnjs.example/three.js\"></script>"
+        }
+      ],
+      "expect_failure": "loads a script from a CDN"
+    },
+    {
+      "name": "check.py: a zone with an open gate that does not name it",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "assets/zones-index.json"
+      ],
+      "damages": [
+        {
+          "label": "blank a verify_gate on a partial zone",
+          "find": "\"verify_gate\":",
+          "replace": "\"verify_gate_removed\":"
+        }
+      ],
+      "expect_failure": "does not say which gate is open",
+      "_": [
+        "NOT AUDITABLE FROM HERE, and this is a finding rather than a verdict.",
+        "",
+        "check.py compares public/ against its sources and fails with `public/ is stale` the moment",
+        "any source file changes. Damaging assets/zones-index.json therefore trips staleness before",
+        "any assertion that reads the data, and masks every one of them. Auditing a data-driven check",
+        "in a repository with a build step needs the build re-run between damage and check \u2014 and",
+        "./build.sh needs Python 3.12, while this container has 3.11.15.",
+        "",
+        "Left in deliberately so the audit reports it rather than quietly skipping it."
+      ]
+    },
+    {
+      "name": "check.py: the five source tiers on the home page  [KNOWN DEAD]",
+      "_": [
+        "check.py:116 guards `index.html` at the repository ROOT. The site moved to public/ and",
+        "that path has not existed since. The whole block \u2014 the five-tier check at :124 and the",
+        "badge warning at :127 \u2014 has never run. The damage below removes a tier name from the",
+        "page a reader actually gets, which is exactly what the check says it prevents."
+      ],
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/index.html"
+      ],
+      "damages": [
+        {
+          "label": "remove a tier name from the home page",
+          "find": "Aggregator",
+          "replace": "Cross-checker",
+          "all_occurrences": true,
+          "_": "`Aggregator-removed` still CONTAINS `Aggregator`, and the check is `if t.lower() in h.lower()` \u2014 a substring test. The tool's superstring caution flagged it."
+        }
+      ],
+      "expect_failure": "names only \\d+ of the 5 source tiers"
+    },
+    {
+      "name": "check.py: a published verified-count the data does not support  [KNOWN DEAD]",
+      "_": [
+        "check.py:88 searches every home/index page for `(\\d+) verified to the full three-gate",
+        "standard`. That phrase is on 0 of 723 pages, so `claim` is always None and the comparison",
+        "never runs. Unreached, not broken \u2014 and a green run cannot tell the two apart.",
+        "",
+        "The first attempt at this reported ALIVE: changing a verify_level did make check.py go red,",
+        "but on a DIFFERENT assertion. `expect_failure` now requires the message this check owns."
+      ],
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "assets/zones-index.json"
+      ],
+      "damages": [
+        {
+          "label": "change how many zones are fully verified",
+          "find": "\"verify_level\": \"full\"",
+          "replace": "\"verify_level\": \"partial\""
+        }
+      ],
+      "expect_failure": "verified but zones-index says"
+    },
+    {
+      "name": "gate.py: the figures agree with their data",
+      "command": [
+        "python3",
+        "scripts/gate.py"
+      ],
+      "subjects": [
+        "assets/zones-index.json"
+      ]
+    },
+    {
+      "name": "gate_selftest.py: the instrument that proves the gates",
+      "_": "Their own version of this method \u2014 19 hand-written cases. Damaging gate.py should make at least one case stop seeing the failure it was written for.",
+      "command": [
+        "python3",
+        "scripts/gate_selftest.py"
+      ],
+      "subjects": [
+        "scripts/gate.py"
+      ]
+    }
+  ]
+}

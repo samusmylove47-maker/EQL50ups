@@ -40,8 +40,14 @@ JSON. See `checks.example.json`, and `README.md` for the method.
           "command": ["npx", "vitest", "run", "src/data/catalog.test.ts"],
           "cwd": "web",                   // optional, relative to root
           "subjects": ["web/src/data/catalog.ts"],
+          "expect_failure": "catalog",    // optional regex: which failure counts
           "damages": [                    // optional; explicit beats generic
-            {"find": "a === b", "replace": "a !== b"}
+            {
+              "find": "a === b",
+              "replace": "a !== b",
+              "all_occurrences": false,   // true for substring-presence checks
+              "expect_failure": "..."     // overrides the check-level one
+            }
           ]
         }
       ]
@@ -59,6 +65,14 @@ Generic operators are cheap and unbiased: they tell you the check notices
 check notices *the specific thing it was written for*. A drift check pinning a
 label survives every operator ever written and is not thereby dead. Report a
 generic survivor as UNPROVEN, not as dead, and aim a planned damage at it.
+
+Attribution: `expect_failure`
+-----------------------------
+A check that runs dozens of assertions can be killed by a neighbour of the one
+you aimed at, and that reads exactly like proof. `expect_failure` is a regex the
+damaged run's output must match before a red counts as proof for THIS check.
+Without it, "the script went red" is all you know — which is fine for a
+single-assertion test and misleading for a 500-line gate.
 """
 
 from __future__ import annotations
@@ -139,6 +153,9 @@ DEAD = "DEAD"              # survived a planned damage aimed at its own subject.
 NO_SUBJECT = "NO_SUBJECT"  # nothing to damage — the config is wrong, or the check
                            # guards something outside the tree.
 STALE = "STALE"            # a planned damage's `find` is no longer in the file.
+MASKED = "MASKED"          # the damaged run went red, but never on the assertion aimed
+                           # at — an upstream guard fired first and hid it. Not a
+                           # verdict on the check; a verdict on the experiment.
 ERROR = "ERROR"
 
 
@@ -230,8 +247,8 @@ def resolve_subjects(root: Path, patterns: Iterable[str]) -> list[Path]:
     return out
 
 
-def run_command(check: dict, root: Path, timeout: int) -> bool:
-    """True when the check passes (exit 0)."""
+def run_command(check: dict, root: Path, timeout: int) -> tuple[bool, str]:
+    """(passed, output). `passed` means exit 0."""
     cwd = root / check["cwd"] if check.get("cwd") else root
     try:
         proc = subprocess.run(
@@ -239,10 +256,10 @@ def run_command(check: dict, root: Path, timeout: int) -> bool:
         )
     except subprocess.TimeoutExpired:
         # A damage that hangs the check is a damage the check noticed.
-        return False
+        return False, "<timed out>"
     except FileNotFoundError as exc:
         raise RuntimeError(f"cannot run {check['command'][0]!r}: {exc}") from exc
-    return proc.returncode == 0
+    return proc.returncode == 0, (proc.stdout or "") + (proc.stderr or "")
 
 
 def audit_check(check: dict, tree: Tree, timeout: int) -> Result:
@@ -256,27 +273,36 @@ def audit_check(check: dict, tree: Tree, timeout: int) -> Result:
     result = Result(name, UNPROVEN, subjects=[p.relative_to(tree.root).as_posix() for p in subjects])
 
     # A check that is already red tells you nothing about what a damage proves.
-    if not run_command(check, tree.root, timeout):
+    passed, _ = run_command(check, tree.root, timeout)
+    if not passed:
         result.verdict = ERROR
         result.detail = "the check is already failing before any damage"
         return result
 
-    damages: list[tuple[Path, str, Callable[[str], str | None]]] = []
+    # (path, label, make, expect_failure)
+    damages: list[tuple[Path, str, Callable[[str], "str | None"], "str | None"]] = []
     if planned:
         for spec in planned:
             find, replace = spec["find"], spec["replace"]
+            label = spec.get("label", f"{find[:40]} -> {replace[:40]}")
+            want = spec.get("expect_failure") or check.get("expect_failure")
+            all_ = bool(spec.get("all_occurrences"))
             for path in subjects:
                 damages.append(
-                    (path, spec.get("label", f"{find[:40]} -> {replace[:40]}"),
-                     lambda t, f=find, r=replace: t.replace(f, r, 1) if f in t else None)
+                    (path, label,
+                     lambda t, f=find, r=replace, a=all_:
+                         (t.replace(f, r) if a else t.replace(f, r, 1)) if f in t else None,
+                     want)
                 )
     else:
+        want = check.get("expect_failure")
         for path in subjects[: check.get("max_subjects", 3)]:
             for label, op in OPERATORS:
-                damages.append((path, label, op))
+                damages.append((path, label, op, want))
 
     applied_any = False
-    for path, label, make in damages:
+    masked = False
+    for path, label, make, want in damages:
         original = path.read_text(encoding="utf-8")
         damaged = make(original)
         if damaged is None or damaged == original:
@@ -285,15 +311,32 @@ def audit_check(check: dict, tree: Tree, timeout: int) -> Result:
         result.attempts += 1
         tree.damage(path, damaged)
         try:
-            passed = run_command(check, tree.root, timeout)
+            passed, output = run_command(check, tree.root, timeout)
         finally:
             if not tree.restore():
                 raise RuntimeError(f"could not restore the tree after damaging {path}")
         rel = path.relative_to(tree.root).as_posix()
-        result.log.append(f"{rel}: {label} -> {'survived' if passed else 'KILLED'}")
-        if not passed:
-            result.verdict = ALIVE
-            return result
+
+        if passed:
+            result.log.append(f"{rel}: {label} -> survived")
+            continue
+
+        # It went red — but did the assertion aimed at go red? A script carrying
+        # dozens of assertions can be killed by a neighbour, and that looks
+        # exactly like proof. `expect_failure` is the config naming which
+        # failure counts as proof for THIS check.
+        if want and not re.search(want, output, re.I | re.S):
+            masked = True
+            first = next((ln for ln in output.splitlines() if "FAIL" in ln), "")
+            result.log.append(
+                f"{rel}: {label} -> red, but not on this check "
+                f"(no {want!r}){(' — first failure: ' + first.strip()[:90]) if first else ''}"
+            )
+            continue
+
+        result.log.append(f"{rel}: {label} -> KILLED")
+        result.verdict = ALIVE
+        return result
 
     if not applied_any:
         result.verdict = STALE if planned else NO_SUBJECT
@@ -302,12 +345,46 @@ def audit_check(check: dict, tree: Tree, timeout: int) -> Result:
         )
         return result
 
-    result.verdict = DEAD if planned else UNPROVEN
-    result.detail = (
-        "survived a damage aimed at its own subject"
-        if planned
-        else "survived every generic operator — aim a planned damage before calling it dead"
-    )
+    if not planned:
+        result.verdict = UNPROVEN
+        result.detail = (
+            "survived every generic operator — aim a planned damage before calling it dead"
+        )
+        return result
+
+    if masked:
+        # Every damage that got through made the check red, but never on the
+        # assertion aimed at. That says nothing about the check and everything
+        # about the experiment: something upstream fires first and hides it.
+        # Reporting DEAD here would be an accusation the evidence does not carry.
+        result.verdict = MASKED
+        result.detail = (
+            "could not be isolated — an upstream guard failed first on every damage. "
+            "Damage a later artefact, or re-run the build between damage and check."
+        )
+        return result
+
+    result.verdict = DEAD
+    result.detail = "survived a damage aimed at its own subject"
+
+    # Before accusing a check of being dead, rule out the damage being a no-op.
+    #
+    # `.t3` -> `.t3-renamed` leaves `.t3` present as a substring, so a check
+    # written as `if ".t3" not in css` is entirely right to stay green. That
+    # produced a false DEAD against a live check the first time this ran on a
+    # second repository, which is the same class of error as calling a drift
+    # check dead because no operator can reach a string.
+    superstrings = [
+        spec.get("label", spec["find"])
+        for spec in planned
+        if spec["find"] in spec["replace"]
+    ]
+    if superstrings:
+        result.detail += (
+            "  — CAUTION: the replacement still contains the text it replaced "
+            f"({', '.join(superstrings)}), so a substring or presence check is "
+            "correct to stay green. Rule that out before believing this verdict."
+        )
     return result
 
 
@@ -364,7 +441,7 @@ def main() -> int:
             return 2
 
     tally = {v: sum(1 for r in results if r.verdict == v) for v in
-             (ALIVE, UNPROVEN, DEAD, NO_SUBJECT, STALE, ERROR)}
+             (ALIVE, UNPROVEN, DEAD, MASKED, NO_SUBJECT, STALE, ERROR)}
     print("\n-- results --")
     print(f"  examined      {len(results)}")
     for verdict, count in tally.items():
@@ -372,7 +449,7 @@ def main() -> int:
             print(f"  {verdict.lower():<13} {count}")
 
     for res in results:
-        if res.verdict in (DEAD, UNPROVEN, NO_SUBJECT, STALE, ERROR):
+        if res.verdict in (DEAD, UNPROVEN, MASKED, NO_SUBJECT, STALE, ERROR):
             print(f"\n  {res.verdict}  {res.name}")
             if res.detail:
                 print(f"      {res.detail}")
@@ -390,9 +467,9 @@ def main() -> int:
     if tally[DEAD] or tally[ERROR]:
         print(f"\nAUDIT FAILED — {tally[DEAD]} dead, {tally[ERROR]} unrunnable.")
         return 1
-    if tally[UNPROVEN] or tally[NO_SUBJECT] or tally[STALE]:
-        print(f"\nAUDIT INCOMPLETE — {tally[UNPROVEN] + tally[NO_SUBJECT] + tally[STALE]} "
-              "check(s) not proven either way. Aim a planned damage at each.")
+    incomplete = tally[UNPROVEN] + tally[NO_SUBJECT] + tally[STALE] + tally[MASKED]
+    if incomplete:
+        print(f"\nAUDIT INCOMPLETE — {incomplete} check(s) not proven either way.")
         return 1
     print(f"\nAUDIT PASSED — all {len(results)} examined checks noticed their damage.")
     return 0

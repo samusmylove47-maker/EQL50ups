@@ -80,6 +80,7 @@ examined, when anything is DEAD, and when anything is UNPROVEN — because
 | `UNPROVEN` | Survived every generic operator | Write a planned damage. Do not call it dead yet |
 | `DEAD` | Survived a damage aimed at its own subject | Fix the check |
 | `NO_SUBJECT` | Nothing matched to damage | The config is wrong, or the check guards something outside the tree |
+| `MASKED` | The damaged run went red, but never on the assertion aimed at | Not a verdict on the check — a verdict on the experiment. Damage a later artefact, or rebuild between damage and check |
 | `STALE` | A planned damage's `find` string is gone | Re-aim it — the code moved |
 | `ERROR` | The check was already failing | Fix that first |
 
@@ -181,6 +182,40 @@ a scanner whose predicates quietly stopped matching.
 
 ---
 
+## What a second repository taught
+
+The claim "another repository can use this unchanged" was written before anything
+tested it. Running it against `samusmylove47-maker/eql-source` — a Python static-site
+generator with no shared language, runner or code — settled it:
+
+**It ran unchanged.** No edit to `audit.py` was needed to point it at
+`python3 scripts/check.py`. What it needed was a config, and writing that config is
+where the real portability boundary turned out to be.
+
+Four things went wrong on the first run, and all four are now features:
+
+1. **A superstring replacement is a no-op.** `.t3` → `.t3-renamed` leaves `.t3` present,
+   and the check was `if ".t3" not in css` — a substring test. It stayed green and the
+   tool called it DEAD. That was a false accusation against a live check. The tool now
+   warns whenever a replacement contains the text it replaced, and `all_occurrences`
+   exists for presence checks.
+2. **A kill is not attribution.** A 500-line gate has dozens of assertions. Damaging one
+   input made it red on a *neighbouring* assertion, which reads exactly like proof.
+   `expect_failure` is a regex the damaged output must match before red counts as proof
+   for *this* check. Adding it turned two false ALIVEs into honest verdicts.
+3. **Replacing the first occurrence is often not the damage you meant.** Dropping one of
+   two links to a page left the page still linked. `all_occurrences` again.
+4. **An upstream guard hides everything downstream.** In a repo with a build step,
+   damaging a *source* file trips the "output is stale" check before any assertion that
+   reads the data — so every data-driven check is unauditable that way. That is why
+   `MASKED` exists: reporting those DEAD would have been an accusation the evidence does
+   not carry. Damage the built artefact instead, or rebuild between damage and check.
+
+**The boundary, stated plainly.** The tool is portable; *the damages are not*. Generic
+operators travel and are nearly useless outside code — in a repository that is prose,
+HTML and JSON they reach almost nothing, so almost every check needs a written damage and
+an `expect_failure`. Budget for that rather than for porting the runner.
+
 ## Two things this audit taught that are not about tooling
 
 **The instrument needs auditing too.** The static scanner written to find vacuous
@@ -189,6 +224,12 @@ Playwright's `async ({ page }) =>` destructuring for the test body. It was itsel
 a check reporting a result it had not measured. Nothing caught it except the
 number being implausible — so when a tool tells you something surprising, verify
 the tool before you act on the finding.
+
+**Mutation cannot prove a negative about reachability.** One of the two dead checks in
+that repository is a regex that matches zero of 723 pages — the check is not broken, it is
+never reached, and a green run cannot tell those apart. No damage proves it, because there
+is nothing to damage. A `grep` for the pattern does, in one line. Reach for the cheaper
+instrument when the question is "does this ever run" rather than "does this still bite".
 
 **A green suite is evidence about the suite, not about the code.** The dead check
 found here sat in a file whose header described a real correctness bug in careful
