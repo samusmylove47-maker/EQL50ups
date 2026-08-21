@@ -2,18 +2,16 @@
   "_": [
     "A second repository, to test the portability claim rather than assert it.",
     "",
-    "This audits `samusmylove47-maker/eql-source` \u2014 a static-site generator in Python with no",
-    "shared code, no shared language and no shared test runner with the repository this config",
-    "lives in. It is kept here rather than there because findings go to that repository's session",
-    "through the Director, never into its tree by this one.",
+    "Audits samusmylove47-maker/eql-source. Kept here rather than there because findings go to",
+    "that repository's session through the Director, never into its tree by this one.",
     "",
-    "Point `root` at a clone:",
-    "  git clone https://github.com/samusmylove47-maker/eql-source /somewhere",
-    "  python3 tools/check-audit/audit.py tools/check-audit/checks.eql-source.json",
+    "Pinned to 55832900 (claude/eq-map-export-proposal-oe8m6l), NOT main: gate.py is 431 lines",
+    "on main and 945 on that branch, so auditing main would audit a file about to be replaced.",
     "",
-    "Run against 2aeac48b. Every damage below is aimed at what a check says it guards, because",
-    "that repository is prose and data \u2014 generic operators reach almost none of it, which is the",
-    "portability boundary this file exists to document."
+    "Checks that damage a build INPUT carry a . Without it the repository's staleness",
+    "guard fires before the assertion and hides it \u2014 the MASKED verdict. The rebuild needs a",
+    "newer interpreter than the container default, which is a PATH question and not a limit:",
+    " puts a python3 -> python3.12 shim in front."
   ],
   "root": "/workspace/samusmylove47-maker/eql-source",
   "timeout_seconds": 900,
@@ -87,23 +85,21 @@
       ],
       "damages": [
         {
-          "label": "blank a verify_gate on a partial zone",
-          "find": "\"verify_gate\":",
-          "replace": "\"verify_gate_removed\":"
+          "label": "every zone's gate note goes blank",
+          "find": "\"verify_gate\": \"",
+          "replace": "\"verify_gate\": \"\", \"verify_gate_was\": \"",
+          "all_occurrences": true,
+          "_": "Two earlier damages were wrong. Replacing the FIRST `verify_gate` hit najena, which is verify_level 'full' \u2014 the assertion only fires on partial/none. REMOVING the key crashed the generator (`z['verify_gate']` KeyError), so the rebuild failed and the tool reported ERROR rather than a verdict. Blanking the value keeps the key present, keeps the build green, and makes `not z.get('verify_gate')` true on all three partial zones."
         }
       ],
       "expect_failure": "does not say which gate is open",
-      "_": [
-        "NOT AUDITABLE FROM HERE, and this is a finding rather than a verdict.",
-        "",
-        "check.py compares public/ against its sources and fails with `public/ is stale` the moment",
-        "any source file changes. Damaging assets/zones-index.json therefore trips staleness before",
-        "any assertion that reads the data, and masks every one of them. Auditing a data-driven check",
-        "in a repository with a build step needs the build re-run between damage and check \u2014 and",
-        "./build.sh needs Python 3.12, while this container has 3.11.15.",
-        "",
-        "Left in deliberately so the audit reports it rather than quietly skipping it."
-      ]
+      "rebuild": [
+        "bash",
+        "./build.sh"
+      ],
+      "env": {
+        "PATH": "/tmp/claude-0/-home-user-EQL50ups/b71726cd-1814-503f-880d-c245d5982023/scratchpad/shim:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      }
     },
     {
       "name": "check.py: the five source tiers on the home page  [KNOWN DEAD]",
@@ -133,14 +129,6 @@
     },
     {
       "name": "check.py: a published verified-count the data does not support  [KNOWN DEAD]",
-      "_": [
-        "check.py:88 searches every home/index page for `(\\d+) verified to the full three-gate",
-        "standard`. That phrase is on 0 of 723 pages, so `claim` is always None and the comparison",
-        "never runs. Unreached, not broken \u2014 and a green run cannot tell the two apart.",
-        "",
-        "The first attempt at this reported ALIVE: changing a verify_level did make check.py go red,",
-        "but on a DIFFERENT assertion. `expect_failure` now requires the message this check owns."
-      ],
       "command": [
         "python3",
         "scripts/check.py"
@@ -155,7 +143,14 @@
           "replace": "\"verify_level\": \"partial\""
         }
       ],
-      "expect_failure": "verified but zones-index says"
+      "expect_failure": "verified but zones-index says",
+      "rebuild": [
+        "bash",
+        "./build.sh"
+      ],
+      "env": {
+        "PATH": "/tmp/claude-0/-home-user-EQL50ups/b71726cd-1814-503f-880d-c245d5982023/scratchpad/shim:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      }
     },
     {
       "name": "gate.py: the figures agree with their data",
@@ -165,7 +160,14 @@
       ],
       "subjects": [
         "assets/zones-index.json"
-      ]
+      ],
+      "rebuild": [
+        "bash",
+        "./build.sh"
+      ],
+      "env": {
+        "PATH": "/tmp/claude-0/-home-user-EQL50ups/b71726cd-1814-503f-880d-c245d5982023/scratchpad/shim:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      }
     },
     {
       "name": "gate_selftest.py: the instrument that proves the gates",

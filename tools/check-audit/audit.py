@@ -247,12 +247,48 @@ def resolve_subjects(root: Path, patterns: Iterable[str]) -> list[Path]:
     return out
 
 
+def _env_for(check: dict) -> dict:
+    """The check's environment, with any `env` overrides merged in.
+
+    `PATH` is the one that matters in practice: a repository whose build needs a
+    newer interpreter than the container's default is not unauditable, it just
+    needs the right one in front. Calling that a limit was a mistake once.
+    """
+    env = dict(os.environ)
+    env.update({k: str(v) for k, v in (check.get("env") or {}).items()})
+    return env
+
+
+def rebuild(check: dict, root: Path, timeout: int) -> str | None:
+    """Regenerate derived output. Returns an error string, or None on success.
+
+    A repository that builds has an ordering hazard: damage a SOURCE and its
+    staleness guard fires before any assertion that reads the data, hiding every
+    one of them. Rebuilding between damage and check is what unhides them.
+    """
+    command = check.get("rebuild")
+    if not command:
+        return None
+    cwd = root / check["cwd"] if check.get("cwd") else root
+    try:
+        proc = subprocess.run(command, cwd=cwd, capture_output=True, text=True,
+                              timeout=timeout, env=_env_for(check))
+    except subprocess.TimeoutExpired:
+        return "rebuild timed out"
+    except FileNotFoundError as exc:
+        return f"cannot run {command[0]!r}: {exc}"
+    if proc.returncode != 0:
+        return f"rebuild exited {proc.returncode}: {(proc.stderr or proc.stdout or '')[-300:]}"
+    return None
+
+
 def run_command(check: dict, root: Path, timeout: int) -> tuple[bool, str]:
     """(passed, output). `passed` means exit 0."""
     cwd = root / check["cwd"] if check.get("cwd") else root
     try:
         proc = subprocess.run(
-            check["command"], cwd=cwd, capture_output=True, text=True, timeout=timeout
+            check["command"], cwd=cwd, capture_output=True, text=True, timeout=timeout,
+            env=_env_for(check),
         )
     except subprocess.TimeoutExpired:
         # A damage that hangs the check is a damage the check noticed.
@@ -311,10 +347,18 @@ def audit_check(check: dict, tree: Tree, timeout: int) -> Result:
         result.attempts += 1
         tree.damage(path, damaged)
         try:
+            problem = rebuild(check, tree.root, timeout)
+            if problem:
+                result.verdict = ERROR
+                result.detail = problem
+                return result
             passed, output = run_command(check, tree.root, timeout)
         finally:
             if not tree.restore():
                 raise RuntimeError(f"could not restore the tree after damaging {path}")
+            # Restoring the source is not enough when derived files were written
+            # from the damaged one — put those back too, by building again.
+            rebuild(check, tree.root, timeout)
         rel = path.relative_to(tree.root).as_posix()
 
         if passed:
