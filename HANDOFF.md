@@ -102,6 +102,19 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   `README.md` also carries the five shapes of *vacuous pass*, which mutation cannot find at
   all. *(Director, 2026-08-20: write it up so another repository can run it.)*
 
+### The catalogue's own provenance
+
+- **`pipeline/catalogue-audit.mjs` verifies that the sourcing standard is actually
+  applied**, and is a check rather than a report: a figure whose source cannot be named
+  fails it. In CI beside the payload gate. Of 2,176 records printing numbers, 0 carry no
+  standing. Rule 6 was being broken — four of five inputs were undated — and the date is
+  now derived from git rather than typed, because a hand-written date is the first thing
+  to go stale. *(Director, 2026-08-20: nobody had run this audit on either side.)*
+- **The two limits are printed beside the green tick, deliberately.** A vendoring date is
+  not a currency date; and 84.5% of records carry no Tier M existence evidence, shipping
+  on a wiki's era placement. Both are rule 2 working as written, and both belong on screen
+  rather than in a drawer.
+
 ### Environment
 
 - **A test that fetches must opt out of `jsdom`, or it is not fetching.** jsdom supplies
@@ -188,87 +201,128 @@ the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
-### 1. The drift check — understood, and nothing pre-empted
+### 1. The portability claim was untested. It holds — and the tool was wrong four ways
 
-Waiting for the merge, then re-copy once and re-pin. Not disabling it, not pre-copying.
+Ran against `samusmylove47-maker/eql-source` at `2aeac48b`. **The runner needed no change.**
+What it needed was a config, and writing that config is the real boundary: generic
+operators are nearly useless against prose, HTML and JSON, so almost every check there
+needs a written damage. Budget for the damages, not for porting the runner.
 
-One thing you may not have from your side: **the theme cannot change how this app looks.**
-Nothing here loads `site.css` and the fonts are self-hosted, so the only thing your merge
-touches is the drift check's expectations. It will go red on markup, not on colour.
+**Four things went wrong on the first run, and every one was my instrument manufacturing a
+finding.** All four are now features:
 
-### 2. The planner stays dark — my call, costed
+| What happened | Why it lied | Fixed by |
+|---|---|---|
+| `.t3` → `.t3-renamed` on a `if ".t3" not in css` check | the substring is still there, so the check was right to stay green — and I reported it DEAD | a warning whenever a replacement contains what it replaced, plus `all_occurrences` |
+| a damage made a 500-line gate red **on a neighbouring assertion** | reads exactly like proof | `expect_failure`: a regex the damaged output must match before red counts |
+| dropped one of two links to a page | the page was still linked | `all_occurrences` again |
+| damaging a *source* file tripped the repo's "output is stale" guard first | hides every downstream assertion | a new verdict, `MASKED` — not a verdict on the check, a verdict on the experiment |
 
-Your argument for the imported tools is the one that decided it: a dark *tool* is the
-site's published convention, so following the theme would make this the odd one out among
-tools, which is the opposite of the seam the chrome work closed.
+Without the last one I would have sent you two false accusations.
 
-Costed honestly, and the tokens are not the bill:
+**Findings for Session A** — their tree was restored after every damage, `git status` there
+is empty, and I put nothing into it:
 
-```
-49 of 95 custom properties are colours
- 0 colour literals in any declaration outside tokens.css, across 12 stylesheets
-   -> the extraction is already done, so a second palette is additive, not a refactor
- 3 test files assert literal colours
- 4 carry contrast or compositing walks   <- the expensive half
-   visual-system.spec.ts's AA walk alone is 18.8s, second-slowest check in the suite,
-   and every one of these would run twice
-```
+- **`check.py:116` guards `index.html` at the repository ROOT.** The site moved to
+  `public/` and that path has not existed since, so the whole block never runs — the
+  five-tier check at `:124` and the badge warning at `:127`. Confirmed on purpose: removing
+  `Aggregator` from `public/index.html` entirely leaves `check.py` green. The page a reader
+  gets carries all five tier names, so pointing the block at `public/index.html` should
+  turn it green immediately.
+- **`check.py:88` is unreached rather than broken.** Its regex `(\d+) verified to the full
+  three-gate standard` matches **0 of 723 pages**. No mutation can prove that — there is
+  nothing to damage — and one `grep` does. Worth recording as a method note: reach for the
+  cheaper instrument when the question is "does this ever run".
+- **Two checks are not auditable from here at all**, and that is a finding about their
+  build rather than their checks: any damage to `assets/` trips `public/ is stale` before
+  the assertion, and `./build.sh` needs Python 3.12 against this container's 3.11.15.
+- **`gate.py` is UNPROVEN** — it survived every generic operator, which per my own rule
+  means someone should aim a written damage at it, not that it is dead.
+- **They already have this method.** `gate_selftest.py` passes 19 hand-written cases and
+  says so in the same words I used. Its limit is the one that matters: it proves the 19
+  checks somebody wrote a case for. It cannot find the check nobody suspected — which is
+  what a generic-operator campaign is for, and how `check.py:116` fell out on purpose.
 
-So: an afternoon of tokens and a doubled verification burden. The reason that settles it
-rather than merely discouraging it is rule 5 — a theme I cannot prove is AA on every screen
-in both modes is a theme that publishes a contrast failure quietly, which is the one thing
-this repository is not allowed to do. **One honest colour, as you put it.**
+### 2. Theme re-costed. Unchanged — and one of its two reasons is withdrawn
 
-Recorded at `tokens.css` itself, where somebody would go to implement the alternative, with
-the measurement and the note that the door costs nothing to leave open.
+You asked for re-examined, not reversed. The re-examination cost a reason.
 
-### 3. The audit method, as something you can hand to another repository
-
-`tools/check-audit/` — `audit.py` (Python 3.9+, stdlib only, no VCS required), a config for
-this repository, a wrapper for the one check that writes instead of returning, and a README
-carrying the method.
-
-It shells out to whatever command runs a check, so it works against vitest, pytest,
-playwright, `check.py`, `gate_selftest.py`, or a make target. Session A's repository can use
-it unchanged.
-
-**Two things I got wrong the first time, both now built into the tool:**
-
-- **A generic operator cannot reach a string constant.** My first campaign reported the two
-  drift checks as survivors. They are not dead — no `===`→`!==` will ever move a label. So
-  the tool reports `UNPROVEN` for a generic survivor and refuses to say `DEAD` until a
-  *written* damage aimed at the subject also survives. Reporting those two as dead would
-  have been a false accusation produced by the instrument.
-- **Restoration must not go through version control.** An audit is run in a tree with
-  unstaged work in it — that is *when* people run audits. It holds original content in
-  memory and verifies by hash; it exits 2 and says so if it cannot put a file back.
-
-**Proved on itself rather than described:**
+**Retired:** "a theme I cannot prove is AA in both modes publishes a contrast failure
+quietly." Session A built that prover, so the claim has weakened and I am not keeping it.
+I checked my own AA walk against the four lessons:
 
 ```
-the repo's own set          10 examined, 10 alive   exit 0
-a damage it cannot notice    1 DEAD                 exit 1
-nothing selected             0 examined             exit 2
-after every run              tree restored, hash-verified
+1 composite the alpha       already done, incl. the ancestor opacity chain
+2 image over opaque has a
+  ground, over transparent
+  none                      does not arise — 0 background-image or gradient
+                            declarations across all 13 stylesheets, measured
+3 zero examined is failure   already done, independently: seen > 20 per screen,
+                            both widths
+4 ground set BEFORE the
+  document exists           the one real gap, and only if we theme
 ```
 
-The first run of the config returned two `STALE` rather than two false passes — `meta.json`
-ships minified and I had written the damages with a pretty-printer's spacing. That verdict
-existing is the difference between an audit and a formality.
+Lesson 4 is a genuine gift — the expensive mistake, not obvious, and mine to have made.
 
-**And the part mutation cannot find.** The README documents the *vacuous pass* separately,
-because damaging a subject a check never reaches changes nothing and looks merely
-uncovered. Five shapes to grep for, including the one that produced the dead check here: a
-test that reimplements its subject and then tests the copy. That one is invisible to
-mutation, invisible to coverage, and looks more thorough than the real thing.
+**What did not move:** 49 of 95 custom properties are colours; **20.0s** of contrast
+walking across two checks (`visual-system` 18.6s, `planar` 1.4s), all of which doubles;
+3 test files assert literal colours; and the focus-ring checks read *drawn pixels*, so
+they need both grounds too.
+
+**What carries it now**, and always did: eqlsource keeps its imported tools dark and says
+so, making dark the site's convention for a tool rather than an exception — following the
+theme would make the planner the odd one out *among tools*. And this is a working surface
+kept open beside a fullscreen client, usually at night, which is an argument about use and
+does not move when a verification cost does.
+
+### 3. The catalogue audit — the standard holds on the axis that matters, and broke on rule 6
+
+`pipeline/catalogue-audit.mjs`, computed from the payload, in CI, and a check rather than
+a report: a figure whose source cannot be named fails it.
+
+**Where each figure comes from.** 2,176 records print numbers a reader acts on — 2,045
+tier-2, 126 tier-5, 5 tier-M — and **zero print a number with no recorded standing.** Rule
+5 is met in fact and not only in intent: tier-5 renders as *"wiki stats, era unplaced"* in
+the distrust colour.
+
+**When it was last read — this is where the standard was being broken.** Rule 6 says date
+everything. **Four of five inputs carried no date at all.** A commit pin says *what* we
+hold, never *when*, so the staleness rule could not be applied to them. Now derived from
+git rather than typed, because a hand-written date is the first thing to go stale.
+
+**What a green run still does not say**, printed next to the tick:
+
+- A vendoring date is not a currency date. The four repository inputs are pinned by SHA, so
+  what we hold is exact — when those projects last checked their numbers against the game
+  is unknown and unknowable from here.
+- **3,094 of 3,663 records — 84.5% — carry no Tier M existence evidence at all.** They ship
+  because a wiki placed their era: a Tier 2 statement about content, not an observation of
+  the game. Rule 2 working as written, and the honest headline of this catalogue.
+
+If you want one sentence for the site: *every number the planner prints names its tier, and
+five of them have been read off the game.*
+
+### 4. The burst, before the traffic
+
+Five browser checks for the partial and ordered failures — the complete ones were already
+covered. A single shard 404s (catalog intact, and **no** failure notice, because a missing
+shard is not a missing catalog); that slot's picker still opens; a slow catalog reads as
+loading rather than broken; nineteen shards at once list every candidate exactly once.
+
+**The fifth was wrong first, in this repository's favourite way.** "The index arriving last
+does not throw away what a shard brought" asserted the catalog was *populated* — true even
+with the load-race regression in, because the index is where the names come from. It passed
+against the bug it was named for. `src` is what the shard has and the index does not, so it
+now drives the picker's own source filter: with the regression reinstated, `Drops` matches
+nothing and it fails. Verified both ways and added to the audit set.
 
 ### State
 
-Catalogue frozen at 3,663 — `git diff --numstat` over `items-index.json` and every shard is
-**0 files**, across every push. `tsc` clean · vitest **907 passed / 60 files** ·
-`verify.mjs` **PASSED**, Tier 0 100.0% · playwright **145 passed** · check audit
-**10/10 alive**.
+`tsc` clean · vitest **907 / 60 files** · playwright **150 passed** · `verify.mjs`
+**PASSED**, Tier 0 100.0% · catalogue audit **PASSED** · check audit **13/13 alive**.
+Catalogue frozen at 3,663 — `git diff --numstat` over the index and every shard is **0
+files**, across every push.
 
-The freshness check added yesterday earned itself today: adding the theme note to
-`tokens.css` moved the source line count and `verify.mjs` went red until I regenerated the
-report. That is the gate doing the job it could not do on Monday.
+Still parked, not started: `upgrades.eqlsource.com` and its `VITE_BASE` change; the
+`=50Upgrades` mark, slot left, nothing drawn.
