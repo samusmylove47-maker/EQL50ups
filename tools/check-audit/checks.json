@@ -2,13 +2,13 @@
   "_": [
     "This repository's own audit set. `python3 tools/check-audit/audit.py tools/check-audit/checks.json`.",
     "",
-    "Not every check in the repository — that is 60 vitest files and 20 browser specs, and the",
+    "Not every check in the repository \u2014 that is 60 vitest files and 20 browser specs, and the",
     "browser ones cost a build each. This is the set worth re-proving on demand: the gates, the",
     "checks whose subject is a string constant no operator can reach, and the two that were found",
     "dead on 2026-08-20. Add to it whenever a check is written that would be embarrassing to",
     "discover was decorative.",
     "",
-    "Run the whole suite by mutation when the question is 'is anything dead' — that is a campaign,",
+    "Run the whole suite by mutation when the question is 'is anything dead' \u2014 that is a campaign,",
     "not a routine. See README.md."
   ],
   "root": "../..",
@@ -16,10 +16,18 @@
   "checks": [
     {
       "name": "load-race: the shard that beats the index",
-      "_": "Dead until 2026-08-20 — it tested a copy of the rule written inside the test file. The damage is the regression its own header describes.",
-      "command": ["npx", "vitest", "run", "src/data/load-race.test.ts", "--reporter=dot"],
+      "_": "Dead until 2026-08-20 \u2014 it tested a copy of the rule written inside the test file. The damage is the regression its own header describes.",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "src/data/load-race.test.ts",
+        "--reporter=dot"
+      ],
       "cwd": "web",
-      "subjects": ["web/src/data/catalog.ts"],
+      "subjects": [
+        "web/src/data/catalog.ts"
+      ],
       "damages": [
         {
           "label": "the index replaces the shard wholesale",
@@ -31,9 +39,17 @@
     {
       "name": "foot drift: the site's Tools column",
       "_": "String constants. Every generic operator survives this and none of them mean anything.",
-      "command": ["npx", "vitest", "run", "src/components/site-foot-drift.test.ts", "--reporter=dot"],
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "src/components/site-foot-drift.test.ts",
+        "--reporter=dot"
+      ],
       "cwd": "web",
-      "subjects": ["web/src/components/SiteChrome.tsx"],
+      "subjects": [
+        "web/src/components/SiteChrome.tsx"
+      ],
       "damages": [
         {
           "label": "a label the site does not use",
@@ -49,9 +65,17 @@
     },
     {
       "name": "nav drift: the site's masthead",
-      "command": ["npx", "vitest", "run", "src/components/site-nav-drift.test.ts", "--reporter=dot"],
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "src/components/site-nav-drift.test.ts",
+        "--reporter=dot"
+      ],
       "cwd": "web",
-      "subjects": ["web/src/components/SiteChrome.tsx"],
+      "subjects": [
+        "web/src/components/SiteChrome.tsx"
+      ],
       "damages": [
         {
           "label": "an href the site does not serve",
@@ -63,24 +87,52 @@
     {
       "name": "base path: static assets under a sub-path",
       "_": "Its subject is a file in public/, not a module. No import graph reaches it.",
-      "command": ["npx", "vitest", "run", "src/data/base-path.test.ts", "--reporter=dot"],
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "src/data/base-path.test.ts",
+        "--reporter=dot"
+      ],
       "cwd": "web",
-      "subjects": ["web/public/fonts/fonts.css"],
+      "subjects": [
+        "web/public/fonts/fonts.css"
+      ],
       "damages": [
-        { "label": "a root-absolute font url", "find": "url('./", "replace": "url('/" }
+        {
+          "label": "a root-absolute font url",
+          "find": "url('./",
+          "replace": "url('/"
+        }
       ]
     },
     {
       "name": "slot positions: the payload agrees with the app",
-      "command": ["npx", "vitest", "run", "src/data/slot-positions.test.ts", "--reporter=dot"],
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "src/data/slot-positions.test.ts",
+        "--reporter=dot"
+      ],
       "cwd": "web",
-      "subjects": ["web/src/engine/constants.ts"]
+      "subjects": [
+        "web/src/engine/constants.ts"
+      ]
     },
     {
       "name": "breadcrumb: it carries the current screen",
-      "command": ["npx", "vitest", "run", "src/components/breadcrumb.test.tsx", "--reporter=dot"],
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "src/components/breadcrumb.test.tsx",
+        "--reporter=dot"
+      ],
       "cwd": "web",
-      "subjects": ["web/src/components/SiteChrome.tsx"],
+      "subjects": [
+        "web/src/components/SiteChrome.tsx"
+      ],
       "damages": [
         {
           "label": "every screen reports as the landing",
@@ -91,39 +143,95 @@
     },
     {
       "name": "payload gate: the licence claim",
-      "command": ["node", "pipeline/verify.mjs"],
-      "subjects": ["web/public/data/meta.json"],
+      "command": [
+        "node",
+        "pipeline/verify.mjs"
+      ],
+      "subjects": [
+        "web/public/data/meta.json"
+      ],
       "damages": [
-        { "label": "a content licence reinstated", "find": "\"content\":null", "replace": "\"content\":\"CC BY-SA 4.0\"" }
+        {
+          "label": "a content licence reinstated",
+          "find": "\"content\":null",
+          "replace": "\"content\":\"CC BY-SA 4.0\""
+        }
       ]
     },
     {
       "name": "payload gate: the slot arithmetic",
-      "command": ["node", "pipeline/verify.mjs"],
-      "subjects": ["web/public/data/meta.json"],
+      "command": [
+        "node",
+        "pipeline/verify.mjs"
+      ],
+      "subjects": [
+        "web/public/data/meta.json"
+      ],
       "damages": [
-        { "label": "the total no longer closes", "find": "\"total\":23", "replace": "\"total\":24" }
+        {
+          "label": "the total no longer closes",
+          "find": "\"total\":23",
+          "replace": "\"total\":24"
+        }
       ]
     },
     {
       "name": "payload gate: the self-audit report is current",
       "_": "Added 2026-08-20. The gate could previously only tell that a report existed.",
-      "command": ["node", "pipeline/verify.mjs"],
-      "subjects": ["web/public/data/contamination.json"],
+      "command": [
+        "node",
+        "pipeline/verify.mjs"
+      ],
+      "subjects": [
+        "web/public/data/contamination.json"
+      ],
       "damages": [
-        { "label": "the report describes an older tree", "find": "\"sourceLines\":", "replace": "\"sourceLines\": 1, \"sourceLinesWas\":" }
+        {
+          "label": "the report describes an older tree",
+          "find": "\"sourceLines\":",
+          "replace": "\"sourceLines\": 1, \"sourceLinesWas\":"
+        }
       ]
     },
     {
       "name": "contamination scanner: it detects a code site",
       "_": "Feeds it a real code site. A comment or a string literal is blanked before matching, deliberately, so damaging one of those proves nothing.",
-      "command": ["node", "tools/check-audit/assert-scanner-sees.mjs"],
-      "subjects": ["web/src/lib/format.ts"],
+      "command": [
+        "node",
+        "tools/check-audit/assert-scanner-sees.mjs"
+      ],
+      "subjects": [
+        "web/src/lib/format.ts"
+      ],
       "damages": [
         {
           "label": "a haste weight in code",
           "find": "export function ep(",
           "replace": "export const AUDIT_PROBE = { RATIO: 40, HASTE: 7 };\nexport function ep("
+        }
+      ]
+    },
+    {
+      "name": "network burst: the index arriving last keeps the shard's detail",
+      "_": "The browser half of load-race. Its first version asserted the catalog was populated, which is true even with the regression in \u2014 it passed against the bug it was named for. The damage must keep `prior` referenced or the build fails on an unused variable before the check runs.",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/network-burst.spec.ts",
+        "-g",
+        "index arriving last"
+      ],
+      "cwd": "web",
+      "subjects": [
+        "web/src/data/catalog.ts"
+      ],
+      "expect_failure": "index arriving last",
+      "damages": [
+        {
+          "label": "the index replaces the shard wholesale",
+          "find": "const merged = prior.length ? mergeItems(items, prior).items : items;",
+          "replace": "const merged = prior.length ? items : items;"
         }
       ]
     }
