@@ -76,17 +76,24 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 ### Theme
 
 - **The planner stays dark. eqlsource's light/dark theme is not being followed.** Mine to
-  call, and called 2026-08-20. The site keeps its own imported tools dark and says so where
-  a reader meets them, so a dark tool is the site's published convention rather than an
-  exception to it. Costed: 49 of 95 custom properties are colours, but the extraction is
-  already complete — **zero** colour literals in any declaration across 12 stylesheets — so
-  a second palette is additive and the tokens are an afternoon. The bill is verification:
-  3 test files assert literal colours and 4 carry contrast walks, and
-  `visual-system.spec.ts`'s AA walk alone is 18.8s, the second-slowest check in the suite,
-  every one of them doubling. A theme this repository cannot prove AA on every screen in
-  both modes publishes a contrast failure, and rule 5 says uncertainty goes on screen. The
-  door costs nothing to leave open and nobody should prepare for it. Recorded at
-  `tokens.css` so no future session "completes" it.
+  call; called 2026-08-20 and **re-examined the same day** against the prover Session A
+  built. Unchanged, with one reason withdrawn rather than quietly kept.
+  - *Retired:* "a theme I cannot prove is AA in both modes publishes a contrast failure
+    quietly." The prover exists now. Checked our own AA walk against its four lessons —
+    alpha compositing and zero-examined were already done (the second reached
+    independently), the `background-image` lesson does not arise here (0 gradient or image
+    declarations across 13 stylesheets, measured), and only "set the ground before the
+    document exists" was a real gap, and only in a world where we theme.
+  - *What carries it:* eqlsource keeps its own imported tools dark and says so, making
+    dark the site's convention for a tool rather than an exception — following would make
+    the planner the odd one out *among tools*. And it is a working surface kept open beside
+    a fullscreen client, usually at night, which is about use rather than branding.
+  - *Cost, unchanged:* 49 of 95 custom properties are colours; **20.0s** of contrast
+    walking across two checks, all of it doubling; 3 test files assert literal colours; the
+    focus-ring checks read drawn pixels and need both grounds.
+  - The extraction is already complete — 0 colour literals in any declaration — so the
+    door costs nothing to leave open and nobody should prepare for it. Recorded at
+    `tokens.css` so no future session "completes" it.
 - **The theme landing changes the drift check, not the rendering.** Nothing here loads
   `site.css`; the chrome is our own CSS and self-hosted fonts. When
   `site-foot-drift.test.ts` goes red on the merge, that is the check working: wait, re-copy
