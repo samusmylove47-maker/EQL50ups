@@ -11,7 +11,14 @@
     "Checks that damage a build INPUT carry a . Without it the repository's staleness",
     "guard fires before the assertion and hides it \u2014 the MASKED verdict. The rebuild needs a",
     "newer interpreter than the container default, which is a PATH question and not a limit:",
-    " puts a python3 -> python3.12 shim in front."
+    " puts a python3 -> python3.12 shim in front.",
+    "",
+    "gate.py has NO __main__. `python3 scripts/gate.py` is silent and exits 0 \u2014 it does nothing.",
+    "It runs only through check.py:501 (`import gate; gate.run(...)`). An earlier version of this",
+    "file ran gate.py directly and reported UNPROVEN; that was a verdict about a command that",
+    "exercised no code. Every gate.py check below therefore runs check.py, and carries a `probe`",
+    "that renames gate.run \u2014 if the check stays green under that, the command is not reaching",
+    "gate.py and no other verdict about it means anything."
   ],
   "root": "/workspace/samusmylove47-maker/eql-source",
   "timeout_seconds": 900,
@@ -55,24 +62,6 @@
         }
       ],
       "expect_failure": "site\\.css has lost"
-    },
-    {
-      "name": "check.py: a raid page loading a CDN script",
-      "command": [
-        "python3",
-        "scripts/check.py"
-      ],
-      "subjects": [
-        "public/raids/eye-of-veeshan.html"
-      ],
-      "damages": [
-        {
-          "label": "a cdnjs script tag",
-          "find": "<head>",
-          "replace": "<head><script src=\"https://cdnjs.example/three.js\"></script>"
-        }
-      ],
-      "expect_failure": "loads a script from a CDN"
     },
     {
       "name": "check.py: a zone with an open gate that does not name it",
@@ -153,23 +142,6 @@
       }
     },
     {
-      "name": "gate.py: the figures agree with their data",
-      "command": [
-        "python3",
-        "scripts/gate.py"
-      ],
-      "subjects": [
-        "assets/zones-index.json"
-      ],
-      "rebuild": [
-        "bash",
-        "./build.sh"
-      ],
-      "env": {
-        "PATH": "/tmp/claude-0/-home-user-EQL50ups/b71726cd-1814-503f-880d-c245d5982023/scratchpad/shim:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-      }
-    },
-    {
       "name": "gate_selftest.py: the instrument that proves the gates",
       "_": "Their own version of this method \u2014 19 hand-written cases. Damaging gate.py should make at least one case stop seeing the failure it was written for.",
       "command": [
@@ -179,6 +151,294 @@
       "subjects": [
         "scripts/gate.py"
       ]
+    },
+    {
+      "name": "gate.py via check.py: zone count spelled out in the dungeon-index headline",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/index.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "zone count spelled out in the dungeon-index headline",
+          "find": "<h1 class=\"display\">13 zones,<br><em>surveyed.</em></h1>",
+          "replace": "<h1 class=\"display\">Ten zones,<br><em>surveyed.</em></h1>",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "says 'Ten' for 'zones surveyed' but the data holds 13"
+    },
+    {
+      "name": "gate.py via check.py: named count off by one in the tools-hub kicker",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/tools/index.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "named count off by one in the tools-hub kicker",
+          "find": "435 items, 232 named",
+          "replace": "435 items, 231 named",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "says 231 for 'named recorded' but the data holds 232"
+    },
+    {
+      "name": "gate.py via check.py: item count off by one in the tools-hub kicker",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/tools/index.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "item count off by one in the tools-hub kicker",
+          "find": "435 items, 232 named",
+          "replace": "436 items, 232 named",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "says 436 for 'items indexed' but the data holds 435"
+    },
+    {
+      "name": "gate.py via check.py: fully-verified count contradicts the ledger",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/index.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "fully-verified count contradicts the ledger",
+          "find": "<span>10 fully verified</span>",
+          "replace": "<span>8 fully verified</span>",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "public/index\\.html claims 8 fully verified; the ledger says 10"
+    },
+    {
+      "name": "gate.py via check.py: count of surveys short of the full standard, wrong word",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/sources.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "count of surveys short of the full standard, wrong word",
+          "find": "Three of the 13 surveys have not cleared",
+          "replace": "Thirteen of the 13 surveys have not cleared",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "says Thirteen surveys have not cleared the full standard; the ledger says 3"
+    },
+    {
+      "name": "gate.py via check.py: denominator of that same sentence contradicts len(Z)",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/sources.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "denominator of that same sentence contradicts len(Z)",
+          "find": "Three of the 13 surveys have not cleared",
+          "replace": "Three of the 12 surveys have not cleared",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "says that is out of 12 surveys; the ledger holds 13"
+    },
+    {
+      "name": "gate.py via check.py: figure in the meta description that is nowhere on the page",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/tools/sky-ledger.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "figure in the meta description that is nowhere on the page",
+          "find": "which of the 95 Plane of Sky class-unlock tests",
+          "replace": "which of the 8888 Plane of Sky class-unlock tests",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "tools/sky-ledger\\.html states '8888' in its meta description and never on the page"
+    },
+    {
+      "name": "gate.py via check.py: roster-row anchor renamed, so the withheld lookup goes blind",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/najena.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "roster-row anchor renamed, so the withheld lookup goes blind",
+          "find": "<td class=\"nmob\">Rathyl</td><td class=\"loc\"><span class=\"wh\">withheld</span></td>",
+          "replace": "<td class=\"nmob\">Rathyl</td><td class=\"cell-loc\"><span class=\"wh\">withheld</span></td>",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "public/dungeons/najena\\.html: no roster row found for withheld mob 'Rathyl'"
+    },
+    {
+      "name": "gate.py via check.py: withheld coordinate reprinted in the named roster",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/najena.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "withheld coordinate reprinted in the named roster",
+          "find": "<td class=\"nmob\">Rathyl</td><td class=\"loc\"><span class=\"wh\">withheld</span></td>",
+          "replace": "<td class=\"nmob\">Rathyl</td><td class=\"loc\">&minus;670, &minus;119</td>",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "prints a coordinate for 'Rathyl', which is withheld"
+    },
+    {
+      "name": "gate.py via check.py: withheld coordinate escaping into the key-chain table, not the roster",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "public/dungeons/najena.html"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "withheld coordinate escaping into the key-chain table, not the roster",
+          "find": "<td class=\"src\">BoneCracker</td>",
+          "replace": "<td class=\"src\">BoneCracker &minus;262, 167</td>",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "prints '262, 167' beside 'BoneCracker', whose coordinate is"
+    },
+    {
+      "name": "gate.py via check.py: MASKED: a full zone whose verify_gate still names an open gate",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "assets/zones-index.json"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "MASKED: a full zone whose verify_gate still names an open gate",
+          "find": "\"verify_gate\": \"All three gates cleared 9 Aug 2026. Page fetched in full and roster re-compared",
+          "replace": "\"verify_gate\": \"Gate 3 is still open: no coordinate has been re-walked. Page fetched in full and roster re-compared",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "crushbone is marked full but its verify_gate still names an open gate"
+    },
+    {
+      "name": "gate.py via check.py: MASKED: stored zem_pct disagrees with the ZEM it derives from",
+      "command": [
+        "python3",
+        "scripts/check.py"
+      ],
+      "subjects": [
+        "assets/zones-index.json"
+      ],
+      "probe": {
+        "target": "scripts/gate.py",
+        "find": "def run(",
+        "replace": "def run_NOT_CALLED("
+      },
+      "damages": [
+        {
+          "label": "MASKED: stored zem_pct disagrees with the ZEM it derives from",
+          "find": "\"zem_pct\": 171",
+          "replace": "\"zem_pct\": 170",
+          "all_occurrences": false
+        }
+      ],
+      "expect_failure": "splitpaw: zem_pct is 170 but ZEM 128 gives 171"
     }
   ]
 }

@@ -236,3 +236,108 @@ found here sat in a file whose header described a real correctness bug in carefu
 prose, in a repository with 900-odd passing tests. Reinstating that exact bug left
 every one of them green. The prose was right, the intent was right, and the check
 was pointed at a copy of the thing it was guarding.
+
+---
+
+## When the check goes red for the wrong reason
+
+A damaged run that goes red is not proof. It is proof only when it went red on
+the assertion you aimed at.
+
+The case that taught us this: a static-site repository builds `public/` from
+sources, and `build.sh` stamps a fingerprint of its inputs. Before `check.py`
+looks at anything else it compares that stamp against the tree and calls
+`fail("public/ is stale — a source changed since the last successful ./build.sh,
+or a generator crashed part way. Re-run ./build.sh")`. Damage any data file to
+test a data-driven assertion and that guard fires first. The run is red. Every
+assertion underneath it never ran. Nothing about the check you aimed at was
+measured, and the transcript looks exactly like a kill.
+
+### Recognising it
+
+Read the failure message, not the exit code. The tell is that the damaged run is
+red on a message with nothing to do with the subject you damaged — and, the part
+that catches people, it is the *same* message for every check you audit in that
+repository. Three unrelated damages producing one identical failure line means
+you audited the guard three times and none of the checks once.
+
+### The fix: name the red that counts
+
+`expect_failure` is a regex the damaged output must match before red is accepted
+as proof for this check. Take the string from the assertion's own output — grep
+the check's source for what it prints when it fires — and keep it narrow enough
+that the upstream guard cannot satisfy it:
+
+```json
+"expect_failure": "does not say which gate is open"
+```
+
+A regex loose enough to match any failure buys nothing. `\\d+` in place of a
+count is fine; `error` is not.
+
+### Remedies when a check is masked
+
+Two, and the cheaper one is not always the right one.
+
+**Damage a later artefact.** Aim at the built output rather than the source, so
+the build stamp stays consistent and the guard stays quiet. Instant, and it works
+for checks that read `public/` directly. It also tests the check against a tree
+the build could never produce, so it proves the assertion bites and says nothing
+about whether the generator can emit that state.
+
+**Rebuild between damage and assertion.** Set `rebuild` on the check and the tool
+runs it after each damage and again after each restore. This is the faithful
+version — the fault travels the path a reader's page travels — and it costs a
+full build per damage, plus whatever the build needs in front of it on `PATH`. It
+also fails honestly: a damage that crashes the generator reports `ERROR`, which
+is information, not noise.
+
+### Why MASKED is not DEAD
+
+DEAD is an accusation against a check: it was shown the fault it exists to catch
+and stayed green. MASKED is a report on your own experiment: the check was never
+shown anything, because something upstream answered first. Folding the two
+together files a defect against working code, and the person who investigates
+will find the check is fine, conclude the audit is unreliable, and stop believing
+the DEAD verdicts that are real. A verdict vocabulary earns its authority by
+refusing to say more than the evidence carries.
+
+### It is not only staleness guards
+
+Any ordered check where an early assertion aborts or dominates does this. A gate
+that exits on first failure. A `beforeAll` that throws. A schema validation ahead
+of the semantic pass. A linter that stops at a parse error. Build staleness is
+merely the most common instance, because stamping a build is a common thing to
+do. The rule is general: **when a check runs assertions in order, a red tells you
+only that something fired — name the one you meant.**
+
+---
+
+## When the check cannot fail at all
+
+Worse than a masked check, and it looks identical to a clean bill of health.
+
+`python3 scripts/gate.py` was audited as a check. That file has no `__main__`: the
+command is silent, exits 0, and does nothing. It therefore survived every damage
+ever aimed at it and was reported `UNPROVEN` — a verdict which reads as "nobody
+has aimed a real damage at this yet" and in fact meant "this command runs no
+code". The finding was published before anyone noticed. `gate.py` runs only via
+`check.py`, which does `import gate; gate.run(pages, fail, warn)`.
+
+The guard is one line of config. `probe` damages the *checker's own source* and
+requires the run to go red:
+
+```json
+"probe": { "target": "scripts/gate.py", "find": "def run(", "replace": "def run_NOT_CALLED(" }
+```
+
+If the check stays green while its own implementation is broken, the command
+never reached it, and the tool reports `NOT_EXERCISED` and produces no other
+verdict — because no other verdict would mean anything. Set a probe on every
+check whose command is not obviously the thing that runs the code: a wrapper
+script, a make target, a test runner with its own discovery, anything where the
+path from command to assertion is longer than one file.
+
+The general rule, and it is the same one twice: **before believing what an
+experiment says about its subject, prove the experiment touched the subject.**
+

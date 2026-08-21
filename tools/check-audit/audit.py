@@ -156,6 +156,9 @@ STALE = "STALE"            # a planned damage's `find` is no longer in the file.
 MASKED = "MASKED"          # the damaged run went red, but never on the assertion aimed
                            # at — an upstream guard fired first and hid it. Not a
                            # verdict on the check; a verdict on the experiment.
+NOT_EXERCISED = "NOT_EXERCISED"  # the command does not run the code it claims to check.
+                           # Every other verdict for it would be meaningless, so none
+                           # is produced.
 ERROR = "ERROR"
 
 
@@ -316,6 +319,41 @@ def audit_check(check: dict, tree: Tree, timeout: int) -> Result:
         return result
 
     # (path, label, make, expect_failure)
+    # Does this command run the code it claims to check?
+    #
+    # `python3 scripts/gate.py` looked like it audited gate.py. That file has no
+    # `__main__`, so the command was silent, exited 0, and survived every damage
+    # ever aimed at it — which reads as UNPROVEN and is in fact NOTHING. A check
+    # that cannot fail is not a check, and a verdict about it is not a finding.
+    #
+    # `probe` damages the checker's OWN source. If the run stays green, the
+    # command never reached that code and every other verdict here would be
+    # noise, so none is produced.
+    probe = check.get("probe")
+    if probe:
+        probe_path = (tree.root / probe["target"]).resolve()
+        original = probe_path.read_text(encoding="utf-8")
+        if probe["find"] not in original:
+            result.verdict = STALE
+            result.detail = f"probe pattern absent from {probe['target']}"
+            return result
+        tree.damage(probe_path, original.replace(probe["find"], probe["replace"], 1))
+        try:
+            rebuild(check, tree.root, timeout)
+            probe_passed, _ = run_command(check, tree.root, timeout)
+        finally:
+            if not tree.restore():
+                raise RuntimeError("could not restore the tree after the probe")
+            rebuild(check, tree.root, timeout)
+        if probe_passed:
+            result.verdict = NOT_EXERCISED
+            result.detail = (
+                f"damaging {probe['target']} changed nothing — this command does not run it. "
+                "Fix the command before trusting any verdict about this check."
+            )
+            return result
+        result.log.append(f"probe: {probe['target']} damaged -> check went red (it is exercised)")
+
     damages: list[tuple[Path, str, Callable[[str], "str | None"], "str | None"]] = []
     if planned:
         for spec in planned:
@@ -485,7 +523,7 @@ def main() -> int:
             return 2
 
     tally = {v: sum(1 for r in results if r.verdict == v) for v in
-             (ALIVE, UNPROVEN, DEAD, MASKED, NO_SUBJECT, STALE, ERROR)}
+             (ALIVE, UNPROVEN, DEAD, MASKED, NOT_EXERCISED, NO_SUBJECT, STALE, ERROR)}
     print("\n-- results --")
     print(f"  examined      {len(results)}")
     for verdict, count in tally.items():
@@ -493,7 +531,7 @@ def main() -> int:
             print(f"  {verdict.lower():<13} {count}")
 
     for res in results:
-        if res.verdict in (DEAD, UNPROVEN, MASKED, NO_SUBJECT, STALE, ERROR):
+        if res.verdict in (DEAD, UNPROVEN, MASKED, NOT_EXERCISED, NO_SUBJECT, STALE, ERROR):
             print(f"\n  {res.verdict}  {res.name}")
             if res.detail:
                 print(f"      {res.detail}")
@@ -508,8 +546,9 @@ def main() -> int:
     if not results:
         print("\nZERO EXAMINED — that is a failure.")
         return 2
-    if tally[DEAD] or tally[ERROR]:
-        print(f"\nAUDIT FAILED — {tally[DEAD]} dead, {tally[ERROR]} unrunnable.")
+    if tally[DEAD] or tally[ERROR] or tally[NOT_EXERCISED]:
+        print(f"\nAUDIT FAILED — {tally[DEAD]} dead, {tally[ERROR]} unrunnable, "
+              f"{tally[NOT_EXERCISED]} not exercised by their own command.")
         return 1
     incomplete = tally[UNPROVEN] + tally[NO_SUBJECT] + tally[STALE] + tally[MASKED]
     if incomplete:
