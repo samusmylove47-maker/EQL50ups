@@ -56,6 +56,13 @@ jobs:
       - name: Payload gate
         run: node pipeline/verify.mjs
 
+      # The sourcing standard says it governs every number the planner puts on
+      # screen. This is what verifies that it does: it fails on a figure whose
+      # source cannot be named, on a tier-M claim with no capture cited, and on
+      # an input carrying no date at all. Reads the payload; writes nothing.
+      - name: Catalogue audit
+        run: node pipeline/catalogue-audit.mjs
+
       - name: Build
         working-directory: web
         # Pages serves a project site from /<repo>/, so the bundle has to be

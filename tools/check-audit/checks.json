@@ -234,6 +234,44 @@
           "replace": "const merged = prior.length ? items : items;"
         }
       ]
+    },
+    {
+      "name": "catalogue audit: a number on screen with no provenance",
+      "_": "Aimed at a SHARD, and it nulls the value rather than removing the key. Both matter: the merge is index-then-shards so an index-only edit is overwritten, and `{...index, ...shard}` only overwrites keys the shard still has \u2014 so DELETING `sd` from the shard leaves the index's copy standing and the audit is right to pass. Two false DEADs before the damage actually reached the value.",
+      "command": [
+        "node",
+        "pipeline/catalogue-audit.mjs"
+      ],
+      "subjects": [
+        "web/public/data/items/HEAD.json"
+      ],
+      "expect_failure": "states where the number came from",
+      "damages": [
+        {
+          "label": "one record's stat standing goes null",
+          "find": "\"sd\":\"tier-2\"",
+          "replace": "\"sd\":null"
+        }
+      ]
+    },
+    {
+      "name": "catalogue audit: an input with no date at all",
+      "_": "Rule 6. The date is derived from git rather than typed, so the damage points the input at a path git has never seen.",
+      "command": [
+        "node",
+        "pipeline/catalogue-audit.mjs"
+      ],
+      "subjects": [
+        "web/public/data/meta.json"
+      ],
+      "expect_failure": "rule 6",
+      "damages": [
+        {
+          "label": "an input git cannot date",
+          "find": "research/data/jmoyers-items.json",
+          "replace": "research/data/no-such-input.json"
+        }
+      ]
     }
   ]
 }
