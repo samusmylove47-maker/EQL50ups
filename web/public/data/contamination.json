@@ -1,7 +1,7 @@
 {
   "v": 1,
   "generator": "pipeline/contamination.mjs",
-  "scannedAt": "2026-08-20T19:12:01.151Z",
+  "scannedAt": "2026-08-21T05:19:06.487Z",
   "builtAt": "2026-08-18T09:28:19.029Z",
   "principle": {
     "hit": "A hit is a question, not a verdict.",
@@ -16,7 +16,7 @@
     "indexCount": 3663,
     "catalogFiles": 21,
     "sourceFiles": 84,
-    "sourceLines": 31649,
+    "sourceLines": 31670,
     "excluded": "Test files are excluded from the source corpus: a test is not a surface, and counting its fixtures would pad this report with hits nobody can see. pipeline/quarantine.json is excluded too — the 7,599 items it holds are the ones we refused to ship, and scanning them would measure the wiki rather than us."
   },
   "headline": {

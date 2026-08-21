@@ -37,26 +37,47 @@
  * make this the odd one out among tools, which is the opposite of the seam the
  * chrome work closed.
  *
- * **Costed rather than asserted**, and the cost is not the tokens:
+ * **Re-costed 2026-08-20** after eqlsource built the per-element, per-ground
+ * contrast prover this note originally said we lacked. The decision is
+ * unchanged; one of its two reasons is not.
  *
- *   49 of the 95 custom properties here are colours       (grep -cE '^\\s*--[a-z0-9-]+:\\s*(#|rgba?\\(|color-mix)')
- *   0  colour literals in any declaration outside this file — the extraction is
- *      already complete across 12 stylesheets, so a second palette is additive
- *   3  test files assert literal colours
- *   4  carry contrast or compositing walks, and those are the expensive half:
- *      `visual-system.spec.ts`'s AA walk alone is 18.8s, the second-slowest
- *      check in the suite, and every one of them would have to run twice
+ * **The reason that is retired.** This note used to lean on "a theme I cannot
+ * prove is AA on every screen in both modes publishes a contrast failure
+ * quietly". That has weakened, and it should be said rather than quietly kept.
+ * Checked this repository's own AA walk against the four lessons that came out
+ * of building theirs:
  *
- * So the tokens are an afternoon and the *verification* is the real bill —
- * which is the same conclusion Session A reached for the site's imported tools.
- * A theme this repository cannot prove is AA on every screen in both modes is a
- * theme that publishes a contrast failure, and `SOURCING-STANDARD.md` rule 5
- * says uncertainty goes on screen rather than shipping quietly.
+ *   1. composite the alpha                already done, including the whole
+ *                                         ancestor `opacity` chain
+ *   2. an image over an opaque colour has
+ *      a ground, over transparent none    does not arise — 0 `background-image`
+ *                                         or gradient declarations in any of the
+ *                                         13 stylesheets here, measured
+ *   3. zero examined is a failure         already done, and reached
+ *                                         independently: `seen > 20` per screen
+ *                                         at both widths
+ *   4. the ground must be set BEFORE the
+ *      document exists                    the one real gap, and it only exists
+ *                                         in a world where we theme. Now known
+ *                                         rather than paid for.
  *
- * **The door is open and costs nothing to leave open.** Because the extraction
- * is done, adopting a light theme later is a second `:root` block plus the
- * verification above — never a refactor. Nobody needs to prepare for it, and
- * nobody should "finish" it here.
+ * So the instrument risk has genuinely dropped. What has not:
+ *
+ *   49 of 95 custom properties are colours and need a second verified palette
+ *   20.0s of contrast walking across two checks — `visual-system.spec.ts` 18.6s
+ *      and `planar.spec.ts` 1.4s — every second of which doubles
+ *    3 test files assert literal colours and become theme-parameterised
+ *      the focus-ring checks read DRAWN PIXELS, so they need both grounds too
+ *
+ * **The reason that carries the decision now**, and always did:
+ *
+ *  - eqlsource keeps its own imported tools dark and says so where a reader
+ *    meets them. A dark tool is the site's published convention, so following
+ *    the theme would make this the odd one out *among tools* — the opposite of
+ *    the seam the chrome work closed.
+ *  - This is a working surface kept open beside a fullscreen game client,
+ *    usually at night. That argument is about use rather than branding and does
+ *    not move when the verification cost does.
  *
  * What the site's theme landing *does* change is `site-foot-drift.test.ts`,
  * which will go red when the served chrome changes. That is the check working:
