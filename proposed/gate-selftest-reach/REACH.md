@@ -81,8 +81,27 @@ the patch.
 |---|---|
 | today | 23/42 — 54.8% |
 | after the `failures()` patch alone | 23/42 — **unchanged** |
-| after the patch **and** 7 warn cases | 30/42 — 71.4% |
-| after cases for all 19 gaps | 42/42 — 100% |
+| after the patch **and** every warn case that can be written | 28/42 — 66.7% |
+| after cases for all 17 reachable gaps | 40/42 — 95.2% |
+
+**Two of the seven warns cannot be proven at all, and that is a finding rather
+than a gap in the cases.** Both were checked here rather than reasoned about:
+
+- `gate.py:859` — *assets/index-data.json is missing*. `gate.py:245`, the second
+  statement of `run()` and 611 lines earlier, does
+  `IX = json.load(open("assets/index-data.json"))` with no `try`. Remove the file
+  and `run()` raises there; `check.py` catches it and prints *the propagation
+  gate did not run*. Malform it and `json.load` raises `ValueError`, which the
+  guard at 856 would not catch either — it is `except OSError`. Line 859 cannot
+  execute under any damage to that file.
+- `gate.py:904` — *public/assets/site.css is missing*. `check.py:135` reads that
+  file at **module scope, unindented, with no `try`**, 366 lines before
+  `import gate`. Absent, `check.py` dies before the gate is imported: no `FAIL`,
+  no `WARN`, and a case written for it would report `MISSED` — which reads as
+  "the check is dead" when the truth is that the harness never got that far.
+
+Each is one small change away from being reachable, and the proposal names which
+change. Neither is fixed by the `failures()` patch.
 
 **And the severity filter is only 7 of the 19 gaps.** Twelve `fail` assertions
 are unreached as well, and the patch does nothing for those — they simply have no
