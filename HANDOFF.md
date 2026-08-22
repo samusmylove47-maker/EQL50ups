@@ -137,6 +137,15 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   the tool: a superstring replacement, a first-occurrence replacement, a damage that broke
   the build, and a damage judged on the wrong channel. Budget for the damages.
 
+### The row says where its number came from
+
+- **The Upgrades row carries the stat standing, not only the existence mark.** It named
+  the sighting count and said nothing about where the EP came from — two independent facts,
+  one of them missing, on the screen whose whole output is that number. Rule 5. Band and
+  wording come from the shared `sourceStanding`; tier-5 tints, tier-2 does not, because
+  2,045 of 2,176 records that print numbers are tier-2 and a colour every row shares is a
+  wash. *(2026-08-22, found while designing the band image.)*
+
 ### Environment
 
 - **A test that fetches must opt out of `jsdom`, or it is not fetching.** jsdom supplies
@@ -223,172 +232,125 @@ the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
-### Order 1 — gate.py is not dead. It is the most thoroughly proven check in either repository
+### Order 1 — reach is 23 of 42, and the number changes the plan
 
-**36 damages aimed at gate.py, 36 killed.** Every one carried a probe first, and the probe
-fired on every one, so `check.py` demonstrably reaches `gate.run`. Full run: 42 examined,
-40 ALIVE, 1 DEAD, 1 MASKED.
-
-**But the UNPROVEN I sent you was not a finding at all, and that is the important part.**
-`gate.py` has **no `__main__`**. `python3 scripts/gate.py` is silent and exits 0 — it runs
-nothing. It executes only through `check.py:501`, `import gate; gate.run(pages, fail,
-warn)`. My command exercised no code, so of course every operator survived. I published a
-verdict about a no-op.
-
-The tool now damages a checker's own source *before* auditing it and refuses to produce any
-verdict if the check stays green — `NOT_EXERCISED`. The rule underneath is the same one
-twice: before believing what an experiment says about its subject, prove the experiment
-touched the subject.
-
-**The one DEAD in that set was mine too, and it is a fourth class.** `gate.py:485` is a
-`warn(...)`. `check.py` prints the message and still exits 0, so judging on the exit code I
-called a live assertion dead:
+Measured, not counted. `check.py` passes its own `fail`/`warn` into `gate.run`, so wrapping
+those and recording the **caller's line inside gate.py** says exactly which assertions
+fired. Denominator parsed from gate.py's AST — grep counts the string, the parse counts the
+call. Runs on a copy; that tree is never written to. The meter ships with the number:
+`proposed/gate-selftest-reach/measure-reach.py`.
 
 ```
-  WARN  public/dungeons/najena.html: no roster row found for withheld mob 'Rathyl' — cannot verify
-  check.py exit 0
+gate.py assertion call sites : 42   (35 fail, 7 warn)   your counts, exact
+cases run                    : 31   (29 CASES + 2 SPECIAL)
+REACHED                      : 23   (23 fail, 0 warn)
+NOT reached                  : 19   (12 fail, 7 warn)
+reach                        : 23/42 = 54.8%
 ```
 
-**That blind spot is yours as well.** `gate_selftest.py:82` returns
-`[... for l in out.splitlines() if l.strip().startswith("FAIL")]` — it cannot prove a
-warn-only assertion either. Same fault, different language, reached independently. Worth
-counting how many of gate.py's assertions are warns before trusting that harness's coverage.
+**Fixing `failures()` raises reach by zero.** Reach measures what fires, and no case makes
+a warn fire. The patch changes what is *possible*; every point of gain comes from the new
+cases.
 
-### Two things in gate.py no damage can reach — dead weight, not dead checks
+**The severity filter is 7 of the 19 gaps.** Twelve `fail` assertions are unreached too and
+the patch does nothing for them — including `L908`/`L939`, the `:root` and daylight token
+blocks, which is the theme work in flight, and `L771`/`L774` on the TOOLS registry.
 
-- **`truth["tools listed"]` is computed and never consumed.** `gate.py:265-271` imports
-  `_partials.TOOLS` and stores `len(_T)`; no regex in the file reads that key. The comment
-  at 289-295 records the "N trackers" rule being withdrawn — the truth entry stayed behind.
-- **The home page hero-sig is outside check 1's reach.** `public/index.html:90` prints
-  `<span>435 items indexed</span><span>232 named recorded</span>`, but `LABELLED` requires
-  the adjacency `N items, N named` and `SINGLE` covers only zones. Typing `436` there is
-  caught by nothing.
+**A fairness measurement, because I would otherwise have misjudged the 31 cases.** 23 fire
+a gate.py assertion; **8 fire none** — those cover `check.py`'s own assertions, a different
+surface. Counting them as gaps would have been wrong.
 
-### Order 2 — you were right, and my report was wrong
+**Two corrections to your brief, both small.** The filter is `gate_selftest.py:82` (76 is
+the `def`, 77–81 the docstring). And "19 cases" is stale rather than wrong: `main` has
+17 + 2 = 19, this branch has 29 + 2 = **31**.
 
-`/usr/bin/python3.12` (3.12.3) and `3.13` (3.13.12) are installed. Behind a
-`python3 → python3.12` shim, `build.sh` runs green end to end. I described a PATH default
-as a limit without checking for another interpreter.
+### And a correction to myself, which I published before checking
 
-Both previously-masked checks now run, and both are **ALIVE**. The auditor gained a
-`rebuild` that runs after the damage *and again after the restore* — the second half is
-the part I nearly missed: restoring a damaged source is not enough when derived files were
-written from it.
+I told you the patch plus seven warn cases reaches **30/42 = 71.4%**. It does not. **Two of
+the seven warns cannot be proven at all**, so the ceiling is **28/42 = 66.7%**, and full
+coverage of what is reachable is 40/42 rather than 42/42. Both verified here:
 
-The other known-dead check is still MASKED, and it does not matter: the grep settles it
-independently. `check.py:88`'s regex matches **0 of 715** pages on `55832900` and **0 of
-723** on main. It is unreached, not broken, and no mutation can prove that.
+- **`gate.py:859`** — *index-data.json is missing*. `gate.py:245`, the second statement of
+  `run()` and 611 lines earlier, does `IX = json.load(open(...))` with **no `try`**. Remove
+  the file and `run()` raises there. Malform it and `json.load` raises `ValueError`, which
+  the guard at 856 would not catch either — it is `except OSError`. Line 859 cannot execute
+  under any damage to that file.
+- **`gate.py:904`** — *site.css is missing*. `check.py:135` reads it at **module scope,
+  unindented, no `try`**, 366 lines before `import gate`. Absent, `check.py` dies before the
+  gate is imported: no FAIL, no WARN, and a case written for it reports `MISSED` — which
+  reads as "the check is dead" when the harness never got that far.
 
-**On the line number: we are both right.** Root-`index.html` guard is `check.py:116` at
-`2aeac48b`, `check.py:139` on `55832900`. Same defect, different commits. I have re-pinned
-the config to the branch, because `gate.py` is 431 lines on main and 945 there — auditing
-main would have audited a file about to be replaced.
+Each is one small change from reachable, and the proposal names which. Neither is fixed by
+the `failures()` patch. **The proposal declares them un-constructible rather than inventing
+damages for them**, which is the standard I would want applied to my own work.
 
-### Two defects found by accident, for Session A
+The patch, the five constructible cases and the two refusals are in
+`proposed/gate-selftest-reach/PATCH-AND-CASES.md`. It also notes that **`check.py` has nine
+`warn(` call sites of its own** which the same mechanism would make testable — the one at
+621, *node is not on PATH*, being the only thing between "the tools were smoke-tested" and
+"they were not and nobody said so."
 
-A no-op `./build.sh` on a clean checkout dirties two files, every time:
+### Order 3 — the band image, and a gap it found in the product
 
-- **`state/last-build.json`** — committed with CRLF, the build writes LF. Byte-identical
-  content, permanently dirty.
-- **`public/learn/contamination.html`** — the published page reads
-  `Found in: sky.json, index-data.json, lowerguk.html`; a fresh build here produces
-  `source\lowerguk.html`.
+**My own proposal to you described a screen we do not draw.** I proposed "the ranked upgrade
+list with its per-row source badges". `sourceStanding` was imported by `ItemWindow`,
+`PlanarGear` and `Sources` — **not by `Upgrades`**. There was no per-row stat-standing
+badge. That is the fault this project keeps catching in other people's work, committed in a
+proposal for the band that leads the site.
 
-Cause: **`_build/build26.py:72`** calls `os.path.basename(p)` on a path containing
-backslashes. On Linux that is a no-op, so a Windows path fragment reaches the reader — on
-the page whose entire job is honest self-audit. `posixpath.basename('source\\x.html')`
-returns the whole string; `ntpath.basename` returns `x.html`. Their own
-`scripts/contamination.py:164` already does the normalisation (`path.replace(os.sep, '/')`)
-that build26 skips.
+The gap was real, older than the image, and independent of it: the row named the item's
+*existence* evidence and said nothing about where its *stats* came from. Rule 5 says a
+reader looking at a number is entitled to know, and the EP is the number that screen exists
+to give. **The chip now ships.** Band and wording from the shared `sourceStanding`, so the
+row cannot say something the item window does not; tier-5 tints and tier-2 does not, because
+2,045 of the 2,176 records that print numbers are tier-2 and a colour every row shares is a
+wash — the same argument the paper doll's tint already settled. Three tests pin it.
 
-Both symptoms say the committed output was built on Windows. The consequence: `git status`
-after a build is never clean there, so "the tree is clean" cannot be used as a signal.
+**On the constraint you asked me to answer plainly: do not ship a PNG.** A raster carrying
+`+53.5 EP` is a typed number in a picture, and it is the one artefact `gate.py`, `verify.mjs`
+and the catalogue audit are all blind to. The recommendation is **inline SVG generated at
+build time from the payload, through the app's own engine** — every figure stays a `<text>`
+node our checks can read, and a vitest recomputes the rows and compares. It must be inlined
+rather than `<img src>`, or the self-hosted faces do not load.
 
-### Order 3 — the method note, and two more beside it
+Rejected, with reasons: PNG plus a sidecar JSON (nothing ties the sidecar to the pixels, and
+CI cannot re-render); shape without figures (cheapest and never stale, but the band's whole
+claim is that a *sourced number* reaches the screen).
 
-`tools/check-audit/README.md` now carries three sections: the check that goes red for the
-wrong reason (MASKED), the check that cannot fail at all (NOT_EXERCISED), and the check
-that reports instead of failing (`failure_signal`). Each ends on the same rule.
+That is why this is a recipe and not an asset: shooting the PNG would have been producing
+the wrong artefact carefully. Full recipe — slot, four named candidates, frame order,
+354px/44px geometry, crop rules, and what it must not show — in
+`proposed/band-image/RECIPE.md`.
 
-**The honest headline of this week: four of my wrong verdicts came from the damage, not
-the tool.** A superstring replacement, a first-occurrence replacement, a damage that
-crashed the generator, and a damage judged on the wrong channel. The runner ported to a
-Python static-site generator without a line changed. **The damages did not travel at all.**
-That is the portability boundary, and it is where the budget goes.
+### Order 2 — three questions, 377 lines to 200
 
-### The consultation — the boast is right, its wording is not
+  Q1  the CODE                        permissive / AGPL / nothing
+  Q2  the data that is OURS           CC BY / CC0 / no
+  Q3  how "not ours" is communicated  machine-readable / prose only / withhold
 
-**Lead with 7,599.** `counts.purge.quarantined` 7,599 against `counts.purge.before` 11,252
-= **67.5%**, computed. It is the only figure in the payload that reports a *decision*
-rather than an inventory. "3,663 items" is a number every planner has; "we deleted 7,599"
-is one only a project with a sourcing standard can produce, and it explains why the shipped
-list is short instead of apologising for it.
+Each option carries what follows from it in two lines. The compilation-and-database-right
+discussion is gone rather than shortened, because it required the owner to be a lawyer.
+Three buckets do the work: OURS, WIKI-DERIVED (not ours at any price), CLIENT-MINED. The
+old fourth stratum — eqlsource's own datasets, already licensed to us on stated terms — is
+settled rather than a decision, so it is now the appendix's precedent.
 
-**Your caveat/boast distinction is right.** The recorded rule keeps the caveat out of the
-band; 7,599 points the other way and belongs in it.
+The silence is stated once, above the questions: eqlwiki publishes no terms, which is
+neither permissive nor forbidden, and re-asserting a licence over wiki-derived material
+stays off the table, CC0 included.
 
-**But "every survivor carries a source tier" is false, and must not ship.** `counts.standing`
-reads tier-2 2,045, tier-5 126, tier-M 5, **unattributed 1,487** — summing to 3,663. So
-40.6% of survivors carry no tier at all, and `sourceStanding.stats.vocabulary` gives
-`unattributed` `tier: null`. The true and still-strong form:
-
-> **every survivor that prints a number names its tier** — 2,176 records, none of them
-> silent.
-
-Printing the stronger sentence would be the exact fault `CLAUDE.md` §7 names, on the band
-that leads the site.
-
-**One more wording trap.** Do not write "7,599 items that aren't in this game". **2,230** of
-them (`quarantineReasons`, "no era in any source") were quarantined as *unconfirmed*, not
-as proven foreign; **5,369** carry an explicit non-Legends era or flag. Nine words fixes it.
-
-**Proposed copy.**
-
-> **Eyebrow** — Live now · no account, no server
->
-> **Lede** — The wiki this catalogue was scraped from holds 11,252 items. 7,599 of them
-> belong to expansions EverQuest Legends does not have, or carry no era placing them in any
-> game at all — every one quarantined by name, none of them shipped. 3,653 survived. The
-> planner carries 3,663: the extra ten are items seen in the live game that no catalogue
-> anywhere lists.
->
-> **Body** — Pick a trio and a race, fill twenty-three slots, and compare what each
-> candidate does to the character rather than to the item beside it. Every item upgrades
-> from +0 to +10 and the stat sheet recomputes as you touch it. Eligibility is the union of
-> your three classes, so a paladin in the mix opens plate for everyone, and points past a
-> cap score nothing.
->
-> Every row that prints a number names where that number came from — structured wiki data,
-> wiki data with no era to place it, or a stat block read off the live client window. Five
-> have been read off the client. Sets live in this browser and travel as a link.
->
-> **Doors** — `Open the planner →` · `What survived the purge, and what didn't →`
-
-Keep the mechanics paragraph: the band is a door, and a reader still needs to know what
-opens.
-
-**Image: yes — the ranked upgrade list with its per-row source badges.** One slot's
-candidates, the delta column visible, at least one `Tier M · measured` row and one tier-5
-row in the distrust colour. It is the only surface that shows the ranking *and* the
-provenance in a single frame, so the picture argues what the copy argues. Not the equipment
-map: more distinctive to a player who has just alt-tabbed out, but at band size it reads as
-every planner's paper doll and says nothing about sourcing.
-
-**One number trap for the building session.** The band currently interpolates
-`counts.withStats` = **1,713**, while the sourcing accounting counts **2,176** records
-printing numbers. Different quantities, like `slots.types` 18 against
-`slots.positions.total` 23. Do not put both in one band.
-
-**Where I disagree with you on length.** 766 against 2,271 characters is a real signal, but
-it is a symptom. Padding to parity would spend the band's one virtue. The copy above is
-longer only where it adds a claim.
+**Two stale figures dropped rather than carried.** The old draft's 31,240 and 6,079 line
+counts do not reproduce; measured today, 84 non-test files / **31,586** lines under
+`web/src` and **6,453** lines of `pipeline/*.mjs`. The scrape-intersection figures would
+need re-indexing four raw scrapes, which was not run, so the appendix says they were not
+recomputed instead of restating them. Zero tracked `LICENSE`, `COPYING` or `NOTICE`,
+confirmed with `git ls-files`.
 
 ### State
 
-Their tree restored after every damage — `git status` there is **0**. Nothing was written
-into it. `tsc` clean · vitest **907 / 60 files** · playwright **150** · `verify.mjs`
-**PASSED**, Tier 0 100.0% · catalogue audit **PASSED** · this repo's check audit
-**13/13 alive**. Catalogue frozen at 3,663 across every push.
+`tsc` clean · vitest **910 / 60 files** · playwright **150** · `verify.mjs` **PASSED**,
+Tier 0 100.0% · catalogue audit **PASSED** · catalogue frozen, **0 files** across every
+push. `eql-source` restored after every damage — `git status` there is **0**, and nothing
+was written into it.
 
 Still parked, not started: `upgrades.eqlsource.com` and its `VITE_BASE` change; the
 `=50Upgrades` mark, slot left, nothing drawn.
