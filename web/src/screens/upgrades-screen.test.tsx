@@ -40,6 +40,8 @@ const SOURCED: Item = {
   fl: ['FIXTURE', 'NO_DROP'],
   av: true,
   era: 'Classic',
+  // Wiki numbers with no era to place them — the standing the row must call out.
+  sd: 'tier-5',
   src: { z: ['Lower Guk'], m: ['a ghoul cavalier'], q: ['The Harvester'] },
 };
 
@@ -59,6 +61,7 @@ const MEASURED: Item = {
   fl: ['FIXTURE'],
   av: true,
   era: 'Classic',
+  sd: 'tier-2',
   ex: 'measured-drop',
   src: { z: ['Nagafen\u2019s Lair'], m: ['a fire giant'] },
   ms: [
@@ -516,5 +519,61 @@ describe('the persisted library arrives after the first paint', () => {
 
     expect(text(), 'the empty state is gone').not.toContain('No set to rank');
     expect(rows().length, 'the ranking painted rows after hydration').toBeGreaterThan(0);
+  });
+});
+
+
+/*
+ * Where the EP came from, on the row that prints it.
+ *
+ * The sub-line carried the item's existence evidence and nothing about its stat
+ * provenance. `SOURCING-STANDARD.md` rule 5 puts that on screen, and the EP is
+ * the number this screen exists to give — so the row that prints it is where it
+ * belongs. Existence and stat standing are two independent facts; this pins the
+ * second, and pins that the first is still there beside it.
+ */
+describe('every ranked row says where its EP came from', () => {
+  it('names the stat standing on the row, not only in the item window', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const marks = rows().map((row) => row.querySelector('.upg-standing')?.textContent?.trim());
+    expect(marks.length, 'ranked rows').toBeGreaterThan(0);
+    expect(
+      marks.every(Boolean),
+      'a ranked row prints an EP, so it must name where that EP came from',
+    ).toBe(true);
+  });
+
+  it('marks wiki stats that cannot be placed, and does not tint the ordinary case', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const find = (name: string) =>
+      rows()
+        .find((row) => (row.textContent ?? '').includes(name))
+        ?.querySelector('.upg-standing');
+
+    const unplaced = find('[Fixture] Girdle of the Deep');
+    expect(unplaced?.textContent).toContain('Tier 5');
+    expect(unplaced?.getAttribute('data-band'), 'unplaced wiki stats read as distrust')
+      .toBe('distrust');
+
+    const ordinary = find('[Fixture] Throwing Boulder');
+    expect(ordinary?.textContent).toContain('Tier 2');
+    expect(
+      ordinary?.getAttribute('data-band'),
+      'the 94% case must not be tinted — a colour every row shares is a wash',
+    ).toBe('trusted');
+  });
+
+  it('leaves the existence mark alone — the two facts stay separate', async () => {
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const measured = rows().find((row) =>
+      (row.textContent ?? '').includes('[Fixture] Throwing Boulder'));
+    expect(measured?.querySelector('.upg-seenmark')?.textContent).toContain('sighting');
+    expect(measured?.querySelector('.upg-standing')?.textContent).toContain('Tier 2');
   });
 });

@@ -52,7 +52,7 @@ import { SlotGlyph } from '../components/SlotGlyph';
 import { UpgradeStepper } from '../components/UpgradeStepper';
 import { count, dec, ep as epText, finite, num, pluralize, signed } from '../lib/format';
 import { nextFrame } from '../lib/frames';
-import { eraLabel } from '../lib/itemStyle';
+import { eraLabel, sourceStanding } from '../lib/itemStyle';
 import {
   describeActiveFilters, filtersFor, isDefaultFilters, matchesFilters, type SetFilters,
 } from '../lib/setFilters';
@@ -1015,6 +1015,35 @@ function Row({
                 {pluralize(totalSightings(drops), 'sighting')}
               </span>
             ) : null}
+            {/*
+              Where the EP itself came from.
+              
+              `SOURCING-STANDARD.md` rule 5: "a player looking at a number is
+              entitled to know whether it came from the game or from a wiki page
+              of uncertain provenance." The EP *is* the number on this screen —
+              it is the whole answer the row gives — and until now this row
+              named the item's EXISTENCE evidence (the sighting count beside it)
+              and said nothing at all about where its STATS came from. Those are
+              two independent facts, which is the payload's own rule, and only
+              one of them was on the row.
+              
+              Band and wording both come from `sourceStanding`, so this cannot
+              say something the item window does not. The band is what carries
+              colour: tier-2 and tier-M are both `trusted`, tier-5 is
+              `distrust`, and the text is what tells them apart — 94% of a
+              ranked list is tier-2, and a colour every row shares is a wash
+              rather than a signal. That is the same argument the paper doll's
+              tint already settles.
+            */}
+            {(() => {
+              const mark = sourceStanding(candidate.item);
+              return (
+                <span className="upg-standing" data-band={mark.band} title={mark.label}>
+                  {' · '}
+                  {mark.short}
+                </span>
+              );
+            })()}
           </span>
         </div>
 

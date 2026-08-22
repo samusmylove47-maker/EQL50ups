@@ -652,6 +652,32 @@
   cursor: help;
 }
 
+/*
+ * Where the EP came from, on the row that prints it.
+ *
+ * The sub-line already carried the item's EXISTENCE evidence — the sighting
+ * count — and said nothing about its STAT provenance. Two independent facts,
+ * which is the payload's own rule, and only one of them was on the row.
+ *
+ * Colour comes from the shared band, not from a second vocabulary: `tier-2`
+ * and `tier-M` are both `trusted`, `tier-5` is `distrust`, and the WORDS are
+ * what tell them apart. 94% of a ranked list is tier-2 (2,045 of 2,176 records
+ * that print numbers, `counts.standing`), so tinting every row by tier would be
+ * a wash rather than a signal — the same argument the paper doll's own tint
+ * already settles.
+ *
+ * Deliberately quieter than `.upg-seenmark`: the measured mark is the rarer
+ * claim and should stay the thing the eye finds first on this line.
+ */
+.upg-standing {
+  cursor: help;
+  color: var(--text-faint);
+}
+
+.upg-standing[data-band='distrust'] {
+  color: var(--source-distrust-t);
+}
+
 .upg-source-none {
   margin: 0;
   font-size: var(--fs-small);
