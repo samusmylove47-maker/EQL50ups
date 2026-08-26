@@ -232,6 +232,294 @@ the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
+## 26 Aug — you asked if one is sitting unexamined in the planner. Yes. Five.
+
+Ranked by how closely each matches the shape you named: *a number everyone repeated that
+nobody read off the game.* Every figure below was computed here; the command is named beside
+it. Nothing in this section is taken on a subagent's word — where a helper's count and mine
+disagreed, mine is printed and the disagreement is stated at the end.
+
+### 1. Exaltations do not stack — and it is the lockout timer almost exactly
+
+`web/src/engine/exaltation.ts:114-136`. `dedupeByFamily` collapses a set's effects to the
+highest rank in each family, so `Improved Healing I` next to `III` is struck out on screen.
+
+Its entire provenance is one parenthesis, `research/github-data-inventory.md:86`:
+
+> "**Exaltations do not stack** — only the highest rank in a family counts … *(This no-stack
+> claim is sourced to Thiole's reading of the wiki; jmoyers does not restate it.)*"
+
+Three things make this the one I would examine first:
+
+- **It is classic EverQuest's focus-effect rule, down to the family names.** `Improved
+  Damage`, `Mana Preservation`, `Reagent Conservation` are original-EQ focus families, and
+  "same type does not stack, one applies" is original-EQ behaviour. `SOURCING-STANDARD.md`
+  says of that wiki that large parts are *"a Project 1999 import, sometimes word for word."*
+- **The same file that supplies the rule disowns the source.** `github-data-inventory.md:66`
+  ends: *"**Use jmoyers. Do not use Thiole's math.**"* — written after documenting that this
+  author's scaling model was wrong in three ways and had negative stats backwards. We ruled
+  the source unreliable for arithmetic and then took its stacking rule without a word.
+- **Nothing has ever read it off the client.** No capture in `TIER0-VALIDATION.md` shows two
+  same-family effects on one character. It is Tier 5, single-source, uncorroborated.
+
+**And the code contradicts itself on the same rule.** Rank is parsed as a trailing Roman
+numeral (`exaltation.ts:122`). The client prints both notations — `TIER0-VALIDATION.md:143-144`
+shows `Focus Effect: String Resonance 11` beside `Click Effect: Rune IV` — and the payload
+carries 29 arabic-suffixed effect names, 14 of them the bard resonances. Run against the
+shipped regex (`node scratchpad/rank.mjs`):
+
+```
+Improved Healing I/II/III                                -> 1 survivor   (collapsed)
+Wind Resonance 0 / 10 / 11 / 12 / 14                     -> 5 survivors  (five "families")
+```
+
+So the planner strikes out the Roman ranks and keeps five ranks of one bard focus side by
+side — and the bard instrument modifier is the case `TIER0-VALIDATION.md:149` calls *"the
+user's stated requirement."* Whichever way the stacking rule resolves, one of these two
+screens is wrong today.
+
+**What it costs if wrong:** the whole "Effects on this set" panel, every *"does not count"*
+line, and the tab's central advice — spread families rather than double up. That advice
+reverses.
+
+### 2. A rule graded Tier M whose own evidence file holds nine counterexamples
+
+`EXALTATION_LADDER` (`exaltation.ts:32-38`) says sockets are a function of `+N` and nothing
+else — Focus at +1, Click at +2, Worn at +3, Proc at +4. `TIER0-VALIDATION.md` grades it
+**"Sockets are derived from item level — confirmed. Nothing per-item to look up."**
+
+I parsed the raw export against the coded ladder rather than reading the summary
+(`python3` over `research/validation/tier0-inventory-Avenrae.txt`, grouping `<parent>-SlotN`
+rows and filtering sub-slot sets to ⊆ {1,2,7,8,9,10} to exclude bags):
+
+```
+exaltable (+N) items parsed from the export        : 115
+sockets the ladder predicts, absent in the export  :   9
+sockets present EARLIER than the ladder predicts   :   0
+
+  +4  no Slot8   Chipped Bone Rod +4        shows [7, 9, 10]
+  +5  no Slot8   Nightmare Hide +5          shows [7, 9, 10]
+  +5  no Slot8   Wand of Allure +5          shows [7, 9, 10]
+  +2  no Slot8   Wand of Conflagration +2   shows [7]
+  +4  no Slot8   Wand of Darkness +4        shows [7, 9, 10]
+  +5  no Slot8   Wand of Lava +5            shows [7, 9, 10]
+  +4  no Slot8   Wand of Souls +4           shows [7, 9, 10]
+  +4  no Slot8   Wand of Swiftness +4       shows [7, 9, 10]   (x2)
+```
+
+Nine items, all wands and rods, all missing the **Click** socket at a tier that predicts it.
+Zero counterexamples in the other direction, so the ladder is a solid *floor* — it is the
+"and nothing else" half that the evidence does not carry.
+
+**A correction, against my own interest:** the player's ruling at `TIER0-VALIDATION.md:152-157`
+— *"do not model this … makes no claim about exact per-item socket counts"* — does cover the
+modelling decision. So this is not an un-taken ruling. What it does not cover is the grade:
+the file still prints **confirmed** two pages earlier, and `exaltation.ts:25-26` still says
+*"confirmed against … sub-slot numbering in an inventory export"* — the same export. The
+defect is that a Tier M grade was awarded without the nine rows being read. That is the
+lockout failure in miniature: the reading existed and nobody finished it.
+
+Also unmeasured: **44 of those 115 items show no ornamentation sub-slot at all**, while the
+ladder gives every item one from +0. `functionalSocketsFor` hides it, so the blast radius is
+small — but it is another row of the same table that the export does not support.
+
+### 3. The haste cap our own source names, that no line of code applies
+
+You already have the haste *stacking* assumption — `stats.ts:81` declares itself, which is
+the standard I would want everywhere. The unexamined one is next to it. `research/eql-itemization.md`:
+
+> **[SINGLE-SOURCE (eqltools/eqlwiki Haste Guide)]** … Total haste capped **~50% below L30,
+> ~75% at L50**; only the highest worn-haste item counts; item/spell/song haste of different
+> types stack …
+
+We took the middle clause and left the first and third. `stats.ts:58` quotes the cap back at
+the reader — *"flat attack-speed values under a level-scaled cap"* — inside a constant whose
+whole job is to say what is unknown. Then nothing caps it: `grep -rn "HASTE_CAP\|hasteCap"
+web/src` returns no cap anywhere, and `withCap` is wired to `ATTRIBUTE_CAP`, `RESIST_CAP`, the
+heroic mods and the skill-damage mods — every capped stat on the client's panel except this one.
+
+Measured over the shipped payload (`node` over `web/public/data/items/*.json`, deduped on
+`(name,id)` to the 3,663 records):
+
+```
+items carrying HASTE : 23   values 9,10,15,16,21,26,31,36,41
+positions            : WAIST 18 · HANDS 2 · PRIMARY 2 · BACK 1
+top haste at +10     : Belt of the Four Winds 41 -> 51, x HASTE 2 = 102.0 EP
+best PRIMARY at +10  : Cudgel of the Fool 1.731 ratio, x RATIO 40 = 69.2 EP
+```
+
+Under the shipped Melee DPS preset a haste belt is the largest single EP any item can earn —
+larger than the best weapon in the game. **And this planner plans trios.** If the cited source
+is right that item, spell and song haste stack toward one ceiling, a trio holding a Bard,
+Shaman or Enchanter is at or near that ceiling before it equips anything, and 23 items are
+ranked at the top of the list for a gain that partly or wholly does not land. The sampled
+character in `TIER0-VALIDATION.md` §6 is Bard/Warrior/Berserker.
+
+The cap's absence is recorded nowhere — not in `KNOWN-DATA-ISSUES.md`, not here, not in a
+comment. It is the only combat stat on the panel with no denominator.
+
+### 4. `ARMOR_TIER` — sixteen hand-typed numbers, no source, refuted by our own catalogue
+
+`web/src/engine/constants.ts:26-35` places `BRD: 3` (chain) and `BER: 4` (plate). Tallying
+plate-named records that carry an explicit class list (n=83, `node` over the payload):
+
+```
+SHD:64  BRD:63  WAR:60  PAL:59  CLR:55  RNG:22  SHM:18  ROG:17  BER:2
+plate-named and BRD-only: 8   (Imbrued Platemail Vambraces / Breastplate / Boots /
+                               Gauntlets / Helm, Lambent Breastplate, …)
+```
+
+Bards appear on more plate-named records than Paladins or Clerics; Berserkers appear on two.
+The table says the reverse of both. And the Tier M export closes it — the character wears
+**Imbrued Platemail Boots**, `cl: ["BRD"]`, plate restricted to Bards alone.
+
+**Blast radius today is zero, and that is the only thing saving it.** `grep -rn
+"armorTier\|ARMOR_TIER" web/src` returns `constants.ts`, `character.ts` and
+`character.test.ts` — no screen, no selector. It is dead code kept alive by its own unit
+tests. It is a trap for two reasons: `character.ts:267` already cites it as precedent to
+justify finding 5 below, so a wrong rule is load-bearing as an *argument*; and it is exported
+beside `ATTRIBUTE_CAP` and `RESIST_CAP`, which are genuinely Tier M, in a neighbourhood that
+lends it credibility it has not earned. My recommendation is to delete it — there is no
+evidence Legends has a proficiency gate separate from the per-item class lists `canUseClass`
+already enforces.
+
+### 5. `levelCheck` takes the highest class level; our research says the effective level is the lowest
+
+`character.ts:261-294` checks an item's requirement against the **highest** qualifying class,
+and its comment derives that from *"the same 'best of the trio' rule armour proficiency
+already follows"* — i.e. from finding 4, which has no source. Meanwhile
+`research/eql-game-systems.md:279`:
+
+> **Confirmed:** your **effective level is the lowest of the three class levels**.
+
+The corpus has a two-part rule — caps take the highest, level runs at the lowest — and the
+engine applied the "highest" half to a level check. Neither branch has been read off the
+client. Original EQ has one level, so this rule was not inherited; it was *invented* to fill a
+hole EQ left, which is the same failure one step removed.
+
+Today it moves **3 rows**: `node` over the payload finds exactly three records carrying `rl` —
+Baton of the Sky (49), Refugee Shroud (15), Azarack Skin Wristwraps (46). `levelCheck` sits
+inside `canUse`, which gates every ranking, auto-fill, the item browser and the planar sets.
+**A patch that populates required levels turns a dormant assumption into a wrong answer on
+every list at once**, which is the property that makes it worth settling before it matters
+rather than after.
+
+---
+
+### Two code defects found on the way — neither is a sourcing question
+
+**(a) `setDiff` credits weapon ratio in slots that cannot swing.** `gear.ts:366` and
+`Upgrades.tsx:337` read `slot === 'PRIMARY' || slot === 'SECONDARY'`, matching
+`computeTotals`. `setDiff.ts:181` and `:363` read `view.position.type !== 'ANY'`, which admits
+all eighteen slot types — RANGE and AMMO included. The doc comment three lines above states
+the correct rule in prose. `gear.ts:355-363` records that this exact bug already shipped once
+and was fixed *on the ranking side only*.
+
+Measured: 94 RANGE and 11 AMMO records carry `wp.dmg` + `wp.dly`. **Throwing Boulder is
+36/35 = 1.029 — a higher ratio than any primary weapon in the game** (best PRIMARY: Cudgel of
+the Fool, 0.865). Under Melee DPS that is **41.1 phantom EP at +0 and 82.3 at +10**, credited
+into the Compare screen's per-slot column and its headline set total, for a contribution the
+stat panel on the same screen refuses to show and the Upgrades screen scores at zero. No test
+covers it — `setDiff.test.ts` mentions neither RANGE nor AMMO.
+
+**(b) `FLAT_KEYS` scales two stats the cited rule table calls unchanged.** `upgrade.ts:1-6`
+says the module is reimplemented from `github-data-inventory.md` §2.1. That table, line 56:
+
+> `| **unchanged** | heroic stats, Attack, Dmg Bon, Backstab, Range, Size, … | untouched |`
+
+`stats.ts:190` puts `'ATTACK'` in `FLAT_KEYS`, and `stats.ts:283-287` runs every skill-damage
+mod through `scaleFlat`. `scaleFlat`'s own docstring still says *"the three regens and worn
+haste"*; the reference implementation we are told to follow agrees —
+`research/mechanics/jmoyers-itemUpgrade.ts:160` has no ATTACK. Measured: **0 items carry
+ATTACK** (inert), **4 carry BACKSTAB**, the largest Serpent's Tooth at 13, which this engine
+prints as **23 at +10** against a Tier M cap of 125. Small today; it will not announce itself
+when `build.mjs` starts picking Attack up from a source, which it already parses.
+
+I have written neither fix. Both are in your gift; (a) is one word with a measured 82.3 EP
+consequence and needs no new source.
+
+---
+
+### The cap-aware claim — and a number of my own I have to withdraw
+
+`ep.ts:5-8` advertises *"Unlike the tool this is modelled on, scoring is **cap-aware**"*, and
+`setDiff.ts:10` calls it *"the one idea that is this product's own."* There is a structural
+mismatch under it, and I read it wrong the first time.
+
+**The mismatch is real and is plain in the code.** `already` reaches the scorer as
+`scoreContextFrom(totalsFor(...))` — `computeTotals`, which sums **gear only**. It is compared
+against `ATTRIBUTE_CAP = 510`, which `constants.ts:88-96` documents as read off the client's
+Stats window (`Strength 304/510`) — a **whole-character** ceiling that includes race and class
+base attributes. Gear-only totals are being measured against a bar that gear alone does not
+have to clear.
+
+**Corrected measurement** (scratch vitest importing the engine's own `resolveItem`, one pass
+per position over all 23 so doubled slots count twice and the two Any Slots take the
+catalogue best; file removed after the run):
+
+```
+ATTRIBUTE_CAP 510 · RESIST_CAP 1000
+  STR  gear-only max 511   REACHES CAP (by 1)
+  WIS  gear-only max 541   REACHES CAP (by 31)
+  DEX  487 · INT 475 · CHA 473 · AGI 453 · STA 442      short by 23-68
+  SV_COLD 682 · DISEASE 661 · FIRE 634 · MAGIC 600 · POISON 585 · VOID 229   cap 1000
+  AC 934 · HP 2670   (no cap is passed to `creditable` for either)
+```
+
+So: the **save** branch cannot fire at all — the best conceivable set reaches 682 of 1000.
+Five of seven attributes cannot reach 510 either. STR and WIS can, but only at an upper bound
+that wears the single best-for-that-stat item in all 23 positions at +10, and STR clears it by
+one point. The honest verdict is not "it never fires" — it is **"it is unreachable for all six
+saves and five of seven attributes, and reachable for the other two only in a corner no real
+set occupies."** The feature the product names as its own idea is, in practice, the haste rule
+plus dead code.
+
+**The withdrawal.** I measured this once before and told myself STR 376 / WIS 405, *nothing
+reaches 510*. That was wrong. It took the best item per **slot type** (18) instead of per
+**position** (23), so it silently dropped the second ear, the second wrist, the second finger
+and both Any Slots — five positions, and the reason the number moved by 135 on STR. The
+direction of the finding survives; the figure did not, and the figure is what I would have
+been quoting. I also flagged a `SAVE_CAP` that resolved `undefined`: there is no such
+constant, saves use `RESIST_CAP`, and the corrected run above uses it.
+
+---
+
+### On the four helpers I sent reading
+
+Read-only, no writes, and I checked every headline before printing it. Their **counts did not
+reproduce**: haste 46 against my 23, secondary weapons 424 against 212, AMMO 22 against 11,
+BACKSTAB 8 against 4 — several of them exactly double. There is a byte-identical second copy
+of the payload at `web/dist/data/items` (gitignored build output, verified identical: 3,663
+records, 23 haste, 94 RANGE-with-`wp` in both), which would double a scan run from the repo
+root — though it does not explain every figure, so I am naming the discrepancy rather than
+diagnosing it. Two substantive claims of theirs I checked and dropped: that `git log -S"RATIO:
+40"` returns one commit (it returns five), and that the player's "do not model this" ruling
+does not cover the nine wands (it covers the modelling; it does not cover the grade). **Every
+number in this report is mine.**
+
+One thing they raised that I am *not* calling a finding: `RATIO` is `40` in Melee DPS
+(`ep.ts:325`), `20` in Balanced (`ep.ts:351`) and `30` in `DEFAULT_IMPORTANCE`
+(`gear.ts:54`) — three values, no citation, and a twelve-line defence of `HASTE: 2` sitting
+directly above the largest of them saying nothing about it. But a weight profile is a
+*preference*, and the app says so (`ep.ts:301`, and every weight is user-editable). I do not
+think preferences are held to the sourcing standard, so I am recording it as a question for
+you rather than as an unexamined game rule.
+
+---
+
+### 22 Aug — orders 1-3, delivered before your 25 Aug message arrived
+
+All three were landed and pushed on 22 Aug, in commits `7d73118`, `9efbd52`, `7c29f90`,
+`6678cbb`, `8221d92`. Nothing was waiting. In one line each, with the detail below:
+
+- **Order 1** — reach measured at **23/42 = 54.8%**, ceiling **28/42 = 66.7%** after I
+  withdrew my own 30/42. Patch, five constructible cases and two written refusals in
+  `proposed/gate-selftest-reach/`; the meter ships with the number.
+- **Order 2** — `research/LICENSING-PROPOSAL.md`, 377 lines to **200**, **three** questions.
+- **Order 3** — `proposed/band-image/RECIPE.md`; **do not ship a PNG**, inline SVG generated
+  at build time from the payload so every figure stays a `<text>` node our checks can read.
+  The stat-standing chip that proposal was missing now ships.
+
 ### Order 1 — reach is 23 of 42, and the number changes the plan
 
 Measured, not counted. `check.py` passes its own `fail`/`warn` into `gate.run`, so wrapping
@@ -347,10 +635,16 @@ confirmed with `git ls-files`.
 
 ### State
 
-`tsc` clean · vitest **910 / 60 files** · playwright **150** · `verify.mjs` **PASSED**,
-Tier 0 100.0% · catalogue audit **PASSED** · catalogue frozen, **0 files** across every
-push. `eql-source` restored after every damage — `git status` there is **0**, and nothing
-was written into it.
+Re-run 26 Aug, after this audit: `tsc` clean · vitest **910 / 60 files** · `verify.mjs`
+**PASSED**, Tier 0 100.0% · catalogue audit **PASSED** · catalogue frozen, `git status
+web/public/data` returns **0 files**. The 26 Aug section changed no code and no payload —
+it is a reading, and the one file it touches is this one. The scratch vitest that produced
+the cap ceilings was deleted after the run.
+
+Previously, 22 Aug: `tsc` clean · vitest **910 / 60 files** · playwright **150** ·
+`verify.mjs` **PASSED**, Tier 0 100.0% · catalogue audit **PASSED** · catalogue frozen,
+**0 files** across every push. `eql-source` restored after every damage — `git status`
+there is **0**, and nothing was written into it.
 
 Still parked, not started: `upgrades.eqlsource.com` and its `VITE_BASE` change; the
 `=50Upgrades` mark, slot left, nothing drawn.
