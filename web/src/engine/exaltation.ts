@@ -112,19 +112,118 @@ export function intersectRestrictions(
 }
 
 /**
- * Focus effects do not stack within a family — only the highest rank counts.
- * Ranks are expressed as Roman numeral suffixes, so "Improved Healing III"
- * supersedes "Improved Healing I".
+ * "Only the highest rank in a family counts; ranks do not add up."
+ *
+ * This app applies that rule — `dedupeByFamily` below, and the "does not count"
+ * lines on the Exaltations tab. It is stated here because **its standing is the
+ * weakest of any rule this engine enforces**, and a Tier 5 rule applied silently
+ * is indistinguishable from a fact.
+ *
+ * Where it comes from, in full. `research/github-data-inventory.md`:
+ *
+ *   "**Exaltations do not stack** — only the highest rank in a family counts …
+ *   *(This no-stack claim is sourced to Thiole's reading of the wiki; jmoyers
+ *   does not restate it.)*"
+ *
+ * Three things about that provenance, none of them comfortable:
+ *
+ * 1. **One community author's reading of a wiki page** — Tier 5 under
+ *    `research/SOURCING-STANDARD.md`, which warns that large parts of that wiki
+ *    are "a Project 1999 import, sometimes word for word". Uncorroborated: the
+ *    second tool covering the same ground does not restate it.
+ * 2. **The same file disowns that author.** `github-data-inventory.md` ends its
+ *    scaling section "**Use jmoyers. Do not use Thiole's math.**", written after
+ *    documenting that this author's model was wrong in three ways and had
+ *    negative stats backwards. We ruled the source unreliable for arithmetic and
+ *    then took its stacking rule without comment.
+ * 3. **It is classic EverQuest's focus-effect rule, down to the family names.**
+ *    `Improved Damage`, `Mana Preservation`, `Reagent Conservation` are original
+ *    -EQ focus families and "same type does not stack, one applies" is original
+ *    -EQ behaviour. That is the shape this repository exists to catch: a rule
+ *    everybody repeats because that is how the old game worked.
+ *
+ * Nothing in this repository has observed it. No capture in
+ * `research/validation/TIER0-VALIDATION.md` shows two same-family effects on one
+ * character. The alternative — letting them stack — is not a neutral fallback
+ * either; it is the other candidate answer, asserted. So the corroborated one is
+ * applied and **marked**, and `research/validation/CAPTURE-REQUESTS.md` §1 names
+ * the single screenshot that would end the argument either way.
+ *
+ * Note also what is applied beyond what is even claimed: the sourced sentence is
+ * about *focus* effects, and `selectors/exaltations.ts` pools all four socket
+ * kinds into one call, so a worn effect and a focus effect of one family compete.
+ * No source says they do. That widening is unsourced on top of a Tier 5 rule and
+ * is not separately marked, because it cannot be settled separately — the same
+ * capture answers both.
  */
+export const EXALTATION_STACKING = {
+  /** Chip text wherever an effect is struck out. */
+  chip: 'Tier 5 rule',
+  rule: 'Only the highest rank in a family counts. Ranks do not add up.',
+  short:
+    'Whether same-family exaltations stack is unsettled. The no-stack rule comes from one community author’s reading of a wiki this project treats as partly a Project 1999 import, is not restated by the second tool covering the same ground, and matches classic EverQuest exactly — which is corroboration by inheritance, not observation.',
+  standing:
+    'Assumed, not measured. Tier 5, single-source, from an author this repository disowns by name for arithmetic, and never observed in the running client.',
+  /** The contamination page's device: name the evidence that would end it. */
+  settle:
+    'Three readings settle it: the Stats window’s Heal Amount with neither Improved Healing socketed, with one, and with both. research/validation/CAPTURE-REQUESTS.md §1 is the instruction, including what it means if the field does not move at all.',
+} as const;
+
 const ROMAN: Record<string, number> = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6 };
 
+/**
+ * A trailing integer that names a *level* is not a rank.
+ *
+ * Two forms occur in the shipped catalog — `Complete Healing as Level 20` (14
+ * names) and `Allure of Death req. level 20` (1) — and in both the number is a
+ * cast or requirement level printed as part of the effect's name. Reading it as
+ * a rank would assert that two clickies of one spell at different cast levels
+ * supersede one another, which nobody has observed and which is not even what
+ * the stacking rule is about. One rule covers both: the word `level` before the
+ * number means the number is a level.
+ *
+ * Measured, not guessed: `node` over `web/public/data/items/*.json` finds 401
+ * distinct effect names, of which exactly these 15 end in an integer preceded by
+ * `level`, and 14 more end in a bare integer — the bard resonances.
+ */
+const LEVEL_SUFFIX = /\blevel\s+\d+$/i;
+
+/**
+ * Split an effect name into its family and its rank.
+ *
+ * **The client prints two rank notations, four lines apart in the one capture we
+ * have** (`research/validation/TIER0-VALIDATION.md:143-144`):
+ *
+ *     Focus Effect: String Resonance 11
+ *     Click Effect: Rune IV (Must Equip)
+ *
+ * This read Roman numerals only, so `Wind Resonance 11` became a family of its
+ * own at rank 1 and the five ranks of one bard focus in the catalog — 0, 10, 11,
+ * 12, 14 — all survived side by side while `Improved Healing I/II/III` collapsed
+ * to one. That is wrong under *either* answer to the stacking question, which is
+ * why it is fixed here and separately from `EXALTATION_STACKING` above: the
+ * parse is a reading of the client's own notation, not a claim about the game.
+ */
 export function parseEffectRank(name: string): { family: string; rank: number } {
-  const match = /^(.*?)\s+(I{1,3}|IV|VI?)$/.exec(name.trim());
-  if (!match?.[1]) return { family: name.trim(), rank: 1 };
-  return { family: match[1], rank: ROMAN[match[2] ?? ''] ?? 1 };
+  const trimmed = name.trim();
+  if (LEVEL_SUFFIX.test(trimmed)) return { family: trimmed, rank: 1 };
+
+  const match = /^(.*?)\s+(I{1,3}|IV|VI?|\d+)$/.exec(trimmed);
+  const stem = match?.[1];
+  const suffix = match?.[2];
+  if (!stem || !suffix) return { family: trimmed, rank: 1 };
+  return { family: stem, rank: suffix in ROMAN ? (ROMAN[suffix] as number) : Number(suffix) };
 }
 
-/** Collapse a set of effects to the highest rank within each family. */
+/**
+ * Collapse a set of effects to the highest rank within each family.
+ *
+ * The rule it applies is `EXALTATION_STACKING`, whose standing is stated there.
+ * Ties keep the first: two sockets holding the *same* effect name are one
+ * family at one rank, so the family counts once — and the caller distinguishes
+ * that case, because "X does not count, X is the higher rank" is not a sentence
+ * a reader can act on.
+ */
 export function dedupeByFamily<T extends { effectName: string }>(effects: readonly T[]): T[] {
   const best = new Map<string, { rank: number; item: T }>();
   for (const e of effects) {

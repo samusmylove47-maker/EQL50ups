@@ -12,6 +12,13 @@
  * go in at all, `intersectRestrictions` narrows the host's classes and slots
  * once it is in, and `dedupeByFamily` collapses a family to its highest rank.
  *
+ * **The three do not stand equally, and the tab says which is which.** The third
+ * is `EXALTATION_STACKING` — Tier 5, one community author's reading of a wiki,
+ * uncorroborated, classic EverQuest's own focus rule, never observed here — so
+ * every row it strikes out carries that mark. `canSocket` is Tier 5 from the
+ * same author and `intersectRestrictions` is Tier 3/4 from two; neither is
+ * marked yet, and that is a gap rather than a judgement that they are safer.
+ *
  * **What it deliberately does not do: score anything.** The shipped catalog
  * carries no numeric values for effects — `focus-effects.json` is names, prose
  * and per-spell-slot text — so no stat contribution is invented from them. An
@@ -43,6 +50,14 @@ export interface SocketView {
   legal: boolean;
   /** Set when a higher rank of the same family is socketed elsewhere. */
   supersededBy: string | undefined;
+  /**
+   * Why it does not count. `'rank'` is a higher rank of the same family;
+   * `'duplicate'` is the *same* effect socketed twice — which reaches here as a
+   * family at equal rank, and which the tab used to render as "Complete Healing
+   * as Level 20 does not count — Complete Healing as Level 20 is the higher rank
+   * in the same family". Same rule, two different things to tell a reader.
+   */
+  supersededAs: 'rank' | 'duplicate' | undefined;
 }
 
 export interface ExaltedItem {
@@ -115,6 +130,7 @@ export function exaltationPlan(
           ? canSocket({ classes: donor.cl, slots: donor.sl }, { classes: item.cl, slots: item.sl })
           : true,
         supersededBy: undefined,
+        supersededAs: undefined,
       };
     });
 
@@ -159,7 +175,9 @@ export function exaltationPlan(
   }
 
   // Rank families across the whole set: two items carrying Burning Affliction
-  // II and III do not add up, the III simply wins.
+  // II and III do not add up, the III wins. **That rule is `EXALTATION_STACKING`
+  // — Tier 5, single-source, never observed in the client** — and the tab marks
+  // every row it strikes out rather than printing the outcome bare.
   const named = everySocket.filter((s): s is SocketView & { effect: ItemEffect } =>
     Boolean(s.effect),
   );
@@ -175,6 +193,10 @@ export function exaltationPlan(
         (s) => s.effect && familyOf(s.effect.n) === familyOf(socket.effect.n),
       );
       socket.supersededBy = winner?.effect?.n;
+      // Equal ranks inside a family can only be the identical name — the family
+      // is the stem and the rank is the suffix, so same family plus same rank
+      // means same string. That is a duplicate, not a losing rank.
+      socket.supersededAs = winner?.effect?.n === socket.effect.n ? 'duplicate' : 'rank';
       superseded.push(socket);
     }
   }

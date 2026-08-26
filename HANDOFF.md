@@ -232,6 +232,209 @@ the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
+## 26 Aug, second report — the rank parser is fixed, the rule is marked, the capture is written
+
+Orders 1-3 are done and pushed. Order 4 is judgement, and it is at the end.
+
+### Order 1 — the rank parser, fixed and proven to be exercised
+
+`parseEffectRank` read a trailing Roman numeral and nothing else, so `Wind Resonance 11`
+became a family of its own at rank 1. You are right that this is wrong under either stacking
+rule: it is a reading of the client's own notation, not a claim about the game, and the
+client prints both notations four lines apart in the one capture we have.
+
+**The fix, and a regression I caught in it.** My first version read any trailing integer as a
+rank. Measured against the shipped payload before committing to it — `node` over
+`web/public/data/items/*.json`, 401 distinct effect names — it changed 15 parses. Fourteen
+were the bard resonances and correct. The fifteenth was **`Allure of Death req. level 20`**,
+which became family *"Allure of Death req. level"* at rank 20. A second name shape,
+`Complete Healing as Level 20` (14 of them), has the same problem.
+
+One rule covers both rather than two special cases: **the word `level` before the number
+means the number is a level.** A cast level and a requirement level are not rungs of a
+ladder, and reading them as ranks would have asserted that two clickies of one spell
+supersede each other — which is not even what the stacking rule is about.
+
+```
+Improved Healing I / II / III                    -> 1 survivor   (unchanged)
+Wind Resonance 0 / 10 / 11 / 12 / 14             -> 1 survivor   (was 5)
+Complete Healing as Level 20 / as Level 30       -> 2 survivors  (not ranks)
+```
+
+**A third defect, same class, found while fixing the first.** Two sockets holding the *same*
+effect reach the family collapse as one family at one rank, so one is struck out — and the
+tab resolved the winner's name back out of the family and printed **"Complete Healing as
+Level 20 does not count — Complete Healing as Level 20 is the higher rank in the same
+family"**. A row named as its own superior. The selector now carries a `supersededAs`
+discriminator and the tab says *"… is socketed twice"* instead. Equal rank inside a family
+can only be the identical string — the family is the stem and the rank is the suffix — so the
+discriminator is exact rather than heuristic.
+
+**Proven exercised, not merely written.** `parseEffectRank` and `dedupeByFamily` had **no
+direct tests at all**; the only coverage drove them through gear sets built from Roman
+fixtures, so the half the client also prints was never touched. 15 new tests — 10 on the
+parser, 2 in the selector suite, 3 mounting the tab — and 910 → 925 in the run. Each fix was
+A/B'd by restoring the pre-fix source, running, and restoring by SHA-256 — never
+`git checkout`:
+
+```
+pre-fix parser restored          -> 2 failed / 8 passed   (both arabic cases)
+supersededAs collapsed to 'rank' -> 1 failed / 16 passed  (the duplicate case)
+chip removed from the tab        -> 2 failed
+duplicate wording reverted       -> 1 failed
+restore verified by hash         -> true, all four
+```
+
+Worth saying plainly: only 2 of the 10 engine tests fail against the old parser. The other 8
+guard behaviour that did not change. A count of tests is not a measure of reach, which is the
+same thing I told you about `gate_selftest`.
+
+### Order 2 — downgraded, not deleted, and the planner now says so
+
+`EXALTATION_STACKING` in `web/src/engine/exaltation.ts`, built the way `HASTE_STACKING` is
+built next door — chip, rule, standing, and the capture that would end it. The doc comment
+above it states all three problems with the provenance: one community author's reading of a
+wiki the standard calls a partial P99 import; uncorroborated, since the second tool covering
+the same ground does not restate it; and identical to classic EverQuest's focus rule, which
+is corroboration by inheritance. It also names the file's own **"Use jmoyers. Do not use
+Thiole's math."**
+
+**On screen.** The struck-out lines were a bare `hint` paragraph. They are now a block headed
+**Not counted**, carrying the `.tier t5` chip — the same device as the haste figure on the
+stat panel and the standing labels in the item window — whose hover carries the standing and
+the capture request. One sentence of plain English sits under it. Both struck-row sentences
+now end *"on this rule a family only counts once"* rather than stating it flatly.
+
+**Nothing rendered that block before.** No test, unit or browser, had ever painted a
+superseded row, so the sentence a player actually reads was unexamined. `exaltations-tab.test.tsx`
+mounts the tab and pins the chip, its title, the duplicate wording, and that no chip appears
+when nothing is struck out.
+
+I also recorded, in the same comment, what is applied **beyond** what is even claimed: the
+sourced sentence is about *focus* effects, and the selector pools all four socket kinds into
+one family check, so a worn effect and a focus effect of one family compete. No source says
+they do. It is not separately marked because it cannot be separately settled — the same
+capture answers both, and §1 says so.
+
+### Order 3 — `research/validation/CAPTURE-REQUESTS.md`
+
+One request, written to be executed without interpretation, naming the three real donor items
+that carry the family (`Idol of the Underking` at rank III; `Emissary Mask` and `Zaharn's
+Coronet` at rank I) and the exact reading: **`Heal Amount`, under Spell Mods, on the Stats
+window** — baseline, one socketed, both socketed.
+
+**I picked that reading because it is a window we have documented at Tier M**
+(`UI-REFERENCE.md` §B3). I have never seen a character-side "active focus effects" list in
+this client and did not want to write an instruction that presumes one exists.
+
+Five outcomes, separated on purpose:
+
+| | What it means |
+|---|---|
+| **A** Heal Amount moves again on the third reading | They stack. **Our rule is wrong** and `dedupeByFamily` comes out of the effects path. |
+| **B** Moves on the second reading, not the third | They do not stack. The rule becomes Tier M and the chip comes off. |
+| **C** Does not move even with **one** socketed | Not an answer and **not a failed capture** — this field does not surface focus effects, so no number of screenshots of it will ever settle this. Close the route, keep the mark, design another. |
+| **D** The game refuses the second socket | A different question answered. **There is not one refused socketing on record anywhere in this repository**, and `canSocket` has the same Tier 5 provenance. First observation of that rule. |
+| **E** Could not get the items or the window | Nothing learned, nothing recorded. |
+
+**C and E are why the section is written out at all.** Both arrive as "nothing moved", and
+filing E as C would put a finding in the record that never happened.
+
+### A correction — one of my own commits claims something it did not do
+
+`d18a10a`, 17 Aug, is titled *"Stop tracking a vitest cache file, and ignore node_modules at
+the root"*. It added the `.gitignore`. It did not untrack the file — `.gitignore` has no
+effect on something already in the index, and `git ls-files` still returned it today, nine
+days and every test run later. Fixed here with `git rm --cached`; `git ls-files node_modules`
+now returns 0. A commit message that asserts a state nobody checked is the same fault as a
+number typed where it could have been computed, and it was mine.
+
+---
+
+## Order 4 — the other four, ranked, and the one I would fix next
+
+Your two tests, applied. They separate the four more sharply than I expected: **only one of
+the four is actually the lockout shape**, and it is not the one with the biggest blast radius.
+
+| | Finding | "Everyone repeated it, nobody read it" | Code contradicts itself | Moves the screen today |
+|---|---|---|---|---|
+| **A** | `ARMOR_TIER` — 16 hand-typed class→armour numbers | **Exact match.** No source names them; classic-EQ-shaped; nobody read one off the game. | **Yes, twice over.** Refuted by our own catalogue (BRD on 63 plate-named records vs PAL 59; BER on 2), and cited as precedent by finding D. | **No — dead code.** 0 screens, 0 selectors. |
+| **B** | The haste cap our source names | **Half.** The repeated part is "only the highest counts" (classic, inherited). The cap itself is a number nobody applied rather than one everybody repeated. | **Yes, sharply.** `stats.ts:58` quotes the cap inside a constant whose job is to say what is unknown, then no line caps anything. | **Yes, at the top of the list.** 23 items; a haste belt at +10 is 102.0 EP, the largest single EP any item can earn — against 69.2 for the best weapon in the game. |
+| **C** | The socket ladder's nine counterexamples | **No — the opposite failure.** Nobody repeated this from elsewhere. Somebody read it off the game and **stopped reading before the end**. | **Yes.** Our Tier M grade is contradicted by our own Tier M evidence file, nine rows. | **No.** The player already ruled "do not model per-item socket counts". The defect is the grade, not the behaviour. |
+| **D** | `levelCheck` takes the highest class level | **No — invented, not inherited.** Original EQ has one level, so nobody could have repeated this. We derived it from A, which has no source. | **Yes.** `eql-game-systems.md:279` says the effective level is the **lowest**; the code takes the highest. | **3 rows.** Unbounded the moment `rl` populates. |
+
+### The one I would fix next: **B, the haste cap.**
+
+Not because it matches your shape best — **A does**, and I want to be straight that I am
+ranking on consequence rather than on shape. Four reasons:
+
+1. **It is the only one of the four changing what a player sees right now**, and it changes
+   it at the top of the ranked list — the screen the landing band points at. A haste belt
+   outscores the best weapon in the game by a factor of one and a half, and every one of the
+   23 items is ranked as if its full figure lands.
+2. **This planner plans trios**, which is precisely the configuration the cited source says
+   binds: if item, spell and song haste share one ceiling, a trio holding a Bard, Shaman or
+   Enchanter is at or near it before equipping anything. The sampled character in our own
+   Tier M capture is Bard/Warrior/Berserker.
+3. **The correct sentence is already in the file.** Marking it costs nothing and needs no
+   evidence — it is the `stats.ts:58` case, where the comment and the code already disagree.
+   Modelling it needs the capture, and the mark can ship first.
+4. **It rides the trip the owner is already making.** `HASTE_STACKING.settle` and
+   `HASTE_PROVENANCE.settle` are one screenshot each and already written as sentences; the
+   cap needs a third. Three marks, one session, and I have the file to put them in now.
+
+**A is the cheap second, and it is a deletion rather than a fix.** `ARMOR_TIER` has no
+source, is refuted by our own data on two classes, and is consumed by nothing — it survives
+only because four lines of its own unit test assert it. The reason it is not first is that it
+is inert; the reason it is not last is that it is already load-bearing as an *argument* for
+D, and it sits in `constants.ts` beside `ATTRIBUTE_CAP` and `RESIST_CAP`, which are genuinely
+Tier M. That neighbourhood lends it a credibility it has not earned. Deleting a rule rather
+than marking it is your call, not mine, which is why I have not.
+
+**C I would not fix; I would re-grade it.** The behaviour is right — nine counterexamples in
+115 items, zero in the other direction, so the ladder is a solid floor and the player has
+already ruled the exceptions out of scope. What is wrong is that `TIER0-VALIDATION.md` still
+prints **confirmed** and `exaltation.ts` still says *"confirmed against sub-slot numbering in
+an inventory export"* — the same export. One paragraph, no code.
+
+**D I would leave alone until `rl` populates**, and watch for the patch that populates it.
+Three rows do not justify choosing between two unsourced answers today, and choosing badly
+now bakes in a rule that would then be wrong on every list at once.
+
+### What I did not do, and why
+
+- **No contamination signature for exaltation stacking.** It would put this on the
+  Contamination screen, which is where this project publishes exactly this kind of thing, and
+  the `haste-stacking` signature is the precedent. I did not add one because your order was
+  to mark it *where the planner strikes an effect out*, and that is the tab. Say the word and
+  it is a self-contained addition.
+- **The two code defects from my last report are still unfixed** and still in your gift:
+  `setDiff`'s `!== 'ANY'` (Throwing Boulder, 82.3 phantom EP at +10) and `FLAT_KEYS` carrying
+  `ATTACK`. Neither is a sourcing question; the first is one word.
+
+### Still open, from your list — all three landed 22 Aug and are pushed
+
+Nothing is waiting on me. Commits `7d73118`, `9efbd52`, `7c29f90`, `6678cbb`, `8221d92`.
+
+- **gate_selftest** — `proposed/gate-selftest-reach/`: the patch, five constructible cases,
+  two written refusals, and the meter that produced the number. Reach **23/42 = 54.8%**,
+  ceiling **28/42 = 66.7%** after I withdrew my own 30/42. Session A can take it as it sits.
+- **Licence** — `research/LICENSING-PROPOSAL.md`, 200 lines, **three** questions.
+- **Band image** — `proposed/band-image/RECIPE.md`. **Do not ship a PNG**: inline SVG
+  generated at build time from the payload, so every figure stays a `<text>` node our checks
+  can read and a vitest can recompute.
+
+### State, this push
+
+`tsc` clean · vitest **925 / 62 files** (was 910 / 60) · playwright **150 / 150** ·
+`verify.mjs` **PASSED**, Tier 0 100.0% · catalogue audit **PASSED**.
+
+**The payload moved, and it moved because a check I added caught me.** `verify.mjs` failed
+after the code changes — *"sourceLines: report says 31725, tree has 31877"* — which is the
+contamination freshness check working as designed. Regenerated with `build.mjs`. The diff is
+`builtAt`, `scannedAt` and `sourceLines` only: **0 item records changed**, confirmed with
+`git status --porcelain web/public/data/items`.
+
 ## 26 Aug — you asked if one is sitting unexamined in the planner. Yes. Five.
 
 Ranked by how closely each matches the shape you named: *a number everyone repeated that

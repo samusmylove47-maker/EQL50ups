@@ -20,7 +20,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { canSocket, EFFECT_KIND_TO_SOCKET } from '../engine/exaltation';
+import { canSocket, EFFECT_KIND_TO_SOCKET, EXALTATION_STACKING } from '../engine/exaltation';
 import type { LoadoutContext } from '../engine/character';
 import type { Item } from '../engine/types';
 import type { UpgradeState } from '../engine/upgrade';
@@ -113,14 +113,45 @@ export function ExaltationsTab({
               <EffectLines key={`${socket.socket.kind}-${socket.donorName}`} socket={socket} />
             ))}
           </div>
+          {/*
+            Every line below is this app striking an effect off a player's set.
+            The rule it strikes on is the weakest-standing rule in the engine
+            (`EXALTATION_STACKING`), so the block carries the source-tier chip
+            the rest of the product uses — `.tier t5`, the same device as the
+            haste figure on the stat panel and the standing labels in the item
+            window. A struck-out row that cannot explain itself is the same
+            object as a tier-5 claim printed bare, which rule 5 of
+            `research/SOURCING-STANDARD.md` forbids.
+          */}
           {plan.superseded.length ? (
-            <div className="effect-list">
-              {plan.superseded.map((socket) => (
-                <p className="hint" key={`sup-${socket.socket.kind}-${socket.donorName}`}>
-                  {socket.effect?.n} does not count — {socket.supersededBy} is the higher rank in
-                  the same family, and a family only counts once.
-                </p>
-              ))}
+            <div className="stack">
+              <div className="spread">
+                <h3 className="section-label">Not counted</h3>
+                <span
+                  className="tier t5"
+                  title={`${EXALTATION_STACKING.standing} ${EXALTATION_STACKING.settle}`}
+                >
+                  {EXALTATION_STACKING.chip}
+                </span>
+              </div>
+              <p className="hint">{EXALTATION_STACKING.short}</p>
+              <div className="effect-list">
+                {plan.superseded.map((socket) => (
+                  <p className="hint" key={`sup-${socket.socket.kind}-${socket.donorName}`}>
+                    {socket.supersededAs === 'duplicate' ? (
+                      <>
+                        {socket.effect?.n} is socketed twice. On this rule a family counts once, so
+                        the second copy adds nothing.
+                      </>
+                    ) : (
+                      <>
+                        {socket.effect?.n} does not count — {socket.supersededBy} is the higher rank
+                        in the same family, and on this rule a family only counts once.
+                      </>
+                    )}
+                  </p>
+                ))}
+              </div>
             </div>
           ) : null}
           <p className="hint">

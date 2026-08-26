@@ -65,9 +65,17 @@ const WRONG_SLOT = item({
   sl: ['FEET'],
   fx: [{ k: 'proc', n: 'Kick Harder' }],
 });
+/* The lower rank of the Lute's family, in the notation the client also prints. */
+const LUTE_LOWER = item({
+  n: 'Cracked Lute',
+  sl: ['WAIST', 'SECONDARY'],
+  cl: ['BRD'],
+  fx: [{ k: 'focus', n: 'String Resonance 10' }],
+});
 
 const CATALOG_ITEMS = [
-  BLADESTOPPER, GIRDLE, LUTE, RUNE_DONOR, BURNING_III, BURNING_II, PLATE_ONLY, WRONG_SLOT,
+  BLADESTOPPER, GIRDLE, LUTE, LUTE_LOWER, RUNE_DONOR, BURNING_III, BURNING_II, PLATE_ONLY,
+  WRONG_SLOT,
 ];
 
 const EFFECTS = new Map<string, FocusEffectEntry>([
@@ -193,6 +201,44 @@ describe('only the highest rank in a family counts', () => {
     expect(plan.active.map((s) => s.effect?.n)).toEqual(['Burning Affliction III']);
     expect(plan.superseded.map((s) => s.effect?.n)).toEqual(['Burning Affliction II']);
     expect(plan.superseded[0]?.supersededBy).toBe('Burning Affliction III');
+    expect(plan.superseded[0]?.supersededAs).toBe('rank');
+  });
+
+  /*
+   * Two sockets holding the *same* effect reach the family collapse as one
+   * family at one rank, so one is struck out — correctly, on this rule. What
+   * was wrong was the sentence: the tab read the winner's name back off the
+   * family and printed "X does not count — X is the higher rank in the same
+   * family", which names the struck row as its own superior.
+   */
+  it('tells a duplicate apart from a losing rank', () => {
+    const plan = exaltationPlan(
+      [
+        view('WAIST', GIRDLE, 4, { focus: 'Lesser Ember Band' }),
+        view('SECONDARY', BLADESTOPPER, 4, { focus: 'Lesser Ember Band' }),
+      ],
+      catalog(),
+    );
+    expect(plan.active.map((s) => s.effect?.n)).toEqual(['Burning Affliction II']);
+    expect(plan.superseded.map((s) => s.effect?.n)).toEqual(['Burning Affliction II']);
+    expect(plan.superseded[0]?.supersededAs).toBe('duplicate');
+  });
+
+  /*
+   * The arabic notation, driven through the real selector rather than the
+   * parser alone: two ranks of one bard focus on one set are one family.
+   */
+  it('collapses two arabic ranks of one family across the set', () => {
+    const plan = exaltationPlan(
+      [
+        view('SECONDARY', BLADESTOPPER, 4, { focus: 'Lute of the Gypsy Princess' }),
+        view('WAIST', GIRDLE, 4, { focus: 'Cracked Lute' }),
+      ],
+      catalog(),
+    );
+    expect(plan.active.map((s) => s.effect?.n)).toEqual(['String Resonance 11']);
+    expect(plan.superseded.map((s) => s.effect?.n)).toEqual(['String Resonance 10']);
+    expect(plan.superseded[0]?.supersededAs).toBe('rank');
   });
 
   it('leaves unrelated families alone', () => {
