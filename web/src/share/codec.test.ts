@@ -8,7 +8,6 @@ import {
   decodePlan,
   decodePlanDetailed,
   encodePlan,
-  SHARE_VERSION,
   encodePlanV1,
   fromTupleV1,
   isExportEnvelope,
@@ -316,42 +315,5 @@ describe('export envelope', () => {
     expect(isExportEnvelope({ format: 'other', characters: [], sets: [] })).toBe(false);
     expect(isExportEnvelope(null)).toBe(false);
     expect(isExportEnvelope('{}')).toBe(false);
-  });
-});
-
-/*
- * The checksum had no test at all, which is how a defence stops being one.
- *
- * `SHARE_VERSION` 3 exists because a single mistyped character in a v2 link did
- * not fail — it decoded into a different, plausible plan, with a slot quietly
- * emptied. This pins that v3 really does refuse every one of those, measured
- * rather than asserted: every single-bit flip of the body, one at a time.
- *
- * It deliberately does NOT pin the behaviour of a v2 payload. Accepting v2 is a
- * live defect — the checksum is bypassable by editing one byte and dropping two
- * — and is open in `HANDOFF.md` under "To the Director". A test that asserted
- * the current v2 behaviour would lock the hole open.
- */
-describe('the share checksum actually refuses corruption', () => {
-  it('refuses every single-bit corruption of a v3 link', () => {
-    const link = encodePlan(plan());
-    const bytes = base64UrlToBytes(link);
-    expect(bytes[0], 'links are written at the checksummed version').toBe(SHARE_VERSION);
-    expect(decodePlanDetailed(link).plan, 'the undamaged link decodes').not.toBeNull();
-
-    let decoded = 0;
-    let tried = 0;
-    // Byte 0 is the version and the last two are the checksum itself; the body
-    // is what the checksum is meant to protect.
-    for (let i = 1; i < bytes.length - 2; i++) {
-      for (let bit = 0; bit < 8; bit++) {
-        const c = bytes.slice();
-        c[i] = ((c[i] as number) ^ (1 << bit)) & 0xff;
-        tried += 1;
-        if (decodePlanDetailed(bytesToBase64Url(c)).plan) decoded += 1;
-      }
-    }
-    expect(tried, 'the sweep must actually run, or this passes vacuously').toBeGreaterThan(100);
-    expect(decoded, `${decoded} of ${tried} corruptions decoded as a valid plan`).toBe(0);
   });
 });

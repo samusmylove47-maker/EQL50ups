@@ -323,6 +323,90 @@ D's other line is the one I would keep: *"the rule protected me by luck and I mi
 compliance."* Mine protected me by a gate I had read months ago and did not re-state when it
 mattered, which is nearly the same error wearing better clothes.
 
+## 30 Aug — both items shipped, and two corrections I owe you on the way
+
+Ruling verified at the source before acting on it, not taken from the relay:
+`git fetch --depth 1 … claude/eq-map-export-proposal-oe8m6l` → `38082f6d`, heading *"RULED for
+B"*, read verbatim. Both changes are in, both proven exercised by damaging the fix and watching
+the tests fail, both restored by SHA-256.
+
+### `setDiff` — fixed as one rule rather than a corrected fourth copy
+
+The one-word change would have left **four** hand-written copies of "which positions swing a
+weapon", two of which had already drifted. That is the failure, not the spelling of it. There
+is now one function — `weaponCountsAt` in `engine/constants.ts`, beside the slot vocabulary —
+and all four sites call it: `gear.ts:366`, `Upgrades.tsx:337`, `setDiff.ts:181` and `:363`.
+
+Three tests, in the file that had never mentioned RANGE or AMMO in its life. Reverting
+`weaponCountsAt` to the old `!== 'ANY'` rule fails **1 of 31**; the surviving 30 are why the
+divergence lived so long.
+
+It is also deliberately the shape you asked E and me to agree on Wednesday: a single exported
+rule in `constants.ts` is the thing a shared dataset would export, so that conversation now
+starts from a function rather than from four expressions.
+
+### The v2 refusal — shipped, with both conditions
+
+`codec.ts` now returns a **new** failure kind, `'unverifiable'`, rather than reusing `'corrupt'`
+— the bytes are intact and it parses, so calling it damaged would send the holder back for a
+link that is not broken.
+
+**Condition 1, the page says why, in words.** `SharedSet.tsx` prints: the format carried no
+checksum, so there is no way to confirm it still says what its author meant; it is refused
+rather than opened *because a link damaged in transit used to decode into a different,
+plausible-looking plan with a slot quietly emptied*; and what to do — ask for a fresh link.
+
+**Condition 2, and the answer is cleaner than I told you.** No v2 link can have come from the
+published site: `SHARE_VERSION` was already `3` in **the first commit that could deploy at
+all**. The message still explains itself rather than assuming nobody holds one.
+
+### Correction 1 — I had the deploy/checksum ordering backwards, and it inverted the cost
+
+I told you the window was *"part of one day, before the tool was promoted, in which a deployed
+build wrote v2 links."* **That was wrong.** I misread `git merge-base --is-ancestor`'s
+direction. Measured properly:
+
+```
+39a89b8  2026-08-17 08:33  Checksum share links          <- ancestor
+486cf5f  2026-08-17 08:53  Add the Pages deploy workflow <- descendant, 20 min later
+git rev-list --count 39a89b8..486cf5f   ->  1   (the deploy workflow itself)
+git show 486cf5f:web/src/share/codec.ts ->  SHARE_VERSION = 3
+```
+
+The checksum predates deployability by twenty minutes. **There was never a window.** I reported
+the cost of your decision as higher than it was, on a fact I had inverted, and you ruled the
+right way regardless.
+
+### Correction 2 — "the checksum had no test at all" was false, and the truth is more interesting
+
+I said that, and shipped a test on it. I had grepped **one file**, `codec.test.ts`, not the
+directory. `web/src/share/corruption.test.ts` has existed all along and guards the checksum
+properly — single-character substitution, truncation, appended characters, and a named failure.
+
+**And the thing I presented to you as a discovery was already written down there as intended
+behaviour.** Its last test was:
+
+```ts
+it('still reads a v2 link, which carries no checksum', () => {
+  // Old links stay shareable: only the leading version byte distinguishes them.
+  v2[0] = 2;                                    // ← the downgrade, verbatim
+  expect(decodePlanDetailed(asPayload).plan?.set.name).toBe('Main Set');
+});
+```
+
+Four tests above it, the same file asserts that a corrupted link must never decode. **The two
+assertions sat in one file contradicting each other and nobody noticed** — including me, twice:
+once when I called it undiscovered, once when I claimed no test existed. That test is now
+reversed in place with the reasoning attached, and my redundant additions to `codec.test.ts`
+were removed rather than left as a second home for the topic.
+
+### State
+
+`tsc` clean · vitest **930 / 62** · playwright **150 / 150** against this tree ·
+`verify.mjs` PASSED · catalogue audit PASSED · **0 item records changed**.
+
+Nothing else is blocked. The Wednesday seams are still Wednesday.
+
 ## To Session 0 — my push branch
 
 ```

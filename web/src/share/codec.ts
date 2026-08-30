@@ -294,6 +294,11 @@ export type DecodeFailure =
   | 'unsupported-version'
   /** The bytes parse, but the trailing checksum does not match them. */
   | 'corrupt'
+  /**
+   * The frame declares a version that carries no checksum, so nothing about it
+   * can be verified. Refused rather than decoded — see `decodePlanDetailed`.
+   */
+  | 'unverifiable'
   /** The link interned its item names against a catalog build we do not have. */
   | 'catalog-mismatch';
 
@@ -591,7 +596,25 @@ export function decodePlanDetailed(payload: string, dict?: ShareDictionary): Dec
       if (checksum16(body) !== carried) return { plan: null, failure: 'corrupt' };
       return decodeV2(body, dict);
     }
-    if (first === SHARE_VERSION_NO_CHECKSUM) return decodeV2(bytes, dict);
+    /*
+     * v2 is REFUSED, not decoded. It is not a compatibility affordance — it is
+     * a hole in v3.
+     *
+     * A valid v3 link becomes an accepted v2 one by setting this byte to 2 and
+     * dropping the two trailing checksum bytes, which is a one-byte edit that
+     * turns the integrity check off. Measured on a real 23-item link: of 89
+     * single-bit corruptions of the downgraded payload, **71 decoded as a
+     * valid, plausible plan** and 18 were refused; the same 89 corruptions of
+     * the intact v3 link were refused 89 times out of 89. So accepting v2 does
+     * not merely skip a check, it removes the one this codec grew a version
+     * for.
+     *
+     * Nothing is lost by refusing. `SHARE_VERSION` was already 3 in the first
+     * commit that could deploy at all (`486cf5f`; the checksum landed 20
+     * minutes earlier in `39a89b8`), so **no published build of this app has
+     * ever written a v2 link.**
+     */
+    if (first === SHARE_VERSION_NO_CHECKSUM) return { plan: null, failure: 'unverifiable' };
     // 0x5B is `[`: a v1 payload is JSON.
     if (first === 0x5b) {
       const parsed: unknown = JSON.parse(decodeText(payload));

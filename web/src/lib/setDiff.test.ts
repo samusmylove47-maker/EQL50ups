@@ -475,3 +475,56 @@ describe('the compare headline agrees with the column it summarises', () => {
     expect(diff.epALens).toBe(ATTRIBUTE_CAP);
   });
 });
+
+/*
+ * A weapon parked where it cannot be swung.
+ *
+ * `setDiff` credited RATIO and DMG from every position whose type was not
+ * 'ANY', which admits RANGE and AMMO. `computeTotals` records a weapon from
+ * Primary and Secondary alone, so the headline set total claimed damage the
+ * stat panel on the same screen refused to show, and the Upgrades screen
+ * scored at zero. The catalogue's Throwing Boulder is 36/35 = 1.029 — a higher
+ * ratio than any primary weapon in the game — which is 41.1 EP at +0 and 82.3
+ * at +10 under the Melee DPS profile.
+ *
+ * Neither RANGE nor AMMO appeared anywhere in this file before, which is why
+ * the divergence survived: `gear.ts` and `Upgrades.tsx` were fixed and the
+ * two copies here were not. All four now call `weaponCountsAt`.
+ */
+describe('a weapon only scores where it is swung', () => {
+  const BOULDER = item('[Fixture] Throwing Boulder', {
+    sl: ['RANGE', 'AMMO'],
+    wp: { dmg: 36, dly: 35 },
+  });
+  const SWORD = item('[Fixture] Cudgel', { sl: ['PRIMARY'], wp: { dmg: 45, dly: 52 } });
+  const RATIO_ONLY = { RATIO: 40 };
+
+  it('scores no ratio for a weapon in Range or Ammo', () => {
+    const catalog = catalogOf([BOULDER, SWORD]);
+    const empty = set({ weights: RATIO_ONLY });
+    const ranged = set({
+      weights: RATIO_ONLY,
+      slots: { RANGE: equipped(BOULDER.n), AMMO: equipped(BOULDER.n) },
+    });
+    const diff = diffSets(empty, ranged, catalog);
+    expect(diff.epDelta, 'ratio credited outside a hand').toBe(0);
+  });
+
+  it('still scores a weapon in Primary', () => {
+    const catalog = catalogOf([BOULDER, SWORD]);
+    const empty = set({ weights: RATIO_ONLY });
+    const armed = set({ weights: RATIO_ONLY, slots: { PRIMARY: equipped(SWORD.n) } });
+    const diff = diffSets(empty, armed, catalog);
+    // 45/52 = 0.8654 ratio, at weight 40.
+    expect(diff.epDelta).toBeCloseTo((45 / 52) * 40, 6);
+  });
+
+  it('agrees with the per-slot column the headline is summarising', () => {
+    const catalog = catalogOf([BOULDER, SWORD]);
+    const empty = set({ weights: RATIO_ONLY });
+    const ranged = set({ weights: RATIO_ONLY, slots: { RANGE: equipped(BOULDER.n) } });
+    const diff = diffSets(empty, ranged, catalog);
+    const rowSum = diff.slots.reduce((n, s) => n + s.epDelta, 0);
+    expect(diff.epDelta).toBeCloseTo(rowSum, 6);
+  });
+});

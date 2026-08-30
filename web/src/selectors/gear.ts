@@ -9,7 +9,7 @@
 
 import {
   ATTRIBUTES, ATTRIBUTE_NAMES, SAVES, SAVE_NAMES, SKILL_DAMAGE_MODS,
-  SLOT_POSITIONS, type SlotPosition,
+  SLOT_POSITIONS, weaponCountsAt, type SlotPosition,
 } from '../engine/constants';
 import { canUse, type LoadoutContext } from '../engine/character';
 import { usabilityOf } from '../lib/itemStyle';
@@ -363,7 +363,7 @@ export function rankSlotItems(catalog: CatalogState, options: RankOptions): Scor
    * ratio there would be inventing a benefit the rest of the app cannot see.
    * That gap is real and is better left visible than papered over here.
    */
-  const weaponCounts = slot === 'PRIMARY' || slot === 'SECONDARY';
+  const weaponCounts = weaponCountsAt(slot);
   // Compiled once for the whole pass rather than re-derived per item; see
   // `rankScorer`. Identical to `scoreItem(...).total`, asserted in `ep.test`.
   const score = rankScorer(weights, { weaponCounts, ...(existing ? { existing } : {}) });

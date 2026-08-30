@@ -49,6 +49,36 @@ export type SlotType = (typeof SLOT_TYPES)[number];
 /** Slot types occupying more than one position on the character. */
 export const DOUBLED_SLOTS: ReadonlySet<SlotType> = new Set(['EAR', 'WRIST', 'FINGERS']);
 
+/**
+ * The positions a weapon is actually swung from, and therefore the only ones
+ * whose `RATIO` and `DMG` may be scored.
+ *
+ * `computeTotals` in `engine/stats.ts` records a weapon from Primary and
+ * Secondary and from nowhere else, so scoring has to use the same rule or it
+ * credits a candidate for a contribution the stat sheet will never show.
+ *
+ * **This exists as one function because it was previously four copies of an
+ * expression, and two of them drifted.** `selectors/gear.ts` and
+ * `screens/Upgrades.tsx` read `slot === 'PRIMARY' || slot === 'SECONDARY'`;
+ * `lib/setDiff.ts` read `position.type !== 'ANY'` in two places, which admits
+ * every other slot type — RANGE and AMMO included. A Throwing Boulder is
+ * 36/35 = 1.029, a higher ratio than any primary weapon in the catalogue, and
+ * it scored 82.3 EP at +10 into the Compare screen's set total for damage the
+ * panel beside it refused to show. The correct rule was stated in prose three
+ * lines above the wrong code.
+ *
+ * RANGE is deliberately excluded rather than overlooked: a bow does fire in the
+ * real game, but this engine models no ranged attack anywhere, so paying for
+ * ratio there would invent a benefit the rest of the app cannot see. That gap
+ * is real and is better left visible than papered over here.
+ */
+export const WEAPON_POSITIONS: ReadonlySet<SlotType> = new Set(['PRIMARY', 'SECONDARY']);
+
+/** Whether a weapon in this position contributes its ratio and damage. */
+export function weaponCountsAt(slot: SlotType | 'ANY'): boolean {
+  return slot !== 'ANY' && WEAPON_POSITIONS.has(slot);
+}
+
 /** A concrete position in the paper doll, e.g. the second ear. */
 export interface SlotPosition {
   id: string;

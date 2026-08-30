@@ -81,20 +81,61 @@ describe('a damaged share link is refused, never reinterpreted', () => {
     expect(['corrupt', 'malformed']).toContain(result.failure);
   });
 
-  it('still reads a v2 link, which carries no checksum', () => {
-    // Old links stay shareable: only the leading version byte distinguishes them.
-    expect(SHARE_VERSION).toBe(3);
-    const v3 = Buffer.from(
-      encodePlan(plan()).replace(/-/g, '+').replace(/_/g, '/'),
-      'base64',
-    );
+  /*
+   * REVERSED 2026-08-30, on the Director's ruling: refuse, and fail loudly.
+   *
+   * This test used to assert that a v2 frame still decoded, under "old links
+   * stay shareable". The steps it performs — set the version byte to 2, drop
+   * the two trailing checksum bytes — are exactly a downgrade attack on the
+   * checksum guarded four tests above it, and the two assertions sat in one
+   * file contradicting each other without anyone noticing. Accepting v2 does
+   * not skip the check, it removes it: measured on this fixture, 71 of 89
+   * single-bit corruptions of a downgraded frame decoded as a valid plan,
+   * against 0 of 89 on the intact link.
+   *
+   * Nothing is lost. `SHARE_VERSION` was already 3 in the first commit that
+   * could deploy at all (`486cf5f`; the checksum landed twenty minutes earlier
+   * in `39a89b8`), so no published build of this app has ever written a v2
+   * link and "old links" in that shape do not exist.
+   */
+  const downgraded = () => {
+    const v3 = Buffer.from(encodePlan(plan()).replace(/-/g, '+').replace(/_/g, '/'), 'base64');
     const v2 = Uint8Array.from(v3.subarray(0, v3.length - 2));
     v2[0] = 2;
-    const asPayload = Buffer.from(v2)
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-    expect(decodePlanDetailed(asPayload).plan?.set.name).toBe('Main Set');
+    return Buffer.from(v2).toString('base64')
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  };
+
+  it('refuses a v2 link, because nothing about it can be verified', () => {
+    expect(SHARE_VERSION).toBe(3);
+    const result = decodePlanDetailed(downgraded());
+    expect(result.plan, 'a frame with no checksum must not yield a plan').toBeNull();
+    expect(result.failure).toBe('unverifiable');
+  });
+
+  it('names that refusal distinctly from a damaged link', () => {
+    // Not 'corrupt': the bytes are intact. Not 'malformed': it parses. The
+    // reader is owed the difference, because the remedy is different.
+    const f = decodePlanDetailed(downgraded()).failure;
+    expect(f).not.toBe('corrupt');
+    expect(f).not.toBe('malformed');
+  });
+
+  it('refuses every corruption of a downgraded frame as well', () => {
+    const bytes = Uint8Array.from(
+      Buffer.from(downgraded().replace(/-/g, '+').replace(/_/g, '/'), 'base64'),
+    );
+    let decoded = 0;
+    let tried = 0;
+    for (let i = 1; i < bytes.length; i++) {
+      const c = Uint8Array.from(bytes);
+      c[i] = ((c[i] as number) ^ 0x01) & 0xff;
+      tried += 1;
+      const payload = Buffer.from(c).toString('base64')
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      if (decodePlanDetailed(payload).plan) decoded += 1;
+    }
+    expect(tried, 'the sweep must actually run').toBeGreaterThan(50);
+    expect(decoded, `${decoded} of ${tried} corrupted v2 frames still decoded`).toBe(0);
   });
 });

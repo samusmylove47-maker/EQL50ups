@@ -38,7 +38,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { activeContext, describeCharacter, type LoadoutContext } from '../engine/character';
-import { SLOT_POSITIONS, type SlotPosition } from '../engine/constants';
+import { SLOT_POSITIONS, weaponCountsAt, type SlotPosition } from '../engine/constants';
 import { scoreItem, type WeightProfile } from '../engine/ep';
 import { resolveItem } from '../engine/stats';
 import { BASE_STATE, normalizeState, tier, type UpgradeState } from '../engine/upgrade';
@@ -334,7 +334,7 @@ export function* upgradeSteps(
     // and SECONDARY and nowhere else, and this must score the worn item under
     // the same rule `rankSlotItems` scores the candidates under. Reading
     // `slot !== 'ANY'` here paid an Ammo slot for ratio it never contributes.
-    const weaponCounts = slot === 'PRIMARY' || slot === 'SECONDARY';
+    const weaponCounts = weaponCountsAt(slot);
     const wornUpgrade = view.equipped ? normalizeState(view.equipped.upgrade) : BASE_STATE;
     const candidateUpgrade =
       basis.kind === 'worn' ? wornUpgrade : normalizeState(basis.upgrade);

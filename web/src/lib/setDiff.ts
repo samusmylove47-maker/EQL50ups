@@ -17,7 +17,7 @@
 
 import {
   ATTRIBUTES, ATTRIBUTE_CAP, ATTRIBUTE_NAMES,
-  RESIST_CAP, SAVES, SAVE_NAMES, type SlotPosition,
+  RESIST_CAP, SAVES, SAVE_NAMES, weaponCountsAt, type SlotPosition,
 } from '../engine/constants';
 import { scoreItem, type WeightProfile } from '../engine/ep';
 import { computeTotals, type StatTotals } from '../engine/stats';
@@ -178,7 +178,7 @@ function sideFor(view: SlotView, lens: WeightProfile, existing: ScoreExisting): 
       ? finite(
           scoreItem(view.item, upgrade, lens, {
             existing,
-            weaponCounts: view.position.type !== 'ANY',
+            weaponCounts: weaponCountsAt(view.position.type),
           }).total,
         )
       : 0,
@@ -360,7 +360,7 @@ function totalEp(views: readonly SlotView[], weights: WeightProfile): number {
     total += finite(
       scoreItem(entry.item, entry.upgrade, weights, {
         existing: scoreContextFrom(spent),
-        weaponCounts: entry.position.type !== 'ANY',
+        weaponCounts: weaponCountsAt(entry.position.type),
       }).total,
     );
   }

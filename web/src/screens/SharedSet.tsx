@@ -56,10 +56,23 @@ export function SharedSet({ payload }: { payload: string }) {
     return (
       <div className="empty-state">
         <h2>That link could not be read</h2>
+        {/*
+          Each failure says what actually happened, because a blank result or a
+          silently empty set reproduces the fault the refusal exists to prevent:
+          the reader acts on a plan that is not the one that was shared.
+
+          `unverifiable` is the loud half of refusing v2. It is not a damaged
+          link — it is a well-formed one written in a format that carries no
+          checksum, so nothing about it can be confirmed. Saying "damaged" there
+          would send the holder back to the sender for a link that is not broken,
+          and saying nothing would look like the planner had failed.
+        */}
         <p>
           {result.failure === 'catalog-mismatch'
             ? 'This link was made against a different build of the item catalog, so its item references no longer line up. Ask for a fresh link.'
-            : "The share payload is missing or damaged — chat clients sometimes truncate long links. Ask for the link again, making sure everything after #/share/ is included."}
+            : result.failure === 'unverifiable'
+              ? 'This link uses an old share format that carried no checksum, so there is no way to confirm it still says what its author meant. It is refused rather than opened: a link damaged in transit used to decode into a different, plausible-looking plan with a slot quietly emptied, and acting on that is worse than being told no. No version of this planner that has ever been published writes this format, so a link in this shape did not come from the live site — if someone sent you one, ask them to open their set here and share a fresh link.'
+              : 'The share payload is missing or damaged — chat clients sometimes truncate long links. Ask for the link again, making sure everything after #/share/ is included.'}
         </p>
         <div className="empty-actions">
           <a className="btn btn-primary" href={href.landing}>
