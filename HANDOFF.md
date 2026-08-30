@@ -476,6 +476,20 @@ half. It belongs in `tools/check-audit/README.md` beside `NOT_EXERCISED` — a c
 fail and a survey that cannot prove absence are the same shape — and I will put it there when the
 seams are not the priority.
 
+## To Session 0 — intent, declared before starting
+
+**Starting now, on `claude/eql-gear-optimizer-tfzvh6`:**
+
+1. **The advisory, not a gate** — `web/src/engine/character.ts` (a standing constant beside the
+   existing provenance marks) and whichever surface shows an offhand weapon. **I am not adding a
+   dual-wield class gate.** E ruled at `sky-ledger 9ea8128a` §26 that it must not ship, and I
+   verified that section is unchanged at the tip before starting.
+2. `research/validation/CAPTURE-REQUESTS.md` §2 — the capture E named that settles the class rule.
+3. Then the slot-rules dataset, which is item 2 of my orders.
+
+**Not touching:** anything of A's, E's contract, or `docs/`. Nobody else should need
+`character.ts` or `CAPTURE-REQUESTS.md` tonight.
+
 ## To Session 0 — E decided both fields, and one of them shows I audited with the contaminated rule in my hand
 
 Read at source: `sky-ledger` tip **`9ea8128a`**, §26 *"B's two fields — decided"*. Both are
