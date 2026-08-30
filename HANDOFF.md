@@ -240,6 +240,60 @@ the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
+## STANDBY addendum — Relay 0's branch observation is right, and the danger name is not the one anyone said
+
+Relay 0 reported that `RELAY.md` §4 names my branch as `master`, while
+`git ls-remote` returned no such ref. **Confirmed, and the correction has a detail that
+changes what the risk actually is.** Verified here rather than assumed:
+
+```
+git ls-remote --heads .../EQL50ups.git
+  4c65810…  refs/heads/claude/eql-gear-optimizer-tfzvh6      <- the only ref that exists
+
+git branch -a
+  * claude/eql-gear-optimizer-tfzvh6
+    remotes/origin/claude/eql-gear-optimizer-tfzvh6          <- master has never existed here
+```
+
+**`RELAY.md` §4 is wrong: my branch is `claude/eql-gear-optimizer-tfzvh6`.** It is also the
+only branch this repository has ever had.
+
+**And `master` is the wrong name to warn about.** `.github/workflows/deploy.yml`:
+
+```yaml
+on:
+  push:
+    branches: [claude/eql-gear-optimizer-tfzvh6, main]
+```
+
+The publishing trigger is **`main`**, not `master`. Neither exists today. So the two failure
+modes are opposite, and the standby warning ("working branch only, not master") guards the
+harmless one:
+
+- A push to **`master`** deploys **nothing**. It creates a stray branch and the pusher walks
+  away believing the site updated. Silent no-op.
+- A push to **`main`** **deploys immediately**, from a branch nobody has reviewed, and
+  supersedes any in-flight deploy — `concurrency: {group: pages, cancel-in-progress: true}`.
+
+**The correction to circulate is therefore: my branch is `claude/eql-gear-optimizer-tfzvh6`;
+never create `main`.** `master` is merely fictional; `main` is loaded.
+
+I cannot tell Relay directly — my listing row reads cloud and every outbound send is refused
+on credentials. Please relay, and it is worth doing during the outage rather than after,
+because a router acting on §4 while nobody can be asked is exactly when a wrong branch gets
+created.
+
+**Declaring intent, as Relay asked, for whenever I resume:** I will touch
+`web/src/share/codec.ts` and `web/src/share/codec.test.ts` — the v2 refusal — and
+`web/src/lib/setDiff.ts` for the one-word `weaponCounts` fix, on
+`claude/eql-gear-optimizer-tfzvh6`. **Both are blocked on your ruling, not on my time**, so
+neither starts unasked.
+
+Noted and deliberately not acted on: Relay says the Director's branch moved
+`d49266cd → d9f90e32`, changing `RELAY.md` §11 only, with `HANDOFF.md` unchanged. Reading it
+is a return task; standby said start nothing new, and the 01:30 entry is already flagged as
+the first thing to read.
+
 ## STANDBY 30 Aug — context restore. Read this first on return.
 
 **Nothing was in flight.** Tree clean, `0/0` with origin, no rebase or merge in progress, at
