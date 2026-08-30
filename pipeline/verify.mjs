@@ -1171,6 +1171,72 @@ if (!existsSync(TIER0)) {
 }
 
 // ---------------------------------------------------------------------------
+// the slot vocabulary is written twice, and nothing was holding the copies together
+// ---------------------------------------------------------------------------
+/*
+ * `pipeline/build.mjs` has `SLOTS` and `web/src/engine/constants.ts` has
+ * `SLOT_TYPES`. They are the same eighteen strings in the same order, and until
+ * this check existed **nothing in the repository compared them**.
+ *
+ * That is the exact shape the gap-engine seam is being designed to avoid — two
+ * agreeing implementations that agree until one is edited — sitting inside the
+ * repository that is supposed to own the single copy. They agreed when this was
+ * written; a check is what keeps that a fact rather than a coincidence.
+ *
+ * This is a gate, not a unification. One list still exists twice, because the
+ * pipeline is ESM JavaScript and the engine is TypeScript and merging them is a
+ * real refactor rather than a late-night edit. What this removes is the
+ * *silence*: a divergence now fails the build instead of shipping.
+ *
+ * Parsed rather than imported, for the same reason the contamination scanner
+ * parses source: `verify.mjs` cannot import a `.ts` module, and a regex over a
+ * declaration this stable is honest about what it is doing.
+ */
+{
+  const readList = (file, re, what) => {
+    const text = readFileSync(join(ROOT, file), 'utf8');
+    const m = re.exec(text);
+    if (!m) return null;
+    return [...m[1].matchAll(/'([A-Z_]+)'/g)].map((x) => x[1]);
+  };
+  const fromPipeline = readList('pipeline/build.mjs', /const SLOTS = \[([\s\S]*?)\];/);
+  const fromEngine = readList(
+    'web/src/engine/constants.ts',
+    /export const SLOT_TYPES = \[([\s\S]*?)\] as const;/,
+  );
+
+  // A parse that finds nothing would make every assertion below vacuously true.
+  assert(
+    'the slot vocabulary can be read from both files',
+    Array.isArray(fromPipeline) && fromPipeline.length > 0
+      && Array.isArray(fromEngine) && fromEngine.length > 0,
+    'could not parse SLOTS or SLOT_TYPES — this check silently passes if either declaration '
+      + 'is renamed or reformatted, so it fails loudly instead',
+    [`build.mjs: ${fromPipeline ? fromPipeline.length : 'no match'}`,
+     `constants.ts: ${fromEngine ? fromEngine.length : 'no match'}`],
+  );
+
+  if (fromPipeline?.length && fromEngine?.length) {
+    const same = fromPipeline.length === fromEngine.length
+      && fromPipeline.every((s, i) => s === fromEngine[i]);
+    const onlyPipeline = fromPipeline.filter((s) => !fromEngine.includes(s));
+    const onlyEngine = fromEngine.filter((s) => !fromPipeline.includes(s));
+    assert(
+      'the two copies of the slot vocabulary agree, in order',
+      same,
+      'pipeline/build.mjs SLOTS and web/src/engine/constants.ts SLOT_TYPES have diverged — '
+        + 'the payload and the app would disagree about what a slot is',
+      [
+        `build.mjs: ${fromPipeline.length}  constants.ts: ${fromEngine.length}`,
+        ...(onlyPipeline.length ? [`only in build.mjs: ${onlyPipeline.join(', ')}`] : []),
+        ...(onlyEngine.length ? [`only in constants.ts: ${onlyEngine.join(', ')}`] : []),
+        ...(same ? [] : ['order differs' ]),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // summary
 // ---------------------------------------------------------------------------
 console.log('-- results --');

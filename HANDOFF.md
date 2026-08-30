@@ -476,6 +476,94 @@ half. It belongs in `tools/check-audit/README.md` beside `NOT_EXERCISED` — a c
 fail and a survey that cannot prove absence are the same shape — and I will put it there when the
 seams are not the priority.
 
+## 30 Aug — item 2: E's handover verified, and the duplication I found was in my own repo
+
+### E's handover joins perfectly, and I checked rather than assumed
+
+`handover/weapon-taxonomy.json`, fetched from `sky-ledger` directly. E's file opens with
+*"The two fields do NOT have the same standing. Read `fields` before using either."* — so I did,
+before touching the data.
+
+```
+E's handover items                  : 560
+join onto my payload by name        : 560      <- all of them
+do NOT join                         : 0
+SECONDARY capability, both hold it  : agree 560, DISAGREE 0
+```
+
+**Two independently scraped corpora agreeing item-by-item on a shared fact, with zero
+disagreements.** That is the strongest joinability evidence available short of shared ids, and
+it means the taxonomy attaches to my catalogue by name with no reconciliation step.
+
+**One correction to my own reading, caught before it became a report.** My first pass said
+`hands` resolved for **zero** of 560 and I was about to raise it. The field holds an integer
+(`1`/`2`), not the string `'1H'`/`'2H'` my predicate looked for. Corrected: **308 one-handed,
+123 two-handed, 129 unresolved** — and 308 + 123 = 431, which is E's §26 figure exactly. The
+data was right and my query was wrong, which is the same shape as the vacuous check and would
+have been a false alarm aimed at another session.
+
+**The coverage gap does not touch the seam, which is the useful part.** E flags 129 items with
+`hands` unresolved — Archery, Throwing and skill-less. Measured against my slot data:
+
+```
+offhand-capable weapons in my payload        : 212
+  of those with hands unresolved             : 0      <- 100% coverage where it matters
+two-handers listing SECONDARY                : 0
+  two-handers present to have been caught    : 123    <- so the check CAN fail, and does not
+```
+
+So `hands` is fully resolved for exactly the population where the offhand question arises, and
+my vacuous check comes back **true** on a corpus where it is not vacuous. E measured 124
+two-handers against my 123 — a one-item difference from E's 788-item corpus versus this
+560-item handover, not a disagreement about any item.
+
+### The duplication I was sent to prevent is inside this repository
+
+Item 2 says *"one dataset, not two agreeing implementations."* Before publishing one, I checked
+whether this repository has one — and it does not:
+
+```
+pipeline/build.mjs:44        const SLOTS = [ ...18 strings... ]
+web/src/engine/constants.ts  export const SLOT_TYPES = [ ...18 strings... ]
+identical, in order          : true
+anything comparing them      : NOTHING
+```
+
+**The payload's idea of a slot and the app's idea of a slot are written twice and agreed only by
+luck.** `verify.mjs` had no reference to either. That is precisely the failure the seam ruling
+exists to prevent, sitting in the repository nominated to own the single copy — and E lost a
+published ranking to this exact shape.
+
+**Shipped: a gate, and I am calling it a gate rather than a fix.** `verify.mjs` now parses both
+declarations and fails the build if they diverge in content or order. One list still exists
+twice, because the pipeline is ESM and the engine is TypeScript and merging them is a real
+refactor rather than a late-night edit. What is removed is the *silence*.
+
+It carries its own vacuity guard, because a regex that stops matching would make every assertion
+under it pass. A/B'd against four damages, each restored by hash:
+
+```
+a slot renamed        exit=1  caught
+a slot dropped        exit=1  caught
+order changed         exit=1  caught
+declaration renamed   exit=1  caught by the vacuity guard, not silently passed
+```
+
+### What is left of item 2, and why I have not done it
+
+**Where the dataset lives is now decided and it is mine** — E ceded it explicitly: *"Your slot
+rules, not mine — I hold `EQUIPMENT-TRUTH.md` and would rather it were deleted than
+duplicated."* So there is no negotiation left, only construction.
+
+**What I have not built is the emitted `slots.json` itself**, and the reason is the finding
+above: publishing a single-source dataset out of a repository that holds the vocabulary twice
+would be shipping the seam's own defect through the seam. The order is gate the duplication,
+then unify, then emit — and unifying an ESM/TypeScript boundary is the piece I will not do
+tired. Item 3, the `Delta.requires` resolver, sits behind it for the same reason.
+
+`tsc` clean · vitest **935 / 62** · `verify.mjs` PASSED · catalogue audit PASSED · **payload
+untouched this push** — the only file changed is `pipeline/verify.mjs`.
+
 ## 30 Aug — item 1 done, and it is a mark rather than the fix you described
 
 **Your item 1 and E's ruling point opposite ways, and you told me mine wins if it contradicts.
