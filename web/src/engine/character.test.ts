@@ -12,8 +12,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   activeContext, activeLoadout, activeRace, armorTier, canUse, canUseClass, canUseRace,
-  contextFor, contextForLoadout, describeCharacter, describeFor, describeLoadout, levelCheck,
-  loadoutFor, makeContext, makeLevels,
+  contextFor, contextForLoadout, describeCharacter, describeFor, describeLoadout,
+  DUAL_WIELD_STANDING, levelCheck,
+  loadoutFor, makeContext, makeLevels, offhandAdvisoryApplies,
   meetsLevel, primaryLevel, qualifyingClasses, validateClasses,
   type Character, type LoadoutContext,
 } from './character';
@@ -277,5 +278,50 @@ describe('a plan resolves against its own loadout', () => {
     };
     expect(contextFor(withRace, 'p0').race).toBe('OGR');
     expect(contextFor(withRace, 'p1').race).toBe('HFL');
+  });
+});
+
+/*
+ * The offhand advisory is a mark, and the point is that it is NOT a gate.
+ *
+ * Session E audited the classic dual-wield class table and ruled against
+ * carrying it over: unmeasured on Legends, absent from 138 logs, presumed
+ * rather than stated by the wiki. A hard gate on it would refuse equipment the
+ * game may allow. So the strongest assertion here is the negative one —
+ * `canUse` must not have learned about dual wielding.
+ */
+describe('the offhand class rule is marked, never enforced', () => {
+  const offhandWeapon = { sl: ['PRIMARY', 'SECONDARY'], wp: { dmg: 20, dly: 25 } };
+  const shield = { sl: ['SECONDARY'] };
+  const mainOnly = { sl: ['PRIMARY'], wp: { dmg: 40, dly: 40 } };
+
+  it('applies to a weapon that can go in the offhand', () => {
+    expect(offhandAdvisoryApplies(offhandWeapon)).toBe(true);
+  });
+
+  it('does not apply to a shield: holding one is not dual wielding', () => {
+    expect(offhandAdvisoryApplies(shield)).toBe(false);
+  });
+
+  it('does not apply to a weapon that cannot go there at all', () => {
+    expect(offhandAdvisoryApplies(mainOnly)).toBe(false);
+  });
+
+  /*
+   * The load-bearing test. If a future change makes eligibility depend on the
+   * class dual-wield table, this fails — which is the whole intent.
+   */
+  it('leaves canUse untouched: no trio is refused an offhand weapon', () => {
+    const item = { classes: ['ALL'], races: ['ALL'] };
+    for (const classes of [['WAR', 'CLR', 'WIZ'], ['CLR'], ['WIZ', 'ENC', 'MAG'], ['ROG', 'BRD', 'BER']] as const) {
+      const ctx = makeContext([...classes], null, { WAR: 50, CLR: 50, WIZ: 50, ENC: 50, MAG: 50, ROG: 50, BRD: 50, BER: 50 });
+      expect(canUse(item, ctx), `${classes.join('/')} was refused`).toBe(true);
+    }
+  });
+
+  it('states its own standing and names what would settle it', () => {
+    expect(DUAL_WIELD_STANDING.standing).toMatch(/tier 5/i);
+    expect(DUAL_WIELD_STANDING.standing).toMatch(/not measured here|deliberately not enforced/i);
+    expect(DUAL_WIELD_STANDING.settle).toMatch(/CAPTURE-REQUESTS\.md/);
   });
 });

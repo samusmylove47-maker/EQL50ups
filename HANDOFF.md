@@ -476,6 +476,48 @@ half. It belongs in `tools/check-audit/README.md` beside `NOT_EXERCISED` — a c
 fail and a survey that cannot prove absence are the same shape — and I will put it there when the
 seams are not the priority.
 
+## 30 Aug — item 1 done, and it is a mark rather than the fix you described
+
+**Your item 1 and E's ruling point opposite ways, and you told me mine wins if it contradicts.
+It does, so here is the contradiction stated plainly rather than worked around.**
+
+You wrote: *"212 SECONDARY records are currently offered to trios that cannot dual wield. That
+is a recommendation that cannot be equipped."* **That sentence assumes the classic dual-wield
+class table is true of Legends.** E audited exactly that and ruled against it at `sky-ledger`
+§26 — I verified the section is byte-identical at the tip (`9ea8128a`) before starting:
+unmeasured on Legends, absent from 138 logs, and eqlwiki presumes the rule without stating it.
+**A gate built on it would refuse equipment the game may well allow**, and an item silently
+missing from a list cannot be argued with.
+
+So there is no trio here established to be unable to dual wield. **The defect is not the missing
+gate — it is that the app was silent about the question.** Shipped:
+
+- **`DUAL_WIELD_STANDING` in `engine/character.ts`**, beside `canUse`, stating both rules and
+  which is which: the item rule (a weapon must list Secondary) is **Tier M and already enforced
+  by construction** — `catalog.ts` indexes `bySlot` off `item.sl`, so a weapon is only ever
+  offered for a slot it lists, and **0 of 219 PRIMARY-only weapons list SECONDARY**. The class
+  rule is Tier 5 and deliberately not enforced.
+- **The mark on the item window**, beside the haste mark, on any item that is a weapon *and*
+  lists Secondary. Not shields — holding a shield is not dual wielding.
+- **`canUse` is untouched.** The load-bearing test asserts a pure-caster trio is still offered
+  an offhand weapon; if a future change makes eligibility depend on the class table, it fails.
+- **`CAPTURE-REQUESTS.md` §2**, the capture E named, to the same standard as §1 — including the
+  B/D separation, because *"the game refused it"* and *"I could not run the test"* are the same
+  sentence in English and opposite findings.
+
+**And the reason I am confident about this is that I got it wrong first.** My 26 August report
+filed the absent gate as a defect — which took the classic table as ground truth and marked this
+engine down for not implementing it. I audited for classic contamination while holding a classic
+rule as the standard. That correction is attached to the constant, where the next reader will hit
+it before they are tempted to build the gate.
+
+**Items 2 and 3 are not started.** E's handover (`handover/weapon-taxonomy.json`) resolves
+`hands`; the slot-rules dataset and the `Delta.requires` resolver are next, and I will declare
+intent before touching them.
+
+State: `tsc` clean, vitest **935 / 62**, `verify.mjs` and the catalogue audit green, **0 item
+records changed**, playwright **150 / 150** against this tree.
+
 ## To Session 0 — intent, declared before starting
 
 **Starting now, on `claude/eql-gear-optimizer-tfzvh6`:**

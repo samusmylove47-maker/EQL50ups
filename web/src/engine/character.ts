@@ -302,6 +302,58 @@ export function canUse(item: ItemRestrictions, ctx: LoadoutContext): boolean {
 }
 
 /**
+ * "Can this character actually swing a weapon in the offhand?"
+ *
+ * **Two rules wear one name, and only one of them is ours to enforce.**
+ *
+ * *The item rule is Tier M and this app already applies it:* unless a weapon
+ * lists SECONDARY it cannot be held in the offhand. The owner corrected that
+ * directly, and it is enforced here by construction rather than by a check —
+ * `data/catalog.ts` indexes items into `bySlot` straight off `item.sl`, so a
+ * weapon is only ever offered for a slot it lists. Measured: **219 PRIMARY-only
+ * weapons, none of which lists SECONDARY.**
+ *
+ * *The class rule is Tier 5 and this app deliberately does NOT enforce it.*
+ * Classic EverQuest gated Dual Wield by class, and the obvious thing is to carry
+ * that table over. Session E audited exactly that and concluded against it: the
+ * rule is inherited from classic, is unmeasured on Legends, no log in 138 shows
+ * a two-handed primary, and eqlwiki's Dual Wield section presumes the rule
+ * without ever stating it. **A hard gate built on that would refuse equipment
+ * the game may well allow**, which is a worse failure than the one it prevents —
+ * an item silently missing from a list cannot be argued with.
+ *
+ * **So this is a mark, not a gate**, and the distinction is the whole point:
+ * `canUse` above is unchanged and nothing is filtered. The reader is told the
+ * class rule is unsettled and left to decide.
+ *
+ * The correction that produced this is worth keeping attached. I first reported
+ * the absent gate as a defect in this engine — which took the classic table as
+ * ground truth and marked the engine down for not implementing it. That is the
+ * same inherited-rule fault this project exists to catch, committed inside an
+ * audit for it.
+ */
+export const DUAL_WIELD_STANDING = {
+  /** Chip text wherever an offhand weapon is shown. */
+  chip: 'Tier 5 rule',
+  rule: 'Whether every class may wield a weapon in the offhand is unsettled.',
+  short:
+    'This app does not check whether your classes can dual wield. Classic EverQuest gated it by class, but nothing has measured that rule on Legends, and refusing an item the game may allow is worse than showing one it may not. The slot rule — a weapon must list Secondary to go there — is confirmed and is applied.',
+  standing:
+    'Assumed by others, not measured here. Tier 5: inherited from classic EverQuest, presumed rather than stated by the wiki, and absent from 138 logs. Deliberately not enforced.',
+  settle:
+    'One log line or screenshot of a character with no dual-wield class equipping a weapon in Secondary settles it — and so does one of the client refusing to let them. research/validation/CAPTURE-REQUESTS.md §2 is the instruction.',
+} as const;
+
+/**
+ * Whether the offhand advisory applies to this item: it is a weapon, and it can
+ * go in the offhand. A shield or a held item in Secondary is not dual wielding
+ * and the question does not arise for it.
+ */
+export function offhandAdvisoryApplies(item: { sl: string[]; wp?: unknown }): boolean {
+  return Boolean(item.wp) && item.sl.includes('SECONDARY');
+}
+
+/**
  * Armor proficiency follows the highest tier among the loadout's classes, so a
  * plate class anywhere in the trio opens plate to the whole combination.
  */

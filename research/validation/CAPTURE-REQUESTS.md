@@ -106,6 +106,55 @@ outcome B lands, the cross-kind widening is still unsourced and stays marked.
 
 ---
 
+## §2 — Can a class with no dual wield equip a weapon in Secondary?
+
+**Why this one.** The planner deliberately does **not** check it, and that decision needs
+settling in one direction or the other. Classic EverQuest gated Dual Wield by class and the
+obvious move is to carry the table over; Session E audited that and ruled against it — the rule
+is unmeasured on Legends, absent from 138 logs, and eqlwiki's Dual Wield section presumes it
+without stating it. So today the app shows every offhand weapon to every trio and marks the
+class rule Tier 5 (`DUAL_WIELD_STANDING` in `web/src/engine/character.ts`).
+
+**Both answers are useful.** If the game refuses, we gain a gate we currently decline to build.
+If it allows, a rule everybody carries over from 1999 is retired with evidence. There is no
+outcome here that leaves us where we started.
+
+### What to do
+
+1. **Pick a character whose classes are all "cannot dual wield" under the classic table** — a
+   pure caster trio is cleanest. Wizard, Magician, Enchanter, Necromancer, Cleric and Druid are
+   all non-dual-wield in classic.
+2. **Get any weapon that lists Secondary in its slot line.** It does not need to be good; it
+   needs to be a weapon rather than a shield, because holding a shield is not dual wielding.
+   Anything with a DMG and DLY line and `Secondary` among its slots will do.
+3. **Equip your main hand first**, so the offhand is the only question being asked.
+4. **Try to put the weapon in the Secondary slot.** Screenshot what happens.
+
+### What to send back
+
+The character window showing the class line, the item window showing its slot line, and the
+result — the weapon sitting in Secondary, or the client's refusal and any message it prints.
+
+### What each outcome means
+
+| | Reading | What it means | What we do |
+|---|---|---|---|
+| **A. It goes in** | The weapon sits in Secondary and stays there after a zone or relog | **The classic class rule does not apply on Legends.** | The Tier 5 mark comes off, `DUAL_WIELD_STANDING` is retired, and this becomes a row in `TIER0-VALIDATION.md`. The planner is already correct and stays as it is. |
+| **B. It is refused** | The client will not place it, or places and then rejects it | **The class rule is real.** | The gate gets built — and it gets built from what the client refused, not from the classic table, because *which* classes are gated is a second question this capture does not answer. |
+| **C. It goes in but does not swing** | It sits in the slot; the combat log shows no offhand attacks | **Both rules are partly right**, and the distinction is equip-versus-attack. | The mark stays, reworded: the item is equippable and the attack is not modelled. This is the outcome the planner already describes most accurately. |
+| **D. No such character or weapon to hand** | Could not assemble the test | Nothing is learned. | Say so. **Do not let this arrive as outcome B** — "I could not equip it" and "the game refused it" are the same sentence in English and opposite findings. |
+
+**B and D are the pair to keep apart here**, the way C and E are in §1. A refusal by the game
+and a failure to run the test both end with the weapon not in the slot.
+
+### What this does not settle
+
+**Which** classes are gated, if any are. This capture asks one character one question. A gate
+built from one refusal would be a classic table wearing one observation as a hat, which is the
+fault the mark exists to prevent — so outcome B licenses building a gate, not copying one.
+
+---
+
 ## Queued, not yet written up
 
 - **Haste stacking and the haste cap.** `HASTE_STACKING` and `HASTE_PROVENANCE` in

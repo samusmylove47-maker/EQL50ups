@@ -21,7 +21,10 @@ import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties }
 import { createPortal } from 'react-dom';
 import type { LoadoutContext } from '../engine/character';
 import { CLASS_NAMES, type ClassCode } from '../engine/constants';
-import { canUseClass, canUseRace, levelCheck } from '../engine/character';
+import {
+  canUseClass, canUseRace, levelCheck,
+  DUAL_WIELD_STANDING, offhandAdvisoryApplies,
+} from '../engine/character';
 import type { Item } from '../engine/types';
 import { statsAreUnknown } from '../data/normalize';
 import { HASTE_PROVENANCE, HASTE_STACKING } from '../engine/stats';
@@ -182,6 +185,27 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
                 </span>
               ))}
             </div>
+            {offhandAdvisoryApplies(item) ? (
+              /*
+                An offhand weapon, marked rather than filtered.
+
+                The slot rule is applied — this item lists SECONDARY, which is
+                Tier M and why it is offered at all. The CLASS rule is not: it
+                is classic EverQuest's, unmeasured on Legends, and a gate built
+                on it would refuse equipment the game may allow. `canUse` is
+                deliberately untouched; the reader gets the fact instead of a
+                shorter list they cannot interrogate.
+              */
+              <div className="iwin-effect">
+                <span className="tier t5" title={DUAL_WIELD_STANDING.standing}>
+                  † {DUAL_WIELD_STANDING.chip}
+                </span>{' '}
+                <span className="iwin-dim">
+                  {DUAL_WIELD_STANDING.short}
+                  {wide ? ` ${DUAL_WIELD_STANDING.settle}` : ''}
+                </span>
+              </div>
+            ) : null}
             {hasHaste ? (
               <div className="iwin-effect">
                 <span className="tier t5" title={HASTE_PROVENANCE.short}>
