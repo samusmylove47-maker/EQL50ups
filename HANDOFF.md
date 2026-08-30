@@ -407,6 +407,75 @@ were removed rather than left as a second home for the topic.
 
 Nothing else is blocked. The Wednesday seams are still Wednesday.
 
+## 30 Aug — gap-engine ruling read. Two things I owe before Wednesday, one of them a gap in what you assigned me.
+
+Read at source: `claude/eq-map-export-proposal-oe8m6l`. **The tip is `6dfff8bf`, already past the
+`bc31b391` Session 0 quoted** — their own §10c decay rule demonstrating itself inside an hour.
+I read the architecture and sequencing sections there rather than from the relay.
+
+### 1. "E decides; it does not ask" applies to me, and it makes my own position the wrong shape
+
+The ruling: *"give E decisions to make rather than questions to answer"*, E writes the contract
+into its HANDOFF and pushes, *"A, B and C build against it and report disagreements as commits.
+Nobody waits."*
+
+**My standing position ends in a question, and I aimed it at a session with no outbound.** I
+wrote: *"That is the question I want answered Wednesday before either of us writes anything: is
+rule 4 the whole seam, or is E's slot model wider than mine?"* Under this ruling that is exactly
+the shape that costs a round trip through a commit, Session 0, an addressee and a commit back —
+for a question E cannot answer cheaply.
+
+**Converted to a decision, and this is my Wednesday posture:** I arrive having read E's pushed
+contract, and I publish the slot-rules dataset as I believe it should be — the vocabulary, the
+doubled slots, the 23 positions, and `weaponCountsAt`, which now exists as one exported function
+precisely so it can be the shared thing. If E's model is wider, **E contradicts it in a commit**
+and I move. That is faster than asking, and it means the artefact exists on Wednesday morning
+rather than being negotiated into existence.
+
+What I will *not* do is draft it before reading E's contract, because the ruling makes that
+document the specification and building against my own guess is how two implementations get
+written in the first place.
+
+### 2. The architecture assigns me two things I do not have
+
+Your table gives B: *"Items, slot rules, mote curves, the AA ladder."* Measured in my own tree,
+not recalled:
+
+| assigned | what actually exists here |
+|---|---|
+| Items | **Yes.** 3,663 records, gated. |
+| Slot rules | **Yes**, and now behind one function rather than four expressions. |
+| **Mote curves** | **No.** `upgrade.ts:21` models `fraction` as *"experience banked toward the next tier, out of `2 ** full`"* — a display denominator, not a cost curve. **Nothing here knows what a tier costs.** The nearest thing is prose in `research/eql-itemization.md:55` — Motes of Potential, ranked Infinitesimal → Ascendant, rank-locked to item tier, two of a rank combining into the next — sourced to eqlwiki's Mote Guide and two aggregators. Tier 3/4, never read off the client, never modelled. |
+| **The AA ladder** | **No, and not even prose.** One incidental mention in a comment about `LEVEL_CAP`. There is no AA model in this repository at all. |
+
+**Why this matters more than a missing feature.** The engine's whole question is *what could
+this character obtain next*, and two of the four answers to that are things I cannot currently
+answer. If E builds a gap ranking that assumes B can price a mote or an AA, the seam has a hole
+in it that will not show up until something returns an empty list — which is the silent-failure
+shape, not the loud one.
+
+**My decision rather than my question:** Wednesday's dataset ships **items and slot rules only**,
+and it declares the other two as absent rather than empty. An absent field a consumer can branch
+on is safe; a zero is an invention, which is the same rule this project applies to `Dmg Bon`.
+Whether motes and AA become mine to build, or belong somewhere else, is a scoping call I am
+flagging now so it is not discovered on the day. Nothing about it needs deciding before
+Wednesday.
+
+### 3. Noted, and it is the useful half
+
+The `main`/`master` correction has now run through four repositories, and the two downstream
+findings are better than mine: D pointed its own two-command check at `eql-source`, found it
+blind on the one repo that demonstrably serves a site, and corrected the rule to three steps plus
+a residue — *it can prove publishing is triggered and can never prove that pushing is inert*,
+because the trigger may live in a dashboard outside the repository. C then found its own
+"nothing deploys" row was concluded rather than established and re-ran it as a root survey.
+
+That residue is the real result. My version stopped at "read the job, not just the trigger"; D's
+goes further and names what the method **cannot** establish, which is the harder and more useful
+half. It belongs in `tools/check-audit/README.md` beside `NOT_EXERCISED` — a check that cannot
+fail and a survey that cannot prove absence are the same shape — and I will put it there when the
+seams are not the priority.
+
 ## To Session 0 — my push branch
 
 ```
