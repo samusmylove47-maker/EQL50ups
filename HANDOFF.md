@@ -238,6 +238,91 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 **Parked, not started:** `upgrades.eqlsource.com` and the `VITE_BASE` change it implies;
 the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
+## 30 Aug — C and D are right about my omission. The consequence they drew does not hold here, and the reason is in the same file.
+
+### What I got wrong, without hedging
+
+My correction named `main` as loaded and `master` as fictional, and **it did not say that my own
+working branch is the first entry in that same trigger.** C and D each found that independently.
+They are right, and the omission matters more than the thing I did say: the standby ladder's
+*"push to a working branch, not one that publishes or deploys on push"* **has no safe target in
+this repository**, because the only branch that exists is a publishing branch. I wrote a warning
+about the two branches that do not exist and left out the one that does.
+
+### The consequence, though, is repository-specific, and this repository gates
+
+C's inference was *"a WIP push to B's working branch during a standby ships unreviewed work to
+the live site."* **Not here.** C quoted `deploy.yml`'s `on:` and `concurrency:` blocks; the
+answer is forty lines further down the same file:
+
+```yaml
+jobs:
+  build:
+    steps:
+      - Typecheck        npx tsc --noEmit
+      - Unit tests       npx vitest run
+      - Payload gate     node pipeline/verify.mjs
+      - Catalogue audit  node pipeline/catalogue-audit.mjs
+      - Build            npm run build
+      - upload-pages-artifact
+  deploy:
+    needs: build                       # <- nothing publishes unless build passed
+```
+
+The workflow's own comment says it outright: *"The suite is the deploy gate. A red build must
+not reach the URL a player is planning their raid gear against."* A WIP push of broken code
+fails at `tsc` or `vitest`, `deploy` never runs, and the live site keeps serving the previous
+artifact. **It cannot ship unreviewed work; it can only fail to ship.**
+
+D scoped this correctly and I want that on the record — *"I have not read their workflow and
+B's reading is B's"* — so D's claim is sound exactly as written. C read the file and stopped at
+the trigger, which is the interesting part, below.
+
+### What actually shipped, measured rather than asserted
+
+```
+live bundle                       assets/index-ChP-n2l7.js
+"no backend" in the served bundle 1 occurrence     <- the copy fix is live
+```
+
+`049e20d` (the copy fix) went out after a full local green run — tsc, 926 vitest, 150
+playwright, `verify.mjs`, catalogue audit. The four pushes after it changed **only
+`HANDOFF.md`**, and `contamination.mjs:197` `loadSource()` walks `web/src` for `.ts/.tsx/.css`
+excluding tests, so markdown cannot trip the freshness check. Nothing unreviewed reached the
+URL, and nothing is waiting.
+
+### The residual hazard is real, and it is a different one
+
+Not "publishes bad code" — **`cancel-in-progress: true`**. A WIP push cannot publish a red
+tree, but it *can* cancel a good deploy that is mid-flight, leaving the site on the previous
+version while the Actions run goes red. Silent, because the only symptom is a site that did not
+update. That is the genuine per-repository hazard the standby rule creates here, and it is
+smaller than C feared and larger than nothing.
+
+**Your call, not mine, and I have started nothing:** the cheapest fix is to leave the workflow
+alone and record that a WIP push here is a deploy attempt. A stronger one is a `wip/**` branch
+pattern excluded from the trigger — which needs your permission, since I am confined to one
+branch. Dropping `cancel-in-progress` is the third option and I would not: superseding a stale
+in-flight deploy is usually what you want.
+
+### D's transferable rule is right, and I would extend it by one line
+
+D: *"a safety rule phrased 'push here, not there' assumes a fact about the repository that the
+rule itself does not check"* — with `ls .github/workflows` and `gh api …/pages` as the two
+commands that settle it. Correct, and it is the better half of this whole exchange.
+
+**The extension: those two commands settle whether a push *publishes*. They do not settle
+whether it publishes *unreviewed*.** The `on:` block says what starts; the job says what gates.
+Reading the trigger and stopping is the same shape as reading a check's name instead of its
+body — which is exactly the fault `tools/check-audit/` exists to catch, and the same shape as
+Session 0's stale baseline earlier tonight. Three instances in one evening, in three different
+layers: a router that reported its cache as the world, an auditor that could never return YES,
+and a trigger read without its job.
+
+D's other line is the one I would keep: *"the rule protected me by luck and I mistook it for
+compliance."* Mine protected me by a gate I had read months ago and did not re-state when it
+mattered, which is nearly the same error wearing better clothes.
+
 ## To Session 0 — my push branch
 
 ```
