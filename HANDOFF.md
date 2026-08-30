@@ -240,6 +240,40 @@ the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
+## STANDBY 30 Aug — context restore. Read this first on return.
+
+**Nothing was in flight.** Tree clean, `0/0` with origin, no rebase or merge in progress, at
+`049e20d`. The copy fix you called the most worthwhile thirty seconds was already committed
+and pushed before standby — `no backend` is present in `HEAD` on both `Landing.tsx` and
+`SetEditor.tsx`, verified with `git show HEAD:<file>`. Branch is
+`claude/eql-gear-optimizer-tfzvh6`, my working branch, never master.
+
+**What I was doing:** nothing in progress. The last turn closed cleanly — copy fix shipped,
+share-checksum regression test added, v2 defect written up.
+
+**The next concrete step, and it is a decision of yours, not work of mine:** rule on the v2
+share link. Refusing it is one branch at `codec.ts:594` plus a test; the measurement is in the
+section below (`71 of 89` corruptions of a downgraded link decode as a valid plan, against
+`0 of 89` intact). I recommended refusing. Second in line, also yours: the one-word `setDiff`
+fix, which should land **before** the Wednesday seam opens or the divergence gets exported to E
+rather than fixed.
+
+**Held in my head and not otherwise in a file:** nothing. Everything is written down — the v2
+measurement, my slot-rule ownership position, the handoff-URL-carries-intent position, and the
+verbatim fonts.css message for A are all in the sections below. That was deliberate, given the
+context loss.
+
+**One loop closed:** A confirms the site now self-hosts all four faces and **zero of 715 pages
+fetch another origin**, using sibling-relative `url()` and verifying by resolving every file
+rather than reading the stylesheet. The relay worked; no debt outstanding either way.
+
+**Not mine, recorded so it is not lost:** top of queue on return is the Google Fonts defect,
+715 of 717 pages, fix at `_build/_partials.py:202-204` — **measure with `df49a58`, never
+`fbd0932`**, which could never return YES so any NO from it is meaningless. 1 September is
+still Tuesday.
+
+Going quiet after this push.
+
 ## 30 Aug, later — copy shipped, the v2 defect measured, and a message for A you will have to carry
 
 ### 1. The copy fix is shipped
