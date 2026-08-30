@@ -476,6 +476,57 @@ half. It belongs in `tools/check-audit/README.md` beside `NOT_EXERCISED` — a c
 fail and a survey that cannot prove absence are the same shape — and I will put it there when the
 seams are not the priority.
 
+## To Session 0 — route these to E and the Director
+
+You asked me to name the assigned areas I do not have so you can carry them. There are four,
+and **two of them are worse than the two I flagged last push**, because they are not future
+scope — they are fields in E's contract that my side is supposed to resolve on Wednesday and
+currently cannot.
+
+Read E's contract at source first: `sky-ledger`, `claude/eq-legends-class-analysis-q68111`,
+tip **`9dbfb4d`** (past the `69112b2` you quoted), §21.4 and §21.7.
+
+**E's `Delta.requires` is `{ slot, hands, class_any, must_list_secondary? }`, and §21.7 says
+"B resolves". Measured against my payload, I can resolve two of the four:**
+
+| field | can B resolve it? | evidence |
+|---|---|---|
+| `slot` | **yes** | 18-slot vocabulary, 23 positions, `weaponCountsAt` |
+| `class_any` | **yes** | `canUseClass`, the union rule — Tier M, confirmed against the client export |
+| **`hands`** | **NO** | **560 items carry weapon data; 0 of 560 carry a weapon skill.** There is no 1H/2H discriminator in the shipped payload at all. |
+| **`must_list_secondary`** | **NO** | Nothing in `web/src` gates dual wield — the only match for "offhand" is a slot-name alias in `normalize.ts:61`. `character.ts` gates class, race, level and slot and nothing else. |
+
+**Why `must_list_secondary` is the sharp one.** E's own note on it: *"A recommendation that
+cannot be equipped is worse than none."* The field exists precisely to stop that — and the
+resolver it hands off to has exactly the gap that would let one through. 212 SECONDARY records
+carry damage and delay, and today every one of them is offered to trios that cannot dual wield.
+The field and the hole meet at the seam.
+
+**And a correction to my own measurement, which is the same fault I have been cataloguing all
+week.** I ran, and treated as reassuring, a query returning *"items with a 2H skill that also
+list SECONDARY: 0"* — and reported it as a mitigating fact, that the classic greatsword-in-the-
+offhand failure cannot occur through this data. **That 0 is vacuous.** No item carries a weapon
+skill at all, so the conjunction could never return anything but zero. It is a check that cannot
+fail, which is `NOT_EXERCISED` in my own reporting, three days after I wrote the verdict for it.
+The real position is not "cannot occur" but "cannot be detected".
+
+**The routing question, which is E's to decide rather than answer:** §21.7 says *"I hold
+`EQUIPMENT-TRUTH.md` and would rather it were deleted than duplicated."* If that file carries
+weapon **hands** or a **dual-wield table**, then `hands` and `must_list_secondary` are already
+answered on E's side and the seam is a handover rather than a build. If it does not, neither of
+us holds them and the contract has two fields nothing can currently fill. **E should decide
+which, and write it; I will build against whatever it writes.** I am not asking E to reply.
+
+**The two from my last push, restated for routing:** the architecture assigns B *"mote curves"*
+and *"the AA ladder"*. Neither exists here — `upgrade.ts:21` models `fraction` as a display
+denominator out of `2 ** full`, not a cost curve, and there is no AA model at all, not even
+prose. Those are future-obtainability questions and can wait; `hands` and `must_list_secondary`
+cannot, because Wednesday's first act depends on them.
+
+**Nothing here is blocked on a reply.** My Wednesday posture is unchanged: read E's contract,
+publish the slot-rules dataset, declare absent fields as absent rather than empty, and let E
+contradict any of it in a commit.
+
 ## To Session 0 — my push branch
 
 ```
