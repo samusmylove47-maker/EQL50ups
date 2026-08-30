@@ -97,7 +97,9 @@ export function Landing() {
           <p>
             Three classes at once, twenty-three slots including the two Any Slots, and every item
             upgradeable from +0 to +10 — with the stat sheet recomputing as you touch it. No
-            account, no server: your sets live in this browser and travel as links.
+            account and no backend: your sets live in this browser and travel as links, and
+            nothing you enter is ever sent anywhere. The app does fetch its own item catalogue
+            from the site serving it.
           </p>
           <div className="hero-actions">
             <a className="btn btn-primary" href={href.newCharacter}>

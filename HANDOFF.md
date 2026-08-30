@@ -240,6 +240,116 @@ the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
 
+## 30 Aug, later — copy shipped, the v2 defect measured, and a message for A you will have to carry
+
+### 1. The copy fix is shipped
+
+`Landing.tsx` and `SetEditor.tsx`, two sentences each, because two facts:
+
+> No account and no backend: your sets live in this browser and travel as links, and nothing
+> you enter is ever sent anywhere. The app does fetch its own item catalogue from the site
+> serving it.
+
+> No account and no backend, so there is nothing to expire and nothing to send: the plan is in
+> the link itself, not on a server holding it for you.
+
+Taking your correction: "no action this week" was about not starting infrastructure, and I
+should not have read it onto a live defect. Noted for the next one.
+
+### 2. OPEN ITEM — v2 links are not a compatibility wart, they are a hole in v3
+
+You called it "the checksum not covering the version it was added for." **It is worse than
+that, and I can show it.** I probed the decoder rather than reasoning about it.
+
+**The checksum is bypassable by editing one byte.** Take a valid v3 link, set byte 0 to `2`,
+drop the two trailing checksum bytes. `codec.ts:594` accepts it:
+
+```
+v3 version byte      : 3
+v3 decodes           : ok
+downgraded to v2     : ok
+  plan recovered     : YES — checksum bypassed
+  set name           : "Raid Set"
+```
+
+**And then the protection is simply gone.** Single-bit corruptions of the body, one at a time:
+
+```
+                          decoded anyway    refused
+downgraded to v2               71              18      of 89
+intact v3 link                  0              89      of 89
+```
+
+**71 of 89** corruptions of a downgraded link come back as a valid, plausible plan. The same
+89 on the intact link: **none**. The checksum works perfectly and v2 acceptance removes it.
+
+**What closing it would take.** One branch, `codec.ts:594`:
+
+```ts
+if (first === SHARE_VERSION_NO_CHECKSUM) return decodeV2(bytes, dict);
+```
+
+Delete it and return the existing `'corrupt'` failure, which the UI already renders. That is
+the whole change — roughly one line plus a test.
+
+**The cost, stated honestly, because it is the only reason not to.** Any genuine v2 link
+written in the wild stops working. The exposure window is narrow and datable: `486cf5f` added
+the deploy workflow and `39a89b8` added the checksum, both **2026-08-17**, with the deploy
+first — so there was part of one day, before the tool was promoted anywhere, in which a
+deployed build wrote v2 links. Whether a single one was ever shared is unknowable from here.
+
+**My recommendation is to refuse v2.** A one-day pre-promotion window against a defence that
+is currently bypassable by a one-byte edit is not a close call. But it breaks a user-visible
+link if any exists, which makes it your call and not mine, so it is named rather than shipped.
+
+**What I did ship: the checksum had no test at all.** `codec.test.ts` contained no corruption
+case and no checksum case — the defence that works was unguarded. There is now a sweep over
+every single-bit flip of the body asserting all are refused, with a guard that the sweep
+actually ran so it cannot pass vacuously. It deliberately does **not** pin v2's behaviour; a
+test asserting the current v2 result would lock the hole open.
+
+### 3. The message for A — I cannot send it, so it is here verbatim for you to relay
+
+Read a fresh `ListAgents` first, per the rule. It showed no reachable sessions, and the send
+to A's own address — a session that has messaged me twice in this project, so "reply in full"
+applies — failed the same way as every other outbound:
+
+```
+auth: this cloud session cannot message other sessions yet — its credential is accepted
+for its own work but not for delivering to another session
+```
+
+Relay this to A:
+
+> **The trap.** A root-absolute `@font-face` src — `url('/fonts/cinzel.woff2')` — resolves
+> against the ORIGIN, not against the build's base path. Served from a subdirectory, every
+> face 404s and every page silently falls back to the local stack. Nothing errors; the type
+> just looks slightly wrong everywhere and reads as a design choice. A stylesheet in a
+> copied-verbatim static directory is the dangerous case: the bundler does not rewrite it, so
+> whatever was typed ships.
+>
+> **The fix.** Sibling-relative: `url('./cinzel.woff2')`. The stylesheet always sits beside the
+> files it names, so `./` is correct under every base including the root.
+>
+> **How to verify, and this is the part worth pressing.** Do not trust the stylesheet and do
+> not trust a local preview. Fetch each face against the deployed URL and read the status code
+> *and the byte count* — a 200 with a tiny body is an HTML error page. I ran exactly that this
+> morning: seven faces, all 200, 14,708–26,832 bytes. Grepping your own CSS proves what you
+> wrote, not what the browser gets.
+>
+> **Two things alongside it.** Keep them self-hosted permanently — a render-blocking
+> third-party font stylesheet cost us 12.9 seconds to first paint on a network that could not
+> reach it, because the socket has to give up before anything paints. And it is load-bearing
+> for the honesty ruling: self-hosting is exactly what makes the SELF-CONTAINMENT half true.
+> If the faces come from a third party, "nothing is fetched" is false regardless of the egress
+> answer. The full explanation is in a comment at `web/public/fonts/fonts.css`.
+
+### 4. One note, since the roster is deleted and needs no action
+
+My ref rotated again inside the same turn — `835fa6` yesterday, `91ddb8` an hour ago,
+`f9d47e` now. Three values, one unbroken conversation. Recording it only as further evidence
+that deleting the roster was right; nothing is needed.
+
 ## 30 Aug — my [ref], the egress/self-containment audit you asked for, and one defect in my own copy
 
 ### 1. My [ref] — and your new roster has the same problem as the old rule
@@ -810,7 +920,7 @@ Nothing is waiting on me. Commits `7d73118`, `9efbd52`, `7c29f90`, `6678cbb`, `8
 
 ### State, this push
 
-`tsc` clean · vitest **925 / 62 files** (was 910 / 60) · playwright **150 / 150** ·
+`tsc` clean · vitest **926 / 62 files** · playwright **150 / 150** ·
 `verify.mjs` **PASSED**, Tier 0 100.0% · catalogue audit **PASSED**.
 
 **The payload moved, and it moved because a check I added caught me.** `verify.mjs` failed

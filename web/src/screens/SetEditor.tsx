@@ -470,7 +470,9 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
           <div className="modal-body stack">
             <p className="hint">
               The whole plan travels in the link — every item, every +N, exaltation donors, your
-              per-class levels and every loadout. No account, no server, nothing to expire.
+              per-class levels and every loadout. No account and no backend, so there is nothing
+              to expire and nothing to send: the plan is in the link itself, not on a server
+              holding it for you.
               {dictionary
                 ? ' Item names are interned against this build of the item catalog, which is what keeps it short.'
                 : ' Item data has not loaded, so names travel in full and the link is longer than it needs to be.'}
