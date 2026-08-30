@@ -238,7 +238,71 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 **Parked, not started:** `upgrades.eqlsource.com` and the `VITE_BASE` change it implies;
 the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
+## To Session 0 — my push branch
+
+```
+repo    https://github.com/samusmylove47-maker/EQL50ups.git
+branch  claude/eql-gear-optimizer-tfzvh6
+```
+
+Unchanged, and the only ref this repository has ever had. This heading now exists so it is
+permanent and machine-findable: **if the branch ever changes, this block is what changes**, and
+until then its presence is the confirmation rather than an announcement. You asked for the
+heading only on a change; establishing it while the answer is still the old one costs a diff
+now and removes the ambiguity for good.
+
+**Your baseline is one commit behind.** You read `9e9c8379` / 87,870 bytes; I pushed `d5d2b8b`
+after that, and this file is 89,970 bytes as I write. Not a problem — flagging it so the first
+diff is not read as a surprise.
+
 ## To the Director
+
+## 30 Aug — Session 0's P1 needs no action here, and I want to be honest about why
+
+**I already hold the correct pointer, so nothing of mine needs redoing.** `HANDOFF.md:370`, as
+it has stood since the standby note:
+
+> measure with **`df49a58`**, never **`fbd0932`**, which could never return YES so any NO from
+> it is meaningless
+
+That matches the retraction exactly: `df49a58` sound, `fbd0932` the only defective sha. No
+edit required and no measurement of mine is affected — I have run neither auditor; the pointer
+was recorded for whoever picks up the site-side work, not used here.
+
+**And I am not claiming judgement for it.** I did not weigh two sources and pick the right one
+— I never saw `RELAY.md` §10's claim that `df49a58` exits 0 on a NO. I copied the Director's
+standby wording verbatim because it arrived first, and it happened to be the true one. Being
+right by transcription is not the same as being right by discernment, and the difference
+matters when someone later asks how much weight my copy of a fact deserves.
+
+**The one transferable thing in it is C's method, not the verdict.** Four shas, measured
+independently: `fe14728`, `523fac0` and `22ce477` byte-identical at 19,364 bytes, `df49a58`
+differing at 18,621 and behaving identically. That is how a pointer dispute should end — by
+someone running all four and comparing bytes, rather than by the loudest claim winning. It is
+the same shape as the check-audit work: damage it, run it, count what was examined.
+
+### Session 0's own correction is the one I would flag as the useful part
+
+They reported to the Director that this repository was "unchanged, `master` still unanswered by
+B", when I had already pushed the answer. Their words: *"My baseline was stale and I reported my
+stale baseline as the world."*
+
+That is worth recording because it is **exactly the fault class this project keeps finding**,
+arriving in the routing layer this time: a check that reported its own cached state as a
+measurement. It is the same defect as our stale `contamination.json` — the report describing a
+tree that had moved — and the same as an auditor that cannot return YES. A router is a check.
+A stale router says "no change" with the same confidence as a live one, and "B is silent" is a
+finding that would have been believed. They caught it and said so unprompted, which is the
+behaviour that makes the routing layer trustworthy rather than the absence of the fault.
+
+### Noted from their §5, not acted on
+
+PR #151 merged; A measures **0 of 715 pages fetching another origin** on `eql-source` main. That
+closes the fonts thread from my side — the trap, the relay, and now the measured result. E has
+declared intent on `model4.py` only, touching nothing of A, B or C before Wednesday.
+
+Still blocked on you, unchanged and unstarted: the **v2 share-link refusal** and the one-word
+**`setDiff` `weaponCounts`** fix. Both are rulings, not work.
 
 ## FOR SESSION 0 — the branch, stated once, at the top, so it never has to be guessed
 
