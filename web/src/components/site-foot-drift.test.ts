@@ -50,7 +50,11 @@ const SITE = 'https://eqlsource.com';
 
 /**
  * Transcribed from the `Tools` column of the footer served at
- * `https://eqlsource.com/tools/` on 2026-08-18. Six tools, in the site's order.
+ * `https://eqlsource.com/tools/` — six tools on 2026-08-18, **seven from
+ * 2026-08-30**, when the site published `Lockouts` and this check went red.
+ * Re-pinned that day from the live footer, in the site's order; the page was
+ * confirmed a real 200 with no redirect first, so this is a copy of a published
+ * state rather than an anticipation of one.
  *
  * When this fails, the site changed. Update `SITE_TOOLS` and this list
  * together, and tell the Director, so the session working `eql-source` knows
@@ -60,6 +64,7 @@ const EXPECTED = [
   ['The Index', `${SITE}/tools/index-search`],
   ['Sky Ledger', `${SITE}/tools/sky-ledger`],
   ['50 Upgrades', `${SITE}/tools/50-upgrades`],
+  ['Lockouts', `${SITE}/tools/lockouts`],
   ['Race unlock tracker', `${SITE}/tools/race-unlocks`],
   ['Race and primary calculator', `${SITE}/tools/combo-calculator`],
   ['Faction impact checker', `${SITE}/tools/faction-impact`],
@@ -121,13 +126,18 @@ describe("the footer's Tools column", () => {
    * pinned rather than assumed.
    *
    * The three counts are the ones recorded at `CHROME_LINKS`, computed here
-   * rather than trusted: 39 entries over 32 distinct destinations, because the
+   * rather than trusted: 40 entries over 33 distinct destinations, because the
    * nav and the footer are allowed to offer the same page and seven do.
+   *
+   * Was 39/32/6 until 2026-08-30, when the site published a seventh tool and
+   * the drift check above went red. All three moved by one, which is the shape
+   * a single added link should make; a count that moved by anything else would
+   * have meant something other than an addition happened.
    */
   it('has a populated link set, so the assertions below are not vacuous', () => {
-    expect(CHROME_LINKS.length, 'entries').toBe(39);
-    expect(new Set(CHROME_LINKS).size, 'distinct destinations').toBe(32);
-    expect(SITE_TOOLS.length, 'tools in the column').toBe(6);
+    expect(CHROME_LINKS.length, 'entries').toBe(40);
+    expect(new Set(CHROME_LINKS).size, 'distinct destinations').toBe(33);
+    expect(SITE_TOOLS.length, 'tools in the column').toBe(7);
   });
 
   it('links none of the three tools the site withdrew', () => {

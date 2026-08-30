@@ -166,7 +166,7 @@ export const EXALTATION_STACKING = {
     'Assumed, not measured. Tier 5, single-source, from an author this repository disowns by name for arithmetic, and never observed in the running client.',
   /** The contamination page's device: name the evidence that would end it. */
   settle:
-    'Three readings settle it: the Stats window’s Heal Amount with neither Improved Healing socketed, with one, and with both. research/validation/CAPTURE-REQUESTS.md §1 is the instruction, including what it means if the field does not move at all.',
+    'Three readings settle it, and the character in our own client export already holds both items: the Stats window’s Spell Damage with neither Burning Affliction socketed, with one, and with both. research/validation/CAPTURE-REQUESTS.md §1 is the instruction, including what it means if the field does not move at all.',
 } as const;
 
 const ROMAN: Record<string, number> = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6 };

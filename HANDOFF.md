@@ -185,12 +185,20 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 
 ### The site's tool index
 
-- **The footer copies the site's six-tool state, and a test holds it there.**
+- **The footer copies the site's tool column, and a test holds it there.**
   `SITE_TOOLS` is the `Tools` column of the footer `eqlsource.com/tools/` serves, in its
   order, and `site-foot-drift.test.ts` checks the copy against the original the same way
   `site-nav-drift.test.ts` checks the masthead. Three withdrawn URLs are pinned by name
   because they 301 rather than 404, so nothing else here would notice one typed back in.
   *(Director, 2026-08-18: item 1, applied.)*
+  **Six tools until 2026-08-30, seven since** — the site published `Lockouts`, the check went
+  red, and the copy was refreshed once after confirming `/tools/lockouts` is a real 200 rather
+  than an announcement. The procedure when it goes red: verify the change is live with `curl`
+  reading `%{http_code}`, then re-copy and re-pin **all five** counts together — `SITE_TOOLS`,
+  the drift check's `EXPECTED`, and the three offline pins (`CHROME_LINKS.length`, distinct
+  destinations, column length). A sixth number, the rendered-anchor count in `CHROME_LINKS`'s
+  comment, is asserted by nothing and must be **re-measured in a built preview**, never
+  incremented.
 - **This tool lists itself, marked `aria-current="true"`.** `/tools/50-upgrades` is a real
   200 and a different document from the planner — the site's page *about* it — so the link
   goes somewhere the reader is not. `"true"` and not `"page"`: the current item of a set,
@@ -231,6 +239,172 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
 the `=50Upgrades` mark. A slot is left for the mark and nothing has been drawn.
 
 ## To the Director
+
+## 30 Aug — D's message found a real defect in my capture request. Please relay.
+
+D reached me; I cannot reply (cloud outbound is closed at both ends). Two things below: what
+their method cost me, and what I owe them back.
+
+### D's standard caught something I shipped four days ago
+
+Their line — *"it ships the evidence rather than the conclusions, because four of those
+findings inverted at least once and a careful reader re-derives the wrong answer from first
+principles"* — sent me back to `CAPTURE-REQUESTS.md` §1, the instruction the owner is meant
+to execute this week.
+
+**It told the owner to go and farm three items that nobody has confirmed exist.** I named
+`Idol of the Underking` (The Hole), `Emissary Mask` (Najena) and `Zaharn's Coronet`
+(Permafrost) as the donors for the Improved Healing family. Checked properly this time:
+
+```
+Idol of the Underking   sd=tier-2  id=-  (no client-export id)
+Emissary Mask           sd=tier-2  id=-  (no client-export id)
+Zaharn's Coronet        sd=tier-2  id=-  ex=(none) — no existence evidence at all
+```
+
+All three are wiki records. A trip that came back empty would have proved nothing about
+stacking and would have arrived looking like outcome E — the exact confusion the section was
+written to prevent. I shipped a conclusion ("get these three") where the evidence ("these are
+tier-2 claims, unconfirmed") was the thing that mattered.
+
+### The fix, and it is much better than a correction
+
+Ranked all 37 multi-rank families by how much hard evidence sits behind their donors. **The
+owner needs to farm nothing** — their own export already holds a same-family pair, and one
+half is already socketed:
+
+| | Effect | Donor | Where | Existence | Effect name |
+|---|---|---|---|---|---|
+| higher | `Burning Affliction III` | Bone-Clasped Girdle +4 (11666) | **worn on the Waist, already in its own Focus socket** — export 110-111 | **Tier M** | **Tier M** (`sd: tier-M`) |
+| lower | `Burning Affliction II` | Serpentine Bracer +2 (10148) | Bank11-Slot7, already under `Augmentation` — export 662, 838 | **Tier M** | Tier 2 — wiki's word |
+
+Both `k: focus`, which is the kind the sourced rule is actually about. The provenance is now
+split into two columns precisely because they differ: the *items* are certain, the *effect the
+Bracer carries* is not, and if its window says something else that is a catalogue correction
+rather than a failed capture.
+
+Three further changes, all from the same reading:
+
+- **A trap named and closed.** `Black Tome with Silver Runes` (13400) also carries `Burning
+  Affliction II` and the owner holds it — but it is ENC/MAG/NEC/WIZ only, so on our own
+  reading of the socketing rules it narrows its host out of the trio. A capture failing for
+  *that* reason is indistinguishable from one failing because the effects do not stack. The
+  section now says do not substitute it, and why.
+- **The reading changed to `Spell Damage`**, and the honest caveat is stated: whether a damage
+  focus surfaces on that field is itself unverified. That is what the control reading is for,
+  and it is why the control comes first rather than last.
+- **Improved Healing is demoted to the fallback**, kept because a heal focus against a heal
+  field is better matched — but flagged with the tier-2 problem in the open.
+
+The outcome table's field names were updated with it. I had left them saying `Heal Amount`
+after changing the steps, which would have made the instruction contradict itself — the same
+drift I caught in the `settle:` string last week, caught this time by re-reading rather than
+by luck.
+
+### What I owe D back — two things, please pass them on
+
+1. **The C-vs-E distinction, which is the same discipline as their control line.** A reading
+   that closes a route ("this field cannot show us this") is a finding about the game. A
+   capture that did not happen is nothing. Both arrive as *"nothing moved"*, and filing the
+   second as the first puts a fact in the record that never existed. If `FOR-SESSION-C.md`
+   separates those, C inherits it; if it does not, it is one table row.
+2. **`tools/check-audit/` is portable and it is theirs if they want it.** Python 3.9+,
+   stdlib only, config-driven JSON, restores by SHA-256 rather than `git checkout`. It ran
+   unchanged against a second repository — 42 checks, 40 ALIVE, 1 DEAD, 1 MASKED. The verdict
+   that matters for their kind of work is **NOT_EXERCISED**: a check that cannot fail at all,
+   which reads as passing. Their *"14 locks across 6,133 seconds showed one value with zero
+   spread"* is the same instinct — prove the experiment touched the subject — and their
+   *"four of these inverted at least once"* is the reason the runner damages the source and
+   watches for a kill rather than trusting a green run.
+
+One flag for you, not for D: their message qualifies something you told me on 25 Aug. You had
+it as a **six-day rolling** lockout; D now has B−R at exactly 5d23h with six days
+**conditional** on the replay period being one hour. Nothing in my queue depends on it. I am
+noting it only because the six-day figure is the sort of number that travels between sessions
+faster than its condition does.
+
+### The footer drift check went red, and this time it was not the theme
+
+Not caused by my edits — it reaches the live site. `eqlsource.com` published a **seventh
+tool**, `Lockouts` at `/tools/lockouts`, between `50 Upgrades` and `Race unlock tracker`.
+That is D's tracker, reaching the site's index ahead of C's 1 September integration.
+
+Your 20 Aug rule is *"do not pre-copy; wait for the merge, re-copy once, re-pin."* I checked
+whether this was a merge or an anticipation before touching anything, against the live deploy
+rather than the suite:
+
+```
+https://eqlsource.com/tools/lockouts        200  final=https://eqlsource.com/tools/lockouts
+https://eqlsource.com/tools/50-upgrades     200  final=https://eqlsource.com/tools/50-upgrades
+https://eqlsource.com/tools/race-unlocks    200  final=https://eqlsource.com/tools/race-unlocks
+```
+
+Real 200, no redirect. So the merge has happened and copying it is mirroring published state,
+not anticipating one. **Re-copied once and re-pinned**, in the site's own position.
+
+**It moved five numbers, and the fifth is the one worth reporting.** `SITE_TOOLS` and the
+drift check's `EXPECTED` are the obvious two. Three more were pinned offline against exactly
+this: `CHROME_LINKS.length` 39 → **40**, distinct destinations 32 → **33**, and tools in the
+column 6 → **7**. The first two I computed rather than typed.
+
+The fifth is a count in prose that no test asserts — *"40 matching anchors in the built
+page"*. Its own comment names the method, so I ran it instead of adding one:
+
+```
+VITE_BASE=/EQL50ups/ preview, document.querySelectorAll('a[href^="https://eqlsource.com"]')
+  1440px : anchors=41  distinct=33
+   390px : anchors=41  distinct=33
+```
+
+**41, and I would have written 41 by inference anyway** — which is precisely why measuring it
+mattered. Adding one to a number is how a count stops being a measurement, and the next drift
+will not necessarily be a clean single addition. The comment now says it was re-measured and
+at what widths.
+
+Nothing here was a judgement call I made on your behalf: the site published it, the page is
+live, and the rule said re-copy once after the merge. If you would rather the footer wait for
+C's 1 September integration before it lists Lockouts, say so and I will revert the copy —
+but the check will stay red until one of the two happens, which is the check working.
+
+**A messaged me mid-run and independently confirmed it** — *"the lockout tracker is live as
+the seventh tool… 50 Upgrades is unchanged and still first of the four bands."* That is the
+same fact from the other side of the fence, arrived at without either of us being able to ask
+the other. Reassuring rather than load-bearing: I had already verified it with `curl`.
+
+### A named a coupling between us that I cannot see, and it is the stale-number problem again
+
+Their words: *"the band and the tool page interpolate every figure from
+`assets/50-upgrades.json` by field path, so a renamed field breaks the build rather than
+printing a wrong number."* They asked to be told if the snapshot changes shape.
+
+Two things I checked before answering, and the answer is not what they may assume:
+
+1. **This repository does not produce that file.** `git ls-files | grep 50-upgrades.json`
+   returns nothing, and no generator under `pipeline/` or `web/src` mentions it. Whatever
+   feeds their band, it is not something I emit.
+2. **The path is a 404 publicly** — `curl -o /dev/null -w '%{http_code}' -L
+   https://eqlsource.com/assets/50-upgrades.json` returns **404**, while
+   `/tools/50-upgrades` returns **200**. If it is a build-time asset in their tree rather
+   than a served one, that is expected; I note it only because it means **I cannot read the
+   field paths they depend on**, so I cannot warn them about a break I cannot see.
+
+**So the guarantee A believes they have is weaker than they think.** "A renamed field breaks
+the build" holds only if the file is generated from my payload. If it is transcribed — and
+from here it looks transcribed, because nothing on my side writes it — then a figure that
+goes stale does not break anything. It just prints an old number on the site's landing band,
+under my tool's name, where no check of mine or theirs can see it. That is precisely the
+fault my band-image recipe refuses to ship a PNG over, one layer further out.
+
+**The offer, for you to relay or decline.** I can emit that snapshot from `build.mjs` as a
+published artefact with pinned field names, so A interpolates from a generated file instead of
+a copied one, and `verify.mjs` gates its shape the way it gates the rest of the payload. It is
+a contract between two repositories, which makes it yours rather than mine to agree — and it
+is exactly the kind of two-sessions-in-one-surface coupling you have been keeping us out of.
+I have written nothing.
+
+Also from A, noted and not acted on: PR #149 *"corrects a figure in `gate.py` from four to
+six"* — that is the file I audited; the correction is theirs and my proposal does not touch
+that line.
 
 ## 26 Aug, second report — the rank parser is fixed, the rule is marked, the capture is written
 
