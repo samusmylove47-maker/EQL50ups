@@ -3672,3 +3672,68 @@ than manufacturing a concern.
 
 **Gate:** `tsc` clean, **997 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
 `catalogue-audit.mjs` passes, artifacts republished.
+
+## To the Director — the live drift check caught the `=` rename, and your R55 citation is wrong
+
+### The site renamed every tool and only a word-comparison could see it
+
+`site-nav-drift` and `site-foot-drift` went red against the live site. Not a flake — **A renamed
+all eight tools to the `=` convention in one release**, and this tool's chrome still showed the
+old names:
+
+```
+The Index                    -> =Index          Gap engine                    -> =Gaps
+Sky Ledger                   -> =Sky            Lockouts                      -> =Lockouts
+50 Upgrades                  -> =Upgrades       Race unlock tracker           -> =Races
+Race and primary calculator  -> =Combos         Faction impact checker        -> =Faction
+```
+
+**Every URL is unchanged.** Nothing else in this repository could have caught it — not `tsc`, not
+the link sweep, not a status probe, not a redirect check. They all pass on a page whose words are
+wrong. Only a check that compares the *labels* sees a rename.
+
+Fixed: `SITE_NAV`, `SITE_TOOLS` and both pinned `EXPECTED` copies re-transcribed from the live
+footer today, with the date moved from 18 Aug to 31 Aug.
+
+**`TOOL_NAME` changed too, and that is the half worth reading.** It names both my footer entry and
+my breadcrumb, so leaving it would have shown a reader `=Upgrades` in the site's footer and
+`50 Upgrades` in the breadcrumb one click later — two names for one thing, which is precisely what
+this app's shared chrome exists to prevent. It now reads `=Upgrades`.
+
+### R55 is right and its citation is wrong
+
+**`CLAUDE.md` contains no occurrence of "lowest", "highest" or "effective level" — none.** The
+lines you cite, 122-124, are §6's working rules and §7's habit. Correcting it because a right
+retraction resting on a wrong citation is one check away from being dismissed by the next reader.
+
+**The claim actually lives at `research/eql-game-systems.md:279`, and its neighbours are the
+finding:**
+
+```
+- **Confirmed (T1-adjacent):** at level 11 the primary class, race and deity lock…
+- **Confirmed:** your effective level is the lowest of the three class levels…
+- **Level 50 perk (T2, eqlwiki Newbie Guide):** reaching 50 grants…
+```
+
+Every bullet around it carries a tier or a named source. **That one carries a bare "Confirmed:"
+with neither.** An unsourced assertion sitting in a list of sourced ones inherits their authority
+visually, which is why it has read as settled for a week and why three sessions repeated it. That
+is the §7 shape — typed where it could have been computed — and marking it is inside my bound.
+
+### And a failure of mine, in how I ran the fan-out
+
+I launched an eight-lens audit whose guard-vacuity lens damages source, runs the suite, and
+restores — **in my own working tree, without `isolation: 'worktree'`.** I had just told the owner
+I would not edit files while it ran, and did not apply the same reasoning to the agents.
+
+Consequences, both caught: a stop-hook fired on a deliberately-damaged `bis.ts` and I nearly
+committed it; and a full-suite run I took mid-flight reported **5 failures** that were an artifact
+of the mutation, not a regression. I discarded that result rather than reporting it. The agent did
+restore correctly at the end — all four audited sources are byte-identical to `f9928e3` by
+SHA-256, verified before this commit.
+
+**Rule I am adopting: any fan-out lens that writes gets `isolation: 'worktree'`, or it is
+restructured to measure without writing.**
+
+**Gate:** `tsc` clean, **997 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes.

@@ -59,7 +59,7 @@ export const SITE_NAV: ReadonlyArray<{ href: string; label: string; here?: boole
   { href: `${SITE}/dungeons/`, label: 'Dungeons' },
   { href: `${SITE}/raids/`, label: 'Raids' },
   { href: SITE_TOOLS_INDEX, label: 'Tools', here: true },
-  { href: `${SITE}/tools/index-search`, label: 'The Index' },
+  { href: `${SITE}/tools/index-search`, label: '=Index' },
   { href: `${SITE}/learn/`, label: 'Learn' },
   { href: `${SITE}/sources`, label: 'Accuracy' },
   { href: `${SITE}/search`, label: 'Search', find: true },
@@ -97,7 +97,17 @@ const TOOL_NAV: ReadonlyArray<{ href: string; label: string; match: string[] }> 
 ];
 
 /** The name this tool is published under on the site's `/tools/` index. */
-export const TOOL_NAME = '50 Upgrades';
+/**
+ * What eqlsource.com calls this tool, which is not what it used to call it.
+ *
+ * The site renamed every tool to the `=` convention on 2026-08-31 — "50
+ * Upgrades" became **=Upgrades**, "The Index" became "=Index", and so on. This
+ * constant follows the site rather than leading it: it names the footer entry
+ * AND the breadcrumb, so a reader who clicks `=Upgrades` in the site's footer
+ * and lands on a page whose breadcrumb reads "50 Upgrades" has been shown two
+ * names for one thing. Copied from the live footer, not anticipated.
+ */
+export const TOOL_NAME = '=Upgrades';
 
 /**
  * The site's tool set — the footer's `Tools` column, and a hand-copy of the
@@ -138,8 +148,8 @@ export const TOOL_NAME = '50 Upgrades';
  * that.
  */
 export const SITE_TOOLS: ReadonlyArray<{ href: string; label: string; here?: boolean }> = [
-  { href: `${SITE}/tools/index-search`, label: 'The Index' },
-  { href: `${SITE}/tools/sky-ledger`, label: 'Sky Ledger' },
+  { href: `${SITE}/tools/index-search`, label: '=Index' },
+  { href: `${SITE}/tools/sky-ledger`, label: '=Sky' },
   { href: `${SITE}/tools/50-upgrades`, label: TOOL_NAME, here: true },
   /*
    * Added 2026-08-30, because `site-foot-drift.test.ts` went red: the site
@@ -152,11 +162,11 @@ export const SITE_TOOLS: ReadonlyArray<{ href: string; label: string; here?: boo
    * tool. `/tools/gap-engine` confirmed a real 200 with no redirect before this
    * line was written — a copy of a published state, not an anticipation of one.
    */
-  { href: `${SITE}/tools/gap-engine`, label: 'Gap engine' },
-  { href: `${SITE}/tools/lockouts`, label: 'Lockouts' },
-  { href: `${SITE}/tools/race-unlocks`, label: 'Race unlock tracker' },
-  { href: `${SITE}/tools/combo-calculator`, label: 'Race and primary calculator' },
-  { href: `${SITE}/tools/faction-impact`, label: 'Faction impact checker' },
+  { href: `${SITE}/tools/gap-engine`, label: '=Gaps' },
+  { href: `${SITE}/tools/lockouts`, label: '=Lockouts' },
+  { href: `${SITE}/tools/race-unlocks`, label: '=Races' },
+  { href: `${SITE}/tools/combo-calculator`, label: '=Combos' },
+  { href: `${SITE}/tools/faction-impact`, label: '=Faction' },
 ];
 
 /* ------------------------------------------------------------- masthead */

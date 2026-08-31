@@ -60,15 +60,21 @@ const SITE = 'https://eqlsource.com';
  * together, and tell the Director, so the session working `eql-source` knows
  * this tool tracks its index.
  */
+/*
+ * Re-transcribed 2026-08-31: the site renamed EVERY tool to the `=` convention
+ * in one release. The URLs did not move, only the labels — so no status check,
+ * no link sweep and no redirect probe could have seen it. Only a check that
+ * compares the words.
+ */
 const EXPECTED = [
-  ['The Index', `${SITE}/tools/index-search`],
-  ['Sky Ledger', `${SITE}/tools/sky-ledger`],
-  ['50 Upgrades', `${SITE}/tools/50-upgrades`],
-  ['Gap engine', `${SITE}/tools/gap-engine`],
-  ['Lockouts', `${SITE}/tools/lockouts`],
-  ['Race unlock tracker', `${SITE}/tools/race-unlocks`],
-  ['Race and primary calculator', `${SITE}/tools/combo-calculator`],
-  ['Faction impact checker', `${SITE}/tools/faction-impact`],
+  ['=Index', `${SITE}/tools/index-search`],
+  ['=Sky', `${SITE}/tools/sky-ledger`],
+  ['=Upgrades', `${SITE}/tools/50-upgrades`],
+  ['=Gaps', `${SITE}/tools/gap-engine`],
+  ['=Lockouts', `${SITE}/tools/lockouts`],
+  ['=Races', `${SITE}/tools/race-unlocks`],
+  ['=Combos', `${SITE}/tools/combo-calculator`],
+  ['=Faction', `${SITE}/tools/faction-impact`],
 ] as const;
 
 /**

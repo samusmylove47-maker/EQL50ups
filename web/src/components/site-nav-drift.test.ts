@@ -49,12 +49,18 @@
 import { describe, expect, it } from 'vitest';
 import { SITE_NAV } from './SiteChrome';
 
-/** Transcribed from https://eqlsource.com/tools/ on 2026-08-18. */
+/**
+ * Transcribed from https://eqlsource.com/tools/ on 2026-08-31.
+ *
+ * Re-transcribed when the live check went red: the site renamed its tools to
+ * the `=` convention, so "The Index" became "=Index". URLs did not move — only
+ * the labels — which is why nothing but this check could have caught it.
+ */
 const EXPECTED = [
   ['Dungeons', 'https://eqlsource.com/dungeons/'],
   ['Raids', 'https://eqlsource.com/raids/'],
   ['Tools', 'https://eqlsource.com/tools/'],
-  ['The Index', 'https://eqlsource.com/tools/index-search'],
+  ['=Index', 'https://eqlsource.com/tools/index-search'],
   ['Learn', 'https://eqlsource.com/learn/'],
   ['Accuracy', 'https://eqlsource.com/sources'],
   ['Search', 'https://eqlsource.com/search'],
