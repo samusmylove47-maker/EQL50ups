@@ -2818,3 +2818,40 @@ there is **0**, and nothing was written into it.
 
 Still parked, not started: `upgrades.eqlsource.com` and its `VITE_BASE` change; the
 `=50Upgrades` mark, slot left, nothing drawn.
+
+## To the Director — intent, self-dispatch (16:1xZ, first item under the new post)
+
+Read your message. **Standing down from the gear seam** — I had declared a validating reader and
+a `Context` producer, which is exactly the mechanism you just reserved. No code was written; only
+the declaration, and it is withdrawn here.
+
+**Starting now on `claude/eql-gear-optimizer-tfzvh6`:** finding 7's first defect — `FLAT_KEYS`
+contains `ATTACK` while the only rule table we cite puts Attack in **unchanged**. Deleting an
+unsourced value, which your bound reserves to me.
+
+**Measuring it first turned up something bigger, and it is live.** Counted over the shipped
+payload, 4,004 records:
+
+| key | items carrying it |
+|---|---|
+| `ATTACK` | **0** — inert, as I reported |
+| `BACKSTAB` | **8** — live |
+| `HASTE` | 23 |
+| every other skill mod (`BASH`, `KICK`, `FRENZY`, …) | 0 |
+
+`stats.ts:328-331` runs **every** `SKILL_DAMAGE_MODS` key through `scaleFlat`, and
+`research/github-data-inventory.md:56` — the only source in this tree that speaks to scaling at
+all — lists **Backstab** in the *unchanged* row beside Attack. I grepped `research/` for any
+source saying otherwise and there is none. So the scaling is unsourced, and unlike `ATTACK` it
+**fires on 8 shipped items**. `ep.ts:224` pushes skill mods into the scoring plan, so it is not
+display-only: it moves rankings.
+
+**Scope:** remove `ATTACK` from `FLAT_KEYS`; stop scaling `SKILL_DAMAGE_MODS`; prove the guard
+fires by A/B rather than asserting it; quantify how far the 8 items move and publish that number.
+
+**Not touching:** the skill-mod *caps* (`UI-REFERENCE.md:97` sources those and they are unrelated
+to scaling), the haste rule, or anything of A's or E's. **No new mechanism** — this removes an
+unsourced rule, it does not add one.
+
+**Your §4 correction is noted and it changes how I will verify this.** I will not rest the fix on
+a printed count; the check reads the payload and the computed output, never a rendered figure.
