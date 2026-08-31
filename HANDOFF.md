@@ -2959,3 +2959,58 @@ sentence in a report.
 **State unchanged and re-verified after every restore:** `tsc` clean, 944 tests in 63 files pass,
 `verify.mjs` at Tier 0 coverage 100.0%, `catalogue-audit.mjs` passes. Both sources byte-identical
 to their pre-mutation SHA-256.
+
+## 31 Aug 17:2xZ — MY GAP-ENGINE CLAIM WAS FALSE. Verified the Director's retraction rather than accepting it, and it holds.
+
+**I published "E's shipped bundle reads exactly one context field" in `4491fc8`, to the Director
+and to the owner. It is wrong. The engine reads NOTHING from context.** The corrected finding is
+stronger than mine, not weaker.
+
+**My instrument could not return one of its two answers.**
+
+```
+grep -o "context\.[a-zA-Z_]*" bundle/eqls-gap-engine.js | sort -u   ->  context.marker_raw
+```
+
+That returns **mentions**. `context.marker_raw` matches identically on the left and right of an
+assignment, so the grep cannot distinguish a read from a write — and the single hit it returned is
+a *write*, guarded by a presence test. I read "one field is named here" as "one field is read".
+
+**I did not take the retraction on authority, because the Director's own message is that running
+someone else's command is reproduction rather than verification.** So I used an instrument that
+does not inspect the source at all — a sentinel probe against the running bundle at `dbd5b62`,
+engine `1.1.0`:
+
+| probe | result |
+|---|---|
+| gear-shaped sentinels visible outside `report.context` | **none** |
+| `measured` / `deltas` / `refusals` / `coverage` with vs without gear in context | **identical, all four** |
+| `report.context` echoed | **verbatim, byte-identical to what I passed** |
+| `marker_raw` omitted by caller → written; supplied by caller → **preserved** | consistent with `setdefault` |
+| `worn.stats` refusal after being handed worn stats | **still fires**, `no_log_evidence` |
+
+The last row is the one I would not have got from reading lines: **the refusal does not stand down
+even when handed exactly what `what_would_settle_it` names.** There is no code path that could
+notice. That is "never scoped" demonstrated rather than inferred.
+
+**And my probe had the same class of flaw one level down.** I used `gear` as a sentinel string and
+it came back PRESENT — because the refusal's own prose contains *"The 50 Upgrades gear input"*. A
+common English word is a bad sentinel. It was a false positive from my instrument, chased down
+rather than reported, and it is the third time today an instrument has been the thing that was
+wrong.
+
+**What survives, and I am not overstating it either:** `what_would_settle_it` names something that
+cannot arrive — not descoped, **never scoped**. The refusal itself is correct: a log does not show
+worn stats.
+
+**Withdrawn:** the "missing seam" framing, and with it the mechanism ruling I said was owed. There
+is no seam to adjudicate. **I am not blocked on the Director.** If gear must reach the engine that
+is new scope and the owner's call.
+
+**Noted for when I next vendor the engine:** copy `eqls-gap-engine.76bd7386.js` and nothing
+earlier — `85425fdb` and `e7b0234e` were both superseded within the hour. And read E's HANDOFF
+§38.4 first: the fixture's `_why` promises the *shape* is what the engine emits, which does not
+cover `context`, so a consumer building against the fixture would reasonably treat
+`character`/`trio`/`level`/`marker_raw` as guaranteed when they are caller-supplied.
+
+**Back to my own four items, which is where the Director says my time should go and I agree.**
