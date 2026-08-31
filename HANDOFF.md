@@ -3377,3 +3377,49 @@ A warning, not an assertion, exactly as in `verify.mjs` (`35afbd2`): a populatio
 be legitimate, and a hard failure would block a genuine change.
 
 **Not touching:** any check's logic, any count, or the payload.
+
+### Done — the census is on both gates, and the first version of it would have failed the build
+
+**Shipped.** `catalogue-audit.mjs` now reports the subject count for each of its four
+population-based checks and warns when one reaches zero. Check 5 is deliberately absent: it
+compares two scalars and has no population.
+
+```
+-- subjects --
+    2176  every record printing a number states where the number came from
+       5  every tier-M stat block cites the capture it was read from
+      16  nothing marked statsUnknown also ships stats
+       5  rule 6 — every input carries a snapshot date
+```
+
+**A/B, whole gate:** demoted all 5 `tier-M` records to `tier-2` across index and shards (11 copies).
+
+```
+       0  every tier-M stat block cites the capture it was read from
+  WARN  a failure check no longer has anything to check
+        "…cites the capture it was read from" quantifies over 0 records — it cannot fail,
+        and passes vacuously
+AUDIT PASSED   exit code: 0
+```
+
+Fires, names the check, and correctly does not block. Payload restored byte-identical.
+
+#### The version I wrote first would have failed the build, and the flag that was supposed to prevent that did nothing
+
+I pushed the census result into `failures` with `warning: true` on it. **`failures.length` drives
+`process.exit(1)` at the bottom of the file and nothing reads `warning`.** So an empty population
+— which I had just finished arguing can be *good news* — would have failed CI and blocked the
+deploy, under a flag whose whole purpose was to stop that.
+
+**It is the same shape as everything else today: a field that looks like it does something,
+carried by an object whose consumer never asks.** I caught it by reading the exit logic before
+running, rather than after, which is the only reason it is a paragraph here instead of a red
+build. `subjectWarnings` is now its own channel and cannot reach the exit code.
+
+**Gate:** `catalogue-audit.mjs` passes, `verify.mjs` passes at Tier 0 coverage 100.0%, `tsc`
+clean, 944 tests in 63 files pass.
+
+**My open list is now: `levelCheck` (blocked on the `CAPTURE-REQUESTS.md` §2 capture) and the two
+Part 2 proposals — proposal 1 parked with you on the type/codegen decision, proposal 2 materially
+devalued now that the resolver it was for has no consumer.** If nothing lands by the next tick I
+will say so rather than invent work.

@@ -249,10 +249,50 @@ if (publishedItems !== records.length) {
   });
 }
 
+/* ------------------------------------------------ subjects for the failures */
+
+/*
+ * Does every check above still have something to check?
+ *
+ * A universally-quantified check over an empty set passes, forever, while
+ * appearing to guarantee what it names. `pipeline/verify.mjs` grew the same
+ * census on 2026-08-31; this is the other hard gate and it needs it more.
+ *
+ * The measurement that made it urgent: `sd = tier-M` is not one standing among
+ * several, it is **the entire verified corpus of this catalogue — 5 records of
+ * 3,663** (Director P1, 31 Aug). Check 2 quantifies over exactly those. At zero
+ * it would pass forever while asserting the strongest provenance claim we make.
+ *
+ * It WARNS rather than failing. A population reaching zero can be legitimate —
+ * every statsUnknown record acquiring real stats would be good news — and a hard
+ * failure would block the improvement it was written to protect.
+ *
+ * Check 5 is absent by design: it compares two scalars and has no population.
+ */
+const subjects = [
+  ['every record printing a number states where the number came from', numeric.length],
+  ['every tier-M stat block cites the capture it was read from',
+    records.filter((r) => r.sd === 'tier-M').length],
+  ['nothing marked statsUnknown also ships stats',
+    records.filter((r) => r.statsUnknown).length],
+  ['rule 6 — every input carries a snapshot date', census.sourcesLastRead.length],
+];
+const withoutSubject = subjects.filter(([, n]) => n === 0);
+/*
+ * Its own channel, deliberately. `failures` drives `process.exit(1)` at the
+ * bottom of this file, so pushing here would make an empty population fail the
+ * build — the opposite of the intent, and the first version of this block did
+ * exactly that with an ignored `warning: true` flag on a `failures` entry.
+ */
+const subjectWarnings = withoutSubject.map(([name, n]) => ({
+  check: 'a failure check no longer has anything to check',
+  detail: `"${name}" quantifies over ${n} records — it cannot fail, and passes vacuously`,
+}));
+
 /* ------------------------------------------------------------------ output */
 
 if (JSON_OUT) {
-  console.log(JSON.stringify({ census, failures }, null, 2));
+  console.log(JSON.stringify({ census, failures, subjectWarnings, subjects }, null, 2));
 } else {
   console.log('CATALOGUE AUDIT — every number the planner puts on screen\n');
   console.log(`records shipped            ${records.length}`);
@@ -298,6 +338,16 @@ if (JSON_OUT) {
   console.log('     Tier 2 statement about CONTENT rather than an observation of the game.');
   console.log('     That is rule 2 working as written, not a defect — but it is the honest');
   console.log('     headline of this catalogue and it belongs next to the green tick.');
+
+  console.log('\n-- subjects --');
+  for (const [name, n] of subjects) console.log(`  ${String(n).padStart(6)}  ${name}`);
+  if (subjectWarnings.length) {
+    console.log('');
+    for (const w of subjectWarnings) {
+      console.log(`  WARN  ${w.check}`);
+      console.log(`        ${w.detail}`);
+    }
+  }
 
   console.log('\n-- failures --');
   if (!failures.length) {
