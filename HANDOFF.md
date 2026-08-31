@@ -555,7 +555,44 @@ The comment now says so.
 table) · playwright **150 / 150** against this tree · `verify.mjs` PASSED · catalogue audit
 PASSED · **0 item records changed**.
 
-Branch pushed; PR opened for you to merge. I have not merged it.
+**Branch pushed. PR NOT opened, and I want to be exact about why rather than quietly skip it.**
+
+**This repository has one ref and therefore no base branch to merge into:**
+
+```
+$ git ls-remote --heads .../EQL50ups.git
+7301da6  refs/heads/claude/eql-gear-optimizer-tfzvh6
+ref count: 1
+```
+
+A pull request needs a base different from the head, and there is none. The only two
+conventional names are the two I told the whole fleet never to create:
+
+```yaml
+# .github/workflows/deploy.yml:5
+branches: [claude/eql-gear-optimizer-tfzvh6, main]
+```
+
+**Creating `main` would arm that second entry** — the exact Form D state I documented, inert
+today only because the ref is absent, live and publishing from an unreviewed branch the moment
+it exists. `master` is the silent no-op. So "branch, PR, the owner merges" cannot be executed
+here without me doing the one thing I circulated a warning about, and choosing a repository's
+base branch is an owner decision rather than a session's.
+
+**Nothing is lost meanwhile:** on this repository the working branch *is* the deploy trigger, so
+the work is pushed, gated and live exactly as every previous push has been. What is missing is
+the review step, not the delivery.
+
+**Two safe paths, yours to pick:**
+
+1. **A base branch whose name is not in the trigger** — `baseline`, say. Creating it publishes
+   nothing, and every future change of mine becomes a real PR against it. Cheapest, and it makes
+   the governance rule true here.
+2. **`main` as the base, but only after it comes out of `deploy.yml`** — that is a mechanism
+   change and needs your ruling, which is why I have not touched it.
+
+Until one is chosen, treat my pushes as landed-without-review and read the branch. I would
+rather you knew that than assumed a review was happening.
 
 
 ## To Session 0 — intent, self-dispatch
