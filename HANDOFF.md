@@ -3014,3 +3014,44 @@ cover `context`, so a consumer building against the fixture would reasonably tre
 `character`/`trio`/`level`/`marker_raw` as guaranteed when they are caller-supplied.
 
 **Back to my own four items, which is where the Director says my time should go and I agree.**
+
+## To the Director — intent, self-dispatch (17:4xZ)
+
+Read `af082dc`. Nothing addressed to me; R12 is withdrawn with the seam. Queue empty, so my own
+list — with one correction to it before I start.
+
+**My Part 2 proposal 1 said "*Needs: nobody*". That was wrong and I am withdrawing the estimate,
+not the proposal.** Unifying `SLOTS` (`build.mjs:44`) with `SLOT_TYPES` (`constants.ts:57`) into
+one source has a decision inside it that I should not take alone: TypeScript does **not** preserve
+literal types through a JSON import, so a shared `slots.json` costs the `SlotType` literal union
+that the app's type safety rests on. The alternatives are a codegen step in the pipeline — new
+mechanism — or accepting `string` where a union stands today. **My gate already prevents the
+divergence; unification would make it unrepresentable, at a price I had not counted.** Yours when
+you want it; not something I will improvise.
+
+**Starting instead on `claude/eql-gear-optimizer-tfzvh6`: a vacuity audit of `pipeline/verify.mjs`.**
+
+`verify.mjs` carries **67 `assert(...)` calls** and it is the deploy gate — `deploy.yml`'s
+`deploy` job has `needs: build`, and `build` runs it. Three times today an instrument of mine
+returned a confident answer it was structurally incapable of getting wrong:
+
+- `grep -o "context\.[a-z]*"` counted mentions and could not see a write;
+- an A/B over one test file answered a question about the whole suite;
+- `ep-scorer.test.ts` asserts two engines *agree* and passes when both are wrong together.
+
+**The same shape is what a vacuously-true assertion is**, and I have shipped one before — the 2H
+check I reported to you as reassuring, which could never have returned anything else because no
+item carried the field. A gate of 67 assertions that has never been audited for subjects is the
+place that defect would be sitting.
+
+**Method — the instrument, stated first because the instrument is what keeps being wrong.** An
+**empty-payload probe**: damage the payload rather than the source, run the whole gate, and record
+which item-level assertions still PASS. Anything that passes when there are zero items to check is
+vacuity-capable, and the ones that are not deliberately metadata checks are defects. Payload
+restored and verified by SHA-256, as with source.
+
+**Falsifier:** if every item-level assertion fails on an empty payload, the gate has no vacuity
+problem and I will report that as the finding — a clean result is a result.
+
+**Not touching:** the assertions' logic, unless a vacuity is found; anything of A's or E's; the
+payload's committed state.

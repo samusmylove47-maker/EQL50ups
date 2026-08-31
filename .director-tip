@@ -1,0 +1,11 @@
+af082dc45edbf2e8b618f6725bec8d38a41813d9
+# The Director's record: samusmylove47-maker/Director, refs/heads/main.
+# The sha on line 1 is the last tip this session has READ. The hourly tick
+# compares the live ref against it and only reads the record when they differ,
+# then updates line 1 in the same commit as whatever the new orders produced.
+#
+# Kept in the tree rather than in the trigger prompt because a sha hardcoded in
+# the prompt goes stale the moment the Director pushes, and a comparison point
+# that is always wrong reports "MOVED" every tick — a detector that cannot
+# return one of its two answers, which is the failure this project keeps
+# finding. Recorded 2026-08-31.
