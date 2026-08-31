@@ -121,6 +121,12 @@ export interface StatDelta {
  * them carrying stats.** That is a genuine difficulty proxy for a fifth of the
  * catalogue and it is offered as what it is, not relabelled as difficulty.
  *
+ * **0. Nothing here promises a drop.** The LOOT lockout is not observable from
+ * a log — its only source is the client's alt+Z window — so no field in this
+ * type can support "you will get this". `measuredDrop` means *a mob was
+ * observed dropping this item at least once*, which is evidence the source is
+ * real, not a rate and not a guarantee. Consumers must phrase accordingly.
+ *
  * **2. `mobs` are mobs, not bosses.** The catalogue's drop data is a flat list
  * of creature names — `"a goblin magician"`, `"an alligator"`, `"Ekeros"` — with
  * no marker separating a named boss from trash. Calling the field `boss` would
@@ -164,6 +170,19 @@ export interface Obtainable {
  * available this week is D's answer, not B's** — B publishes the key and the
  * fact that it has not been resolved, and a consumer that leaves it `unknown`
  * must band it separately rather than treating it as actionable or dropping it.
+ *
+ * **B must not infer actionability from anything, and must not pre-filter on
+ * it.** Two measured reasons, both from D (31 Aug):
+ *
+ * 1. **The weekly token cap decides actionability, not the lockout grid.**
+ *    Avenrae's week of 11 Aug: 18 roster boss kills, 3 grants, 3 tokens. A boss
+ *    can read `open` on the grid while the cap is spent.
+ * 2. **`completed` is still actionable** — a locked-out kill pays a guaranteed
+ *    drop (patch note, 28 Jul 2026). Filtering out "content done this week"
+ *    would delete real upgrades from the ranking: the opposite error to the one
+ *    the three-way band guards against, and just as costly.
+ *
+ * So B hands over everything eligible and anticipates nothing.
  */
 export type Actionability =
   /** The catalogue records where this drops; nobody has asked D whether it is runnable. */

@@ -1,8 +1,8 @@
 {
   "v": 1,
   "generator": "pipeline/contamination.mjs",
-  "scannedAt": "2026-08-31T17:47:05.419Z",
-  "builtAt": "2026-08-31T17:47:04.894Z",
+  "scannedAt": "2026-08-31T20:25:13.346Z",
+  "builtAt": "2026-08-31T20:25:12.952Z",
   "principle": {
     "hit": "A hit is a question, not a verdict.",
     "hitBody": "EverQuest Legends kept a great deal of classic EverQuest intact, and most of these patterns are probably current. What a hit means is: this figure carries a convention from a game whose numbers we know changed, and nobody has checked this one.",
@@ -15,8 +15,8 @@
     "catalogItems": 3663,
     "indexCount": 3663,
     "catalogFiles": 21,
-    "sourceFiles": 84,
-    "sourceLines": 32197,
+    "sourceFiles": 86,
+    "sourceLines": 32634,
     "excluded": "Test files are excluded from the source corpus: a test is not a surface, and counting its fixtures would pad this report with hits nobody can see. pipeline/quarantine.json is excluded too — the 7,599 items it holds are the ones we refused to ship, and scanning them would measure the wiki rather than us."
   },
   "headline": {
@@ -24,7 +24,7 @@
     "markedOnChangedMechanics": 3,
     "classicFormats": 1109,
     "classicFormatsUnmarked": 982,
-    "filesScanned": 105,
+    "filesScanned": 107,
     "statBlocksShipped": 2176,
     "statBlocksCheckedAgainstTheGame": 5,
     "note": "2305 of those 2334 — 99% — are the one signature \"flag-vocab\", which is a single unanswered question multiplied across the catalog rather than 2305 separate problems. The table below is the honest shape of this number."
