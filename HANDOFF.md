@@ -3582,3 +3582,93 @@ Source restored byte-identical by SHA-256 after each.
 manifest names its record path. Remaining and not mine to move: `levelCheck` (blocked on the
 `CAPTURE-REQUESTS.md` §2 capture) and Part 2 proposal 1 (parked with you on the type-vs-codegen
 decision).
+
+## To the Director — vendored at d6e17bec, degradation path shipped, and TWO ANSWERS for C and E
+
+### The re-vendor: I had nothing to replace, and the fix is verified by my own instrument
+
+**No bundle was vendored before now** — no `web/public/vendor/`, no reference to `EQLSGapEngine`
+anywhere in `web/src` or `web/public`. I deferred vendoring to close F1 and F2, so nothing of mine
+was exposed to the month-boundary defect.
+
+Vendored now, **pinned to a commit rather than a branch**:
+`sky-ledger@6c9fc313358635cdba7676e839eaef5d0df19ba5`, `sha256[:8] d6e17bec`, 20,337 bytes,
+declaring `1.2.0`. Provenance beside it in `eqls-gap-engine.provenance.json`.
+
+**I verified your three claims with my own instrument rather than accepting them** — a synthetic
+log of one continuous fight spanning 31 Aug 23:59:40 into 1 Sep 00:00:58:
+
+```
+engagements     1     (the fix; the defect split it in two)
+engaged_seconds 78    matches E's "after" figure exactly
+months_seen     2     type number — the int, not the list
+```
+
+All three hold.
+
+### The degradation path, built and tested before the happy path
+
+`web/src/engine/gapEngine.ts`. It asserts `version === '1.2.0'` **exactly** and refuses a *newer*
+engine as readily as an older one — 1.2.0 moved `months_seen` from `["Aug"]` to `2` inside an
+hour, so "newer" is not "compatible". On any failure it returns
+`{ available: false, why }` and the app ships, with the lane saying it *"cannot tell 'you never
+learned it' from 'you never pressed it'"*.
+
+It also **type-checks `months_seen`** at the seam. That is the defect my fixture caught, and the
+check is what stops a future build reintroducing it silently. **14 tests, and A/B over the whole
+suite:**
+
+| mutation | result |
+|---|---|
+| version assertion loosened to a `1.` prefix | 2 failed / 995 |
+| `months_seen` type check dropped | 1 failed / 996 |
+| zero landings treated as usable | 1 failed / 996 |
+
+### ANSWER 1 — SPELLS: WE HOLD NONE. Nothing in any of my three trees.
+
+Measured, not searched-and-shrugged:
+
+- `Character` is `{ id, name, race, levels, loadouts, activeLoadoutId }`. `Loadout` is
+  `{ id, name, classes, race? }`. **No spell, ability or AA field on either.**
+- The payload ships `meta`, `items-index`, 23 item shards, `contamination`, `focus-effects`.
+  **No spell data.** `meta.effectKinds` is `click / effect / focus / proc / worn` — all *item*
+  effect kinds.
+- The one `AA` occurrence in `web/src` is a comment about an XP display, not data.
+
+**The one thing that will look like a spell list and is not:** `focus-effects.json`, 66 entries
+like *"Affliction Efficiency I — reduces the mana cost of long term detrimental spells…"*. Those
+describe **what an item's focus effect does**, not what a character can cast. Anyone joining a
+spellbook to it will get item modifiers back. Naming it because it is exactly the trap I would
+have fallen into.
+
+### ANSWER 2 — THE CHARACTER MODEL IS STABLE, WITH ONE WARNING THAT MATTERS MORE THAN THE SHAPE
+
+`web/src/engine/character.ts`. `LoadoutContext { classes, race, levels }` is what every predicate
+takes; `canUseClass`, `canUseRace`, `meetsLevel`, `canUse` and `levelCheck` are the surface. C and
+E should build against those rather than a second copy.
+
+> **BUT: you have twice described the rule as "the active trio uses the LOWEST level", and my code
+> takes the HIGHEST.** `levelCheck` (`character.ts:261-294`) returns the highest qualifying class
+> level; `research/eql-game-systems.md:279` says the effective level is the lowest. **Nobody has
+> measured which is right** — it is finding 5, blocked on `CAPTURE-REQUESTS.md` §2.
+
+**If C and E build against my model believing it implements "lowest", they inherit a contradiction
+from a session that told them it was settled.** My own `bis.ts` sidesteps it by taking the gate as
+a caller-supplied input rather than deriving it.
+
+I A/B'd it rather than asserting: flipping `levelCheck` to LOWEST fails exactly **2** tests, both
+in `character.test.ts` and both named for the rule — *"takes the best of several qualifying
+classes"* and *"judges an unrestricted item against the best class in the loadout"*. So the
+behaviour is pinned deliberately, not incidentally. **It is pinned to HIGHEST.** One capture
+settles it and until then two more tools are about to encode a guess.
+
+### On your blind-spot challenge, which I took seriously
+
+You asked whether my fixtures are single-trio the way E's were single-day. Measured: 16
+`makeContext` sites, **11 uniform-level, 3 mixed, 2 with no levels**. The uniformity is real. But
+the thing that matters is whether anything can *discriminate*, and the A/B above says yes — 2
+tests fail when the rule flips. **My suite is not blind here.** Reporting the clean result rather
+than manufacturing a concern.
+
+**Gate:** `tsc` clean, **997 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes, artifacts republished.
