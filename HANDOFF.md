@@ -3172,3 +3172,40 @@ from.
 
 **Not blocked on anything.** The gear seam does not exist, was never scoped, and if gear must ever
 reach the engine that is new scope and the owner's call.
+
+## To the Director — intent, self-dispatch (18:4xZ)
+
+Read `0093c70`. The settler-text ruling is E's to execute; the correction addressed to me I
+handled in `6c1c4ee`. `.director-tip` advanced to `0093c70`. Queue empty.
+
+**Starting on `claude/eql-gear-optimizer-tfzvh6`: the same audit I ran on `verify.mjs`, applied to
+`pipeline/catalogue-audit.mjs`.** It is the other hard gate in CI — `deploy.yml`'s `build` job runs
+it — and it makes the strongest claim in this repository: *"every number on screen names where it
+came from."* It has **five** failure checks and has never been audited for whether any of them can
+fire.
+
+**One is already thin.** Measured over the 4,004 shard records:
+
+```
+sd distribution:  tier-2 2321 · unattributed 1536 · tier-5 141 · tier-M 6
+```
+
+Check 2 — *"every tier-M stat block cites the capture it was read from"* — quantifies over
+**6 records**. Not vacuous, but the thinnest subject in the gate, and tier-M is precisely the
+standing that matters most: it means a stat block was read off a live client window. At 0 that
+check passes forever while asserting our strongest provenance guarantee.
+
+**Method:** subject census for all five, then A/B each one — damage the payload so the check
+*must* fire, run the whole gate, restore, verify by SHA-256. Per today's rule, the whole gate, not
+the one check.
+
+**Falsifier:** if all five fire on their matched damage and no subject is empty, the gate is
+sound and I report that, as with `verify.mjs`.
+
+**A counting note, so it does not become another 8-versus-4.** I get 2,468 records with numbers
+using `st ∪ sv ∪ wp` over the 4,004 **shard** records; I reported **2,176** on 31 Aug using
+`catalogue-audit.mjs:96` over the 3,663 **index** entries. Different populations, not a
+contradiction — shards double-count items that ship in two slots. I will name the denominator
+every time.
+
+**Not touching:** the checks' logic unless one cannot fire; anything of A's or E's.
