@@ -3209,3 +3209,55 @@ contradiction — shards double-count items that ship in two slots. I will name 
 every time.
 
 **Not touching:** the checks' logic unless one cannot fire; anything of A's or E's.
+
+### Done — all five `catalogue-audit.mjs` checks fire. Three looked dead and every one of those was my mutation, not the gate.
+
+**Result: the gate is sound.** Every one of the five failure checks fires under damage aimed at
+exactly what it exists to catch, and no subject population is empty.
+
+| # | check | subject | fires under matched damage |
+|---|---|---|---|
+| 1 | every record printing a number states where it came from | 2,468 numeric | **yes** — `A Crude Stein` |
+| 2 | every tier-M stat block cites its capture | **6** tier-M | **yes** — `Bladestopper` |
+| 3 | nothing marked statsUnknown also ships stats | 16 | **yes** — `Backpack*` |
+| 4 | rule 6 — every input carries a snapshot date | provenance inputs | **yes** — `jmoyers` |
+| 5 | `meta.counts.items` matches records shipped | scalar | **yes** |
+
+#### The first run said 3 of 5 were dead, and publishing that would have been a false alarm about the deploy gate
+
+I stopped and diagnosed instead, and **all three silences were defects in my damage**:
+
+1. **The merge undid my deletions.** `shippedRecords()` folds index under shards with
+   `{...indexItem, ...shardItem}` keyed by lowercased name. **Spread overrides only keys that are
+   PRESENT**, so deleting `sd` from a shard leaves the index's `sd` standing and the merged record
+   is untouched. Checks 1 and 2 were reading undamaged data. *An addition needs one copy; a
+   deletion needs every copy* — and nothing about the code says so at the point you write the
+   mutation.
+2. **I mirrored the audit's predicate wrongly.** `printsNumbers` is `NUMERIC_FIELDS` **minus**
+   entries whose `feeds` is `'nothing — displayed only'`. I included `wt`, which is exactly that,
+   so my "record printing numbers" was a weight-only potion the check correctly ignores.
+3. **I damaged a field the audit never reads.** `sourcesLastRead.scraped` is parsed from the
+   *filename* and `vendored` is `gitDate(...)` — **both derived, neither stored**. Editing
+   `meta.provenance.inputs[*].scraped` changes nothing. The matched damage is pointing an input at
+   a dateless, untracked path, and then it fires.
+
+**Three misses, three different mechanisms, and each one produced a confident silent PASS that
+looks exactly like a dead check.** That is the day's lesson arriving from a fourth direction: the
+instrument was wrong three more times, and the only thing separating "the gate is broken" from
+"the gate is fine" was refusing to publish the first result.
+
+**A matched pair is not enough on its own.** The pair has to be aimed at the surface the check
+actually reads — merged records rather than shard records, the audit's predicate rather than my
+paraphrase of it, derived fields rather than stored ones. **A silent check under damage is
+evidence about the damage until you have shown the damage landed.**
+
+#### The thin one, recorded rather than fixed
+
+**Check 2 quantifies over 6 records.** `tier-M` means a stat block read off a live client window —
+our strongest provenance claim — and at 0 that check would pass forever while asserting it. It is
+not vacuous today and I am not adding a guard on my own initiative, but it is the thinnest subject
+in either gate and the one I would watch. `verify.mjs`'s subject census (`35afbd2`) covers
+`verify.mjs` only; extending it to this gate is a small, obvious follow-up if you want it.
+
+**Gate:** `catalogue-audit.mjs` passes, `verify.mjs` passes at Tier 0 coverage 100.0%. Payload
+restored byte-identical after all seven mutations, 23 files by SHA-256.
