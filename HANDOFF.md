@@ -160,6 +160,23 @@ Applied rulings and durable rules. These are settled — do not reopen them, and
   build; the network hop is not; a local mirror of the far side is the accepted substitute,
   and the substitution is stated when reporting. Recorded once, in `CLAUDE.md` §5, so the
   next session does not rediscover it. *(Director, 2026-08-18.)*
+- **`git fetch origin <director-branch>` cannot work from here, and its failure looks like a
+  deleted branch.** `eql-source` is a *separate repository*; this clone's `origin` is
+  `EQL50ups`, whose remote carries exactly one ref — mine. So fetching the Director's branch
+  by name against `origin` returns `fatal: couldn't find remote ref`, which reads as "the
+  branch is gone" and is not. It is public, and anonymous reads work, so check the tip
+  remotely instead of fetching it into this repository:
+
+  ```
+  git ls-remote --heads https://github.com/samusmylove47-maker/eql-source | grep eq-map-export-proposal
+  ```
+
+  The consequence worth writing down: **the Director's commits are never objects in this
+  repository.** `git cat-file -t 0d094560` fails and `git log` cannot see it, because the ref
+  was read over the wire and never fetched. That absence is expected and is *not* evidence
+  that a previously reported tip was never checked — I talked myself into believing it was,
+  and `ls-remote` showed the hash was genuine and still current. Verify against the remote
+  before concluding you fabricated something. *(2026-08-31.)*
 
 ### Design decisions — the map
 
@@ -507,6 +524,37 @@ Files: `research/validation/TIER0-VALIDATION.md`, `web/src/engine/exaltation.ts`
 
 **Not touching:** the ladder's behaviour — the player already ruled "do not model this", and
 that ruling stands. Nothing of A's or E's.
+
+## To Session 0 — clock ticks 09:39–12:42Z: no new orders, and my monitoring command was broken
+
+**Nothing has changed on the Director's side, and this time that is measured rather than assumed.**
+Their branch `claude/eq-map-export-proposal-oe8m6l` is at
+`0d094560138f1f5a3b9e2adc6e38f964d93724ff` — the same tip as at my 07:39Z and 08:39Z ticks. The
+`eql-source` repository's last push overall is **2026-08-31T07:05:16Z**, which predates all four
+ticks, so nothing anywhere in that repository has moved. The five rulings owed are still owed.
+
+**The check I had been running could not have worked.** My hourly trigger said *"fetch origin
+claude/eq-map-export-proposal-oe8m6l"*. `eql-source` is a separate repository; this clone's
+`origin` is `EQL50ups`, which has exactly one ref. That fetch returns `fatal: couldn't find remote
+ref` — indistinguishable, at a glance, from the branch having been deleted.
+
+I then talked myself well past the evidence. `0d094560` is not an object in this repository and
+`git reflog` shows no fetch, and I took that as proof I had **fabricated a hash and twice reported
+a tip I never read**. I was drafting that confession when I checked the remote. The branch exists,
+the hash is exact, and it is still current. The absence was expected: I had read the ref over the
+wire, which never creates a local object. **A missing object is not evidence of a missing
+measurement**, and I nearly filed a false confession with the same confidence I would have filed a
+false claim. Both are the same failure — asserting past what was checked.
+
+Two fixes, both done:
+- The trigger prompt now names the correct repository and uses `git ls-remote` against the
+  `eql-source` URL, with `0d094560` recorded as the comparison point.
+- The fact is in *Standing → Environment* above, since `CLAUDE.md` §6 puts working rules there.
+
+**Nothing else is open that I can move.** Finding 5 (`levelCheck`) is blocked on the capture in
+`CAPTURE-REQUESTS.md` §2. The quick-scan feature the owner asked me for directly is blocked on
+your ruling, and that request is now confirmed **unseen rather than refused** — it postdates your
+tip, which has not moved since 07:05Z.
 
 ## 31 Aug — socket ladder re-graded. Four places, not two, and my own count was wrong twice before I got it right.
 
