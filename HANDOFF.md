@@ -2904,3 +2904,58 @@ coverage 100.0% after regenerating the payload — my edits shifted `ep.ts` line
 `verify.mjs` caught both the stale quoted line and the stale `sourceLines`, which is that gate
 doing exactly its job; `catalogue-audit.mjs` passes; bundle builds. Sources restored
 byte-identical after every mutation, checked by SHA-256.
+
+### CORRECTION to the entry above — I published a suite-level claim from a file-level experiment
+
+**`3eb739e` says the divergence mutation was "NOT CAUGHT". That is wrong about this repository,
+and I am correcting it within the hour rather than leaving it to be discovered.**
+
+My A/B ran a single file — `npx vitest run src/engine/skillmods.test.ts`. So it measured **my
+test's** reach and I reported it as **the repository's**. `ep-scorer.test.ts` already existed, and
+it catches the divergence comprehensively: every shipped item, every tier, profiles that include
+skill damage mods, with a `compared > 100_000` vacuity guard. Re-run with the same mutation:
+
+```
+mutation 2 (rankScorer scores skill mods as flat)
+  vitest run src/engine/skillmods.test.ts   ->  7 passed   ← what I reported
+  vitest run src/engine/ep-scorer.test.ts   ->  2 failed   ← the truth
+```
+
+**I damaged the source, ran the wrong surface, and drew a conclusion about a surface I never
+touched.** That is the shape Session 0 named as *"the survey of the wrong surface"*, and it is
+the same error as your struck §4 — the check ran, it was accurate about what it looked at, and
+what it looked at was not the thing.
+
+#### What survives the correction, measured across both files
+
+| mutation | `ep-scorer.test.ts` | `skillmods.test.ts` |
+|---|---|---|
+| 1 `stats.ts` re-scales skill mods | **2 failed** ✓ | ✓ |
+| 2 `rankScorer` scores them `flat` | **2 failed** ✓ | ✓ (after the rewrite) |
+| 3 `stats.ts` re-scales `ATTACK` | **1 failed** ✓ | ✓ |
+| 4 **`ATTACK` deleted outright** | **3 passed** ✗ | ✓ |
+
+**`ep-scorer.test.ts` is an AGREEMENT test, not a CORRECTNESS test**, and the distinction is not
+pedantic: it asserts the two scorers return the same double, so **both engines being wrong in the
+same direction passes it cleanly**. Mutation 4 is exactly that — deleting `ATTACK` makes both
+scorers stop seeing the key, they agree perfectly on zero, and `totals.attack` silently becomes 0
+on every item carrying the stat. **450,000 comparisons and it sails through.**
+
+That is what my file adds and it is the only thing it adds: it pins the **value**, not the
+agreement. The two are complementary and neither is redundant. My original framing — that I had
+found an unguarded divergence — was false; the real finding is narrower and, I think, more
+useful.
+
+**Two corrections to the earlier entry, then:** the "NOT CAUGHT" row was an artefact of my
+method, and the value of the new file is value-pinning rather than divergence-catching. The
+NOT_EXERCISED verdict on my *own* first assertion stands unchanged — it did target `scoreItem`,
+which cannot disagree with `stats.ts`, and 7 passing tests said so.
+
+**The method rule I am adopting and would offer to anyone running A/B here: damage the source,
+run the WHOLE suite, restore.** Running one file answers "does my test catch this", which is a
+different question from "does this repository catch this", and only the second one licenses a
+sentence in a report.
+
+**State unchanged and re-verified after every restore:** `tsc` clean, 944 tests in 63 files pass,
+`verify.mjs` at Tier 0 coverage 100.0%, `catalogue-audit.mjs` passes. Both sources byte-identical
+to their pre-mutation SHA-256.
