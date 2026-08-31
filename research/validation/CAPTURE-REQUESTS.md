@@ -155,6 +155,63 @@ fault the mark exists to prevent — so outcome B licenses building a gate, not 
 
 ---
 
+## §3 — Where does total haste stop counting?
+
+**Why this one.** Every capped stat on the planner's stat sheet prints a denominator read off
+the client — attributes `/510`, saves `/1000`, the heroic mods their own. **Attack Speed prints
+a bare number**, because our one source names a cap we have never measured and cannot model
+without inventing a curve:
+
+> *Total haste capped ~50% below L30, ~75% at L50; only the highest worn-haste item counts;
+> item/spell/song haste of different types stack.* — eqltools/eqlwiki Haste Guide, Tier 5
+
+23 catalogue items carry haste, and at +10 a haste belt is the single largest EP any item can
+earn under the Melee DPS profile — larger than the best weapon in the game. If the third clause
+is right and item, spell and song haste share one ceiling, a trio with a Bard, Shaman or
+Enchanter may be at that ceiling before equipping anything, and all 23 are ranked as if their
+full figure lands.
+
+### What to do
+
+1. **Open the Stats window with no haste at all** — nothing hasted worn, no haste song or spell
+   running — and write down **Attack Speed**. This is the control.
+2. **Equip one hasted item. Read Attack Speed again.** This establishes the units: whether the
+   panel moves by the item's own number or by something else.
+3. **Equip a second hasted item with a different figure. Read again.** (This also settles
+   `HASTE_STACKING`, which is the same capture doing double duty.)
+4. **Have a haste song or spell put on you, keeping the worn items. Read a fourth time.**
+
+**Stop and report at any step where the number does not move**, noting which step. A reading
+that stops moving *is* the finding — that is where the ceiling is.
+
+### What to send back
+
+Four Attack Speed readings with the state beside each, and the item window of each hasted item
+showing its haste line. Your level, because the cap is said to be level-scaled and a reading
+without it cannot be placed on the curve.
+
+### What each outcome means
+
+| | Reading | What it means | What we do |
+|---|---|---|---|
+| **A. It keeps climbing** | Every step raises Attack Speed, song included | **No ceiling was reached at your level**, which bounds the cap from below rather than locating it. | Record the highest total reached as a floor. The mark stays — a cap we have not hit is still a cap we cannot draw. |
+| **B. It stops** | One step adds nothing, later steps add nothing | **The ceiling is found at your level.** | The figure and your level become a Tier M point on the curve. One point is not a curve — the mark narrows rather than coming off. |
+| **C. Worn stacks but song does not, or vice versa** | Step 3 moves, step 4 does not (or the reverse) | **The "different types stack" clause is wrong**, which is a separate finding from the cap and arguably a bigger one. | The clause is retired with evidence and the scorer's assumptions about song haste change. |
+| **D. Only the largest worn item ever counts** | Step 3 adds nothing, and swapping to a larger item does move it | **`HASTE_STACKING` is confirmed** and stops being Tier 5. | That mark comes off. The cap question stays open. |
+| **E. The capture failed** | Could not obtain two hasted items, or no caster to hand | Nothing is learned. | Say so. **Do not let this arrive as outcome B** — "I could not add more haste" and "more haste stopped helping" are the same sentence in English and opposite findings. |
+
+**B and E are the pair to keep apart**, as in §1 and §2: a ceiling and a failure to test both end
+with a number that did not move.
+
+### What this does not settle
+
+**The curve.** One character at one level gives one point. The source claims the cap scales with
+level — ~50% below 30, ~75% at 50 — and a single reading cannot distinguish a scaling cap from a
+flat one. Two characters at different levels would; so would one character measured before and
+after levelling.
+
+---
+
 ## Queued, not yet written up
 
 - **Haste stacking and the haste cap.** `HASTE_STACKING` and `HASTE_PROVENANCE` in

@@ -35,7 +35,7 @@ import {
   SPELL_MODS,
 } from '../engine/constants';
 import {
-  HASTE_PROVENANCE, HASTE_STACKING, withCap, type StatTotals,
+  HASTE_CAP_STANDING, HASTE_PROVENANCE, HASTE_STACKING, withCap, type StatTotals,
 } from '../engine/stats';
 import { dec, finite, num } from '../lib/format';
 import { ratioText } from '../selectors/gear';
@@ -230,6 +230,17 @@ export function HasteNote({ totals }: { totals: StatTotals }) {
           ? `${num(totals.hasteSources)} worn items carry a haste figure and only the largest is counted here. `
           : ''}
         {HASTE_STACKING.standing}
+      </p>
+      {/*
+        The cap, stated where the missing denominator is visible.
+
+        Every other capped row on this panel prints `value/cap`; this one cannot,
+        because the cap is level-scaled and no confirmed curve exists. Saying so
+        here is the difference between a number with no ceiling and a number
+        whose ceiling we have not measured — a reader can act on the second.
+      */}
+      <p className="hint">
+        <b>{HASTE_CAP_STANDING.rule}</b> {HASTE_CAP_STANDING.short}
       </p>
       <p className="hint">
         {HASTE_PROVENANCE.settle} Send one and this note gets shorter.{' '}

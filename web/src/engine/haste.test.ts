@@ -24,7 +24,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { rankScorer, scoreItem, type ScoreContext, type WeightProfile } from './ep';
-import { HASTE_PROVENANCE, HASTE_STACKING, computeTotals } from './stats';
+import { HASTE_CAP_STANDING, HASTE_PROVENANCE, HASTE_STACKING, computeTotals } from './stats';
 import { tier } from './upgrade';
 import type { Item } from './types';
 
@@ -148,5 +148,45 @@ describe('the provenance the figure carries wherever it is printed', () => {
     // Its corroboration is a named community guide — Tier 3 — and the note must
     // keep saying so rather than promoting itself to an observation.
     expect(HASTE_STACKING.standing).toMatch(/guide/i);
+  });
+});
+
+/*
+ * The third defect behind this file, and the newest: the CAP.
+ *
+ * The two above are the unit and the stacking rule. This one is different in
+ * kind — it is not a rule we implemented wrongly, it is a rule our own source
+ * names and this app applies nowhere. Every other capped stat on the panel
+ * prints `value/cap` from a Tier M reading; Atk Speed prints a bare number,
+ * because the cited cap is level-scaled and no confirmed curve exists.
+ *
+ * The honest position is not "haste is uncapped". It is "we have not measured
+ * where it stops" — and on screen those are the same number unless something
+ * says otherwise.
+ */
+describe('the unmodelled haste cap states its own standing', () => {
+  it('says the cap is not applied, rather than implying there is none', () => {
+    expect(HASTE_CAP_STANDING.rule).toMatch(/does not model/i);
+    expect(HASTE_CAP_STANDING.standing).toMatch(/applied nowhere/i);
+    expect(HASTE_CAP_STANDING.standing).toMatch(/tier 5/i);
+  });
+
+  it('names the capture that would settle it', () => {
+    expect(HASTE_CAP_STANDING.settle).toMatch(/CAPTURE-REQUESTS\.md/);
+  });
+
+  /*
+   * Load-bearing. If a cap is ever applied, this fails — and it should, because
+   * the mark would then describe behaviour the engine no longer has. Inventing a
+   * level-to-cap curve is the fault this mark exists instead of.
+   */
+  it('really does not cap: the largest worn figure survives scaling untouched', () => {
+    const totals = computeTotals([
+      { position: 'WAIST', item: mk({ n: 'Belt', st: { HASTE: 41 } }), upgrade: tier(10) },
+      { position: 'HANDS', item: mk({ n: 'Gloves', sl: ['HANDS'], st: { HASTE: 36 } }), upgrade: tier(10) },
+    ]);
+    // 41 base + 10 flat tiers, with nothing clipping it at any ceiling.
+    expect(totals.haste).toBe(51);
+    expect(totals.hasteSources).toBe(2);
   });
 });

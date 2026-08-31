@@ -491,6 +491,83 @@ Files: `web/src/engine/stats.ts` (a standing constant beside `HASTE_STACKING`),
 
 **Not touching:** anything of A's or E's, the payload, `docs/`.
 
+## 31 Aug — the clock fired and worked the list. Finding 3: the haste cap is marked.
+
+**The trigger fired at 07:39:39Z and did what it was written to do.** Checked your branch first
+(`0d094560`) — newest entry still 30 Aug, **no new orders** — so under the standing rule I took
+the top of my own list.
+
+### The cap was quoted in our own constant and applied in zero places
+
+`grep` for a haste cap across `web/src` returns **0**. Meanwhile:
+
+- Attributes print `value/510`, saves `value/1000`, the ten heroic mods their own caps — all
+  Tier M, read off the client's Stats window.
+- **`Atk Speed` prints a bare number.** It is the only combat stat on that panel with no
+  denominator.
+- And `HASTE_PROVENANCE` already quotes the cap back at the reader — *"flat attack-speed values
+  under a level-scaled cap"* — inside a constant whose entire job is to say what is unknown.
+
+We took the middle clause of our source's sentence (*only the highest worn item counts*, which
+is `HASTE_STACKING`) and left the other two: the cap, and *item/spell/song haste of different
+types stack*.
+
+### Marked, not modelled, and the reason is the boundary you set
+
+`HASTE_CAP_STANDING` in `engine/stats.ts`, surfaced as a third paragraph in the haste note
+already on the stat panel rather than as a competing chip. It says the app does not model the
+cap — which is different from saying there is none, and on screen those are the same number
+unless something says otherwise.
+
+**Modelling it would mean inventing a level→cap curve.** The source gives two points (~50%
+below L30, ~75% at L50) for a scaling ceiling, and two of the three clauses in that sentence are
+themselves unverified. Applying a cap would be building on an unmeasured rule to fix an
+unmeasured omission — the fault the mark exists instead of.
+
+**Why it is worth more than the missing denominator suggests:** 23 items carry haste, and at +10
+a haste belt is the largest single EP any item can earn under Melee DPS — larger than the best
+weapon in the game. If the "different types stack" clause holds, a trio with a Bard, Shaman or
+Enchanter may be at the ceiling before equipping anything, and all 23 are ranked as if their
+full figure lands.
+
+### The guard proves it can fail
+
+Three tests in `haste.test.ts`, which is the right home — it already carries the unit and
+stacking defects and this is the third. The load-bearing one asserts the totals *do not* clip.
+A/B: applying an invented cap of 40 inside `computeTotals` fails it —
+
+```
+a cap applied   ->  1 failed / 14 passed   ("really does not cap…")
+restore verified by hash: true
+```
+
+— so if anyone ever caps haste, the mark that says we don't will fail rather than quietly
+becoming a lie.
+
+`CAPTURE-REQUESTS.md` **§3** is the four-reading instruction: no haste, one item, two items,
+then a song. It does double duty — step 3 settles `HASTE_STACKING` as well — and it separates
+outcome **B** (the number stopped: a ceiling found) from **E** (could not add more haste), which
+are the same sentence in English and opposite findings. It also states what one character at one
+level *cannot* settle: the curve.
+
+### A stray file, caught and removed
+
+I appended the tests to `web/src/engine/stats.test.ts` before checking whether it existed. It
+did not — the append created a file with no imports. Removed; the tests live in `haste.test.ts`.
+Noted because "the file I assumed was there" is the same class as the vacuous check.
+
+### State
+
+`tsc` clean · vitest **937 / 62** · playwright **150 / 150** against this tree · `verify.mjs`
+PASSED · catalogue audit PASSED · **0 item records changed**.
+
+**Still no PR, for the reason in the entry below** — one ref, no base branch, and the two
+conventional names are the two I warned about. That decision is still yours.
+
+**Remaining on my list:** finding 2 (re-grade the socket ladder — documentation, no code) and
+finding 5 (`levelCheck`, which correctly stays open pending a capture). Finding 1's mark shipped
+26 Aug, 3 is this push, 4 was the last one.
+
 ## 31 Aug — ARMOR_TIER deleted. What finding 5 rests on now, and the clock works.
 
 ### The trigger works — one attempt, as asked

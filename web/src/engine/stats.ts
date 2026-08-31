@@ -78,6 +78,50 @@ export const HASTE_PROVENANCE = {
  * other candidate answer, asserted. Choosing the corroborated one and labelling
  * it is the only move here that adds no claim of its own.
  */
+/**
+ * The haste ceiling this app does not model.
+ *
+ * **Every other capped stat on this panel prints a denominator.** Attributes
+ * show `value/510`, saves `value/1000`, the ten heroic mods their own caps —
+ * all Tier M, read off the client's Stats window. `Atk Speed` prints a bare
+ * number, and that asymmetry is not a design choice. It is a gap.
+ *
+ * Our own source names the cap. `research/eql-itemization.md`:
+ *
+ *   **[SINGLE-SOURCE (eqltools/eqlwiki Haste Guide)]** … Total haste capped
+ *   ~**50% below L30, ~75% at L50**; only the highest worn-haste item counts;
+ *   item/spell/song haste of different types stack …
+ *
+ * **We took the middle clause and left the other two.** `HASTE_STACKING` below
+ * is that middle clause. `HASTE_PROVENANCE` above even quotes the cap back at
+ * the reader — *"flat attack-speed values under a level-scaled cap"* — inside a
+ * constant whose whole job is to say what is unknown. Then nothing caps
+ * anything: a grep for a haste cap in `web/src` returns zero.
+ *
+ * **Why it is marked rather than modelled.** The figure is Tier 5 and
+ * level-scaled, and this planner has no confirmed level→cap curve — inventing
+ * one is the fault this project exists to prevent. Two of the three clauses in
+ * that sentence are also unverified in their own right, so applying a cap would
+ * mean building on an unmeasured rule to fix an unmeasured omission.
+ *
+ * **Why it matters more than the missing denominator suggests.** 23 catalogue
+ * items carry haste, and under the shipped Melee DPS profile a belt at +10 is
+ * the single largest EP any item can earn — larger than the best weapon in the
+ * game. If the cited source is right that item, spell and song haste share one
+ * ceiling, a trio holding a Bard, Shaman or Enchanter is at or near it before
+ * equipping anything, and all 23 are ranked as though their full figure lands.
+ */
+export const HASTE_CAP_STANDING = {
+  chip: 'Tier 5 rule',
+  rule: 'The game caps total haste. This planner does not model that cap.',
+  short:
+    'Every other capped stat here prints a denominator, read off the client. This one does not, because the cap is level-scaled and no confirmed curve exists — so the figure above is what your gear offers, not necessarily what you would feel.',
+  standing:
+    'Named by one community guide, never measured here, and applied nowhere in this app. Tier 5, and the omission is deliberate: guessing a level→cap curve would be inventing the number this project exists not to invent.',
+  settle:
+    'Two readings settle it: a character’s Attack Speed with enough worn haste to be near the ceiling, beside the same reading with a haste song or spell also running. research/validation/CAPTURE-REQUESTS.md §3 is the instruction.',
+} as const;
+
 export const HASTE_STACKING = {
   chip: 'Classic rule',
   rule: 'Only the highest worn haste counts. They do not add up.',
