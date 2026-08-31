@@ -2855,3 +2855,52 @@ unsourced rule, it does not add one.
 
 **Your §4 correction is noted and it changes how I will verify this.** I will not rest the fix on
 a printed count; the check reads the payload and the computed output, never a rendered figure.
+
+### Done — the unsourced skill-damage scaling is deleted, and the guard I wrote first did not work
+
+**Shipped.** `ATTACK` out of `FLAT_KEYS`; `SKILL_DAMAGE_MODS` no longer scaled in either engine.
+The rule table's *unchanged* row is now honoured by `stats.ts` and by `rankScorer` alike.
+
+**What actually moved.** Four distinct items carry `BACKSTAB` — Serpent's Tooth 13, Gold Plated
+Koshigatana 9, Rib-bone Stiletto 7, Stiletto of the Bloodclaw 6. At +10 each read `base + 10`,
+so **Serpent's Tooth showed Backstab 23 for a 13 item, a 77% overstatement**, and `ep.ts:224`
+fed that inflation into the ranking. `ATTACK` moved nothing: 0 of 4,004 records carry it.
+
+**The eight-versus-four discrepancy from 30 Aug is resolved and neither count was wrong.** Eight
+*payload records*, four *distinct items* — each is `PRIMARY`/`SECONDARY` and so ships in both
+shards. Two correct numbers over different denominators.
+
+#### The part worth your time: my first guard was NOT_EXERCISED and A/B is the only reason I know
+
+I wrote a test called *"agrees with computeTotals at every tier"*, described it in its own
+docstring as **the load-bearing one**, and it was worthless. Five mutations:
+
+| # | mutation | first guard | after fix |
+|---|---|---|---|
+| 1 | `stats.ts` re-scales skill mods | 3 failed ✓ | 3 failed ✓ |
+| 2 | **`rankScorer` scores them `flat`, `stats.ts` correct** | **7 passed ✗** | 1 failed ✓ |
+| 3 | `stats.ts` re-scales `ATTACK` | 2 failed ✓ | 2 failed ✓ |
+| 4 | `ATTACK` deleted outright | 3 failed ✓ | 3 failed ✓ |
+| 5 | `rankScorer` scores `ATTACK` `flat` | *(not yet written)* | 1 failed ✓ |
+
+**There are two scorers and I tested the one that cannot fail.** `scoreItem` reads
+`resolveItem`'s output, so it inherits `stats.ts` and is structurally incapable of disagreeing
+with it. `rankScorer` compiles its own `PlanEntry[]` and re-implements the arithmetic — that is
+the copy that drifts, and it is the one the "keeps the two sums identical" comment is about. My
+assertion pointed at the wrong one, and **the docstring claiming it was load-bearing made it
+worse, because it would have stopped the next reader looking.**
+
+Row 2 is your §4 correction arriving from a different direction: a guard can be correct, be
+described accurately in every respect except reachability, and still never touch the thing it
+names. **I only know because I damaged the source rather than reviewed the test.**
+
+Mutation 4 is also worth naming — deleting `ATTACK` from `FLAT_KEYS` outright makes
+`totals.attack` silently zero, because it reads `flat.ATTACK`. That is stopping the scaling by
+stopping the reporting: a different bug wearing the fix's clothes. `UNCHANGED_KEYS` exists so
+the key still reports while never scaling.
+
+**Gate:** `tsc` clean; **944 tests in 63 files pass** (was 937/62); `verify.mjs` passes at Tier 0
+coverage 100.0% after regenerating the payload — my edits shifted `ep.ts` line numbers and
+`verify.mjs` caught both the stale quoted line and the stale `sourceLines`, which is that gate
+doing exactly its job; `catalogue-audit.mjs` passes; bundle builds. Sources restored
+byte-identical after every mutation, checked by SHA-256.

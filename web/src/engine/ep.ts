@@ -12,7 +12,7 @@ import {
   ATTRIBUTES, ATTRIBUTE_CAP, RESIST_CAP, SAVES, SKILL_DAMAGE_MODS,
   type Attribute, type Save,
 } from './constants';
-import { FLAT_KEYS, resolveItem, resolvedSave } from './stats';
+import { FLAT_KEYS, UNCHANGED_KEYS, resolveItem, resolvedSave } from './stats';
 import { damageRatio, scaleDamage, scaleFlat, scalePrimary } from './upgrade';
 import type { Item, EquippedItem } from './types';
 
@@ -161,6 +161,8 @@ type PlanEntry =
   | { kind: 'save'; key: Save; weight: number; already: number }
   | { kind: 'scaled'; key: string; alt?: string; weight: number }
   | { kind: 'flat'; key: string; weight: number }
+  /** Scored at base: the *unchanged* row of the rule table. Skill damage mods. */
+  | { kind: 'unchanged'; key: string; weight: number }
   /** HASTE. Its own kind because it takes the highest, never the sum. */
   | { kind: 'haste'; weight: number; already: number }
   | { kind: 'ratio'; weight: number }
@@ -221,9 +223,18 @@ export function rankScorer(
       plan.push({ kind: 'flat', key, weight });
     }
   }
+  // `UNCHANGED_KEYS` in the same pass and the same order, scored at base. See
+  // the note on the constant: these are the rule table's *unchanged* row.
+  for (const key of UNCHANGED_KEYS) {
+    const weight = weightOf(key);
+    if (weight) plan.push({ kind: 'unchanged', key, weight });
+  }
+  // Skill damage mods are scored at their base value: they are in the
+  // *unchanged* row of the rule table, not the *flat* one. See the note in
+  // `stats.ts` beside `skillMods`, which must agree with this line.
   for (const mod of SKILL_DAMAGE_MODS) {
     const weight = weightOf(mod.key);
-    if (weight) plan.push({ kind: 'flat', key: mod.key, weight });
+    if (weight) plan.push({ kind: 'unchanged', key: mod.key, weight });
   }
   if (ctx.weaponCounts ?? true) {
     const ratio = weightOf('RATIO');
@@ -269,6 +280,12 @@ export function rankScorer(
           if (!base) break;
           const amount = scaleFlat(base, upgrade);
           if (amount) total += amount * entry.weight;
+          break;
+        }
+        case 'unchanged': {
+          // No `upgrade` term anywhere in this branch: that is the whole point.
+          const base = st[entry.key];
+          if (base) total += base * entry.weight;
           break;
         }
         case 'haste': {

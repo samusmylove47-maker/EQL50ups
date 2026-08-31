@@ -231,8 +231,26 @@ export const FLAT_KEYS = [
   'REGEN', 'HP_REGEN',
   'MANA REGEN', 'MANA_REGEN',
   'END_REGEN', 'ENDUR_REGEN',
-  'ATTACK',
 ] as const;
+
+/**
+ * Stat keys carried into the totals **at their base value**, never scaled.
+ *
+ * `research/github-data-inventory.md:56` — the only rule table this tree cites
+ * for +N behaviour — has a *flat* row (`base + full`) and an *unchanged* row
+ * that reads "heroic stats, Attack, Dmg Bon, Backstab, Range, Size, Rec Level,
+ * charges, effect magnitudes: untouched". `ATTACK` sat in `FLAT_KEYS` until
+ * 2026-08-31 against that table and against every other source in `research/`,
+ * which say nothing at all about it scaling.
+ *
+ * It inflated nothing while it sat there — 0 of 4,004 shipped records carry the
+ * key — but `build.mjs` parses `ATTACK`, so it would have begun scaling
+ * silently the day any source supplied one. It stays in this list rather than
+ * being deleted outright because `totals.attack` reads it: dropping the key
+ * would have stopped the scaling by stopping the reporting, which is a
+ * different bug wearing the fix's clothes.
+ */
+export const UNCHANGED_KEYS = ['ATTACK'] as const;
 
 /**
  * Which stat keys on an item can trigger the synthetic Void save.
@@ -322,12 +340,26 @@ export function resolveItem(item: Item, upgrade: EquippedItem['upgrade']) {
     const base = st[key];
     if (base) flat[key] = scaleFlat(base, upgrade);
   }
+  // Same map, deliberately: `totals.attack` and the panels read `flat`. The
+  // difference is the arithmetic, not the destination — no `upgrade` term here.
+  for (const key of UNCHANGED_KEYS) {
+    const base = st[key];
+    if (base) flat[key] = base;
+  }
 
-  // Skill damage modifiers (Backstab, Kick, …) ride in the same stat map.
+  // Skill damage modifiers (Backstab, Kick, …) ride in the same stat map, and
+  // **they do not scale with +N.** The only rule table this tree cites,
+  // `research/github-data-inventory.md:56`, lists Backstab in the *unchanged*
+  // row beside Attack and Dmg Bon; nothing in `research/` says otherwise.
+  // Until 2026-08-31 these ran through `scaleFlat`, inflating Backstab by one
+  // point per tier on the four items that carry it — 13 → 23 at +10 on
+  // Serpent's Tooth. `ep.ts` scores them through the `unchanged` plan entry so
+  // the two sums stay identical; changing one without the other is the
+  // divergence that comment at `ep.ts` is guarding against.
   const skillMods: Record<string, number> = {};
   for (const mod of SKILL_DAMAGE_MODS) {
     const base = st[mod.key];
-    if (base) skillMods[mod.key] = scaleFlat(base, upgrade);
+    if (base) skillMods[mod.key] = base;
   }
 
   const weapon = item.wp
