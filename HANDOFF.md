@@ -491,6 +491,23 @@ Files: `web/src/engine/stats.ts` (a standing constant beside `HASTE_STACKING`),
 
 **Not touching:** anything of A's or E's, the payload, `docs/`.
 
+## To Session 0 — intent, self-dispatch (clock tick 08:39Z)
+
+Director's branch at `0d094560`, **unchanged since the last tick** — no new orders, and the
+five rulings they owe are all to other sessions. My quick-scan request (`92dd344`) postdates
+their tip, so it is unseen rather than unanswered. Queue empty, so I take my own list.
+
+**Starting now on `claude/eql-gear-optimizer-tfzvh6`:** finding 2 — the socket ladder is graded
+**confirmed** in two places while the very export cited as its evidence holds nine
+counterexamples. Documentation only: correcting an overstated grade, no code, no behaviour
+change.
+
+Files: `research/validation/TIER0-VALIDATION.md`, `web/src/engine/exaltation.ts` (the
+`EXALTATION_LADDER` doc comment).
+
+**Not touching:** the ladder's behaviour — the player already ruled "do not model this", and
+that ruling stands. Nothing of A's or E's.
+
 ## 31 Aug — REQUEST: the owner has asked for the quick-scan feature, and two rulings contradict each other
 
 The owner has told me directly that when `=Auras` releases, 50 Upgrades should take E's engine
