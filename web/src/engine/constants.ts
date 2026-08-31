@@ -23,16 +23,31 @@ export const CLASS_NAMES: Record<ClassCode, string> = {
 
 export const CLASS_SET: ReadonlySet<string> = new Set(CLASSES);
 
-/**
- * Armor proficiency tiers. Under multiclassing a character uses the highest
- * tier among their three classes, so a Paladin in the trio opens plate to all.
+/*
+ * `ARMOR_TIER` was here: sixteen class→armour-tier numbers, deleted 2026-08-31.
+ *
+ * It had no source. Nothing in `research/` carried a class-to-armour-tier
+ * table, and it was contradicted by this project's own data twice over:
+ * tallying plate-named records with an explicit class list (n=83) puts **BRD on
+ * 63** against **PAL 59** and **BER 2**, while the table placed BRD a tier below
+ * plate and BER in the top tier — and the Tier M client export shows the
+ * character wearing `Imbrued Platemail Boots`, `cl: ["BRD"]`, a plate piece
+ * restricted to Bards alone.
+ *
+ * Nothing consumed it. `armorTier` in `character.ts` was its only reader and no
+ * screen, selector or component called that. It survived on four lines of its
+ * own unit tests, which asserted the table against itself.
+ *
+ * **It is deleted rather than marked because there is nothing under it to
+ * mark.** A Tier 5 rule is a claim somebody made; this was a claim nobody made.
+ * The one sourced part — "armour proficiency follows the highest tier among
+ * your three classes", `research/eql-itemization.md:49` — is a rule about a
+ * quantity we do not have, and it does not license inventing the quantity.
+ *
+ * There is no evidence Legends gates armour separately from the explicit
+ * per-item class lists the catalogue already carries and `canUseClass` already
+ * enforces. If that changes, the tiers come back from a capture, not a memory.
  */
-export const ARMOR_TIER: Record<ClassCode, number> = {
-  WAR: 4, PAL: 4, SHD: 4, CLR: 4, BER: 4,
-  RNG: 3, BRD: 3, SHM: 3, ROG: 3, BST: 3,
-  DRU: 2, MNK: 2,
-  NEC: 1, WIZ: 1, MAG: 1, ENC: 1,
-};
 
 /**
  * Worn equipment positions, validated against a live `/outputfile inventory`.

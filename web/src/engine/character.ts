@@ -20,7 +20,7 @@
  * pay for it.
  */
 
-import { ARMOR_TIER, CLASSES, CLASS_SET, type ClassCode } from './constants';
+import { CLASSES, CLASS_SET, type ClassCode } from './constants';
 
 /** Level every class starts at until the player says otherwise. */
 export const DEFAULT_CLASS_LEVEL = 1;
@@ -264,8 +264,36 @@ export interface LevelCheck {
  * A trio of Bard 50 / Warrior 12 / Berserker 50 does not get to wear a
  * Warrior-only level-40 item: only the Warrior qualifies, and the Warrior is
  * level 12. Where an item is open to more than one of the three, the highest
- * qualifying class wins, which is the same "best of the trio" rule armour
- * proficiency already follows.
+ * qualifying class wins.
+ *
+ * **What that last sentence rests on, now that its precedent is gone.** It used
+ * to end "…which is the same 'best of the trio' rule armour proficiency already
+ * follows". `ARMOR_TIER` was deleted on 2026-08-31 as an unsourced invention, so
+ * that clause is withdrawn rather than reworded — it was one unsourced rule
+ * citing another, and deleting the cited one leaves the citation with nothing
+ * under it.
+ *
+ * What remains under it is weaker, and is stated here rather than implied:
+ *
+ *  - **The qualifying-class half is a planner inference, not an observation.**
+ *    `research/validation/TIER0-VALIDATION.md:131-133` says *"Planner
+ *    consequence: … item level requirements **should** be checked against the
+ *    level of the *qualifying* class."* "Should" and "consequence" — a design
+ *    reading of the Loadouts screenshot, not a reading of an item window.
+ *  - **The highest-of-the-qualifiers half is contradicted by this project's own
+ *    research.** `research/eql-game-systems.md:279` records as *confirmed* that
+ *    a character's **effective level is the lowest of the three class levels**.
+ *    That note is about effective level rather than about an item requirement,
+ *    so it is not decisive — but it points the other way and nobody has
+ *    reconciled them.
+ *  - **It is not established that Legends gates equipping by level at all.** The
+ *    only Tier M sighting of "Required Level" in this repository is on a *click
+ *    effect* (`TIER0-VALIDATION.md:145`), not on wearing the item.
+ *
+ * **Blast radius today is three records.** Exactly 3 of 3,663 carry `rl`. The
+ * choice is dormant, and it should stay written down rather than settled by
+ * argument: whichever way it goes, it wants a capture, and a patch that
+ * populates `rl` turns it live on every list at once.
  */
 export function levelCheck(item: ItemRestrictions, ctx: LoadoutContext): LevelCheck {
   const required = Number.isFinite(item.rl) ? Math.max(0, Math.trunc(item.rl as number)) : 0;
@@ -351,14 +379,6 @@ export const DUAL_WIELD_STANDING = {
  */
 export function offhandAdvisoryApplies(item: { sl: string[]; wp?: unknown }): boolean {
   return Boolean(item.wp) && item.sl.includes('SECONDARY');
-}
-
-/**
- * Armor proficiency follows the highest tier among the loadout's classes, so a
- * plate class anywhere in the trio opens plate to the whole combination.
- */
-export function armorTier(ctx: LoadoutContext): number {
-  return ctx.classes.reduce((best, c) => Math.max(best, ARMOR_TIER[c] ?? 0), 0);
 }
 
 export function isValidClassCode(value: string): value is ClassCode {

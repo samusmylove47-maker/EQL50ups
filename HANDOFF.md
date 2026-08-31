@@ -476,6 +476,88 @@ half. It belongs in `tools/check-audit/README.md` beside `NOT_EXERCISED` — a c
 fail and a survey that cannot prove absence are the same shape — and I will put it there when the
 seams are not the priority.
 
+## 31 Aug — ARMOR_TIER deleted. What finding 5 rests on now, and the clock works.
+
+### The trigger works — one attempt, as asked
+
+```
+trig_01HuoXMSw4ceDo5G88eKukHx   "EQLS clock — hourly check-in"
+bound to this session · next fire 2026-08-31T07:39:00Z · enabled
+```
+
+Created on the first call, no approval prompt. **The clock can live here.** The server
+anchored my `0 * * * *` to the creation minute — it fires at **:39**, not on the hour, which is
+documented behaviour and worth knowing if you are matching it against anything.
+
+**One limitation, reported rather than debugged:** the trigger stores no MCP connectors, so the
+sessions it fires run without `mcp__*` tools. It can do git, files and the suite — which is what
+a clock is for — but a fired session cannot create or inspect triggers itself. If you want that,
+it has to come from a session holding those grants.
+
+### `ARMOR_TIER` is gone
+
+Deleted: the sixteen-number table (`engine/constants.ts`), its only reader `armorTier`
+(`engine/character.ts`), and the four assertions keeping it alive (`character.test.ts` — a whole
+`describe` block plus one stray expectation inside the loadout-switch test, which is how it
+survived a grep for its own name).
+
+**It is deleted rather than marked, and the distinction is the reason.** A Tier 5 rule is a
+claim somebody made and can be attributed; this was a claim nobody made. The one sourced part —
+*"armour proficiency follows the highest tier among your three classes"*,
+`research/eql-itemization.md:49` — is a rule **about** a quantity, and it does not license
+inventing the quantity. The deletion note in `constants.ts` carries the evidence that killed it:
+plate-named records with an explicit class list (n=83) put **BRD 63** against **PAL 59** and
+**BER 2**, and the Tier M export shows `Imbrued Platemail Boots`, `cl: ["BRD"]` — plate
+restricted to Bards alone.
+
+### What finding 5 rests on now — and it is less than it looked
+
+You asked me to say this in the commit, and it is the part worth reading. `levelCheck`'s comment
+used to end *"…which is the same 'best of the trio' rule armour proficiency already follows."*
+**That clause is withdrawn, not reworded** — it was one unsourced rule citing another, and
+deleting the cited one leaves the citation standing on nothing.
+
+What is actually under it, now stated in the comment rather than implied:
+
+- **The qualifying-class half is a planner inference.** `TIER0-VALIDATION.md:131-133` says
+  *"Planner consequence: … **should** be checked against the level of the qualifying class."*
+  "Should", "consequence" — a design reading of a screenshot, not a reading of an item window.
+- **The highest-of-the-qualifiers half is contradicted by our own research.**
+  `eql-game-systems.md:279` records as *confirmed* that effective level is the **lowest** of the
+  three. That is about effective level rather than an item requirement, so it is not decisive —
+  but it points the other way and nobody has reconciled them.
+- **It is not established that Legends gates equipping by level at all.** The only Tier M
+  sighting of "Required Level" here is on a *click effect*, not on wearing.
+
+So finding 5 got weaker, not stronger, and that is the honest outcome of removing a prop. It
+stays open at 3 of 3,663 records rather than being settled by argument — it wants a capture, and
+a patch populating `rl` turns it live on every list at once.
+
+### The footer drift check went red mid-task, on an eighth tool
+
+Not my deletion — it reaches the live site. `eqlsource.com` published **Gap engine** at
+`/tools/gap-engine`, between 50 Upgrades and Lockouts. Verified live before copying anything:
+**200, no redirect**, alongside lockouts and 50-upgrades. So a merge, not an announcement.
+
+Re-copied once and re-pinned all five counts by the standing procedure — `SITE_TOOLS`, the
+drift check's `EXPECTED`, and the three offline pins **40→41 entries, 33→34 distinct, 7→8
+tools**, the first two computed rather than typed.
+
+**The sixth number is the one worth reporting.** The rendered-anchor count in `CHROME_LINKS`'s
+comment is asserted by no test, so it was re-measured in a `VITE_BASE=/EQL50ups/` preview:
+**42 anchors over 34 distinct hrefs at 1440 and at 390**. Incrementing would have given 42 and
+been right — **for the second time running** — which is exactly why it is not how this is done.
+The comment now says so.
+
+### State
+
+`tsc` clean · vitest **934 / 62** (was 935; the four `armorTier` assertions went with the
+table) · playwright **150 / 150** against this tree · `verify.mjs` PASSED · catalogue audit
+PASSED · **0 item records changed**.
+
+Branch pushed; PR opened for you to merge. I have not merged it.
+
+
 ## To Session 0 — intent, self-dispatch
 
 **Starting now on `claude/eql-gear-optimizer-tfzvh6`:** delete `ARMOR_TIER` and `armorTier`

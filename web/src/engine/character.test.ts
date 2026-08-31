@@ -11,7 +11,7 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  activeContext, activeLoadout, activeRace, armorTier, canUse, canUseClass, canUseRace,
+  activeContext, activeLoadout, activeRace, canUse, canUseClass, canUseRace,
   contextFor, contextForLoadout, describeCharacter, describeFor, describeLoadout,
   DUAL_WIELD_STANDING, levelCheck,
   loadoutFor, makeContext, makeLevels, offhandAdvisoryApplies,
@@ -124,14 +124,6 @@ describe('canUse combines both restrictions', () => {
   });
 });
 
-describe('armour proficiency takes the best of the three', () => {
-  it('opens plate to the trio when any member is a plate class', () => {
-    expect(armorTier(TRIO)).toBe(4); // Warrior
-    expect(armorTier({ ...TRIO, classes: ['BRD'] })).toBe(3);
-    expect(armorTier(SOLO)).toBe(1);
-  });
-});
-
 describe('class validation', () => {
   it('accepts one to three distinct real classes', () => {
     expect(validateClasses(['WAR'])).toEqual({ ok: true });
@@ -171,7 +163,6 @@ describe('per-class levels and loadouts', () => {
     expect(canUseClass({ classes: ['DRU'] }, asBard)).toBe(true);
     expect(canUseClass({ classes: ['DRU'] }, asWarrior)).toBe(false);
     expect(canUseClass({ classes: ['PAL'] }, asWarrior)).toBe(true);
-    expect(armorTier(asBard)).toBe(4); // Shadow Knight
   });
 
   it('falls back to the first loadout when the active id is stale', () => {

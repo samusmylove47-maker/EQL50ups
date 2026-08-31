@@ -133,7 +133,7 @@ export const TOOL_NAME = '50 Upgrades';
  *    `aria-current="true"` — "the current item of a set" — not `"page"`, which
  *    would claim the link's target is the document you are reading. It is not.
  *
- * Every href is extensionless. The `.html` form 307s, and all 33 of this
+ * Every href is extensionless. The `.html` form 307s, and all 34 of this
  * chrome's outbound links were moved off it deliberately; `CHROME_LINKS` pins
  * that.
  */
@@ -147,6 +147,12 @@ export const SITE_TOOLS: ReadonlyArray<{ href: string; label: string; here?: boo
    * the live footer in its position, not anticipated — `/tools/lockouts` was
    * confirmed a real 200 with no redirect before this line was written.
    */
+  /*
+   * Added 2026-08-31, the same way: the drift check went red on an eighth
+   * tool. `/tools/gap-engine` confirmed a real 200 with no redirect before this
+   * line was written — a copy of a published state, not an anticipation of one.
+   */
+  { href: `${SITE}/tools/gap-engine`, label: 'Gap engine' },
   { href: `${SITE}/tools/lockouts`, label: 'Lockouts' },
   { href: `${SITE}/tools/race-unlocks`, label: 'Race unlock tracker' },
   { href: `${SITE}/tools/combo-calculator`, label: 'Race and primary calculator' },
@@ -338,7 +344,7 @@ const FOOT: ReadonlyArray<Column> = [
       { href: href.contamination, label: 'What the scanner finds here' },
     ],
   },
-  /* The seven the site publishes, in its order. See `SITE_TOOLS`. */
+  /* The eight the site publishes, in its order. See `SITE_TOOLS`. */
   { head: 'Tools', links: SITE_TOOLS },
   {
     head: 'Dungeons',
@@ -401,21 +407,23 @@ const FINDING =
  * Three counts, none of which is the other two, so that nobody reconciles them
  * by adjusting one:
  *
- *  - **40** entries here, because the nav and the footer are allowed to offer
+ *  - **41** entries here, because the nav and the footer are allowed to offer
  *    the same page and do: `/tools/`, `/tools/index-search`, `/dungeons/`,
  *    `/raids/`, `/sources`, `/search` and `/learn/still-true` are each written
  *    twice;
- *  - **33** distinct destinations, which is the number the drift and `.html`
+ *  - **34** distinct destinations, which is the number the drift and `.html`
  *    assertions are about and the number `routes.spec.ts`'s comment cites;
- *  - **41** matching anchors in the built page, one more than 40 because
+ *  - **42** matching anchors in the built page, one more than 41 because
  *    `${SITE}/` is written once and rendered twice — the wordmark and the first
  *    breadcrumb step.
  *
- * All three rose by one on 2026-08-30, when the site published `Lockouts` and
- * the footer drift check went red. The third was **re-measured, not inferred**:
- * 41 anchors over 33 distinct hrefs at 1440 and at 390 on a
- * `VITE_BASE=/EQL50ups/` preview. Adding one to a number is how a count stops
- * being a measurement.
+ * All three rose by one on 2026-08-30 (`Lockouts`) and again on 2026-08-31
+ * (`Gap engine`), each time because the footer drift check went red. The third
+ * is **re-measured every time, never inferred**: 42 anchors over 34 distinct
+ * hrefs at 1440 and at 390 on a `VITE_BASE=/EQL50ups/` preview, 2026-08-31.
+ * Adding one to a number is how a count stops being a measurement — and it
+ * would have given the right answer twice running, which is exactly why it is
+ * not how this is done.
  *
  * Measured together against the current file rather than carried forward:
  * `CHROME_LINKS.length`, `new Set(CHROME_LINKS).size`, and
