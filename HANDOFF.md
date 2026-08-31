@@ -491,6 +491,102 @@ Files: `web/src/engine/stats.ts` (a standing constant beside `HASTE_STACKING`),
 
 **Not touching:** anything of A's or E's, the payload, `docs/`.
 
+## 31 Aug — REQUEST: the owner has asked for the quick-scan feature, and two rulings contradict each other
+
+The owner has told me directly that when `=Auras` releases, 50 Upgrades should take E's engine
+output — *"a script or a copy paste from the tool"* — show the reader's current gear and trio,
+and rank **what to do next for the greatest impact**: weapon to +10, spells, new gear, rotation.
+A built-in quick-scan. They asked me to consider it, work it, and request resources from you.
+
+**I want it, and most of it already exists here.** What I need from you is one ruling, because
+two standing ones point opposite ways.
+
+### First, what is already built — this is not a from-scratch feature
+
+- **The Upgrades screen is literally this question.** `href.upgrades()` is a top-level route
+  because *"it is the question people arrive with — where is my biggest gain"*. Ranking,
+  cap-aware scoring, 23 positions, the weapon-position rule: all shipped and gated.
+- **The gear input E asks for already exists.** E's own refusal on `worn.stats` reads
+  *"settle: **The 50 Upgrades gear input**, or a character-panel reading."* That is
+  `lib/inventoryImport.ts` — the client's `/outputfile inventory` reader, grammar confirmed
+  against the running client, wired into three screens today.
+- **The privacy posture is measured, not asserted.** Zero third-party subresources; four
+  `fetch` sites, all same-origin from `BASE_URL`; no beacon, socket, EventSource or XHR. A
+  client-side paste that goes nowhere is what this app already is.
+- **E's weapon taxonomy joins 560/560 by name**, `secondary_capable` agreeing on all 560.
+
+### The ruling I need: E's engine refuses the owner's headline feature and points at a competitor
+
+Both of E's fixtures — `sample-report.json` and `real-report-shara.json` — carry this refusal
+verbatim:
+
+```json
+{ "lane": "item.selection",
+  "reason": "computable_from_catalogue",
+  "detail": "Which obtainable item meets a stat floor is a catalogue question.",
+  "what_would_settle_it": "eqlegendstools.com holds this and does it well. Link, do not clone." }
+```
+
+**That routes "acquiring new gear entirely" — half of what the owner just asked for — to a
+competitor.** Meanwhile your 30 Aug exception says the four Gear-Upgrade-Finder findings
+*"never ship as a stat comparison. They ship only as a ranked delta against the player's own
+observed baseline, which is a thing a catalogue cannot compute."*
+
+**Those cannot both govern.** The exception licenses exactly the composition the owner wants;
+E's live fixture forbids it and names someone else. One of the two is stale. **I need to know
+which, and I will not build against a guess.**
+
+My reading, offered as a decision rather than a question: the exception is the later and more
+specific ruling, and the composition it describes — *E's measured baseline + my catalogue,
+ranked as a delta against what the player actually has* — is precisely the thing a catalogue
+alone cannot compute and eqlegendstools cannot do. If you agree, E's `item.selection` refusal
+needs to point here rather than outward.
+
+### The measured reason this is not cosmetic
+
+On E's own **real** report for Shara, the entire delta list is:
+
+```
+lane.bash  5.3   "negligible - under 2% of this character's output"
+lane.kick  5.7   "negligible - under 2% of this character's output"
+```
+
+**Without the gear half, an honest quick-scan on a real character returns two negligible
+rotation tips.** That is E measuring correctly and reporting it correctly — and it is also the
+owner's "greatest impact" premise going unmet. The gear lane is where the material numbers are,
+and it is the lane currently refused.
+
+### Two gaps I would rather name now than discover in the build
+
+**1. "Upgrade the weapon to +10" has a gain I can compute exactly and a price nobody holds.**
+The gain is Tier M — `base + floor(base × N / 10)`, 5 of 5 against client captures. The
+**cost** is the mote curve, and I have already reported that neither E nor I hold it: my
+`upgrade.ts` models a display denominator out of `2 ** full`, not a cost. So the feature can
+say *"this is worth +X"* and cannot say *"and it costs Y"*. That is shippable if it is stated,
+and dishonest if it is not — a recommendation to spend implies a price.
+
+**2. The paste is the highest-risk input shape we have, and E's report carries no checksum.**
+My own record is the argument: two of thirty single-character corruptions of a real share link
+decoded into a **valid, plausible plan with a slot quietly emptied**. That is why v3 grew a
+checksum and why v2 is now refused outright. E's report is plain JSON. Whatever the paste
+contract becomes, it has to fail **loudly** — a mangled paste that yields a confident wrong
+recommendation is worse than no feature.
+
+### What I am asking for
+
+1. **The ruling above** — does the ranked-delta-against-observed-baseline path supersede E's
+   `item.selection` refusal? This is the only thing blocking design.
+2. **A decision on the price gap** — ship gain-without-price with the absence stated, or hold
+   the +N recommendations until someone measures the mote curve. I recommend the former.
+3. **Time**, and I would rather be honest about the shape than the hours: this is a new screen
+   or a new mode of an existing one, an input path with a loud-failure contract, a resolver from
+   `Delta.requires` to obtainable items, and the tests and gates this repository requires for
+   anything that puts a number on screen. It is the largest thing I would have built here.
+
+**Not started, and I will not start it on my own authority** — it is new mechanism work, which
+your standing bound reserves for a ruling. Everything above is measurement and reading, which
+that bound permits.
+
 ## 31 Aug — the clock fired and worked the list. Finding 3: the haste cap is marked.
 
 **The trigger fired at 07:39:39Z and did what it was written to do.** Checked your branch first
