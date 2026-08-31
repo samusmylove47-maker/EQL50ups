@@ -49,8 +49,7 @@
  * inheriting our confidence blind.
  */
 
-import type { SlotType } from './constants';
-import type { ClassCode } from './types';
+import type { ClassCode, SlotType } from './constants';
 
 /* ------------------------------------------------------------------ input */
 
@@ -98,19 +97,79 @@ export interface StatDelta {
   candidateStatsUnknown: boolean;
 }
 
-/** Where an item can actually be got. `null` when the catalogue does not say. */
+/**
+ * Where an item can be got, in the shape =Lockouts keys on.
+ *
+ * **Ruled 31 Aug 20:3x:** B owns *item -> boss / zone / difficulty*, D owns
+ * *boss / zone / difficulty -> can this character run it this week*. D does not
+ * take item ids and must never be sent one.
+ *
+ * ## Two honest limits, measured rather than assumed
+ *
+ * **1. `difficulty` is never populated, and the reason is more interesting than
+ * "no data".** `grep -roic difficulty web/public/data/` finds it in exactly one
+ * place: `meta.zones.surveyed[].coverage.difficulty`, on 13 zones, where the
+ * value is a *survey grade* — `"measured"` or `"sourced"` — saying whether
+ * anyone has surveyed that zone's difficulty. **It is not a difficulty value.**
+ * Emitting it as one would turn "we looked" into "it is hard", which is the
+ * precise failure this contract exists to prevent, so `difficulty` stays `null`.
+ * It is typed because it is D's key and the gap should be visible in the shape.
+ *
+ * **What CAN be offered instead is `zoneLevels`** — those same 13 surveyed zones
+ * carry a real level range (`"7-25+"`, `"20-45"`, `"32-50"`). Measured reach:
+ * **752 of 3,663 items** have a zone list touching a surveyed zone, **463 of
+ * them carrying stats.** That is a genuine difficulty proxy for a fifth of the
+ * catalogue and it is offered as what it is, not relabelled as difficulty.
+ *
+ * **2. `mobs` are mobs, not bosses.** The catalogue's drop data is a flat list
+ * of creature names — `"a goblin magician"`, `"an alligator"`, `"Ekeros"` — with
+ * no marker separating a named boss from trash. Calling the field `boss` would
+ * assert a distinction the data does not carry. Consumers that need bosses
+ * must apply their own test; this field will hand them everything.
+ */
 export interface Obtainable {
+  /** Zone names, as the catalogue records them. D's key, first field. */
   zones: string[];
+  /** Creature names. NOT filtered to bosses — see the note above. */
   mobs: string[];
+  /**
+   * Always `null`. No difficulty VALUE exists in this payload — only a survey
+   * grade about difficulty, on 13 zones. Never guessed. Present so D's key
+   * shape is complete and the gap is visible rather than silently absent.
+   */
+  difficulty: null;
+  /**
+   * The surveyed level range of the first zone that has one — `"20-45"` — or
+   * `null`. The nearest real signal to difficulty this catalogue holds, offered
+   * under its own name. Reaches 752 of 3,663 items; 463 of those carry stats.
+   */
+  zoneLevels: string | null;
   quests: string[];
   vendors: string[];
   crafted: boolean;
   /**
    * True when a mob was *measured* dropping this in parsed combat logs — Tier M
-   * existence, the strongest evidence here. Distinct from a wiki drop table.
+   * existence, the strongest evidence here. Distinct from a wiki drop table,
+   * and the only obtainability claim in this catalogue backed by observation.
    */
   measuredDrop: boolean;
 }
+
+/**
+ * Three-way, never a boolean. Ruled 31 Aug: *"a ranker that treats 'I have not
+ * seen this character's log for that zone' as 'go and farm it' produces exactly
+ * the recommendation that loses trust in one click."*
+ *
+ * B only ever emits `unknown` or `no-source`. **Whether a run is actually
+ * available this week is D's answer, not B's** — B publishes the key and the
+ * fact that it has not been resolved, and a consumer that leaves it `unknown`
+ * must band it separately rather than treating it as actionable or dropping it.
+ */
+export type Actionability =
+  /** The catalogue records where this drops; nobody has asked D whether it is runnable. */
+  | 'unknown'
+  /** The catalogue records no source at all. Cannot be made actionable by any lookup. */
+  | 'no-source';
 
 export interface BisCandidate {
   slot: SlotType | 'ANY';
@@ -123,6 +182,11 @@ export interface BisCandidate {
   statDelta: StatDelta;
   /** `"not recorded"` where the catalogue carries no source data at all. */
   obtainable: Obtainable | 'not recorded';
+  /**
+   * Never `true`/`false`. See `Actionability` — the not-knowing value is loud
+   * rather than falsy, and B is not the party that can resolve it.
+   */
+  actionability: Actionability;
   eligible: boolean;
   /** Why not, when `eligible` is false. Empty string when it is true. */
   eligibilityReason: string;
