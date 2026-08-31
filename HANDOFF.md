@@ -3007,8 +3007,11 @@ worn stats.
 is no seam to adjudicate. **I am not blocked on the Director.** If gear must reach the engine that
 is new scope and the owner's call.
 
-**Noted for when I next vendor the engine:** copy `eqls-gap-engine.76bd7386.js` and nothing
-earlier — `85425fdb` and `e7b0234e` were both superseded within the hour. And read E's HANDOFF
+**Noted for when I next vendor the engine:** ~~`eqls-gap-engine.76bd7386.js`~~ — **superseded
+18:1xZ; the hash is now `8c777b96`.** `76bd7386`, `85425fdb` and `e7b0234e` are all stale: four
+hashes in about two hours. **Do not copy a hash out of this file — re-read the directory.** A
+pinned identifier in prose is a dead pointer waiting to happen, which is the failure this project
+has now paid for twice. And read E's HANDOFF
 §38.4 first: the fixture's `_why` promises the *shape* is what the engine emits, which does not
 cover `context`, so a consumer building against the fixture would reasonably treat
 `character`/`trio`/`level`/`marker_raw` as guaranteed when they are caller-supplied.
@@ -3116,3 +3119,56 @@ Fires, names the assertion, and correctly does **not** fail the build. Silent on
 **Gate:** `tsc` clean, 944 tests in 63 files pass, `verify.mjs` passes at Tier 0 coverage 100.0%
 with 65 checks, `catalogue-audit.mjs` passes. Payload regenerated; the diff is two timestamps and
 nothing else — `sourceLines` did not move because this edit is in `pipeline/`, not `web/src`.
+
+## 31 Aug 18:2xZ — "READS NOTHING" WAS WRONG TOO, AND MY OWN TABLE SAID SO
+
+**`ab89bdf` is corrected. The engine does not read *nothing* from context.** Verified with my own
+instrument rather than taking the Director's second correction on authority — same rule as the
+first time — using a log that actually carries a marker, so the write path is live:
+
+| probe (engine 1.1.0) | result |
+|---|---|
+| caller omits `marker_raw`, log carries one | engine writes `"WAR MNK SHM"` |
+| caller supplies one **and** the log carries a different one | **the caller's value is honoured, suppressing the log-derived one** |
+| whole `Report` identical across the two contexts | **false** |
+| `measured` / `deltas` / `refusals` / `coverage` identical | **true, all four** |
+| caller's own dict after the call | unmutated — the deep copy holds |
+
+**The accurate sentence is E's and I adopt it verbatim:** the engine consumes no context *value* —
+no branch, rate, denominator or refusal depends on anything a caller supplies — **but it
+deep-copies the object and does read `marker_raw`, its presence to guard a write and its value,
+which it honours.**
+
+"Reads nothing" implies context is inert. It is not, and the difference is operational: **there
+is existing behaviour to collide with.** Anyone deciding whether adding a field is safe would, on
+my sentence, assume there is nothing in the way. There is a deep copy and one caller-honoured key.
+
+### The row that refuted my own heading was sitting in my own table
+
+Row four of the evidence I published in `ab89bdf` reads *"marker_raw omitted by caller → written;
+supplied by caller → **PRESERVED**"*. **A value the caller supplies, which the engine honours and
+returns, is a read by any definition that matters to a caller.** My heading said the opposite of
+my own row, and I did not see it.
+
+E named the shape and I am adopting it as a working rule, because it is exactly what happened:
+
+> **A table can carry the row that refutes its own heading, because the heading is written once
+> from the conclusion and the rows are written from the data. When they disagree, the rows are
+> right.**
+
+**Three parties published "reads nothing" — E first, then the Director, then me — and none of us
+had measured it.** Mine came from the Director's retraction, which is why the correction arrived
+from them; a correction inherits the reach of the claim it corrects.
+
+### What my probe did establish, and it now carries a ruling
+
+The Director reports that the sentinel probe's fifth row — **the `worn.stats` refusal still fires
+after being handed worn stats** — is the evidence behind their ruling that E's settler text will
+stop naming *"The 50 Upgrades gear input"*, a product that does not exist and was never scoped,
+and name a **kind of source** instead. That row is behaviour, not inference: the engine cannot
+notice the thing its own prose names as the settler. **I found it while being wrong about the
+headline above it**, which is worth recording as its own lesson about where useful findings come
+from.
+
+**Not blocked on anything.** The gear seam does not exist, was never scoped, and if gear must ever
+reach the engine that is new scope and the owner's call.
