@@ -86,7 +86,18 @@ So a base item shows one socket row; a +4-or-better item shows all five.
 - **Exaltations do not stack** — only the highest rank in a family counts (Mana Preservation I+II+III = III alone). Covering many *different* families is the optimization objective. *(This no-stack claim is sourced to Thiole's reading of the wiki; jmoyers does not restate it.)*
 - Sockets survive loadout swaps; the exact exaltation is restored per loadout.
 
-**The hard limit — be clear about this.** Per-item exaltation socket **contents** and tier state are **per-instance data that the wiki does not publish**. I verified this empirically: in jmoyers' 11,375-item scrape, the parsed `exaltationSlots` field is populated on **exactly 1 item** (`Boots of the Long Road`, which hand-writes `Slot: Ornamentation: empty` in its stats block as a one-off). This is consistent — sockets are a function of item *level*, not an item property, so there is nothing per-item to scrape. **A planner should derive sockets from the chosen +N, never look them up.**
+**The hard limit — be clear about this.** Per-item exaltation socket **contents** and tier state are **per-instance data that the wiki does not publish**. I verified this empirically: in jmoyers' 11,375-item scrape, the parsed `exaltationSlots` field is populated on **exactly 1 item** (`Boots of the Long Road`, which hand-writes `Slot: Ornamentation: empty` in its stats block as a one-off). **That is a fact about the scrape, and the sentence that used to follow it here turned it into a
+claim about the game: "sockets are a function of item *level*, not an item property, so there is
+nothing per-item to scrape." The inference does not hold, and it is withdrawn (2026-08-31).**
+An absent field means the wiki does not publish the data; it is not evidence that the data would
+be uniform if it did. Scoring the inventory export
+(`node research/validation/audit_socket_ladder.mjs`) finds 9 of 119 `+N` items missing a click
+socket the level-only model gives them, with a per-item discriminator — see
+`research/validation/TIER0-VALIDATION.md` §2.
+
+**A planner should still derive sockets from the chosen +N**, because nothing per-item is
+available to look up and the player has ruled *do not model this*. That is a decision taken under
+a known gap, not a mechanism we have established.
 
 What *is* available per-item is the **effect that can be lifted out**: jmoyers tags effects by kind across the catalog — **click 824, combat/proc 453, focus 143, worn 104, effect 52**. Those are your exaltation *sources*.
 

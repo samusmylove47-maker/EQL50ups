@@ -36,7 +36,7 @@ model is correct, not coincidence.
 **Conclusion: +N scaling is fully computable from base stats. No per-level data collection is
 required, ever. It ships as a core feature.**
 
-## 2. Exaltation socket ladder CONFIRMED, with numeric slot IDs recovered
+## 2. Exaltation socket ladder — ORDER confirmed, COMPLETENESS is not
 
 The inventory export numbers exaltation sub-slots. Whitened Treant Fists at +0/+1/+2/+3 shows
 sub-slots appearing one per level:
@@ -53,7 +53,38 @@ Corroborated by the Earthshaker +10 window listing exactly five rows in order: O
 Exaltation, Click Exaltation, Worn Exaltation, Proc Exaltation. Ornamentation uses Slot1 on some
 item types and Slot2 on others.
 
-**Sockets are derived from item level — confirmed. Nothing per-item to look up.**
+**Re-graded 2026-08-31. The claim this section used to make — "sockets are derived from item
+level, nothing per-item to look up" — is contradicted by the very export cited above.**
+
+`node research/validation/audit_socket_ladder.mjs` scores every `+N` item in that export
+against the ladder. The export prints a row for every sub-slot that *exists*, naming it
+`Empty` when unfilled, so a missing row means the client says the socket is not there — it
+is not merely unused. Of 119 scored items (78 keyring rows excluded, having no sub-slot
+rows at all):
+
+| Result | Count |
+|---|---|
+| Socket appearing **earlier** than the ladder predicts | **0** |
+| Missing a **predicted** non-cosmetic socket | **9** |
+| No ornamentation row at all | 46 |
+
+**What survives:** the order and the tier thresholds. Nothing unlocks early, in 119 items.
+The `exportSlot` numbering is unchallenged. That is what the Whitened Treant Fists series
+and the Earthshaker window actually demonstrate, and it is all they demonstrate.
+
+**What does not:** completeness. All nine misses are the same socket — click, Slot8 — and
+the discriminator is per-item. Every one of the nine carries a *native* click effect in the
+shipped catalog, and no item lacking a native click is ever missing the socket (0 of 87 —
+a populated cell, not a vacuous zero). But the converse fails: 12 items with a native click
+have the socket anyway, `Bladestopper +6` and four `Golem Metal Wand` among them. So a
+native click is **necessary but not sufficient**, and whatever separates the nine from the
+twelve is a property of the item, not of its tier.
+
+**This does not change the planner's behaviour**, which stays as §7 records: the player
+ruled *do not model this* on 2026-08-16, and that ruling stands. What changes is only the
+grade. §7 already said the planner "makes no claim about exact per-item socket counts";
+this section contradicted it by claiming there was nothing per-item to look up. There is —
+we simply have a standing ruling not to chase it.
 
 ## 3. Slot vocabulary CONFIRMED (21 worn positions)
 

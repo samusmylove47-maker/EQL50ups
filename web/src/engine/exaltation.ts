@@ -1,10 +1,21 @@
 /**
  * Exaltations — EverQuest Legends' augment system.
  *
- * Sockets are a function of an item's upgrade level, not a property of the
- * item. Verified two ways: the corpus carries socket data on exactly one of
- * 11,375 items, and a live inventory export shows sub-slots appearing one per
- * upgrade level on four otherwise identical items.
+ * Sockets are modelled as a function of an item's upgrade level. That is a
+ * deliberate simplification, not a measured fact, and the distinction is
+ * recorded here because it used to be stated the other way round.
+ *
+ * What is measured: the corpus carries socket data on exactly one of 11,375
+ * items, and a live inventory export shows sub-slots appearing one per upgrade
+ * level. Scoring that whole export rather than the four items originally quoted
+ * — `node research/validation/audit_socket_ladder.mjs` — 0 of 119 `+N` items
+ * unlock a socket earlier than this ladder predicts, but 9 are missing one it
+ * predicts, always the click socket, and the discriminator is per-item rather
+ * than per-tier. See `research/validation/TIER0-VALIDATION.md` §2.
+ *
+ * The simplification is kept on the player's standing ruling of 2026-08-16 —
+ * *do not model this* — because the client counts sockets inconsistently and
+ * the inconsistency is the game's, not a rule to reverse-engineer.
  */
 
 import type { UpgradeState } from './upgrade';
@@ -22,8 +33,11 @@ export interface ExaltationSocket {
 }
 
 /**
- * The unlock ladder, confirmed against the client's item window ordering and
- * against sub-slot numbering in an inventory export.
+ * The unlock ladder. Its **order and thresholds** are confirmed against the
+ * client's item window ordering and against sub-slot numbering in an inventory
+ * export; nothing in that export unlocks early. Its **completeness is not** —
+ * nine items there lack a click socket this ladder gives them. See the module
+ * comment above for the count and the command that produces it.
  *
  * Ornamentation is the odd one out: the socket exists from +0, but it is filled
  * with a Marketplace token rather than by transferring an effect, and it is

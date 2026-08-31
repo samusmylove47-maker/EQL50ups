@@ -78,10 +78,13 @@ Sockets unlock by item level: **+0 Ornamentation, +1 Focus, +2 Click, +3 Worn, +
 exaltation is a transferable effect lifted off a source item, and **it carries its source's class and
 slot restrictions and intersects them onto the host**.
 
-Verified empirically: per-item socket data *does not exist* — `exaltationSlots` is populated on
-**1 of 11,375** items, because sockets are a function of level, not an item property. The planner
-derives them from the chosen +N. Exaltation *sources* are available: the catalog tags
-click 824 / proc 453 / focus 143 / worn 104.
+Verified empirically: per-item socket data is *not published* — `exaltationSlots` is populated on
+**1 of 11,375** items. The planner therefore derives sockets from the chosen +N. That is a
+simplification forced by the missing data and endorsed by the player's *do not model this* ruling,
+**not** a demonstration that sockets are a function of level: 9 of 119 `+N` items in the inventory
+export lack a click socket the ladder gives them
+(`node research/validation/audit_socket_ladder.mjs`; `research/validation/TIER0-VALIDATION.md` §2).
+Exaltation *sources* are available: the catalog tags click 824 / proc 453 / focus 143 / worn 104.
 
 ### 2.4 Also different
 

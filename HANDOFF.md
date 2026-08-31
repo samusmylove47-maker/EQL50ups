@@ -508,6 +508,89 @@ Files: `research/validation/TIER0-VALIDATION.md`, `web/src/engine/exaltation.ts`
 **Not touching:** the ladder's behaviour — the player already ruled "do not model this", and
 that ruling stands. Nothing of A's or E's.
 
+## 31 Aug — socket ladder re-graded. Four places, not two, and my own count was wrong twice before I got it right.
+
+Done and pushed. Documentation only, as declared; no behaviour changed, and the player's *do not
+model this* ruling is untouched. But three things in this one are worth your time more than the
+edit itself.
+
+### The claim was in FOUR places, and I declared two
+
+I said `TIER0-VALIDATION.md` §2 and the `EXALTATION_LADDER` comment. Grepping rather than
+trusting my memory found two more:
+
+- `research/github-data-inventory.md:89` — *"sockets are a function of item level, not an item
+  property, so there is nothing per-item to scrape."*
+- `DESIGN.md:81` — *"because sockets are a function of level, not an item property."*
+
+All four corrected. **The two I missed are the more interesting ones**, because they are where
+the error was manufactured rather than repeated.
+
+### The actual defect is an inference, not a transcription
+
+`exaltationSlots` is populated on **1 of 11,375** items in the scrape. That is true, and it stays.
+What both documents did was turn an *availability* fact into a *mechanism* claim: the wiki does
+not publish per-item socket data, **therefore** sockets must not be per-item. That does not
+follow. An absent field means nobody wrote it down; it is not evidence that the underlying thing
+is uniform. Everything downstream inherited a Tier M grade it never earned.
+
+This is the §7 habit — *a number that was typed where it could have been computed* — in its
+argumentative form: **a conclusion that was inferred where it could have been measured.** The
+export needed to test it has been sitting in `research/validation/` since 16 Aug.
+
+### What the measurement actually says — and it refutes my tidy explanation too
+
+`node research/validation/audit_socket_ladder.mjs`, checked in so you can re-run it rather than
+take my word. The export prints a row for every sub-slot that *exists*, naming it `Empty` when
+unfilled — so a missing row is the client saying the socket is not there, not the player saying
+they have not used it. That is what makes the test bite. Of 119 scored `+N` items (78 keyring
+rows excluded — they carry no sub-slot rows at all, and scoring them would have manufactured 78
+false counterexamples):
+
+| | Count |
+|---|---|
+| Socket **earlier** than the ladder predicts | **0** |
+| Missing a **predicted** non-cosmetic socket | **9** |
+| No ornamentation row at all | 46 |
+
+So **order and thresholds survive; completeness does not.** All nine misses are the same socket,
+click/Slot8. The obvious explanation is that an item with a native click cannot take a click
+exaltation — and cross-tabulating kills it:
+
+| | has click socket | no click socket |
+|---|---|---|
+| **native click** | **12** | **9** |
+| **no native click** | 87 | **0** |
+
+A native click is **necessary but not sufficient**. `Bladestopper +6` and four `Golem Metal Wand`
+have both. The 0/87 cell is the load-bearing one and it is **populated** — 87 items, not a vacuous
+zero of the kind I reported to you on the 2H check. Whatever separates the nine from the twelve is
+per-item. We do not know what it is, and under the standing ruling we are not going to look.
+
+### Two corrections to my own numbers, before you read them anywhere else
+
+I told you earlier this was **115 items, 9 counterexamples, 44 without ornamentation**. Re-derived:
+**119 / 9 / 46**. The nine held; the other two were wrong, and I had also written *"all wands and
+rods"* when `Nightmare Hide +5` is neither.
+
+Worse than the drift is how I got there. My first two parsers both returned confident nonsense:
+the first printed **0 exaltable items** (I had assumed whitespace columns; the file is
+tab-delimited with CRLF), the second **20** (I keyed rows by location — but locations repeat,
+`Ear` twice and `Equipment` 77 times, and a bank row is both a child of its container *and* the
+parent of its own sub-slots; there are 370 such grandchild rows). Only a positional parse gives
+119. **A zero and a plausible-looking 20 both came out of that file before the right answer did**,
+which is the argument for checking the script in rather than reporting the figure.
+
+### State
+
+`build.mjs` + `verify.mjs` pass (Tier 0 coverage 100.0%), `tsc` clean, **937 tests in 62 files
+pass**, `catalogue-audit.mjs` passes. Payload diff is two timestamps and `sourceLines`
+32134 → 32148 — exactly the 14 comment lines I added to `exaltation.ts`. No data changed.
+
+**My list now:** finding 5 (`levelCheck`) is the only one left, and it is correctly blocked on the
+capture in `CAPTURE-REQUESTS.md` §2. **Still awaiting your ruling on the quick-scan request below
+— that is the owner's headline feature and it is the one thing on my board I cannot self-dispatch.**
+
 ## 31 Aug — REQUEST: the owner has asked for the quick-scan feature, and two rulings contradict each other
 
 The owner has told me directly that when `=Auras` releases, 50 Upgrades should take E's engine
