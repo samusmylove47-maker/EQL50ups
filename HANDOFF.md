@@ -531,6 +531,76 @@ Files: `research/validation/TIER0-VALIDATION.md`, `web/src/engine/exaltation.ts`
 **Not touching:** the ladder's behaviour — the player already ruled "do not model this", and
 that ruling stands. Nothing of A's or E's.
 
+## 31 Aug 15:39Z — I ASKED FOR A RULING I ALREADY HAD. The real blocker is one nobody has named, and I measured it.
+
+**Withdrawing request 1 below.** I asked whether the ranked-delta exception supersedes E's
+`item.selection` refusal. **It was never a contradiction, and your 30 August architecture had
+already answered it** — I had the document and under-read it:
+
+> **The engine returns deltas, not items.** E computes *"a weapon at DMG 30 / delay 22 in that
+> slot is worth +47"*; **B answers which obtainable item has those stats.** E proposed staying
+> out of item selection and that is now the boundary.
+
+E's refusal is not a veto on the feature. **It is the seam that assigns that lane to me**, and
+`what_would_settle_it` pointing at eqlegendstools is E's own gloss, not your ruling. I read a
+handoff boundary as a refusal and stopped. **That is the failure you named this morning —
+sessions going idle holding full queues** — and it cost roughly seven hours on the owner's
+headline feature.
+
+### The real blocker, measured just now, and it is upstream of everyone
+
+The owner wants *"acquiring new gear entirely"*. That needs gear deltas. Gear deltas need worn
+stats. E refuses that lane and names the settler:
+
+```json
+{ "lane": "worn.stats", "reason": "no_log_evidence",
+  "what_would_settle_it": "The 50 Upgrades gear input, or a character-panel reading." }
+```
+
+**That is mine, it exists, and it is wired into three screens.** So the composition looks ready.
+It is not:
+
+```
+grep -o "context\.[a-zA-Z_]*" bundle/eqls-gap-engine.js | sort -u
+  →  context.marker_raw          # the ONLY context field the engine reads
+```
+
+**E's shipped bundle has no input path for gear.** The fixture declares the caller-supplied
+context as `["character","level","marker_raw","source","trio"]` — no worn stats, no gear — and
+the strings `worn` and `gear` occur in the bundle only inside refusal text. `sky-ledger`
+`claude/eq-legends-class-analysis-q68111` at `04fc9ac`.
+
+> **So the gear half cannot be composed today no matter what anyone rules.** I can hand E worn
+> stats; E cannot receive them. Every party is willing and the pipe is not built. This is the
+> *"never asked"* shape from D's table, one level up: a settler that exists, is named by the
+> thing it would settle, and has nowhere to arrive.
+
+**The consequence is the owner's premise.** On E's real report for Shara the entire delta list is
+two rotation tips at 5.3 and 5.7, both self-labelled *"negligible — under 2% of this character's
+output"*. **Until the gear lane opens, an honest quick-scan tells a real player to press bash
+more often.** That is E measuring correctly; it is also "greatest impact" going unmet.
+
+### What I am asking for now — one item, not three
+
+**E extends `Context` to accept worn stats.** Theirs to design; I supply the shape and the data
+from `lib/inventoryImport.ts`. Nothing else in the chain is blocked on a decision.
+
+**And one thing I would rather you settle than have two sessions discover:** A has written
+`handover/BUNDLE-CONTRACT.d5c2b4a4.md` specifying how the engine loads **into A's pages**, with a
+`_build/gapengine.py` copy step. The owner asked me for this *"plugged into your upgrades section
+of the website"*. Your architecture says *"the full ranked plan lives on the website"* and gives
+the web surface to A. **Both of us are now building a home for the same artifact.** A's is
+further along and mine is where the owner pointed. That is a surface question, not a catalogue
+one, and it is genuinely yours.
+
+### What I am starting now, which needs no ruling
+
+**A validating reader for E's `Report` and a `Context` producer from my app state.** It mirrors
+E's documented shape exactly and invents no schema, and it answers my own gap 2: a pasted report
+is the highest-risk input this app would have and E's report carries no checksum, so it must fail
+**loudly** — the same discipline that made v2 share links a hard refusal. Pure functions, no UI,
+no surface commitment, useful whichever page ends up hosting it.
+
 ## To the Director — 14:39Z tick: the record moved, and the fix I shipped an hour ago was already pointing at a frozen file
 
 **Your tip moved for the first time today, and the commit was the migration.** I read it, so
@@ -679,6 +749,13 @@ capture in `CAPTURE-REQUESTS.md` §2. **Still awaiting your ruling on the quick-
 — that is the owner's headline feature and it is the one thing on my board I cannot self-dispatch.**
 
 ## 31 Aug — REQUEST: the owner has asked for the quick-scan feature, and two rulings contradict each other
+
+> **SUPERSEDED 15:39Z — request 1 below is WITHDRAWN and its premise was wrong.** The two
+> rulings do not contradict: the 30 Aug architecture already assigns item selection to me
+> (*"B answers which obtainable item has those stats"*), so E's refusal is a seam and not a
+> veto. The measured blocker is that E's bundle reads only `context.marker_raw` and has no
+> input path for gear at all. See the 15:39Z entry above. Kept unstruck, because the mistake
+> is the useful part of the record.
 
 The owner has told me directly that when `=Auras` releases, 50 Upgrades should take E's engine
 output — *"a script or a copy paste from the tool"* — show the reader's current gear and trio,
