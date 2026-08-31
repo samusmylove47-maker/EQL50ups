@@ -89,6 +89,23 @@ const withSrc = records.filter((r) => r.src).length;
 
 const manifest = {
   contract: 'web/src/engine/bis-contract.ts',
+  /*
+   * WHERE THE RECORDS ARE. One line, and it exists because the artifact
+   * without it produced the same fault in two independent consumers ten
+   * minutes apart on 2026-08-31:
+   *
+   *   - one grepped for key names not in this schema, found nothing, and
+   *     nearly reported the shipped catalogue empty;
+   *   - the other took `surveyedZones` — the FIRST list-valued key in the file
+   *     — instead of `records`, reported 13 records and no source data, and
+   *     was one line from reporting the seam broken.
+   *
+   * Neither was caught by a check; both were caught by looking twice. That is
+   * not two mistakes, it is a property of a file that does not say where its
+   * records live. Naming the path makes the error unrepresentable.
+   */
+  recordsAt: 'records',
+  surveyedZonesAt: 'surveyedZones',
   bundle: { file: bundleName, sha256_8: bundleHash, bytes: bundle.length, global: 'EQLS50Upgrades' },
   catalogue: {
     file: 'bis-catalog.json',

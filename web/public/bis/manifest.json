@@ -1,9 +1,11 @@
 {
   "contract": "web/src/engine/bis-contract.ts",
+  "recordsAt": "records",
+  "surveyedZonesAt": "surveyedZones",
   "bundle": {
-    "file": "eqls-50upgrades.656d77f6.js",
-    "sha256_8": "656d77f6",
-    "bytes": 13248,
+    "file": "eqls-50upgrades.c493346f.js",
+    "sha256_8": "c493346f",
+    "bytes": 14235,
     "global": "EQLS50Upgrades"
   },
   "catalogue": {

@@ -115,12 +115,31 @@ function betterOnSomeAxis(d: StatDelta): boolean {
   return Object.values(d.delta).some((v) => v > 0);
 }
 
+/**
+ * A zone string the wiki wrote as a note rather than as a place.
+ *
+ * The same test as `pipeline/contamination.mjs` signature 11
+ * `removed-from-game` — deliberately the same regex, not a paraphrase of it.
+ * That scanner finds 1 record in the shipped catalogue: `Basoon Haste
+ * Gauntlets`, whose `src.z` is `["ITEM REMOVED FROM GAME"]`.
+ *
+ * The payload keeps the note ON PURPOSE — the scanner's own `markRule` says
+ * the wiki's note survives and is rendered as if it were a place you could go,
+ * and making that visible is the point. **But it must not cross this seam.**
+ * `zones` is the key =Lockouts looks a raid up by, and "ITEM REMOVED FROM
+ * GAME" is not a raid; passing it would put a garbage key into another
+ * session's lookup. Filtered here rather than in the payload, because the
+ * payload's decision to show it is correct for a reader and wrong for a
+ * machine.
+ */
+const NOT_A_PLACE = /removed from game/i;
+
 function obtainability(item: Item, surveyed: Map<string, ZoneSurvey>): {
   obtainable: Obtainable | 'not recorded';
   actionability: Actionability;
 } {
   const src = item.src;
-  const zones = src?.z ?? [];
+  const zones = (src?.z ?? []).filter((z) => !NOT_A_PLACE.test(String(z)));
   const mobs = src?.m ?? [];
   const quests = src?.q ?? [];
   const vendors = src?.v ?? [];

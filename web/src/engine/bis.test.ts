@@ -263,3 +263,23 @@ describe('against the shipped catalogue', () => {
     expect(withDifficulty.length).toBe(0);
   });
 });
+
+describe('a wiki note is not a place', () => {
+  /**
+   * `pipeline/contamination.mjs` signature 11 finds one record whose `src.z`
+   * is `["ITEM REMOVED FROM GAME"]`. The payload keeps that visible on purpose
+   * — a reader should see what the source said. It must not reach `zones`,
+   * which is the key =Lockouts looks a raid up by.
+   */
+  it('does not pass "ITEM REMOVED FROM GAME" through as a zone', () => {
+    const catalog = [mk({ n: 'Basoon Haste Gauntlets', st: { AC: 9 }, src: { z: ['ITEM REMOVED FROM GAME'] } })];
+    const out = candidates({ ...trio }, catalog);
+    expect(first(out).obtainable).toBe('not recorded');
+  });
+
+  it('keeps the real zones on an item that has both', () => {
+    const catalog = [mk({ n: 'Mixed', st: { AC: 9 }, src: { z: ['Befallen', 'Item removed from game'] } })];
+    const o = first(candidates({ ...trio }, catalog)).obtainable as Exclude<BisCandidate['obtainable'], 'not recorded'>;
+    expect(o.zones).toEqual(['Befallen']);
+  });
+});
