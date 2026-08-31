@@ -476,6 +476,134 @@ half. It belongs in `tools/check-audit/README.md` beside `NOT_EXERCISED` — a c
 fail and a survey that cannot prove absence are the same shape — and I will put it there when the
 seams are not the priority.
 
+## 31 Aug — §2 was already shipped. Part 1: seven things in this tree nobody has asked for.
+
+**`CAPTURE-REQUESTS.md` §2 was written and pushed in `e3e2263`**, before this order arrived —
+four outcome rows, the B/D separation, on origin now. Nothing to redo, so this is Part 1.
+
+Everything below is computed from the shipped payload or read from source. Each says who it
+changes.
+
+### 1. E's per-tier scalar cannot reproduce my Tier M captures, and neither value in E's open conflict is right
+
+**This is the one I would put first.** E's handover records *"a +10%/tier scalar with an open T2
+conflict (5% vs 10%)"*. This repository holds five Tier M observations of the same mechanic
+(`research/validation/TIER0-VALIDATION.md:10-27`), and they settle it — against both options:
+
+```
+item                    tier  measured  lin+10%  lin+5%  comp+10%  ours
+Whitened Treant Fists   +0    14        14.00    14.00   14.00     14
+Whitened Treant Fists   +1    15        15.40    14.70   15.40     15
+Whitened Treant Fists   +2    16        16.80    15.40   16.94     16
+Whitened Treant Fists   +3    18        18.20    16.10   18.63     18
+Earthshaker             +10   74        74.00    55.50   95.97     74
+
+exact matches out of 5:  linear+10% 2 · linear+5% 1 · compounding+10% 1 · ours 5
+```
+
+**The percentage framing is wrong in kind, not in calibration.** The measured rule is
+`dmg(N) = base + floor(base × N / 10)` (`web/src/engine/upgrade.ts:134-138`), and a linear +10%
+coincides with it only where `base × N / 10` lands on an integer — which is exactly why
+Earthshaker matches (37 × 10/10 = 37) and the Fists do not (14 × 1/10 = 1.4, floored to 1).
+Picking 10% over 5% would look like progress and would still be wrong at every intermediate
+tier.
+
+**Changes E**, directly and tonight: if E scales an item to compare tiers while I scale it with
+the floor rule, the same item gets two values, which is the divergence the seam exists to
+prevent — in a *measured* mechanic, where a witness exists. Also **A**, if any page prints a
+scaled stat.
+
+### 2. A slot is not a position — 18 types, 23 positions
+
+`engine/constants.ts:50` doubles `EAR`, `WRIST`, `FINGERS`; `constants.ts:78-80` adds two
+`ANY`. So 18 + 3 + 2 = **23**. **Changes E**: `Delta.requires.slot` is a *type*, and a resolver
+answering "the best ring" answers half the question — there are two finger positions and the
+second one's marginal value is not the first one's. **Changes A**: a paper doll with 18 rows is
+wrong.
+
+### 3. A weapon in an Any Slot scores exactly zero, by design
+
+`weaponCountsAt` (`engine/constants.ts:78`) returns false for `ANY`, because `computeTotals`
+records a weapon from Primary and Secondary alone. Two of the 23 positions accept any item.
+**Changes E and A**: a weapon delta resolved into an Any Slot is worth **0 EP**, silently. It is
+correct behaviour and it will look like a bug to anyone who has not been told.
+
+### 4. The catalogue is a deliberate third of the scrape — that is a refusal reason, not a gap
+
+`meta.json` `counts.purge`: **11,252 scraped → 7,599 quarantined → 3,653 shipped** (+10 admitted
+on Tier M evidence = 3,663). Top quarantine reasons: `era:Velious` 2,828, `no era in any source`
+2,230, `era:Kunark` 1,438.
+
+**Changes E**, and it maps onto E's own type: when a `Delta.requires` cannot be filled, the
+honest answer is often not *"no such item"* but *"a better item exists and this catalogue
+excludes it by era policy"*. That is a `Refusal` with a nameable reason, not a missing value.
+
+### 5. The rankable population is 2,176, not 3,663 — and the gap carries no numbers at all
+
+Measured over the payload: **1,487 records carry no stats, no saves and no weapon data**. Every
+one of them is `sd: unattributed`, and **zero unattributed records carry a number** — so they
+cannot produce a wrong figure, only an inflated count.
+
+Three predicates give three numbers and I had quoted the third without pinning it:
+`st` alone **1,713** · `st ∪ wp` **2,128** · `st ∪ sv ∪ wp` **2,176**, which is
+`catalogue-audit.mjs:96` `printsNumbers` and the one I gave you earlier. **Changes A**: a
+headline "3,663 items" overstates the rankable set by 1,487. **Changes E**: it is the
+denominator for any coverage claim.
+
+### 6. Only 299 of 3,663 items — 8.2% — have ever been seen in the game
+
+`meta.json` `counts.withNumericId: 299`; existence evidence `measured-drop 277`, `live-export
+197`, `eqlsource-id 95`. **Changes E**: "obtainable" is a far weaker claim than "in the
+catalogue". For **91.8%** of what my resolver could hand back, nobody in this project has
+watched the item exist.
+
+### 7. Three defects I reported days ago and have not fixed
+
+Included because the order asks for the things that make me look bad, and "reported" is not
+"fixed":
+
+- **`FLAT_KEYS` still contains `ATTACK`** (`engine/stats.ts:190`), contradicting the rule table
+  `upgrade.ts` cites (`research/github-data-inventory.md:56` puts Attack in *unchanged*). Inert
+  only because 0 items carry the stat — and `build.mjs` already parses it, so it activates
+  silently the day a source supplies one.
+- **`ARMOR_TIER`** (`engine/constants.ts`) — sixteen hand-typed numbers, no source, contradicted
+  by my own catalogue on Bards and Berserkers. Dead code, still exported beside genuinely Tier M
+  constants, and still cited as precedent by `levelCheck`.
+- **`levelCheck` takes the highest qualifying class level** (`engine/character.ts:261-294`);
+  `research/eql-game-systems.md:279` says the effective level is the **lowest**. Moves 3 rows
+  today, every list the day `rl` populates.
+
+---
+
+## Part 2 — three proposals I would defend
+
+Ranked. Each carries cost, falsifier, and whether it needs anyone. None requires believing an
+unmeasured rule — the boundary is the reason #1 and #2 are shaped as they are.
+
+**1. Unify the slot vocabulary for real, and emit `slots.json` from the single copy.**
+Tonight I gated the two copies (`pipeline/verify.mjs`); the gate is not the fix. *Cost:* an
+ESM/TypeScript boundary — one JSON or `.mjs` that `constants.ts` imports under
+`resolveJsonModule` and `build.mjs` reads directly; touches both trees and the payload contract.
+*What would show it wrong:* if the two lists must legitimately diverge — if the pipeline needs a
+slot the app must never render — then one list is incorrect modelling and a gate is the right
+answer after all. *Needs:* nobody. It is the precondition for the dataset E is waiting on.
+
+**2. Publish the era policy as machine-readable refusal reasons alongside the catalogue.**
+Finding 4 is currently prose in `meta.json`. *Cost:* small — the reasons are already structured
+in `counts.purge.quarantineReasons`; it needs a stable shape and a `verify.mjs` assertion.
+*What would show it wrong:* if E never needs to distinguish "no such item" from "excluded by
+policy", it is unused weight. *Needs:* E, to say whether its `Refusal.reason` vocabulary wants a
+`excluded_by_era` member — a decision, not a question.
+
+**3. Fix the three defects in finding 7, smallest first.**
+*Cost:* `ATTACK` is one line and a test; `ARMOR_TIER` is a deletion; `levelCheck` is the only one
+needing a judgement and it should stay open until `rl` populates. *What would show it wrong:*
+for `ATTACK`, a Tier M capture showing Attack does move with tier — which would make the rule
+table wrong rather than my code. *Needs:* nobody for the first two.
+
+**Not proposed, deliberately:** anything about motes, the AA ladder, or dual-wield gating. All
+three would require building on a rule nobody has measured, which is the boundary.
+
 ## 30 Aug — item 2: E's handover verified, and the duplication I found was in my own repo
 
 ### E's handover joins perfectly, and I checked rather than assumed
