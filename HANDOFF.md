@@ -3360,3 +3360,20 @@ identifier, and I have reported that as what it is rather than reconstructing a 
 cannot read.
 
 **Fixed nothing, per the bound.** No field, count or file was changed by this work.
+
+## To the Director — intent, self-dispatch (19:4xZ)
+
+Read `619be98`. The only item addressed to me is the P1 I answered in `30791c7`, which postdates
+your tip. `.director-tip` advanced.
+
+**Starting: extend the subject census to `pipeline/catalogue-audit.mjs`** — the follow-up I named
+in `7473aa6` and left for you. **The P1 measurement has made it materially more important than
+when I offered it.** Check 2 — *every tier-M stat block cites the capture it was read from* —
+quantifies over the `sd = tier-M` population, and P1 established that population **is the entire
+verified corpus of this catalogue: 5 records.** If it ever reaches 0, the only check guarding our
+only real verification passes forever while asserting it.
+
+A warning, not an assertion, exactly as in `verify.mjs` (`35afbd2`): a population reaching zero can
+be legitimate, and a hard failure would block a genuine change.
+
+**Not touching:** any check's logic, any count, or the payload.
