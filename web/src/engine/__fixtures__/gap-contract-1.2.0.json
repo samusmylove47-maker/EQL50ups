@@ -1,0 +1,50 @@
+{
+  "_fixture": "gap-contract-1.2.0",
+  "_what": "The `measured` block 50 Upgrades needs from EQLSGapEngine 1.2.0. HAND-WRITTEN by Session B, not generated from any engine output — it states what B needs, so E makes it pass rather than B describing what E already does.",
+  "_why": "Every one of these five is a value the engine already computes and then discards. This is not a request for new modelling; it is a request to stop throwing away.",
+  "_never": "B does not ask for a rate, a ceiling, or any modelled absolute. Those are E's and they stay E's. B needs measured quantities it can divide by and attribute against.",
+  "_versionAssertion": "A consumer asserts EQLSGapEngine.version === '1.2.0' before reading any key below. On any other value it must emit its unknown band and ship anyway — B is never blocked on E and E is never blocked on B.",
+
+  "version": "1.2.0",
+
+  "measured": {
+    "engaged_seconds": 218,
+    "_engaged_seconds": "int, seconds. The denominator for anything expressed per second of combat.",
+
+    "melee_seconds": 222,
+    "_melee_seconds": "int, seconds, and DELIBERATELY DISTINCT from engaged_seconds. E's own report already notes 222s in melee against 218s engaged; a consumer that divides by the wrong one is wrong by ~2% silently. Both are needed precisely because they differ.",
+
+    "damage_dealt": 18844,
+    "_damage_dealt": "int, total outgoing damage over the window. The denominator for share-of-output.",
+
+    "months_seen": 3,
+    "_months_seen": "int, distinct calendar months the log covers. Not a duration — a staleness signal. A recommendation built on a log from three months ago is a different claim from one built on last night, and the reader is entitled to know which.",
+
+    "spells_landed": {
+      "_shape": "Keyed by the RAW log string, verbatim, because that is the only key a consumer can join back to a log line it is showing a player. The normalised name is a VALUE, never the key — normalisation is lossy and B must be able to see what was actually written.",
+      "Cannibalization I": {
+        "landings": 47,
+        "normalised_key": "Cannibalize",
+        "damage_total": 0,
+        "damage_median": 0,
+        "damage_max": 0,
+        "_worked_entry": "The rank suffix is stripped and the family name normalised: 'Cannibalization I' -> 'Cannibalize'. Both must survive: the raw string joins to the log, the normalised key joins to a catalogue. A zero damage_total here is a real measurement — Cannibalize costs health and deals none — and is not the same as 'not recorded'.",
+        "_zero_is_not_missing": "A spell that landed 47 times with 0 damage is measured. A spell absent from this object entirely is unmeasured. A consumer must not read the first as the second, and must not read a landings count of 0 as evidence a spell is unused — a count of zero is indistinguishable from a vocabulary miss and routes to the unknown band."
+      },
+      "Shadow Vortex": {
+        "landings": 12,
+        "normalised_key": "Shadow Vortex",
+        "damage_total": 4104,
+        "damage_median": 342,
+        "damage_max": 411,
+        "_why_median": "B takes magnitude from damage_median, never from a catalogue figure and never from damage_total/landings. The median is robust to a partial resist or a crit at the tail, and it sidesteps the ceiling formula entirely."
+      }
+    }
+  },
+
+  "_bounds_this_fixture_does_not_relax": [
+    "Never invent a number. A key absent from `measured` is unmeasured and must reach the reader as unknown, never as zero.",
+    "Nothing here promises anything about loot. The LOOT lockout is not observable from a log.",
+    "B does not rank. This block feeds E's ranking; B supplies candidates and deltas."
+  ]
+}
