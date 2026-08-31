@@ -3261,3 +3261,102 @@ in either gate and the one I would watch. `verify.mjs`'s subject census (`35afbd
 
 **Gate:** `catalogue-audit.mjs` passes, `verify.mjs` passes at Tier 0 coverage 100.0%. Payload
 restored byte-identical after all seven mutations, 23 files by SHA-256.
+
+## To the Director — P1 ANSWERED: the 3,663 were NOT verified to the standard of the 435. Five were.
+
+**The audit's fork resolves to its second branch, and the number is 5.**
+
+Population is the **index**, 3,663 records — what `meta.counts.items` counts and what the site
+reads. The shards hold 4,004 rows only because an item shipping in two slots appears in two
+shards. Naming the denominator every time. **Nothing changed: `3663` and `1713` are as published.**
+
+### The one number that answers it
+
+```
+items whose stat block is backed by a per-item citation:  5 of 3663   (0.1%)
+```
+
+`sd = tier-M` is the only standing that means *somebody checked this item*. It is 5 records, and
+all 5 carry both `sdc` (the capture) and `vf` (the fields actually checked). Of the 1,713 rows
+printing stat values, **4** are verified that way.
+
+### Why the other 3,658 are not verifications — `sd` is DERIVED, and from era, not from provenance
+
+`pipeline/build.mjs:2054-2065`, the whole assignment:
+
+```js
+const verified = statsVerifiedByKey.get(rec.key);
+if (verified) { rec.sd = 'tier-M'; rec.vf = verified.fields; rec.sdc = verified.cite; }
+else if (!hasSourcedNumbers(rec)) { rec.sd = 'unattributed'; }
+else { const rank = rec.era == null ? null : ERA_RANK.get(rec.era);
+       rec.sd = rank == null || rank > CURRENT_ERA_RANK ? 'tier-5' : 'tier-2'; }
+```
+
+> **`tier-2` is not a claim that anyone read this item. It is a claim that the item's ERA passes a
+> filter.** All 2,045 tier-2 records got that label from one rule about era rank applied in bulk to
+> a single wiki scrape — not from 2,045 readings.
+
+**This is your predicted bucket that does not fit a tier**, and I would put it more sharply than
+"does not fit": **`tier-2` is a bulk-derived era verdict wearing a tier name.** `unattributed`
+(1,487) is not a tier either — it is the absence of one, meaning the row prints no sourced numbers.
+
+**The published contract is honest and never claimed otherwise.** `meta.sourceStanding` defines
+tier-2 as *"structured wiki data for an item whose era places it inside this game"* — which is
+exactly what the code does. **The defect is not in the payload. It is in reading "3,663 items" as
+the same kind of thing as "435 verified items."** They are not comparable units, and our own
+metadata already says so for anyone who opens it.
+
+### The full breakdown
+
+**Existence — is the item itself attested in the game?** (`ex`, all Tier M codes)
+
+```
+  277   7.6%  measured-drop   a mob was measured dropping it in parsed combat logs
+  197   5.4%  live-export     resolves to a line in the /outputfile inventory export
+   95   2.6%  eqlsource-id    named in the published item-name-to-game-ID table
+ 3094  84.5%  NONE            ships on era placement alone
+                    first-hand from the game:  569 of 3663  (15.5%)
+```
+
+**Stat provenance** (`sd`) — 2,045 tier-2 · 1,487 unattributed · 126 tier-5 · **5 tier-M**
+
+**Per-item provenance pointer of any kind** (`sdc`, `vf`, `evidence` or `ex`):
+
+```
+  569  15.5%  carry at least one
+ 3094  84.5%  carry NONE — `sd` is the only provenance and it is a bucket label
+```
+
+**The cross-tab, which is the fork in one table:**
+
+```
+  sd \ ex        Tier M evidence   no evidence     total
+  tier-2                  266          1779       2045
+  tier-5                  126             0        126
+  tier-M                    5             0          5
+  unattributed            172          1315       1487
+```
+
+**1,779 records — 48.6% of the catalogue — carry a tier-2 stat standing and no evidence the item
+exists in this game at all.** Both facts are derived from the same wiki row and the same era table.
+
+### What follows for your four waiting decisions — findings, not recommendations
+
+1. **The unit.** "3,663 items" is *catalogue size*, and the honest unit beside it is **"3,663
+   catalogued, 569 attested in-game, 5 stat-verified"**. Those are three different questions and
+   the payload already separates them.
+2. **The coverage finding.** Our side of the comparison is now a real datum: against a *verified*
+   denominator we hold **5**; against *attested-in-game*, **569**; against *catalogued*, 3,663.
+   Which one is comparable to a rival's 9,360 depends entirely on what they counted.
+3. **Client-mined tables.** They would land as Tier M existence and, where they carry stat blocks,
+   as the first material growth in the tier-M stat population since it has been 5. That is a
+   licensing question I am not answering.
+4. **Plumbing or re-grade.** On this evidence it is a **re-grade**, not plumbing — but only in the
+   sense that the *labels on the counts* need to change. No number moves.
+
+**Falsifier discharged:** provenance IS recorded per item, so the "not recorded" answer does not
+apply. What is recorded for 3,094 of 3,663 is a bulk-derived bucket label rather than a source
+identifier, and I have reported that as what it is rather than reconstructing a provenance I
+cannot read.
+
+**Fixed nothing, per the bound.** No field, count or file was changed by this work.
