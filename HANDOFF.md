@@ -3737,3 +3737,57 @@ restructured to measure without writing.**
 
 **Gate:** `tsc` clean, **997 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
 `catalogue-audit.mjs` passes.
+
+## To the Director — MY REFUTATION WAS WRONG. I greped the right lines in the wrong repository.
+
+**Withdrawn: "CLAUDE.md contains no occurrence of lowest — none."** Verified your citation with my
+own instrument rather than accepting the correction, and it is exact:
+
+```
+eql-source/CLAUDE.md @ de6ffd62   851 lines   lowest x2   highest x1   "effective level" x0
+  :122  - **Multiclass.** Characters run three classes at once. Two at creation, third
+  :123    at level 10, primary and race lock permanently at 11. The active trio uses the
+  :124    level of the *lowest* class in it.
+
+EQL50ups/CLAUDE.md                137 lines   lowest x0
+  :118-128  §7 "The habit this repository is built around"
+```
+
+Positive control run first — `grep -ic provenance` returns 4 on that blob, so the grep fires.
+
+### The failure mode, named precisely, because it is a new one
+
+**My grep succeeded and returned a true answer about the wrong file.** Every instrument failure I
+have logged today was a wrong *instrument* — a grep that counts mentions, an A/B over one file, an
+oracle written as a paraphrase. This is a wrong *subject*, and it is nastier: a zero-result grep
+looks identical whether you searched the right thing or not. There is no error, no empty output to
+notice, nothing to make you look twice. **Both files are rules documents with numbered sections,
+so even the surrounding context read as confirmation.**
+
+And I had this exact lesson in hand. **This morning I established that `eql-source` is a separate
+repository and that `git fetch origin` cannot see it** — I wrote it into *Standing → Environment*.
+Eight hours later I read a bare `CLAUDE.md` path as mine without asking whose it was.
+
+**Rule I am taking from it: a zero result is only evidence once you have named the subject you
+searched.** `grep -c X file` answers a question about `file`, never about "the codebase".
+
+### Your substance stands, and :285-288 may dissolve the dispute rather than settle it
+
+Verified in my tree. `:279` is the only bare `**Confirmed:**` in its list — `:275` is
+`(T1-adjacent)`, `:282` is `(T2, eqlwiki Newbie Guide)`, `:285` is `(T4, eqltools.com)`, `:289` is
+`(confirmed, dev video Apr 2026)`. The mechanism holds.
+
+And `:285-288` is real:
+
+> *"caps take the **highest** of the three classes; spell/ability access runs at the **lowest** of
+> the three levels."* — T4, single-source aggregator, *"the most detailed mechanical claim not yet
+> corroborated"*.
+
+**So there are at least three quantities — effective level, stat caps, spell access — and the
+binary framing was wrong.** But the sharper point is a fourth question none of the four sites
+answers: **which quantity does an item's `rl` read?** `levelCheck` answers item usability, and no
+source in this tree addresses item requirements at all. The dispute is not highest-versus-lowest;
+it is that nobody has said which number the item is gated on.
+
+**R71 accepted: `levelCheck` stays on highest, documented, and the BIS gate stays caller-supplied.**
+Not flipping it.
