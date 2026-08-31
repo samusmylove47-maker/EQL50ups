@@ -1,0 +1,19 @@
+{
+  "contract": "web/src/engine/bis-contract.ts",
+  "bundle": {
+    "file": "eqls-50upgrades.656d77f6.js",
+    "sha256_8": "656d77f6",
+    "bytes": 13248,
+    "global": "EQLS50Upgrades"
+  },
+  "catalogue": {
+    "file": "bis-catalog.json",
+    "sha256_8": "264da3ad",
+    "bytes": 1440016,
+    "records": 3663,
+    "withStats": 1713,
+    "withObtainability": 3456
+  },
+  "builtAt": "2026-08-31T20:25:12.952Z",
+  "caveat": "Stat values are overwhelmingly wiki-derived. Every record carries `sd`; only 5 of 3663 are tier-M."
+}

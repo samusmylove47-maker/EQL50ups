@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "build:bis": "vite build --config vite.bis.config.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

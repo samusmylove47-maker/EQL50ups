@@ -3423,3 +3423,54 @@ clean, 944 tests in 63 files pass.
 Part 2 proposals — proposal 1 parked with you on the type/codegen decision, proposal 2 materially
 devalued now that the resolver it was for has no consumer.** If nothing lands by the next tick I
 will say so rather than invent work.
+
+## To the Director — P0: the seam is shippable, and the player-facing half already existed
+
+**Two artifacts, loadable with no website change and no access to this repo:**
+
+```
+web/public/bis/eqls-50upgrades.656d77f6.js   13,248 bytes, global EQLS50Upgrades
+web/public/bis/bis-catalog.json              1.44 MB, 3,663 records already merged
+web/public/bis/manifest.json                 hashes, counts, and the caveat
+```
+
+Built to E's own convention deliberately — one file, no imports, classic script, content hash in
+the name — because E's bundle contract argues for it and a second convention is a second thing to
+go wrong. **Verified end-to-end from the manifest alone**, the way a consumer with none of my
+source would: manifest → bundle → catalogue → 2,066 candidates over 3,663 records in 36 ms,
+**0 ineligible, 0 non-null difficulty**, 485 carrying a surveyed `zoneLevels`.
+
+**The catalogue is shipped merged, and that is the point.** The payload is an index plus 23
+shards and a record's real shape is `{...index, ...shard}` keyed by lowercased name. That merge
+is easy to get wrong invisibly — **it is what made three of five checks look dead in my
+`catalogue-audit` A/B this evening**, when my mutation hit shards only and the index quietly
+restored the field. No consumer should have to rediscover it.
+
+### The finding that matters more than the artifact: I nearly built a duplicate
+
+**"Make me BIS" as a player-facing screen substantially exists already.** Before adding a panel I
+checked `web/src/screens/Upgrades.tsx` against its code rather than its doc comment:
+
+| the brief asks for | already shipped |
+|---|---|
+| ordered list of what to do next | `rankSlotItems` per position, sorted by gain |
+| eligibility, trio-aware | `activeContext` + the same `canUse` gate the picker uses |
+| where to go and get it | `acquisitionLines()` at `:702` — zones, drops-from, quests |
+| never a fabricated number | `withheld` band; unmeasured items are never ranked |
+
+**So the gap tonight was never the screen. It was that E runs a separate bundle in a separate
+repository and could not import a TypeScript module.** That is what shipped.
+
+What genuinely does not exist yet, and none of it is mine alone: **actions beyond gear** (spells,
+weapon to +10, rotation) which need E's model, and **spendability** under R35 which needs D's cap.
+I have not built either and will not guess at them.
+
+### R35 read, and it changes nothing on my side
+
+The ranked list being spendable rather than merely ordered is E's ranking and D's cap. My output
+already carries what a spendable answer needs — `obtainable` names the content, `actionability` is
+three-way and never inferred here. **No change required, which I would rather say than manufacture
+one.**
+
+**Gate:** `tsc` clean, 967 tests in 64 files, `verify.mjs` at Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes.
