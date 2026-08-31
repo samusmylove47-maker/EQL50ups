@@ -370,6 +370,35 @@ export const PRESET_PROFILES: ReadonlyArray<{
   },
 ];
 
+/**
+ * Can this weight profile see a weapon at all?
+ *
+ * `add()` returns immediately on a falsy weight, so a profile carrying neither
+ * `RATIO` nor `DMG` scores the weapon block at exactly zero and ranks a hand
+ * slot on its stat line alone. **Measured 2026-08-31: three of the five preset
+ * profiles are in that state** — tank, caster and healer carry no weapon term.
+ *
+ * The consequence is not subtle. Scoring a 1-damage baton with `AC 30, STA 10`
+ * against a 40-damage greatsword with `AC 2`:
+ *
+ * | profile | baton | greatsword | winner |
+ * |---|---|---|---|
+ * | melee-dps | 16 | 80.6 | greatsword |
+ * | **tank** | **72** | 4 | **the baton, by 18x** |
+ * | **caster** | **11** | 0.4 | **the baton** |
+ * | **healer** | **13.5** | 0.5 | **the baton** |
+ * | balanced | 35.5 | 42 | greatsword |
+ *
+ * **The fix is to withhold the slot, never to supply a default `RATIO`.** A
+ * made-up weapon weight would be a number with no source in a tool whose whole
+ * claim is that its numbers have sources — `SOURCING-STANDARD.md` rule 4, and
+ * the same error as inventing a stat. What a tank's damage is worth relative to
+ * its armour class is a question nobody here has measured.
+ */
+export function scoresWeapons(weights: WeightProfile): boolean {
+  return Boolean(weights.RATIO) || Boolean(weights.DMG);
+}
+
 export function profileById(id: string): WeightProfile {
   return PRESET_PROFILES.find((p) => p.id === id)?.weights ?? {};
 }

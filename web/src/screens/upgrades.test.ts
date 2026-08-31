@@ -598,3 +598,49 @@ describe('the shipped payload reaches the screen with its sightings intact', () 
     expect(rows).toBeGreaterThanOrEqual(normalised);
   });
 });
+
+/* ------------------------------------------------------------------------- *
+ * A profile with no weapon term cannot rank a hand slot.
+ *
+ * Measured 2026-08-31: tank, caster and healer weight neither RATIO nor DMG,
+ * `add()` returns on a falsy weight, so the weapon block scores exactly zero
+ * and Primary is ranked on its stat line alone — putting a 1-damage baton above
+ * a 40-damage greatsword, by 18x on tank.
+ *
+ * These tests exercise `computeUpgrades`, NOT the `scoresWeapons` predicate.
+ * The predicate has its own file, and when the withholding was first written
+ * that file passed while the screen behaviour was reverted — 973 green with the
+ * fix disabled. A guard on the predicate is not a guard on the screen.
+ * ------------------------------------------------------------------------- */
+
+/** Tank, verbatim from PRESET_PROFILES: no RATIO, no DMG. */
+const BLIND_WEIGHTS: WeightProfile = {
+  AC: 2, HP: 0.5, STA: 1.2, STR: 0.4, AGI: 0.6, SV_MAGIC: 0.3, SV_FIRE: 0.2, SV_COLD: 0.2,
+};
+
+describe('a weight profile that scores no weapon term', () => {
+  it('withholds PRIMARY and SECONDARY instead of ranking them', () => {
+    const result = report(gearSet({}, BLIND_WEIGHTS));
+
+    for (const id of ['PRIMARY', 'SECONDARY']) {
+      expect(rowFor(result, id)).toBeUndefined();
+      const held = result.withheld.find((w) => w.position.id === id);
+      expect(held?.reason).toBe('profile-blind-to-weapons');
+    }
+  });
+
+  it('still ranks every non-hand position, so the remedy is not a blanket refusal', () => {
+    const result = report(gearSet({}, BLIND_WEIGHTS));
+    const hands = new Set(['PRIMARY', 'SECONDARY']);
+    const blindHeld = result.withheld.filter((w) => w.reason === 'profile-blind-to-weapons');
+    expect(blindHeld.every((w) => hands.has(w.position.id))).toBe(true);
+    // Not vacuous: the profile must actually produce a ranking elsewhere.
+    expect(result.rows.length).toBeGreaterThan(0);
+  });
+
+  it('ranks the hands normally under a profile that DOES weight a weapon', () => {
+    const result = report(gearSet({}, WEIGHTS));
+    const blindHeld = result.withheld.filter((w) => w.reason === 'profile-blind-to-weapons');
+    expect(blindHeld).toEqual([]);
+  });
+});

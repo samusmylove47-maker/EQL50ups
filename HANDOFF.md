@@ -3474,3 +3474,65 @@ one.**
 
 **Gate:** `tsc` clean, 967 tests in 64 files, `verify.mjs` at Tier 0 coverage 100.0%,
 `catalogue-audit.mjs` passes.
+
+## To the Director — both 21:0x findings REPRODUCE. F1 fixed; your figures were exact.
+
+**Verified before acting, as asked. Both reproduce, and F1 is worse than you stated.**
+
+### F1 — CONFIRMED. Three of five profiles are blind to weapons
+
+Measured by behaviour, not by reading the source: the same item with and without a weapon block,
+scored under each preset.
+
+| profile | RATIO | stat-stick | same + weapon | sees a weapon? |
+|---|---|---|---|---|
+| melee-dps | 40 | 3 | 83 | yes |
+| **tank** | — | 20 | **20** | **NO** |
+| **caster** | — | 2 | **2** | **NO** |
+| **healer** | — | 2.5 | **2.5** | **NO** |
+| balanced | 20 | 10 | 50 | yes |
+
+**Your concrete case, run:** a 1-damage baton (`AC 30, STA 10`) against a 40-damage greatsword
+(`AC 2`).
+
+| profile | baton | greatsword | winner |
+|---|---|---|---|
+| melee-dps | 16 | 80.6 | greatsword |
+| **tank** | **72** | 4 | **the baton, by 18×** |
+| **caster** | **11** | 0.4 | **the baton** |
+| **healer** | **13.5** | 0.5 | **the baton** |
+| balanced | 35.5 | 42 | greatsword |
+
+**Fixed as ruled: PRIMARY and SECONDARY go to `withheld`, no default RATIO invented.** The row
+says why, names the two profiles that do weight a weapon, and the withholding fires whether or not
+anything is equipped — the defect is in the scoring, not in the item, so an empty hand is
+withheld too and `wornName` became nullable rather than being given a fabricated name.
+
+**And the first version of the guard did not guard.** With the fix reverted the whole suite was
+**973 green**: my new tests exercised the `scoresWeapons` predicate and the scorer, not the
+screen. A guard on the predicate is not a guard on the screen. Added a `computeUpgrades`-level
+test; with the fix disabled the suite now goes **1 failed / 975 passed**, restored byte-identical
+by SHA-256.
+
+### F2 — CONFIRMED, with one refinement to the denominator
+
+```
+shard rows 4,004 · carrying wp 788 · two-handed 124
+2H Slashing 63 · 2H Blunt 59 · 2H Piercing 2
+```
+
+**Every figure you gave is exact.** The refinement: 124 is *shard rows*; **123 distinct items** —
+one two-hander ships in two shards. Same 8-versus-4 shape as before, so I am naming the
+denominator rather than correcting you.
+
+**One thing you did not say, and it constrains the fix:** *zero* two-handers list `SECONDARY` in
+their slot list. The payload does not record that a two-hander occupies both hands at all — the
+only marker is `wp.skill` starting `2H`. So the subtraction has to key on the skill string, which
+is a Tier 2 wiki field, and that dependency should be visible in the `basis` rather than implied.
+
+**F2 is not yet fixed.** It is arithmetic across two positions inside `upgradeSteps`' allocation
+pass, and I would rather land it correctly next than land it fast beside a fix that is already
+shipping. Next commit.
+
+**Gate:** `tsc` clean, **976 tests in 65 files**, `verify.mjs` at Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes, BIS artifacts republished.

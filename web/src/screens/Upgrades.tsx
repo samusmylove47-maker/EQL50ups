@@ -39,7 +39,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { activeContext, describeCharacter, type LoadoutContext } from '../engine/character';
 import { SLOT_POSITIONS, weaponCountsAt, type SlotPosition } from '../engine/constants';
-import { scoreItem, type WeightProfile } from '../engine/ep';
+import { scoreItem, scoresWeapons, type WeightProfile } from '../engine/ep';
 import { resolveItem } from '../engine/stats';
 import { BASE_STATE, normalizeState, tier, type UpgradeState } from '../engine/upgrade';
 import type { Item, MeasuredDrop, ZoneSurvey } from '../engine/types';
@@ -117,12 +117,19 @@ export interface UpgradeRow {
 }
 
 /** Why a position was left out of the ranking rather than ranked at zero. */
-export type WithheldReason = 'worn-unstatted' | 'worn-unresolved';
+export type WithheldReason = 'worn-unstatted' | 'worn-unresolved' | 'profile-blind-to-weapons';
 
 export interface WithheldRow {
   position: SlotPosition;
   reason: WithheldReason;
-  wornName: string;
+  /**
+   * What is worn there, or `null` for an empty hand.
+   *
+   * Nullable because `profile-blind-to-weapons` withholds the slot whether or
+   * not anything is in it — the defect is in the scoring, not the item — and
+   * naming an empty hand would be inventing an item.
+   */
+  wornName: string | null;
   wornUpgrade: UpgradeState;
   /** The best candidate the slot has, offered with no gain claimed against it. */
   candidate: UpgradeCandidate | null;
@@ -355,13 +362,27 @@ export function* upgradeSteps(
      * and inventing a zero for either would produce a real-looking gain
      * computed against nothing.
      */
-    const reason: WithheldReason | null = view.unresolved
-      ? 'worn-unresolved'
-      : view.item && statsAreUnknown(view.item)
-        ? 'worn-unstatted'
-        : withheldName
+    /*
+     * A hand slot under a profile with no weapon term is not rankable.
+     *
+     * `scoresWeapons` in `engine/ep.ts` carries the measurement: tank, caster
+     * and healer weight neither RATIO nor DMG, so the weapon block scores zero
+     * and the slot is ranked on its stat line alone — which recommends a
+     * 1-damage baton over a 40-damage greatsword, by 18x on tank. Withheld
+     * rather than defaulted: inventing a weapon weight would be a number with
+     * no source.
+     */
+    const blindToWeapons = weaponCounts && !scoresWeapons(weights);
+
+    const reason: WithheldReason | null = blindToWeapons
+      ? 'profile-blind-to-weapons'
+      : view.unresolved
+        ? 'worn-unresolved'
+        : view.item && statsAreUnknown(view.item)
           ? 'worn-unstatted'
-          : null;
+          : withheldName
+            ? 'worn-unstatted'
+            : null;
 
     const wornEp =
       view.item && !reason
@@ -411,11 +432,14 @@ export function* upgradeSteps(
   for (const entry of queue) {
     const best = take(entry);
 
-    if (entry.reason && entry.wornName) {
+    // A blind profile withholds the slot whether or not anything is worn: the
+    // defect is in the scoring, not in the item, so an empty hand still cannot
+    // be ranked.
+    if (entry.reason && (entry.wornName || entry.reason === 'profile-blind-to-weapons')) {
       withheld.push({
         position: entry.position,
         reason: entry.reason,
-        wornName: entry.wornName,
+        wornName: entry.wornName ?? null,
         wornUpgrade: entry.wornUpgrade,
         candidate: best,
         evidence: entry.view.item?.evidence,
@@ -1144,6 +1168,8 @@ const WITHHELD_TEXT: Record<WithheldReason, string> = {
     'No catalog carries this item’s stats, so nothing can be measured against it. A gain here would be arithmetic against a zero nobody recorded.',
   'worn-unresolved':
     'This item is not in the catalog this build shipped, so there is nothing to compare it with. It may be spelled differently on the wiki, or absent from it.',
+  'profile-blind-to-weapons':
+    'This profile weights no weapon term, so damage and delay would score nothing here and the slot would be ranked on its stat line alone — which puts a 1-damage baton above a 40-damage greatsword. Rather than invent a weapon weight nobody has measured, the slot is left unranked. Switch to Melee DPS or Balanced, which do weight weapon ratio.',
 };
 
 export function Upgrades({ id }: { id: string }) {
@@ -1541,11 +1567,13 @@ export function Upgrades({ id }: { id: string }) {
                   <div className="upg-heldhead">
                     <span className="upg-slot">{entry.position.label}</span>
                     <span className="upg-item">
-                      <span className="upg-worn">{entry.wornName}</span>
+                      <span className="upg-worn">{entry.wornName ?? 'nothing equipped'}</span>
                       <TierChip value={entry.wornUpgrade} />
                     </span>
                     <span className="upg-heldmark">
-                      {entry.reason === 'worn-unstatted' ? 'Unsourced · stats withheld' : 'Not in catalog'}
+                      {entry.reason === 'worn-unstatted' ? 'Unsourced · stats withheld'
+                        : entry.reason === 'profile-blind-to-weapons' ? 'Profile scores no weapon term'
+                          : 'Not in catalog'}
                     </span>
                   </div>
                   <p className="upg-heldtext">{WITHHELD_TEXT[entry.reason]}</p>
