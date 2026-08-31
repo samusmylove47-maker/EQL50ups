@@ -3055,3 +3055,64 @@ problem and I will report that as the finding — a clean result is a result.
 
 **Not touching:** the assertions' logic, unless a vacuity is found; anything of A's or E's; the
 payload's committed state.
+
+### Done — the gate is clean on vacuity, which is the finding, and the cleanliness is now monitored
+
+**The falsifier I declared fired the honest way: I looked for vacuous assertions in the deploy
+gate and did not find any.** Reporting that rather than manufacturing something.
+
+**Probe 1 — the empty payload.** Backed up `web/public/data`, replaced it with a coherent
+zero-item payload, ran the whole gate, restored, verified all 23 files by SHA-256.
+
+| | |
+|---|---|
+| assertions passing on the real payload | **65** |
+| assertions still passing with **zero items** | **56** |
+
+Fifty-six sounds alarming and is not, because of the one that fails: **`index is a non-empty
+array`**. The gate cannot pass on an empty catalogue, so every per-item assertion is guaranteed a
+subject. **The top-level guard is real and it is doing the work.**
+
+**Probe 2 — the sub-population census.** The residual risk is not an empty catalogue; it is a
+*filtered* assertion whose subset empties while the catalogue stays full. That is exactly the 2H
+check I reported to you as reassuring when no item carried the field. Counted every filtered
+subset the gate quantifies over:
+
+```
+   788  weapons carry both dmg and dly        634  every existence mark is in the vocabulary
+   750  weapon skills use the client vocab    503  stat/save keys are in the vocabulary
+   621  effects, sizes and weights            336  no numeric id assigned to two items
+   198  items with no era are flagged          22  skillRaw is only present when it differs
+    16  statsUnknown records carry evidence    10  every existence-only record is statsUnknown
+```
+
+**Zero empty populations.** The gate has no vacuity defect today.
+
+#### What I changed, and it is deliberately a warning rather than an assertion
+
+**"Today" is the whole problem.** `xo` is 10 records. At 0 — one build away — *"every
+existence-only record is also statsUnknown"* passes forever while reporting a guarantee it no
+longer provides, and nothing says so. So `verify.mjs` now runs a **subject census** and warns
+when a filtered assertion's population reaches zero.
+
+**It warns; it does not fail.** A population reaching zero can be *good news* — every
+existence-only record acquiring real stats is an improvement, and a hard assertion there would
+block it. The census makes an invisible vacuity into a visible line and leaves the judgement to a
+reader. It also prints the full census under `--verbose`, so the numbers above are re-derivable
+rather than quoted from here.
+
+**A/B, whole gate, per the rule I adopted this afternoon:** stripped every `xo` flag from the
+payload (10 → 0) and re-ran.
+
+```
+WARN  assertions with no subject: 1 filtered assertion(s) quantify over an empty set
+      and cannot fail — they pass vacuously
+        every existence-only record is also statsUnknown — 0 records match its filter
+```
+
+Fires, names the assertion, and correctly does **not** fail the build. Silent on the real payload
+— `grep -c "no subject"` returns 0. Payload restored byte-identical, all 23 files by SHA-256.
+
+**Gate:** `tsc` clean, 944 tests in 63 files pass, `verify.mjs` passes at Tier 0 coverage 100.0%
+with 65 checks, `catalogue-audit.mjs` passes. Payload regenerated; the diff is two timestamps and
+nothing else — `sourceLines` did not move because this edit is in `pipeline/`, not `web/src`.

@@ -1237,6 +1237,53 @@ if (!existsSync(TIER0)) {
 }
 
 // ---------------------------------------------------------------------------
+// subject census — does every filtered assertion still have something to check?
+//
+// Audited 2026-08-31. An empty-payload probe showed 56 of the 65 passing
+// assertions still pass with zero items; `index is a non-empty array` fails, so
+// the gate cannot pass on an empty catalogue and whole-catalogue vacuity is
+// guarded. What is NOT guarded is a *filtered* assertion whose subset empties
+// while the catalogue stays full — `every existence-only record is also
+// statsUnknown` quantifies over 10 records today, and at 0 it would pass
+// forever while reporting a guarantee it no longer provides. That is the shape
+// of the 2H check this project has already been burned by: an assertion that
+// cannot return one of its two answers.
+//
+// The census does not assert. A population reaching zero can be legitimate —
+// every existence-only record acquiring real stats would be good news — so a
+// hard failure here would block a genuine improvement. It warns instead, which
+// turns an invisible vacuity into a visible line.
+//
+// The counts are measured, not pinned: this reports whatever it finds, and the
+// only thing it judges is emptiness.
+// ---------------------------------------------------------------------------
+{
+  const shardItems = [...shards.values()].flatMap((s) => (Array.isArray(s) ? s : (s.items ?? [])));
+  const subjects = [
+    ['weapons carry both dmg and dly', shardItems.filter((i) => i.wp).length],
+    ['weapon skills use the client vocabulary', shardItems.filter((i) => i.wp?.skill != null).length],
+    ['skillRaw is only present when it differs', shardItems.filter((i) => i.wp?.skillRaw != null).length],
+    ['every existence-only record is also statsUnknown', shardItems.filter((i) => i.xo === true).length],
+    ['statsUnknown records carry evidence', shardItems.filter((i) => i.statsUnknown === true).length],
+    ['items with no era are flagged eraUnknown', shardItems.filter((i) => i.eraUnknown === true).length],
+    ['every existence mark is in the published vocabulary', shardItems.filter((i) => i.ex).length],
+    ['no numeric item id is assigned to two items', shardItems.filter((i) => typeof i.id === 'number').length],
+    ['effects, sizes and weights are well-formed', shardItems.filter((i) => (i.fx ?? []).length).length],
+    ['stat/save keys are in the vocabulary', shardItems.filter((i) => Object.keys(i.sv ?? {}).length).length],
+  ];
+  const empty = subjects.filter(([, n]) => n === 0);
+  if (empty.length) {
+    warn('assertions with no subject',
+      `${empty.length} filtered assertion(s) quantify over an empty set and cannot fail — they pass vacuously`,
+      empty.map(([name]) => `${name} — 0 records match its filter`));
+  }
+  if (VERBOSE) {
+    console.log('  -- subject census --');
+    for (const [name, n] of subjects) console.log(`     ${String(n).padStart(6)}  ${name}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // summary
 // ---------------------------------------------------------------------------
 console.log('-- results --');
