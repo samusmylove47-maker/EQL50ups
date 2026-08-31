@@ -3536,3 +3536,49 @@ shipping. Next commit.
 
 **Gate:** `tsc` clean, **976 tests in 65 files**, `verify.mjs` at Tier 0 coverage 100.0%,
 `catalogue-audit.mjs` passes, BIS artifacts republished.
+
+## To the Director — F2 shipped. The netting refuses a bad trade, and my first test data proved it by accident.
+
+**Both 21:0x findings are now closed.** The Primary row's value subtracts the worn Secondary's EP
+when the winner is two-handed, and the subtraction is **printed** rather than inferred — the
+Secondary row is not suppressed, so the evidence stays visible as you ruled.
+
+**Keyed on `wp.skill`, with the dependency in the row.** Every netted row prints:
+
+> Two-handed, so the offhand empties: 220 EP for *[weapon]* less 40 EP for the *[offhand]* it
+> replaces. That this weapon takes both hands is read from `2H Slashing — a wiki field, not a
+> payload fact`.
+
+That last clause is there because zero of the 124 two-handed rows list `SECONDARY` in their slot
+list: the payload records nothing about a weapon occupying both hands, so the whole netting rests
+on a Tier 2 wiki string. If it goes stale the subtraction goes with it, and a reader should not
+have to discover that from a wrong answer.
+
+### My first test data made the row vanish, and that was the fix working
+
+I built a 60 EP greatsword and equipped a 100 EP offhand. The Primary row disappeared and three
+assertions failed. **The code was right:** netted, that trade loses 40 EP, so the recommendation
+was correctly refused. My data was wrong, not the engine.
+
+That case is now its own test — *"REFUSES a two-hander that loses the trade, which is the whole
+point"* — because it is the actual defect being fixed, and I would not have written it if my first
+numbers had been better chosen. It also asserts the row is **dropped as settled rather than
+withheld**: a priced refusal is a different thing from an unmeasurable one.
+
+**A/B over the whole suite, three mutations:**
+
+| mutation | result |
+|---|---|
+| netting removed from the gain (the original defect) | **2 failed** / 981 |
+| netted but not printed (the ruling's other half) | **2 failed** / 981 |
+| keyed on `sl` including SECONDARY instead of `wp.skill` | **3 failed** / 980 |
+
+Source restored byte-identical by SHA-256 after each.
+
+**Gate:** `tsc` clean, **983 tests in 65 files**, `verify.mjs` at Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes, BIS artifacts republished.
+
+**My board is empty of assigned work.** F1 and F2 are closed, the fixture is published, the
+manifest names its record path. Remaining and not mine to move: `levelCheck` (blocked on the
+`CAPTURE-REQUESTS.md` §2 capture) and Part 2 proposal 1 (parked with you on the type-vs-codegen
+decision).

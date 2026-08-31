@@ -107,6 +107,21 @@ export interface UpgradeRow {
   /** Weapon ratio either side, when the position swings a weapon. */
   ratio: { before: number; after: number } | null;
   /**
+   * What a two-handed winner costs in the offhand it empties.
+   *
+   * Null on every ordinary row. Present only when the Primary candidate is
+   * two-handed and something is worn in Secondary: `gain` above has already had
+   * `offhandEp` subtracted, and this states the subtraction so a reader can see
+   * the trade rather than infer it.
+   *
+   * **`via` names the field the whole netting rests on.** Zero two-handers list
+   * `SECONDARY` in their slot list — the payload does not record that a
+   * two-hander occupies both hands — so the only marker is `wp.skill`, a Tier 2
+   * wiki string. That dependency is printed rather than implied, because a wiki
+   * field going stale is exactly the failure this tool exists to surface.
+   */
+  twoHanded: { offhandName: string; offhandEp: number; via: string } | null;
+  /**
    * Other positions this same item is the best answer for.
    *
    * Only ever non-Lore items — a Lore item is handed to one position — so this
@@ -298,6 +313,54 @@ interface SlotRanking {
  * best candidate is worth — Auto-fill's own rule — and a Lore item, once
  * claimed, drops out of every other position's list.
  */
+/**
+ * Is this a two-handed weapon?
+ *
+ * Keyed on `wp.skill`, and that is not a preference — **zero of the 124
+ * two-handed rows in the shipped catalogue list `SECONDARY` in their slot
+ * list.** The payload records nothing about a weapon occupying both hands; the
+ * skill string is the only marker there is. It is a Tier 2 wiki field, so every
+ * row that nets an offhand says so.
+ *
+ * Measured 2026-08-31 over 4,004 shard rows: 788 carry `wp`, of which
+ * 2H Slashing 63, 2H Blunt 59, 2H Piercing 2 = 124 rows, 123 distinct items.
+ */
+export function isTwoHanded(item: Item | undefined): boolean {
+  return /^2H/i.test(item?.wp?.skill ?? '');
+}
+
+/**
+ * What a two-handed Primary costs in the Secondary it empties.
+ *
+ * Returns null unless the candidate is two-handed AND something is worn in
+ * Secondary — an empty offhand costs nothing, which is a measurement rather
+ * than an assumption.
+ */
+function twoHandedCost(
+  entry: { position: SlotPosition },
+  best: UpgradeCandidate,
+  byPosition: Map<string, { view: SlotView; wornUpgrade: UpgradeState; wornName: string | undefined }>,
+  weights: WeightProfile,
+): UpgradeRow['twoHanded'] {
+  if (entry.position.id !== 'PRIMARY' || !isTwoHanded(best.item)) return null;
+  const offhand = byPosition.get('SECONDARY');
+  const wornOffhand = offhand?.view.item;
+  if (!offhand || !wornOffhand) return null;
+
+  // Scored the same way the Secondary row scores it, so the number a reader
+  // subtracts here is the number that row would have shown.
+  const offhandEp = scoreItem(wornOffhand, offhand.wornUpgrade, weights, {
+    weaponCounts: true,
+  }).total;
+  if (!offhandEp) return null;
+
+  return {
+    offhandName: offhand.wornName ?? wornOffhand.n,
+    offhandEp,
+    via: `${best.item.wp?.skill ?? '2H'} — a wiki field, not a payload fact`,
+  };
+}
+
 export function* upgradeSteps(
   catalog: CatalogState,
   views: readonly SlotView[],
@@ -424,6 +487,9 @@ export function* upgradeSteps(
 
   // Best-off slots choose first, and a position that cannot state a gain at all
   // chooses last: it is being told what exists, not offered a plan.
+  /* Ranking entries by position id, so a Primary row can find its Secondary. */
+  const byPosition = new Map(rankings.map((r) => [r.position.id, r]));
+
   const queue = [...rankings].sort((a, b) => {
     if (Boolean(a.reason) !== Boolean(b.reason)) return a.reason ? 1 : -1;
     return b.provisional - a.provisional;
@@ -452,7 +518,13 @@ export function* upgradeSteps(
       continue;
     }
 
-    const gain = best.ep - entry.wornEp;
+    /*
+     * A two-handed Primary empties the Secondary, and the 23 positions are
+     * ranked independently — so without this the offhand is given up for free
+     * and a two-hander that loses the trade still wins on paper.
+     */
+    const twoHanded = twoHandedCost(entry, best, byPosition, weights);
+    const gain = best.ep - entry.wornEp - (twoHanded?.offhandEp ?? 0);
     if (gain < MIN_GAIN) {
       settled += 1;
       continue;
@@ -479,6 +551,7 @@ export function* upgradeSteps(
       unweighted: unweightedLosses(deltas, weights),
       ratio:
         before !== null || after !== null ? { before: before ?? 0, after: after ?? 0 } : null,
+      twoHanded,
       alsoFor: [],
     });
   }
@@ -1108,6 +1181,17 @@ function Row({
                 {dec(row.ratio.before, 3)} → {dec(row.ratio.after, 3)}
               </span>
             ) : null}
+            {/*
+              The offhand a two-hander empties, subtracted above and stated
+              here. Printed rather than inferred: the gain is already net, and a
+              reader who cannot see the subtraction cannot check it.
+            */}
+            {row.twoHanded ? (
+              <span className="upg-chip down">
+                <i>TWO-HANDED</i>
+                −{num(row.twoHanded.offhandEp)} EP, giving up {row.twoHanded.offhandName}
+              </span>
+            ) : null}
             {row.deltas.map((delta) => (
               <span className={`upg-chip ${delta.delta > 0 ? 'up' : 'down'}`} key={delta.key}>
                 <i>{shortStatLabel(delta.key)}</i>
@@ -1129,6 +1213,20 @@ function Row({
               </span>
             ))}
           </div>
+          {/*
+            The netting rests on a wiki field, and a reader is entitled to know
+            that before acting on it. `wp.skill` is Tier 2; the payload records
+            nothing about a weapon occupying both hands, so if that string is
+            wrong the subtraction above is wrong with it.
+          */}
+          {row.twoHanded ? (
+            <p className="upg-note">
+              Two-handed, so the offhand empties: {epText(row.candidate.ep)} EP for{' '}
+              <strong>{row.candidate.item.n}</strong> less {num(row.twoHanded.offhandEp)} EP for the{' '}
+              {row.twoHanded.offhandName} it replaces. That this weapon takes both hands is read
+              from <code>{row.twoHanded.via}</code>.
+            </p>
+          ) : null}
           {/*
             What the EP number cannot say. A weighted score is silent about
             everything it does not weight, so a swap can gain 42.8 EP and cost

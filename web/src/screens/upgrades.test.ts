@@ -644,3 +644,89 @@ describe('a weight profile that scores no weapon term', () => {
     expect(blindHeld).toEqual([]);
   });
 });
+
+/* ------------------------------------------------------------------------- *
+ * A two-handed winner pays for the offhand it empties.
+ *
+ * The 23 positions are ranked independently, so without netting a two-hander
+ * gives up the Secondary for free and can win on paper while losing the trade.
+ * Ruled 31 Aug: subtract the worn secondary's EP from the Primary row's value,
+ * and PRINT the subtraction rather than suppressing the Secondary row —
+ * suppressing hides the evidence and keeps the wrong number.
+ *
+ * Keyed on `wp.skill` because zero of the 124 two-handed rows in the shipped
+ * catalogue list SECONDARY in their slot list: the payload records nothing
+ * about a weapon occupying both hands.
+ * ------------------------------------------------------------------------- */
+
+describe('a two-handed primary nets off the offhand it costs', () => {
+  /*
+   * Numbers chosen so the trade is CLEARLY worth it: under WEIGHTS
+   * (AC 2, STR 1, STA 1, HP 0.2, RATIO 20) the greatsword is
+   * 60*2 + 40 + 3.0*20 = 220 EP and the offhand is 20*2 = 40, so the netted
+   * gain is still large. A first draft used a 60 EP greatsword against a 100 EP
+   * offhand and the row vanished — which was the netting working correctly and
+   * my data being wrong, not a defect. That case is now its own test below.
+   */
+  const GREATSWORD = item({
+    n: '[Test] Greatsword', sl: ['PRIMARY'],
+    st: { STR: 40, AC: 60 }, wp: { dmg: 60, dly: 20, skill: '2H Slashing' },
+  });
+  const ONEHANDER = item({
+    n: '[Test] Shortsword', sl: ['PRIMARY'],
+    st: { STR: 40, AC: 60 }, wp: { dmg: 60, dly: 20, skill: '1H Slashing' },
+  });
+  const SMALL_OFFHAND = item({ n: '[Test] Plain Dirk', sl: ['SECONDARY'], st: { AC: 20 } });
+  const BIG_OFFHAND = item({ n: '[Test] Great Shield', sl: ['SECONDARY'], st: { AC: 90, STA: 40 } });
+
+  function worn(candidate: Item, offhand: Item) {
+    addItem(candidate);
+    addItem(offhand);
+    return report(gearSet({ SECONDARY: { itemName: offhand.n, upgrade: tier(0) } }));
+  }
+
+  it('states the subtraction on the row instead of leaving it inferred', () => {
+    const primary = rowFor(worn(GREATSWORD, SMALL_OFFHAND), 'PRIMARY');
+    expect(primary?.twoHanded).toBeTruthy();
+    expect(primary?.twoHanded?.offhandName).toBe(SMALL_OFFHAND.n);
+    expect(primary?.twoHanded?.offhandEp).toBeGreaterThan(0);
+    // The dependency is named, because the netting rests on a Tier 2 wiki field.
+    expect(primary?.twoHanded?.via).toContain('2H Slashing');
+  });
+
+  it('subtracts that EP from the gain, so the trade is priced', () => {
+    const primary = rowFor(worn(GREATSWORD, SMALL_OFFHAND), 'PRIMARY');
+    if (!primary?.twoHanded) throw new Error('expected a two-handed row to price');
+    expect(primary.gain).toBeCloseTo(
+      primary.candidate.ep - primary.wornEp - primary.twoHanded.offhandEp, 10,
+    );
+    // And the netting actually moved the number, or this proves nothing.
+    expect(primary.twoHanded.offhandEp).toBeGreaterThan(0);
+    expect(primary.gain).toBeLessThan(primary.candidate.ep - primary.wornEp);
+  });
+
+  /**
+   * The defect this whole change exists to fix. Ranked independently, a
+   * two-hander gives up the offhand for free and wins on paper; netted, it
+   * loses the trade and must not be recommended.
+   */
+  it('REFUSES a two-hander that loses the trade, which is the whole point', () => {
+    const result = worn(GREATSWORD, BIG_OFFHAND);
+    expect(rowFor(result, 'PRIMARY')).toBeUndefined();
+    // Dropped as settled rather than withheld: it is a priced answer, not an
+    // unmeasurable one.
+    expect(result.withheld.map((w) => w.position.id)).not.toContain('PRIMARY');
+  });
+
+  it('leaves a one-handed winner alone — the netting is not a blanket penalty', () => {
+    const primary = rowFor(worn(ONEHANDER, SMALL_OFFHAND), 'PRIMARY');
+    expect(primary?.twoHanded).toBeNull();
+    expect(primary?.gain).toBeCloseTo((primary?.candidate.ep ?? 0) - (primary?.wornEp ?? 0), 10);
+  });
+
+  it('costs nothing when the offhand is empty, which is measured and not assumed', () => {
+    addItem(GREATSWORD);
+    const primary = rowFor(report(gearSet()), 'PRIMARY');
+    expect(primary?.twoHanded).toBeNull();
+  });
+});
