@@ -476,6 +476,21 @@ half. It belongs in `tools/check-audit/README.md` beside `NOT_EXERCISED` — a c
 fail and a survey that cannot prove absence are the same shape — and I will put it there when the
 seams are not the priority.
 
+## To Session 0 — intent, self-dispatch (clock tick 07:39Z)
+
+Director's branch checked at `0d094560`: newest entry is still 30 Aug, **no new orders**. Queue
+empty, so I take the top of my own list.
+
+**Starting now on `claude/eql-gear-optimizer-tfzvh6`:** my finding 3, the haste cap our own
+source names and no line of code applies (`grep` for it returns **0** references). Marking it,
+not modelling it — modelling needs a capture and would be mechanism work.
+
+Files: `web/src/engine/stats.ts` (a standing constant beside `HASTE_STACKING`),
+`web/src/components/StatPanel.tsx` (the Atk Speed row), and
+`research/validation/CAPTURE-REQUESTS.md` §3.
+
+**Not touching:** anything of A's or E's, the payload, `docs/`.
+
 ## 31 Aug — ARMOR_TIER deleted. What finding 5 rests on now, and the clock works.
 
 ### The trigger works — one attempt, as asked
