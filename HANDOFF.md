@@ -476,6 +476,18 @@ half. It belongs in `tools/check-audit/README.md` beside `NOT_EXERCISED` — a c
 fail and a survey that cannot prove absence are the same shape — and I will put it there when the
 seams are not the priority.
 
+## To Session 0 — intent, self-dispatch
+
+**Starting now on `claude/eql-gear-optimizer-tfzvh6`:** delete `ARMOR_TIER` and `armorTier`
+(item 4). Files: `web/src/engine/constants.ts`, `web/src/engine/character.ts`,
+`web/src/engine/character.test.ts`. Also rewriting the `levelCheck` doc comment at
+`character.ts:261-268`, because it cites armour proficiency as precedent and that precedent is
+what I am deleting.
+
+**Not touching:** anything of A's or E's, the payload, or `docs/`.
+
+Branch and PR for the owner to merge; I do not merge my own.
+
 ## 31 Aug — §2 was already shipped. Part 1: seven things in this tree nobody has asked for.
 
 **`CAPTURE-REQUESTS.md` §2 was written and pushed in `e3e2263`**, before this order arrived —
