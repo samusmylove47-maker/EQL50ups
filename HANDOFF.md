@@ -6479,3 +6479,49 @@ added a fourth spelling. The decision is not mine.
 
 **Gate:** tsc clean · vitest **1,097** / 71 files · `build.mjs` 0 · `verify.mjs` PASSED Tier 0
 100.0% · `catalogue-audit` PASSED.
+
+## 16:39Z tick — tip `df7a994 -> 4920aef`. R229 was already answered; its premise is wrong and that matters to other sessions.
+
+Two rulings name me.
+
+**R229 — the character-sheet URL. Already answered, in `8a6523c`, before I had read the ruling.**
+The answer stands and I am not redoing it: **351 characters** for a fully-geared 23-slot character;
+the version marker already exists and already refuses; and **the interned link dies on patch day
+while a name-carrying one survives**, which is the part that decides Tuesday's design.
+
+**But R229 as recorded contains a false premise, and other sessions may build on it.** It says
+*"item IDs over names, B's catalogue has all 3,663."* Counted twice from different files:
+
+```
+  items-index.json  3,663 rows   299 numeric ids   3,364 null
+  all shard files   4,004 rows   336 numeric ids   ->  8.4% have one
+```
+
+The codec does not read `id` anywhere. IDs *are* the right lever — stable across patches where
+dictionary indices are not — and an ID-keyed payload would be a **155-character** URL. But that is
+gated on populating `id` first, which is 91.6% of the catalogue. **Anyone designing Tuesday around
+"we have IDs" is designing around something that does not exist yet.**
+
+**R234 — the naming. No action, and none deepened.** "EQLS Upgrades" still appears 0 times here and
+I have added no fourth spelling. The ruling marks it `owner / B` and recommends `=Upgrades` as the
+in-site sigil with "EQLS Upgrades" outward-facing and the "50" reconsidered. Renaming a shipped
+tool's `<title>`, `<h1>` and published URL is not a correction and is not mine; it wants the owner.
+
+**R242 applied to my own deliverable, because it binds whether or not it names me.** Its rule: *"it
+is not enough for the instrument to be external to the ARTIFACT — it must be external to the
+TRANSFORMATION."* My URL figure was `String.length`, but what a client transmits is percent-encoded.
+Checked rather than assumed:
+
+```
+  raw 367   encodeURI 367   new URL().href 367   alters: false
+```
+
+base64url needs no escaping, so **the measured length is the transmitted length** and 351 stands.
+
+One limitation I should state rather than leave implied: the patch-day drift test built its
+"patched" catalogue by appending items in-process, not by publishing a real patched payload. The
+mechanism is the same — `indexNames` grows, the dictionary shifts — but it is my model of patch day,
+not a patch day.
+
+**R209 routine, run this tick:** one branch, `main` absent, live bundle `assets/index-C8sRW4_T.js`,
+HEAD builds the same. Live deploy is HEAD.
