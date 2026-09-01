@@ -198,23 +198,56 @@ export interface ItemRestrictions {
   rl?: number;
 }
 
-function isUnrestricted(list: string[]): boolean {
+function isUnrestricted(list: readonly string[]): boolean {
   return list.length === 0 || list.includes('ALL');
 }
 
 /**
- * `ALL_EXCEPT` marks a list whose remaining entries are exclusions rather than
- * inclusions, mirroring the wiki's "ALL except X" phrasing.
+ * What a `cl` or `ra` list is actually saying.
+ *
+ * `ALL` and `NONE` and `ALL_EXCEPT` are sentinels this catalog writes *inside*
+ * the list, so a consumer that treats the list as a plain vocabulary is wrong
+ * in a way that reads perfectly. `ALL_EXCEPT` in particular marks a list whose
+ * remaining entries are **exclusions**, mirroring the wiki's "ALL except X"
+ * phrasing — and `blockReason.ts` rendered it with `join(', ')` for months,
+ * telling readers of 255 class-restricted and 59 race-restricted records the
+ * exact opposite of who may wear the item, with a non-existent class named
+ * first.
+ *
+ * This exists so that the sentence a reader sees and the gate that refuses them
+ * read the *same* ladder, in the same precedence, and cannot drift: `ALL`
+ * before `NONE` before `ALL_EXCEPT` before a plain list. Every eligibility
+ * check below goes through it, so there is one copy of that order.
  */
-function matchesList(list: string[], candidates: readonly string[]): boolean {
-  if (isUnrestricted(list)) return true;
-  if (list.includes('NONE')) return false;
+export type RestrictionReading =
+  | { kind: 'unrestricted' }
+  | { kind: 'none' }
+  /** `codes` are barred; everything else qualifies. Empty means nothing is barred. */
+  | { kind: 'except'; codes: string[] }
+  /** `codes` are the only ones that qualify. */
+  | { kind: 'only'; codes: string[] };
 
+export function readRestriction(list: readonly string[]): RestrictionReading {
+  if (isUnrestricted(list)) return { kind: 'unrestricted' };
+  if (list.includes('NONE')) return { kind: 'none' };
   if (list.includes('ALL_EXCEPT')) {
-    const excluded = list.filter((v) => v !== 'ALL_EXCEPT');
-    return candidates.some((c) => !excluded.includes(c));
+    return { kind: 'except', codes: list.filter((v) => v !== 'ALL_EXCEPT') };
   }
-  return candidates.some((c) => list.includes(c));
+  return { kind: 'only', codes: [...list] };
+}
+
+function matchesList(list: readonly string[], candidates: readonly string[]): boolean {
+  const reading = readRestriction(list);
+  switch (reading.kind) {
+    case 'unrestricted':
+      return true;
+    case 'none':
+      return false;
+    case 'except':
+      return candidates.some((c) => !reading.codes.includes(c));
+    case 'only':
+      return candidates.some((c) => reading.codes.includes(c));
+  }
 }
 
 /** An item is usable when any one of the loadout's classes qualifies. */
@@ -226,11 +259,12 @@ export function canUseClass(
 }
 
 export function canUseRace(item: Pick<ItemRestrictions, 'races'>, ctx: LoadoutContext): boolean {
-  if (isUnrestricted(item.races)) return true;
+  const reading = readRestriction(item.races);
+  if (reading.kind === 'unrestricted') return true;
   // `NONE` excludes every race, so it refuses whether or not we know theirs.
   // Skipping that check when the race is unset made the same item appear or
   // vanish depending on a field the restriction does not depend on.
-  if (item.races.includes('NONE')) return false;
+  if (reading.kind === 'none') return false;
   if (!ctx.race) return true; // race unset: don't narrow on it
   return matchesList(item.races, [ctx.race]);
 }
@@ -240,12 +274,19 @@ export function qualifyingClasses(
   item: Pick<ItemRestrictions, 'classes'>,
   ctx: LoadoutContext,
 ): ClassCode[] {
-  if (isUnrestricted(item.classes)) return [...ctx.classes];
-  if (item.classes.includes('ALL_EXCEPT')) {
-    const excluded = item.classes.filter((v) => v !== 'ALL_EXCEPT');
-    return ctx.classes.filter((c) => !excluded.includes(c));
+  const reading = readRestriction(item.classes);
+  switch (reading.kind) {
+    case 'unrestricted':
+      return [...ctx.classes];
+    // No class qualifies, which is what the old code arrived at by filtering
+    // the trio against a list whose only member was the sentinel `NONE`.
+    case 'none':
+      return [];
+    case 'except':
+      return ctx.classes.filter((c) => !reading.codes.includes(c));
+    case 'only':
+      return ctx.classes.filter((c) => reading.codes.includes(c));
   }
-  return ctx.classes.filter((c) => item.classes.includes(c));
 }
 
 export interface LevelCheck {

@@ -27,6 +27,7 @@ import {
 } from '../engine/character';
 import type { Item } from '../engine/types';
 import { statsAreUnknown } from '../data/normalize';
+import { restrictionText } from '../lib/restrictionText';
 import { HASTE_PROVENANCE, HASTE_STACKING } from '../engine/stats';
 import { scaleWeight, type UpgradeState } from '../engine/upgrade';
 import { dec, num, signed } from '../lib/format';
@@ -271,15 +272,13 @@ export function ItemWindow({ item, upgrade, context, slot, wide = false }: ItemW
           <div>
             <i>Class</i>
             <span className={context && !classOk ? 'iwin-bad' : undefined}>
-              {item.cl.includes('ALL')
-                ? 'ALL'
-                : item.cl.map((c) => (wide ? (CLASS_NAMES[c as ClassCode] ?? c) : c)).join(' ') || 'ALL'}
+              {restrictionText(item.cl, (c) => (wide ? (CLASS_NAMES[c as ClassCode] ?? c) : c))}
             </span>
           </div>
           <div>
             <i>Race</i>
             <span className={context && !raceOk ? 'iwin-bad' : undefined}>
-              {item.ra.includes('ALL') ? 'ALL' : item.ra.join(' ') || 'ALL'}
+              {restrictionText(item.ra)}
             </span>
           </div>
           {item.rl ? (

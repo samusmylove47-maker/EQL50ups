@@ -152,6 +152,47 @@ describe('the detail dialog applies the picker’s rule', () => {
     expect(container.querySelectorAll('.chip-row .btn')).toHaveLength(0);
   });
 
+  it('reads an ALL_EXCEPT list as an exclusion, in the rendered dialog', () => {
+    /*
+     * `ALL_EXCEPT` is a sentinel the catalog writes *inside* the class list, and
+     * both this dialog's sentence and the item window's Class field printed it
+     * as though it were a class — "restricted to ALL_EXCEPT, WAR, BRD, BER",
+     * which names a class that does not exist and states the exact opposite of
+     * who may wear the item. 255 shipped records carry it in `cl`, 59 in `ra`.
+     *
+     * Asserted here through the real render rather than only against
+     * `blockReasons`, because the two surfaces had two different copies of the
+     * bug and a unit test on one would have left the other standing.
+     */
+    const character = useApp.getState().createCharacter({
+      name: 'Trio',
+      level: 50,
+      classes: ['WAR', 'BRD', 'BER'],
+      race: null,
+    });
+    const casterOnly = { ...HELM, n: 'Silken Circlet', cl: ['ALL_EXCEPT', 'WAR', 'BRD', 'BER'] };
+    act(() => {
+      root.render(
+        <ItemDetail
+          item={casterOnly}
+          upgrade={BASE_STATE}
+          equipTargets={TARGETS}
+          setName="Main Set"
+          context={activeContext(character)}
+          onEquip={() => undefined}
+          onClose={() => undefined}
+        />,
+      );
+    });
+
+    // Nowhere on the dialog — not the sentence, not the Requirements field.
+    expect(container.textContent, 'the sentinel must not reach a reader').not.toContain('ALL_EXCEPT');
+    const why = container.querySelector('[data-blocked="equip"]')?.textContent ?? '';
+    expect(why).toContain('it is open to every class except WAR, BRD, BER');
+    expect(why).not.toContain('it is restricted to');
+    expect(container.querySelectorAll('.chip-row .btn')).toHaveLength(0);
+  });
+
   it('judges nothing when there is no loadout to judge against', () => {
     // A share link opens read-only with no character: refusing there would be
     // an opinion about somebody else's trio.

@@ -33,6 +33,7 @@ import { BASE_STATE, tier, type UpgradeState } from '../engine/upgrade';
 import type { Item } from '../engine/types';
 import { useCatalog } from '../data/catalog';
 import { statsAreUnknown, type SlotCode } from '../data/normalize';
+import { restrictionText } from '../lib/restrictionText';
 import {
   findQuarantined,
   loadQuarantineIndex,
@@ -698,7 +699,7 @@ export function ItemBrowser() {
                     ) : null}
                   </td>
                   <td className="dim">{item.sl.join(' / ') || '—'}</td>
-                  <td className="dim">{item.cl.join(' ') || 'ALL'}</td>
+                  <td className="dim">{restrictionText(item.cl)}</td>
                   <td className="cell-stats">{stats || <span className="dim">—</span>}</td>
                   <td>
                     {eraLabel(item) ? <span className="era-label">{eraLabel(item)}</span> : <span className="dim">—</span>}
