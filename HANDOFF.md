@@ -5834,3 +5834,54 @@ verification, and statements provably false on screen.
    name, so "Where to go" sums to more sightings than the rows report.
 
 Both are reader-facing statements checkable against the payload. Neither touches ranking.
+
+## 08:39Z tick — tip unchanged at `a46c37c`. Item 1 closed; the browser suite was red and I had not been running it.
+
+No orders. Both items declared at 07:39 are resolved, and looking for the second one turned up
+something worse than either.
+
+**Item 1 CLOSED** (`c682786`). `ALL_EXCEPT` held: `blockReason.ts` rendered
+`cl: ["ALL_EXCEPT","ENC","MAG","WIZ"]` as *"it is restricted to ALL_EXCEPT, ENC, MAG, WIZ"* — a
+class that does not exist, followed by the exact opposite of who may wear the item. 255 records
+carry it in `cl`, 59 in `ra`; `NONE` (74 and 84) printed as *"restricted to NONE"*, which reads as
+restricted to nothing. Three surfaces each had their own copy: the sentence, `ItemWindow`'s
+Requirements fields (where the sentinel survived the code-to-name map through its `?? c`), and
+`ItemBrowser`'s Class column. `readRestriction` now sits beside the gate in `character.ts` and
+`matchesList` / `canUseRace` / `qualifyingClasses` and both renderers read that one ladder.
+
+The gate refactor is behaviour-preserving **by measurement**: old and new transcribed side by side
+into scratch and run over 3,663 items x 49 loadouts x 16 race probes — 417,582 comparisons, 0
+divergent. Guards demonstrated by damaging each source with an asserted anchor, running the WHOLE
+suite, restoring, and verifying the restore by SHA-256.
+
+**What item 2 turned up first: the browser suite was red, and my gate reports had not been running
+it.** `npx playwright test` gave 143 passed / 7 failed. I did not assume they were mine — a detached
+worktree at `64be0de` with none of my changes failed the SAME 7. Fixed, and now 150 / 0
+(`2f959b9`):
+
+- Four were one real defect. The breadcrumb separator was `&nbsp;/&nbsp;` on **both** sides, so the
+  whole trail held no break opportunity anywhere. `.crumb` was correctly constrained to 284px and
+  its text ran to 328 — 26px of sideways scroll at 320px on every route with a screen name. A
+  zero-width space costs no pixels and lets the line break after the slash. Verified across six
+  widths on five routes: `crumbScrollWidth == clientWidth` everywhere, single-line widths at 768px
+  and above unchanged.
+- Three were stale typed literals — the fault this repository exists to catch. `"nine of nine
+  predictions exact"` (the record holds seven, and `prose-vs-record.test.ts` already derives it), a
+  race dropdown label pinned to the set header's formatting, and `"50 Upgrades"` after the site's
+  `=` rename. Each now reads its value from the record or from the page.
+
+**Two for your ruling rather than my judgement:**
+
+1. `npx vitest run --root .../web` from the repository root reported **"2 files, 9 tests"** tonight,
+   silently, exit 0. From inside `web/` the same suite reports **71 files, 1,077 tests**. That is the
+   second time a vitest invocation has handed me a confident wrong count, and both times it was
+   small enough to look plausible. I caught it only because it was implausible against the previous
+   run. This belongs in Standing: a gate claim reported off a 9-test run is indistinguishable in a
+   commit message from a real one.
+2. Playwright was absent from my gate for an unknown number of commits and the suite was red for at
+   least some of them. It is in my gate now. Whether it belongs in CI is yours — CI runs `tsc`,
+   `vitest` and `npm run build` only, so nothing would have caught these before a deploy.
+
+**Declaring now, unstarted:** `screens/Upgrades.tsx:890` — zone tallies adding a drop's whole
+sighting count once per zone name, so "Where to go" would sum to more sightings than the rows
+report. Reader-facing, checkable against the payload, and it does not touch ranking.
