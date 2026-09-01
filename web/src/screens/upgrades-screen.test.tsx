@@ -567,6 +567,41 @@ describe('every ranked row says where its EP came from', () => {
     ).toBe('trusted');
   });
 
+  /*
+   * The empty list has to say which empty it is.
+   *
+   * This branch read `rows.length` and nothing else, so an empty set under a
+   * narrowed filter got "Nothing outranks what you are wearing" over "Every
+   * position this set can score is already carrying the best item the catalog
+   * offers it" — with the KPI directly above reading "0 already best · 23 with
+   * nothing to offer" and the footnote directly below reading "Nothing scored
+   * for any position". The screen carried the true reading twice and the false
+   * one in the heading.
+   *
+   * The KPI and the footnote are asserted here as well as the heading, because
+   * what makes this a defect rather than clumsy wording is that the same view
+   * contradicts itself — and because they are the measurement that this really
+   * is the settled=0 / nothing=23 state rather than some other empty.
+   */
+  it('does not call an unsearched ranking "nothing outranks what you are wearing"', async () => {
+    const setId = build();
+    useApp.getState().configureSet(setId, {
+      filters: { era: 'Kunark', source: 'vendor', hideNoDrop: false },
+    });
+    await render(`#/set/${setId}/upgrades`);
+
+    // The state, measured from the same render rather than assumed.
+    expect(text()).toContain('0 already best');
+    expect(text()).toContain('23 with nothing to offer');
+    expect(text()).toContain('Nothing scored for any position.');
+
+    expect(text()).not.toContain('Nothing outranks what you are wearing');
+    expect(text()).not.toContain('already carrying the best item the catalog offers it');
+    expect(text()).toContain('Nothing scored under these filters');
+    // It names the filter it is blaming, which is the one thing the reader can act on.
+    expect(text()).toContain('Kunark era');
+  });
+
   it('leaves the existence mark alone — the two facts stay separate', async () => {
     const setId = build();
     await render(`#/set/${setId}/upgrades`);

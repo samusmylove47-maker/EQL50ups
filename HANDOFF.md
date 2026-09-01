@@ -7087,3 +7087,58 @@ its only diff is the two build timestamps and `sourceLines 34239 -> 34307`, whic
 added source lines.
 
 **Next: `F08`**, as declared.
+
+## `F08` CLOSED — an unsearched ranking no longer claims you are already wearing the best
+
+**Reproduced before touching anything**, on the mounted app against the fixture catalogue, empty
+set, `era: 'Kunark'`:
+
+    KPI      : 0/23 - 0 already best - 0 not comparable - 23 with nothing to offer
+    headline : "Nothing outranks what you are wearing"                 <- false
+    body     : "already carrying the best item the catalog offers it"  <- false
+    footnote : "Nothing scored for any position."
+    control (no filters): 23/23, headline absent
+
+The same view stated the truth twice and the falsehood once. That is the shape of the defect: not a
+missing fact, a heading that contradicts the two places the fact already appears.
+
+**Fixed one layer out from the verifier's suggestion, and the layer is the point.** Its smallest fix
+was a widened ternary in the screen. A ternary cannot be enumerated, and *which empty this is* has
+four answers, not two. So the decision moved to `web/src/lib/emptyRanking.ts` — a pure function of
+the three counts `computeUpgrades` already produces — and `Upgrades.tsx` renders its result and
+decides nothing.
+
+- `settled > 0` keeps the original copy **unchanged**, mixed case included. "Every position this set
+  *can score*" already excludes positions that had nothing to score, and the footnote names those by
+  label. Correct prose does not get churned because a neighbouring branch was wrong.
+- `settled === 0 && nothing > 0` is the measured defect: it now says the pool was empty, and names
+  the active filters — which also answers a case the verifier found on its own, that
+  `defaultFilters` round-trips through set import, so a reader can land here having never chosen the
+  filter and with no idea one is on.
+- No active filters is its own branch, because "widen these filters" over a set that narrows nothing
+  is a second false sentence, and the one-branch version would have printed it.
+- `withheld` only, and the unreachable all-zero case, get words too. A chooser that can return
+  nothing is a blank screen waiting to happen.
+
+**Guards, and proof they fire.** `emptyRanking.test.ts` (7 — the branch table plus a sweep asserting
+no unsearched combination ever says "outranks" or "already carrying") and one case in
+`upgrades-screen.test.tsx` that asserts the KPI, the footnote **and** the heading together, so it
+cannot pass by reaching some other empty. Damaged twice with asserted anchors against the **whole**
+suite: the chooser gave `3 failed | 1125 passed (1128)`; the wiring alone gave
+`1 failed | 1127 passed (1128)`. **B failing alone is the result worth having** — it shows the screen
+case tests the wiring rather than standing in for the chooser's own tests. Restored and verified
+byte-identical by `sha256sum -c` after each pass.
+
+**One test written and then deleted, and I would rather record it than not.** I wrote a second
+screen case for the `settled > 0` empty and guarded its assertion behind `if (rows().length === 0)`.
+That passes silently the moment the fixture catalogue produces a row — the same vacuous-green shape
+that cost me a picker test earlier this evening. A conditional assertion is not a guard. The
+enumeration covers that branch instead.
+
+Gate: `tsc` clean · vitest **1,128 passed / 74 files** · playwright **151 passed** · `npm run build`
+ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+**Remaining from my own list: F04, F07, F12, F28, F31.** F28 next — race unset passes the race gate
+rather than deferring it, so "Usable by this loadout" prints over items the character's race cannot
+wear. It is the only one of the five that puts a wrong recommendation in front of a player rather
+than a wrong sentence.

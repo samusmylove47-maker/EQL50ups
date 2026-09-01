@@ -260,6 +260,8 @@ Two quantifications the finding did not carry, both measured here: it fires in 1
 
 **Smallest fix.** Widen the branch at `Upgrades.tsx:2049` from `rows.length ? … : <empty-state>` to consult the distinction the engine already computed at `:701-702`: when `report.settled === 0 && report.nothing.length > 0`, render a heading that says the candidate pool was empty (e.g. "Nothing scored under these filters") with a body naming the active filters, and keep the existing "Nothing outranks what you are wearing" copy for `settled > 0`. `report` is already in scope at that point; no new data is needed.
 
+> **Closed.** Fixed one layer out from the suggestion: the branch table is a pure function of `settled` / `nothing` / `withheld` in `web/src/lib/emptyRanking.ts`, so it can be enumerated, and `Upgrades.tsx` only renders its result. The `settled > 0` copy is unchanged; the new copy names the active filters, which answers the imported-`defaultFilters` case this record raised. See the CLOSED note under F08 in `AUDIT-UPGRADES-SURFACE.md`.
+
 Scope of the change: render-side only. It touches no ranking behaviour — `computeUpgrades`, `settled` and `nothing` are unchanged — and no persisted or published shape: nothing in `web/public/data/`, `state/persistence.ts` or `share/codec.ts` is involved. It is one JSX ternary plus one string.
 
 <details><summary>Commands run, and what they returned</summary>

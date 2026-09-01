@@ -86,6 +86,7 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F22` — the picker's EP column and its "vs worn" chip contradicted each other | **closed** | guarded in `picker-rerank.test.tsx` |
 | `F19` — the front page understated its own provenance, and the payload's citation counted three ways | **closed** | guarded in `landing-sample.test.ts` |
 | `F27` — a good link, opened with no catalog, was blamed on the sender | **closed** | guarded in `shared-set-offline.test.tsx` + `codec.test.ts` |
+| `F08` — an unsearched ranking claimed you were already wearing the best | **closed** | guarded in `emptyRanking.test.ts` + `upgrades-screen.test.tsx` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched
@@ -487,6 +488,7 @@ Control run in the same file, same set, no filters: 23 rows, "23/23 · 0 already
 
 **Verdict** — mechanism **CONFIRMED**, severity **TOO-HIGH**, scope **NARROWER**.
 
+
 *Corrected scope.* Scope is NARROWER than reported, and the supporting examples are partly wrong.
 
 MEASURED, same context the prior lens named (WAR/BRD/BER level 50, empty set, 40 era x source states with hideNoDrop=false, shipped payload = 3,663 items after merging items-index.json with the 19 shards):
@@ -524,6 +526,63 @@ Cutting the other way: `defaultFilters` round-trips through set import/export (s
 SCOPE — narrower, and two of the supporting examples do not hold. See corrected_scope for the numbers and the command that produced each.
 
 Probe files left in the worktree: web/src/screens/__audit_render.test.tsx, __audit_scope.test.ts, __audit_scope2.test.ts, __audit_scope3.test.ts, __audit_scope4.test.ts.
+
+**CLOSED.** The verifier's location correction was right and its smallest fix was right in shape;
+what shipped is one layer further out. The decision — *which* empty this is — now lives in
+`web/src/lib/emptyRanking.ts` as a pure function of the three counts the engine already produces
+(`settled`, `nothing`, `withheld`), because the branch table is the thing worth enumerating and a
+JSX ternary cannot be enumerated. `Upgrades.tsx` renders `emptyCopy.heading` / `emptyCopy.body` and
+decides nothing.
+
+*The branches.* `settled > 0` keeps the original copy **unchanged**, including the mixed case:
+"every position this set *can score*" already excludes the positions that had nothing to score, and
+the footnote names those by label, so that sentence is true as written and was not churned.
+`settled === 0 && nothing > 0` is the measured defect and now says the pool was empty — naming the
+active filters when there are any, and *not* blaming filters when there are none, which is a second
+false sentence the one-branch version would have produced. Naming them answers the
+aggravating case the verifier found on its own: `defaultFilters` round-trips through set
+import/export, so a reader can land here having never chosen the filter and with no idea one is on —
+and `applied` was previously used in the footnote and nowhere else. `settled === 0 && nothing === 0 &&
+withheld > 0` says every position is in "Not compared" below. The all-zero case is unreachable with
+23 fixed positions and still returns words, because a chooser that can return nothing is a blank
+screen waiting to happen.
+
+*Reproduced before it was fixed*, on the mounted app against the fixture catalog, empty set,
+`era: 'Kunark'`:
+
+    KPI      : 0/23 - 0 already best - 0 not comparable - 23 with nothing to offer
+    headline : "Nothing outranks what you are wearing"                 <- false
+    body     : "already carrying the best item the catalog offers it"  <- false
+    footnote : "Nothing scored for any position."
+    control (no filters): 23/23, headline absent
+
+So the same view stated the truth twice and the falsehood once, in the largest text on the page.
+That contradiction is what the screen guard asserts — KPI, footnote **and** heading together — so it
+cannot pass by reaching some other empty state.
+
+*Guards, and proof they fire.* `web/src/lib/emptyRanking.test.ts` (7 tests, the branch table plus a
+sweep asserting no unsearched combination ever says "outranks" or "already carrying") and one case
+in `web/src/screens/upgrades-screen.test.tsx`. Damaged twice with asserted anchors, each against the
+**whole** suite:
+
+    $ node scratchpad/mutate-f08.mjs damage A   # the chooser stops distinguishing
+    $ cd web && npx vitest run
+      Test Files  2 failed | 72 passed (74)
+           Tests  3 failed | 1125 passed (1128)
+
+    $ node scratchpad/mutate-f08.mjs damage B   # chooser right, screen ignores it
+    $ cd web && npx vitest run
+      Test Files  1 failed | 73 passed (74)
+           Tests  1 failed | 1127 passed (1128)
+
+B failing **alone** is the point: it shows the screen case tests the wiring and not the chooser, and
+A failing all three shows the chooser's own tests are not standing in for it. Restored and verified
+byte-identical by `sha256sum -c` after each pass.
+
+*One test written and then deleted.* A second screen case, for the `settled > 0` empty, guarded its
+assertion behind `if (rows().length === 0)` — which would have passed silently the moment the
+fixture catalog produced a row. A conditional assertion is not a guard. The `settled > 0` branch is
+covered by the enumeration instead.
 
 ### F09. `src.c` is written as the number 1 and read as `=== true`, so the Crafted source filter matches zero items and 665 items are told "no acquisition data is recorded"
 

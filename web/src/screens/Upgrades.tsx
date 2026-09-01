@@ -50,6 +50,7 @@ import { ItemDetail } from '../components/ItemDetail';
 import { itemHoverProps } from '../components/ItemWindow';
 import { SlotGlyph } from '../components/SlotGlyph';
 import { UpgradeStepper } from '../components/UpgradeStepper';
+import { emptyRankingCopy } from '../lib/emptyRanking';
 import { count, dec, ep as epText, finite, num, pluralize, signed } from '../lib/format';
 import { nextFrame } from '../lib/frames';
 import { eraLabel, sourceStanding } from '../lib/itemStyle';
@@ -1836,6 +1837,17 @@ export function Upgrades({ id }: { id: string }) {
     basis.kind === 'worn'
       ? 'each candidate at the tier its slot already carries'
       : `every candidate at +${num(fixedTier.full)}`;
+  // Only consulted when `rows` is empty, but computed unconditionally: it is a
+  // plain function of counts the report already carries, and a hook boundary is
+  // the last thing this component needs another of.
+  const emptyCopy = emptyRankingCopy(
+    {
+      settled: report?.settled ?? 0,
+      nothing: report?.nothing.length ?? 0,
+      withheld: report?.withheld.length ?? 0,
+    },
+    { basisText, activeFilters: applied },
+  );
 
   return (
     <div className="upg">
@@ -2068,13 +2080,18 @@ export function Upgrades({ id }: { id: string }) {
               ))}
             </ol>
           ) : (
+            /*
+              Which of the several ways a ranking can come back empty this
+              actually was. The engine already separated them at `:722-723`;
+              this branch read `rows.length` and nothing else, so an empty set
+              under a narrowed filter was told "Nothing outranks what you are
+              wearing" — with the KPI above it reading "0 already best · 23
+              with nothing to offer" and the footnote below it reading "Nothing
+              scored for any position." See `lib/emptyRanking`.
+            */
             <div className="empty-state">
-              <h2>Nothing outranks what you are wearing</h2>
-              <p>
-                Every position this set can score is already carrying the best item the catalog
-                offers it, {basisText}. Change the comparison tier, widen this set's filters, or
-                adjust its weights to ask a different question.
-              </p>
+              <h2>{emptyCopy.heading}</h2>
+              <p>{emptyCopy.body}</p>
             </div>
           )}
 
