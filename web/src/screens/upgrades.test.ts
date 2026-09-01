@@ -993,3 +993,64 @@ describe('an offhand that scores nothing still gets its note', () => {
     expect(primary?.twoHanded?.offhandName).toBe(trinket.n);
   });
 });
+
+/* ------------------------------------------------------------------------- *
+ * The KPI line is an accounting, and an accounting has to balance.
+ * ------------------------------------------------------------------------- */
+
+describe('every position lands in exactly one bucket', () => {
+  /**
+   * The screen prints `rows.length` of `views.length`, then
+   * "N already best · N not comparable · N with nothing to offer" — four numbers
+   * that together claim to account for all 23 paper-doll positions. Nothing
+   * asserted that they add up.
+   *
+   * It matters because each bucket is a different sentence to the reader, and a
+   * position that falls out of all four disappears with no explanation while the
+   * headline still reads "22 / 23". This is the shape of the two defects already
+   * fixed in this file: `settled` was absorbing positions that had never been
+   * fully searched, and an occupied offhand was landing in no bucket at all.
+   *
+   * Checked over four gear-set shapes rather than one, because three of the four
+   * buckets are empty in the default case and a single-shape test would be
+   * asserting almost nothing.
+   */
+  it('balances across empty, worn, unresolved and blind-profile sets', () => {
+    const anyHead = catalog().items.find((i) => i.sl?.includes('HEAD'));
+    expect(anyHead).toBeDefined();
+
+    const cases: [string, GearSet][] = [
+      ['an empty set', gearSet()],
+      ['one worn item', gearSet({ HEAD: { itemName: anyHead?.n ?? '', upgrade: tier(0) } })],
+      ['an unresolvable worn item', gearSet({ FEET: { itemName: 'No Such Item', upgrade: tier(0) } })],
+      // Caster weights on a melee trio: the hand slots go to
+      // `profile-blind-to-weapons`, which is the only way to populate `withheld`
+      // without an unresolvable item.
+      ['a profile blind to weapons', gearSet({}, { INT: 5, MANA: 2 })],
+    ];
+
+    for (const [label, set] of cases) {
+      const result = report(set);
+      const views = slotViews(set, catalog());
+      const sum = result.rows.length + result.settled
+        + result.withheld.length + result.nothing.length;
+      expect(sum, `${label}: buckets do not account for every position`).toBe(views.length);
+
+      /*
+       * And no position is counted twice across the three enumerable buckets.
+       *
+       * Compared by LABEL, not by id: `report.nothing` is published as labels
+       * (`nothing.map((position) => position.label)`), while `rows` and
+       * `withheld` carry the position objects. Reaching for `.id` on all three
+       * type-checks nowhere and vitest never noticed — `tsc` did.
+       */
+      const labels = [
+        ...result.rows.map((r) => r.position.label),
+        ...result.withheld.map((w) => w.position.label),
+        ...result.nothing,
+      ];
+      expect(new Set(labels).size, `${label}: a position appears in two buckets`)
+        .toBe(labels.length);
+    }
+  });
+});

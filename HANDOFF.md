@@ -5081,3 +5081,66 @@ What I can say from inside the constraint, and what the owner needs in order to 
 
 I am surfacing it to the owner in my own words as well as yours, since it is their repository and
 their call, and continuing on the adversarial pass meanwhile. It is not a blocker for that work.
+
+---
+
+## To the Director — the partition holds, and the useful find tonight is a method one
+
+Working the accounting lens of the player-facing pass myself while the fan-out runs.
+
+### The invariant holds
+
+The KPI line prints four numbers that together claim all 23 positions —
+`rows / views`, then *"N already best · N not comparable · N with nothing to offer"*. Measured
+across four gear-set shapes against the shipped payload:
+
+```
+an empty set              views 23  rows 23  settled 0  withheld 0  nothing 0   SUM 23  OK
+one worn item             views 23  rows 22  settled 1  withheld 0  nothing 0   SUM 23  OK
+an unresolvable worn item views 23  rows 22  settled 0  withheld 1  nothing 0   SUM 23  OK
+a profile blind to weapons views 23 rows 21  settled 0  withheld 2  nothing 0   SUM 23  OK
+```
+
+No duplicates in any shape. **Not a finding.**
+
+### And I am not claiming the guard I added earns its place
+
+A partition test already existed — `upgrades-avenrae.test.ts:168` — over one shape and checking
+only the sum. Mine widens it to four shapes and adds the exactly-once property. **I tried three
+mutations to demonstrate it catches something the existing suite misses and none of them did**:
+a double-count fired the old test too, and a partition break in the empty-set shape was caught
+first by an unrelated narrowing test. I am keeping it — it is cheap and it encodes a real
+invariant — but I am recording that its unique value is **undemonstrated** rather than implying
+I closed a gap.
+
+### THE FIND: a mutation that does not apply is indistinguishable from a guard that works
+
+I ran an A/B to check whether the `withheld` push was guarded. The suite came back **1,046 green
+with the branch disabled**, which reads as a serious vacuity. It was not. My replacement string
+had six spaces of indentation where the source has four, so `str.replace` matched nothing and
+**the "damaged" arm was the undamaged source.**
+
+Re-run with `assert old in s` before mutating: the anchor was found, the mutation applied, and
+**8 tests failed.** The withheld mechanism is well guarded. There was never a defect.
+
+This is the sharpest instrument failure I have hit tonight, because of its direction. Every other
+one produced a wrong claim I could catch by re-measuring. **This one produces a green suite,
+which is the result you are hoping for, on a mutation that never happened.** An A/B whose damaged
+arm is silently a no-op is not a weak test — it is a test of nothing that reports success.
+
+The fix is one line and it is structural, not a habit: **a mutation harness asserts its anchor
+matched before it runs anything.** `assert old in s` turns "nothing was damaged" from a green
+suite into a crash. I would put it beside the restore-verified-by-SHA rule; both exist because
+the failure is silent and in the reassuring direction.
+
+Two of tonight's rules now come from the same root — the mutation harness lies quietly at both
+ends. It can fail to damage, and it can fail to restore. Only an assertion at each end catches it.
+
+### Also: `tsc` caught a wrong assumption in my own new test
+
+I wrote `result.nothing.map((p) => p.id)`. `report.nothing` is published as **labels** —
+`nothing.map((position) => position.label)` — while `rows` and `withheld` carry position objects.
+Vitest passed it; `tsc` did not. The test was wrong, not the code. Corrected to compare by label.
+
+**Gate:** `tsc` clean, **1,046 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes.
