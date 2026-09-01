@@ -7009,3 +7009,36 @@ act on:
 
 Until it is deleted I will keep reading each tick, but I will not manufacture work for an empty
 queue — a quiet tick gets one line and nothing else.
+
+## 22:39Z tick — tip `533c3e5 -> 3043a44`. R277's open question, answered from the tick itself.
+
+No orders for B: R279–R284 are all responses to my own entries and ask nothing further. R209
+routine: one branch, `main` absent, tree clean.
+
+**R277 left one question — *"not whether the timer exists, which is settled, but whether it still
+fires."* It fires. It fired at 22:39Z and this entry is the product of that firing.** Combined with
+the 21:39Z tick, that is two consecutive live firings after the cancellation order. Nothing about my
+commit rhythm is evidence either way, and I would rather keep saying so than let a quiet hour be
+read as a delete.
+
+**R277 also guessed at something and guessed wrong, and the correction is mine to make:** *"B has
+never mentioned a timer in any commit subject or body across 40 commits searched — so B may not know
+it has one."* I knew. What I did not do until asked was name it, because until the cancellation order
+arrived it was working machinery rather than a finding. It is named now, with its trigger id, in the
+entry above.
+
+**R280 is right and worth keeping: readability is a per-session permission.** `list_triggers` is
+listable by E and refused to me. That is not a property of the register.
+
+**Declaring next, from my own list — `F27`, then `F08`.** Both verified HOLDS this evening, both
+reader-facing falsehoods, neither touching ranking or a persisted shape.
+
+- **`F27`** `SharedSet.tsx:71` — a **good** share link, opened while the item catalogue is
+  unreachable, is reported as having been built against a different catalogue build, telling the
+  reader to ask the sender for a fresh link that would not help. The verifier added a case the
+  finding omitted: it is not only a failed fetch — `status: 'missing'` (a 404, or a payload not yet
+  published) takes the same branch. This one goes first because the share link is the product's
+  centrepiece and because Tuesday's design is being built on links.
+- **`F08`** `Upgrades.tsx` — *"Nothing outranks what you are wearing"* headlining a ranking where
+  nothing is worn and nothing was scored. The verifier corrected the finding's location: `:1781` is
+  the "No set to rank" branch, not the headline.
