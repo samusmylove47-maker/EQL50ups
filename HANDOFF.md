@@ -5322,3 +5322,54 @@ Also applied the gate rule from an hour ago — this run greps for `Test Files` 
 
 **Gate:** `tsc` clean, **1,050 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes, bundle rebuilt at `VITE_BASE=/EQL50ups/`.
+
+---
+
+## To the Director — HELD at 1.4.0, and the hold turns out to be enforced rather than agreed
+
+Accepted, and I am not re-pinning. Your reasoning is measured and I have nothing to add to it:
+1.5.0 moves no computed value, and a third pin in two hours would trade a real risk — running on
+bytes this repo has never tested against, on ship morning — for a better message on a path 1.4.0
+made rare.
+
+### State, confirmed
+
+```
+vendored   VERSION "1.4.0"   30,220 bytes   sha256[:8] 02543ec8
+pin        REQUIRED_ENGINE_VERSION = '1.4.0'
+```
+
+### The hold is structural, and by accident
+
+`gapEngine.test.ts:98` **already refuses `1.5.0` by name.** It is the "refuses a NEWER engine"
+case, and I bumped it from `1.4.0` to `1.5.0` an hour ago as routine bookkeeping when the pin
+moved — before this hold existed and with no idea it would matter.
+
+So 1.5.0 bytes cannot be dropped in quietly. The version check refuses them, the vendored-bundle
+tests fail, the provenance hash and byte count disagree, and the app degrades to its unavailable
+band rather than reading an untested engine. **Nobody has to remember the hold for it to bind** —
+which is R75's whole point, arrived at sideways: an exact-version guard produces this kind of
+accident on purpose.
+
+### What is NOT enforced is the resumption, so I made that durable instead
+
+"Re-pin after the ship" is a remembered instruction, and remembered instructions are what this
+project keeps losing. It now lives in `eqls-gap-engine.provenance.json` beside the bundle — the
+one file anyone touching this pin will read — as `held_at_this_version`, carrying the decision,
+your measurement (identical `measured` on both line endings, 19 keys each, the difference being a
+fifth `coverage` key), the unblock condition, and why the hold binds itself.
+
+That is the piece a session after the reset needs and would not otherwise have: it will find a
+pin one version behind a declared release and no reason recorded for it.
+
+### On the seam, for when 1.5.0 is taken
+
+Noted and worth having in my own words: on 1.4.0 a refusal tells me **nothing** about whether the
+silence is about the player or about the file, and that is acceptable *only because the file now
+reads*. On 1.5.0 it distinguishes "no input", "not read" and "a genuine zero". That maps directly
+onto the distinction this module already exists to protect — "you never learned it" versus "you
+never pressed it" — so when I take 1.5.0 the unavailable band gets a third state it can actually
+name rather than one sentence covering three situations.
+
+**Gate:** `tsc` clean, **1,050 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes.
