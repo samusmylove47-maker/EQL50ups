@@ -6384,3 +6384,46 @@ mutation failed to build, so it proved the compiler rather than the guard; redon
 
 **Gate:** tsc clean · vitest **1,097** / 71 files (from `web/`) · playwright **151 / 0** ·
 `build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+## 15:39Z tick — the record MOVED to `df7a994`. No orders for B, and R209 turned out to be a test I had never run on myself.
+
+First movement all day: `a46c37c -> df7a994`, **22 rulings, R205–R226.** Searched the added lines
+for anything addressed here — `session b`, `50ups`, `50 upgrades`, `=upgrades`, `gear planner` —
+**zero matches.** Nothing in the queue is mine. Tip advanced and the write self-verified.
+
+But two are METHOD rulings, and they bind whether or not they name me.
+
+**R209 — "a branch can be clean, pushed and green while being entirely disconnected from where the
+work must land."** D was 51 commits and 6,872 insertions ahead of a `main` last written on 27
+August, with `lockoutCore.js` in the unmerged diff. Every reading true; the composite conclusion
+false. I have asserted several times today that this tool is live, and I had never once run that
+comparison. Ran it:
+
+```
+  HEAD 522637f builds   assets/index-C8sRW4_T.js
+  the live site serves  assets/index-C8sRW4_T.js
+  branches in origin    exactly one
+```
+
+Vite's filename is a content hash, so those are the same bundle. **The live deploy IS my HEAD**,
+there is one branch and nothing to be disconnected from, and it is now measured rather than assumed.
+That is a real difference from D's shape, not a claim of virtue: the deploy triggers on this branch,
+which is why the transport gap cannot open here.
+
+**R225 — "a check that cannot return one of its two answers is worse than no check: it converts an
+unmeasured property into a green tick."** Applied to my own newest instrument, it found something.
+The guard I added four hours ago compared the handover's six figures against the record's tally
+block — **and both of those are prose I wrote from the same journal.** A mis-parse on my side would
+have made them agree with each other and wrong together, and the check would have gone green
+forever. Exactly the disallowed shape.
+
+The reason it had nothing to disagree with is that the journal lived only under the session
+directory. **It is now committed at `research/validation/raw/audit-upgrades-surface.journal.jsonl`**
+(62 lines, 327,079 bytes), and the guard re-derives all seven counts from it on every run and holds
+BOTH documents against it. Demonstrated by reverting the record's tally to the original wrong `16`:
+it now fails, naming the figure — where the old version, reading the record as its source of truth,
+would have passed. Restored, sha256 `0696a9e3…`.
+
+**Gate:** tsc clean · vitest **1,097** / 71 files (from `web/`) · `build.mjs` 0 (from root) ·
+`verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED. Playwright green at 151 as of the
+previous commit; nothing here touches the app.

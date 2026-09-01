@@ -186,27 +186,61 @@ describe('the handover on what the fan-out actually returned', () => {
    * sentence in the handover state the same six numbers.
    */
   it('states the same counts the extracted record does', () => {
-    const record = read('../research/validation/AUDIT-UPGRADES-SURFACE.md');
     const handoff = read('../HANDOFF.md');
+    const record = read('../research/validation/AUDIT-UPGRADES-SURFACE.md');
 
-    const tally = (label: string): number => {
-      const m = new RegExp(`^\\s*${label}\\s+(\\d+)\\s*$`, 'm').exec(record);
-      expect(m, `the record's tally block names "${label}"`).toBeTruthy();
-      return Number(m?.[1]);
-    };
+    /*
+     * Counted from the RUN'S OWN JOURNAL, not from either document.
+     *
+     * This compared the handover's sentence against the record's tally block —
+     * and both of those are prose I wrote from the same source, so a mis-parse
+     * would have made them wrong together and the check would still have gone
+     * green. Under R225 that is the disallowed shape: a check that cannot
+     * return one of its two answers converts an unmeasured property into a
+     * green tick.
+     *
+     * The journal lived only under the session directory, which is why there
+     * was nothing to disagree with. It is committed beside the record now, so
+     * the numbers are re-derived from the primary artifact on every run and
+     * BOTH documents can be contradicted by it.
+     */
+    const journal = read('../research/validation/raw/audit-upgrades-surface.journal.jsonl');
+    const results = journal.split('\n').filter(Boolean)
+      .map((line) => JSON.parse(line) as { type?: string; result?: unknown })
+      .filter((r) => r.type === 'result')
+      .map((r) => r.result as Record<string, unknown>);
+    expect(results.length, 'the journal must hold agent results').toBeGreaterThan(0);
 
-    const raised = tally('findings raised');
-    const verdicts = tally('verdicts returned');
-    const confirmed = tally('mechanism CONFIRMED');
-    const refuted = tally('mechanism REFUTED');
-    const agree = tally('severity  AGREE');
-    const tooHigh = tally('severity  TOO-HIGH');
-    const tooLow = tally('severity  TOO-LOW');
+    const findings = results.filter((r) => Array.isArray(r.findings))
+      .flatMap((r) => r.findings as unknown[]);
+    const calls = results.filter((r) => typeof r.mechanism_verdict === 'string');
+    const count = (key: string, value: string) =>
+      calls.filter((v) => v[key] === value).length;
 
-    // The record must be internally consistent before it is worth comparing to.
+    const raised = findings.length;
+    const verdicts = calls.length;
+    const confirmed = count('mechanism_verdict', 'CONFIRMED');
+    const refuted = count('mechanism_verdict', 'REFUTED');
+    const agree = count('severity_verdict', 'AGREE');
+    const tooHigh = count('severity_verdict', 'TOO-HIGH');
+    const tooLow = count('severity_verdict', 'TOO-LOW');
+
     expect(confirmed + refuted, 'every verdict is confirmed or refuted').toBe(verdicts);
     expect(agree + tooHigh + tooLow, 'every verdict carries a severity call').toBe(verdicts);
     expect(raised, 'more raised than judged — the .slice(0, 3) cap').toBeGreaterThan(verdicts);
+
+    // The record's own tally block must match the journal too, not just the
+    // handover — otherwise the record could drift while this still passed.
+    for (const [label, n] of [
+      ['findings raised', raised], ['verdicts returned', verdicts],
+      ['mechanism CONFIRMED', confirmed], ['mechanism REFUTED', refuted],
+      ['severity  AGREE', agree], ['severity  TOO-HIGH', tooHigh],
+      ['severity  TOO-LOW', tooLow],
+    ] as Array<[string, number]>) {
+      expect(record, `the record's tally for "${label}"`).toMatch(
+        new RegExp(`^\\s*${label}\\s+${n}\\s*$`, 'm'),
+      );
+    }
 
     expect(handoff).toContain(
       `**${raised} findings raised, ${verdicts} verdicts returned, `
