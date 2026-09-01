@@ -629,11 +629,37 @@ export function* upgradeSteps(
    * ended the position outright — no row, and the slot counted as "already
    * best" — while a one-hander one place down the list was a real gain nobody
    * looked at.
+   *
+   * **`net` returns a value to maximise, not a yes/no, and that is the second
+   * half of the same defect.** Accepting the first candidate that cleared the
+   * floor was right for twenty-two of the twenty-three positions and wrong for
+   * Primary. Everywhere else the value is `ep - wornEp`, which falls as `ep`
+   * falls, so the first to clear is the highest. The two-handed offhand
+   * subtraction is the one term that breaks that ordering: a two-hander that
+   * cleared `MIN_GAIN` ended the walk while a one-hander one place down — which
+   * pays no offhand cost — netted more and was never looked at. The reader was
+   * shown the smaller number, told it was their biggest gain, and because
+   * `rows.sort` orders by exactly that number the Primary row also sat too low
+   * in a list whose heading promises "biggest first".
+   *
+   * The walk is now exhaustive. It costs nothing worth counting: the scores
+   * were all computed in pass one, and this visits 3,815 already-scored
+   * candidates across all 23 positions (measured over the shipped payload for a
+   * WAR/BRD/BER 50 with an empty set, `rankSlotItems` per position, counting
+   * entries with `score > 0`). An early exit is possible but not obviously
+   * correct — a negatively-weighted offhand makes the netting a bonus rather
+   * than a cost — and an obvious walk beats a clever bound here.
+   *
+   * The Lore claim still happens once, on the winner only. That ordering is
+   * load-bearing in the same way it was before: a candidate we pass over must
+   * not consume the single copy another slot could have had.
    */
   const take = (
     entry: SlotRanking,
-    accept: (candidate: UpgradeCandidate) => boolean = () => true,
+    net: (candidate: UpgradeCandidate) => number | null = () => 0,
   ): UpgradeCandidate | null => {
+    let best: UpgradeCandidate | null = null;
+    let bestNet = -Infinity;
     for (const scored of entry.ranked) {
       if (scored.score <= 0) break; // the list is ordered; nothing below helps
       const key = scored.item.n.toLowerCase();
@@ -641,11 +667,17 @@ export function* upgradeSteps(
       if (owner !== undefined && owner !== entry.position.id) continue;
       if (claimed.has(key)) continue;
       const candidate = { item: scored.item, upgrade: entry.candidateUpgrade, ep: scored.score };
-      if (!accept(candidate)) continue;
-      if (isLore(scored.item)) claimed.add(key);
-      return candidate;
+      const value = net(candidate);
+      if (value === null) continue;
+      // Strictly greater, so an exact tie keeps the earlier entry — the list is
+      // EP-ordered, which is the candidate first-accepted used to return.
+      if (value > bestNet) {
+        bestNet = value;
+        best = candidate;
+      }
     }
-    return null;
+    if (best && isLore(best.item)) claimed.add(best.item.n.toLowerCase());
+    return best;
   };
 
   // Best-off slots choose first, and a position that cannot state a gain at all
@@ -680,14 +712,25 @@ export function* upgradeSteps(
         // Reject rather than net against a zero nobody measured. A one-handed
         // candidate further down the list pays no offhand cost and is unaffected.
         blockedOnOffhand = true;
-        return false;
+        return null;
       }
       const netGain = candidate.ep - entry.wornEp - (netting?.offhandEp ?? 0);
-      if (netGain < MIN_GAIN) return false;
-      twoHanded = netting;
-      gain = netGain;
-      return true;
+      return netGain < MIN_GAIN ? null : netGain;
     });
+
+    if (best) {
+      /*
+       * Priced again for the winner rather than remembered from inside the
+       * walk. The walk carries on past the candidate it ends up choosing, so a
+       * `twoHanded` assigned as a side effect would be whichever candidate was
+       * examined last — printing a subtraction that is not in the gain beside
+       * it. The `unpriceable` arm is unreachable here: such a candidate was
+       * rejected above and cannot be the winner.
+       */
+      const netting = twoHandedCost(entry, best, byPosition, weights);
+      twoHanded = netting === 'unpriceable' ? null : netting;
+      gain = best.ep - entry.wornEp - (twoHanded?.offhandEp ?? 0);
+    }
 
     if (entry.reason && (entry.wornName || WITHHELD_WITHOUT_WORN.has(entry.reason))) {
       withheld.push({

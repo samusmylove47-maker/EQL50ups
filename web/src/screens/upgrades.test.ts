@@ -841,6 +841,73 @@ describe('a two-handed primary nets off the offhand it costs', () => {
     if (primary) expect(primary.gain).toBeGreaterThanOrEqual(0.05);
   });
 
+  /*
+   * The netting has to decide the RECOMMENDATION, not just annotate it.
+   *
+   * `take()` walked the ranked list — ordered by raw EP — and returned the
+   * first candidate that cleared MIN_GAIN. For every position but Primary that
+   * is provably the best one: netGain is `ep - wornEp`, which falls with ep, so
+   * first-clearing is max-clearing. The two-handed offhand subtraction is the
+   * one thing that breaks that ordering, and nothing accounted for it. A
+   * two-hander that cleared the floor ended the walk while a one-hander one
+   * place below — paying no offhand cost — netted more and was never looked at.
+   *
+   * The numbers here are chosen so the two-hander is NOT refused: it clears the
+   * floor comfortably. That is what separates this from the test above, which
+   * covers a two-hander that loses outright. This one wins on paper, survives
+   * the netting, and is still the wrong answer.
+   *
+   *   greatsword  60*2 + 40 + (60/20)*20 = 220 raw, minus a 40 EP offhand = 180
+   *   keen sabre  60*2 + 40 + (40/20)*20 = 200 raw, no offhand cost      = 200
+   *
+   * So the reader was shown the 180 and told it was their biggest gain, and
+   * because rows are sorted by that understated number the Primary row also sat
+   * lower in a list whose heading promises "biggest first".
+   */
+  const KEEN_SABRE = item({
+    n: '[Test] Keen Sabre', sl: ['PRIMARY'],
+    st: { STR: 40, AC: 60 }, wp: { dmg: 40, dly: 20, skill: '1H Slashing' },
+  });
+
+  it('picks the best NET candidate, not the first one that clears the floor', () => {
+    addItem(GREATSWORD);
+    addItem(KEEN_SABRE);
+    addItem(SMALL_OFFHAND);
+    const result = report(gearSet({ SECONDARY: { itemName: SMALL_OFFHAND.n, upgrade: tier(0) } }));
+    const primary = rowFor(result, 'PRIMARY');
+
+    // The premise, asserted rather than assumed: the two-hander really does
+    // rank higher on raw EP, and really does still clear the floor once netted.
+    const raw = (i: Item) => scoreItem(i, tier(0), WEIGHTS, { weaponCounts: true }).total;
+    expect(raw(GREATSWORD)).toBeGreaterThan(raw(KEEN_SABRE));
+    expect(raw(GREATSWORD) - raw(SMALL_OFFHAND)).toBeGreaterThan(0.05);
+    // And the one-hander really is the better trade.
+    expect(raw(KEEN_SABRE)).toBeGreaterThan(raw(GREATSWORD) - raw(SMALL_OFFHAND));
+
+    expect(primary?.candidate.item.n).toBe(KEEN_SABRE.n);
+    expect(primary?.twoHanded).toBeNull();
+    expect(primary?.gain).toBeCloseTo(raw(KEEN_SABRE), 10);
+  });
+
+  /*
+   * The other half of the same rule: when the two-hander IS the best net, it
+   * still wins. A fix that simply preferred one-handers would pass the test
+   * above and be just as wrong.
+   */
+  it('still picks the two-hander when it is the best net', () => {
+    addItem(GREATSWORD);
+    addItem(SMALL_OFFHAND);
+    // A one-hander well below the greatsword's netted 180.
+    addItem(item({
+      n: '[Test] Dull Sabre', sl: ['PRIMARY'],
+      st: { STR: 10, AC: 20 }, wp: { dmg: 20, dly: 20, skill: '1H Slashing' },
+    }));
+    const result = report(gearSet({ SECONDARY: { itemName: SMALL_OFFHAND.n, upgrade: tier(0) } }));
+    const primary = rowFor(result, 'PRIMARY');
+    expect(primary?.candidate.item.n).toBe(GREATSWORD.n);
+    expect(primary?.twoHanded?.offhandName).toBe(SMALL_OFFHAND.n);
+  });
+
   it('leaves a one-handed winner alone — the netting is not a blanket penalty', () => {
     const primary = rowFor(worn(ONEHANDER, SMALL_OFFHAND), 'PRIMARY');
     expect(primary?.twoHanded).toBeNull();

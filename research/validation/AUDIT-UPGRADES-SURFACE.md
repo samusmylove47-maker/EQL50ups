@@ -89,6 +89,7 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F08` — an unsearched ranking claimed you were already wearing the best | **closed** | guarded in `emptyRanking.test.ts` + `upgrades-screen.test.tsx` |
 | `F28` — "Usable by this loadout" over a race gate that never ran | **closed** | guarded in `race-unjudged.test.ts` + `itemwindow.test.tsx` |
 | `F31` — the level gate had nothing to read until the shards landed | **closed** | guarded in `verify.mjs` + `index-gate-parity.test.ts` |
+| `F12` — the Primary row took the first two-hander that cleared the floor, not the best | **closed** | guarded in `upgrades.test.ts` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched
@@ -779,6 +780,81 @@ Not an empty-slot artifact — web/src/screens/probe-order8.test.ts, PAL/melee-d
   available: Aldryn, Blade of the Ocean +41.05
 
 **Player impact.** The Primary row names the wrong item to farm, prints a gain understated by a mean of 6.25 EP (max 28.88 measured), and sits too low in a list the screen orders 'biggest gain first'. It also tells the player to give up their offhand for a swap that is worse than a one-hander that costs them nothing — the exact failure the surrounding comment at Upgrades.tsx:551-558 says the walk was introduced to fix ('a one-hander one place down the list was a real gain nobody looked at'). The walk was added; the comparison was not.
+
+
+**CLOSED.** `take()` now maximises rather than accepts-first, and the interesting part is what
+measuring it found that the argument did not.
+
+*The fix.* `take`'s callback changed from `boolean` to `number | null` — a value to maximise, or a
+rejection — and the walk is exhaustive. For twenty-two of the twenty-three positions this changes
+nothing and provably cannot: the value is `ep - wornEp`, which falls as `ep` falls, so first-clearing
+was already max-clearing, and the comparison is strictly `>` so an exact tie keeps the earlier
+(higher-EP) entry, exactly as first-accepted did. Only Primary's two-handed offhand subtraction
+breaks that ordering. The Lore claim moved to the winner alone, which is the coupling the verifier
+flagged: a candidate passed over must not consume the single copy another slot could have had.
+`twoHanded` and `gain` are priced again for the winner rather than assigned as a side effect inside
+the walk — the walk now continues past the candidate it chooses, so a side-effect assignment would
+print whichever subtraction happened to be examined last.
+
+*Cost.* The exhaustive walk visits 3,815 already-scored candidates across all 23 positions (measured:
+`rankSlotItems` per position over the shipped payload, WAR/BRD/BER 50, empty set, counting
+`score > 0`; the two Any Slots are 1,058 each). Pass one already scored every one of them, so this
+is a comparison per candidate. An early exit is possible but is *not* obviously correct — a
+negatively-weighted offhand makes the netting a bonus rather than a cost, so the bound is not simply
+`ep - wornEp` — and an obvious walk beats a clever bound on a ranking a reader acts on.
+
+*Blast radius, measured here rather than carried over — and it does not reproduce the finding's
+figure.* A/B over the shipped payload, 220 configurations (4 trios x 5 presets x 11 offhands sampled
+across the EP range *under each preset*, because the inversion needs a valuable offhand), running
+the whole `computeUpgrades` both ways:
+
+    configurations compared        : 220
+    Primary row changed            : 10  (4.5%) — the recommended ITEM changed in all 10
+    gain understated by, max       : 33.976 EP
+    gain understated by, median    : 15.976 EP
+    worst case  WAR/CLR/SHM balanced, offhand Life's Guard:
+                was  Baton of the Sky  +19.000
+                now  Dagas             +52.976
+    by preset  : balanced 9/44, melee-dps 1/44, caster 0, healer 0, tank 0
+
+**This is 4.5%, not the 42.6% (264 of 620) the verifier reported.** The sweeps are not the same one
+— mine samples offhands by EP rank under each preset, theirs enumerated 620 configurations by some
+other definition — so this neither confirms nor refutes their number, and I am not going to reprint
+it as though I had. What I measured is 10 of 220, concentrated entirely in the two presets that
+weight weapons; under caster, healer and tank no Primary row moved at all, because two-handers do
+not top those rankings.
+
+*The cascade the monotonicity argument would have missed.* I had a proof that no position but
+Primary could change, and I checked it anyway over all 4,776 rows of the same matrix. **Twenty rows
+differ, not ten.** All ten of the extra rows are correct, and none of them are a tie-break
+regression:
+
+    by position: PRIMARY 10, ANY_1 6, SECONDARY 4   (2 SECONDARY rows disappear entirely)
+
+`Dagas` is `LORE` and lists **both** `PRIMARY` and `SECONDARY`, so there is one copy and the two
+hands contest it. Primary now wins it — gaining 52.976 against Secondary's 5.476 — and Secondary
+falls to its next best (`Bladestopper +12.5`) or, twice, to nothing at all, which is the correct
+"already best". `Baton of the Sky` is `LORE` and `PRIMARY`-only; when Primary stops taking it, it
+frees up for `ANY_1`, which takes it at **the identical 57.5 EP** the item it displaces was worth.
+So every non-Primary change is the single-copy hand-out reallocating to the position that gains
+more, and not one reader is left with a smaller number. The proof was right about the rule and wrong
+about the blast radius, which is the whole argument for measuring it.
+
+*Guards, and proof they fire.* Two cases added to `web/src/screens/upgrades.test.ts`, in the section
+that already covers the netting. The first pins the defect — a greatsword at 220 raw against a 40 EP
+offhand nets 180, while a 200 EP one-hander below it pays nothing — and asserts its own premises
+(that the two-hander really does rank higher on raw EP, and really does still clear the floor) so it
+cannot pass by accident. The second pins the converse: when the two-hander *is* the best net it must
+still win, because a fix that merely preferred one-handers would satisfy the first and be equally
+wrong. That second case was green before the fix.
+
+    $ # take() reverted to first-accepted, whole suite
+    $ cd web && npx vitest run
+      Test Files  1 failed | 76 passed (77)
+           Tests  1 failed | 1144 passed (1145)
+
+Restored and verified byte-identical by `sha256sum -c`. No persisted or published shape is touched:
+`web/public/data/` is not implicated and `UpgradeRow`'s fields are unchanged.
 
 **Verdict** — mechanism **CONFIRMED**, severity **AGREE**, scope **NARROWER**.
 

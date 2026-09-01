@@ -7253,3 +7253,63 @@ ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PA
 **Remaining from my own list: F04, F07, F12.** All three are `Upgrades.tsx` ranking questions, and
 F12 is the one with a wrong recommendation in it — a Primary row showing the first two-hander that
 clears the floor rather than the best. F12 next.
+
+## `F12` CLOSED — the Primary row now recommends the best net gain, not the first one over the floor
+
+`take()` walked the EP-ordered list and returned the first candidate clearing `MIN_GAIN`. For
+twenty-two positions that is provably the best: the value is `ep - wornEp`, which falls as `ep`
+falls. Primary's two-handed offhand subtraction is the one term that breaks the ordering, and a
+two-hander that cleared the floor ended the walk while a one-hander one place down — paying no
+offhand cost — netted more and was never looked at. The reader was shown the smaller number and told
+it was their biggest gain, and since `rows.sort` orders by exactly that number, the Primary row also
+sat too low in a list headed "biggest first".
+
+The callback now returns a value to maximise rather than a yes/no, and the walk is exhaustive. Ties
+compare strictly, so the earlier (higher-EP) entry wins exactly as first-accepted did. The Lore claim
+moved to the winner alone — the coupling the verifier flagged. `twoHanded` and `gain` are priced
+again for the winner rather than assigned inside the walk, because the walk now continues past the
+candidate it chooses and a side-effect assignment would print whichever subtraction was examined
+last.
+
+**Cost, measured before choosing:** the exhaustive walk visits 3,815 already-scored candidates across
+all 23 positions (the two Any Slots are 1,058 each). Pass one scored every one of them, so this is a
+comparison apiece. An early exit is available and I did not take it: a negatively-weighted offhand
+makes the netting a bonus rather than a cost, so the obvious bound is not sound, and an obvious walk
+beats a clever bound on a ranking someone acts on.
+
+**I did not reproduce the verifier's headline number, and I am not going to reprint it.** Its record
+says the defect fires in 264 of 620 real configurations. My own A/B over the shipped payload — 220
+configurations, 4 trios x 5 presets x 11 offhands sampled by EP rank *under each preset*, because
+the inversion needs a valuable offhand — gives **10 changed, 4.5%**, all ten changing the recommended
+item, understating the gain by a median 15.976 and a maximum 33.976 EP. Worst case: WAR/CLR/SHM,
+balanced, offhand Life's Guard — *was* `Baton of the Sky +19.000`, *now* `Dagas +52.976`. It is
+concentrated entirely in the two presets that weight weapons: balanced 9/44, melee-dps 1/44, and
+zero under caster, healer and tank. The two sweeps are not the same sweep, so mine neither confirms
+nor refutes theirs — which is the only honest thing to say about it.
+
+**The part worth reading twice.** I had a proof that no position but Primary could change. I checked
+it anyway, across all 4,776 rows of the same matrix, and **20 rows differ, not 10** — PRIMARY 10,
+ANY_1 6, SECONDARY 4, with two Secondary rows disappearing outright. Every one of the extra ten is
+correct: `Dagas` is `LORE` and lists **both** hands, so there is one copy and Primary now wins it
+(52.976 against Secondary's 5.476) while Secondary falls to `Bladestopper +12.5` or to a true
+"already best"; `Baton of the Sky` is `LORE` and `PRIMARY`-only, so when Primary stops taking it,
+`ANY_1` picks it up at **the identical 57.5 EP** the item it displaces was worth. Nobody is left
+with a smaller number. The proof was right about the rule and wrong about the blast radius, and the
+only reason I know that is that I measured a thing I had already convinced myself about.
+
+**Guards.** Two cases in `upgrades.test.ts`, in the netting section that already exists. The first
+pins the defect and asserts its own premises — that the two-hander really does rank higher on raw EP
+and really does still clear the floor — so it cannot pass by accident. The second pins the converse:
+when the two-hander *is* the best net it must still win, since a fix that merely preferred
+one-handers would satisfy the first and be equally wrong. That one was green before the fix.
+Reverting `take()` to first-accepted gives `1 failed | 1144 passed (1145)`; restored and verified
+byte-identical by `sha256sum -c`. No persisted or published shape is touched.
+
+Gate: `tsc` clean · vitest **1,144 passed / 76 files** · playwright **151 passed** · `npm run build`
+ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+**Remaining from my own list: F04 and F07.** Both are `Upgrades.tsx` counting questions and both were
+verified **PARTIAL** rather than HOLDS, so each needs its own reproduction before any fix — F04 is a
+Measured-drops header double-counting a mob across payload spellings, F07 is the `nothing` bucket
+reporting "nothing scored" for positions whose only candidates were taken elsewhere. F07 next: it
+prints a false sentence, where F04 prints a number that is merely too high.
