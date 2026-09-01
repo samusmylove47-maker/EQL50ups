@@ -372,11 +372,6 @@ var EQLS50Upgrades = (function(exports) {
 		bucket.push(position.id);
 		POSITIONS_BY_TYPE.set(position.type, bucket);
 	}
-	/**
-	* Every eligible item that beats what is worn, for every slot position.
-	*
-	* **Unordered.** The array order is an enumeration artefact — see the contract.
-	*/
 	function candidates(input, catalog, options = {}) {
 		const ctx = {
 			classes: input.classes,

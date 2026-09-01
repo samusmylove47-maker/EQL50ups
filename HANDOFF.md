@@ -4464,3 +4464,109 @@ vacuous — it throws `ENOENT` and exits non-zero. Ugly, but loud. Not part of t
 
 **Gate:** `tsc` clean, **1,032 tests in 68 files**, `verify.mjs` 66 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes, BIS republished.
+
+---
+
+## To the Director — the contract's own entry point threw when called as declared
+
+`.director-tip` advanced to `27a8f397`. R105 and R106 ratify work already pushed; nothing new
+was ordered of B. Both fan-outs then landed. **13 findings survived refutation, 6 of them
+already fixed in tonight's commits.** Reporting below only what I re-ran myself; the remainder
+is a count, per R100.
+
+### CONFIRMED against the shipped bundle — the seam's declared signature was wrong
+
+`bis-contract.ts` published `CandidatesFn = (input: BisInput) => BisCandidate[]`. The shipped
+function has always required the catalogue as a second argument. Probed against the published
+bundle rather than reasoned about:
+
+```
+EQLS50Upgrades.candidates.length                     -> 2
+EQLS50Upgrades.candidates({classes:['WAR'], level:50,
+                           race:null, currentGear:{}}) -> TypeError: catalog is not iterable
+EQLS50Upgrades.candidates(input, [])                  -> 0 candidates
+```
+
+**E, writing to the contract exactly as published, got a crash.** Same class as R106: a type in
+one file and a function in another, with nothing comparing them.
+
+Fixed, and pinned by one line in `bis.ts`:
+
+```ts
+const _contractShape: CandidatesFn = candidates;
+```
+
+A/B — reverting the type to the one-argument form fails `tsc` with the message that would have
+prevented this: *"Target signature provides too few arguments. Expected 2 or more, but got 1."*
+Restore verified by `sha256sum -c`.
+
+**I did not make the catalogue optional.** A `candidates()` returning `[]` for a missing
+catalogue is R98 again — an empty answer wearing a completeness claim.
+
+### And a name collision in the same file
+
+Moving the signature into the contract surfaced **two different `ZoneSurvey` types in one
+codebase**: `engine/types.ts:84` is `{zone, slug, title, survey, measured, facets}`;
+`bis.ts` had `{title, levels?}`. A consumer reading the contract and grepping the name would
+land on the other and build to six fields that are not there — R81's hazard, inside one repo.
+Renamed `BisZoneSurvey` and moved into the contract, so the distinction is carried by the name.
+
+### The header promised a refusal it did not implement
+
+`publish-bis.mjs` has said since it was written: *"this refuses rather than publishing a stale
+bundle."* The only check was `existsSync` — which refuses an **absent** bundle and publishes a
+**stale** one silently. Editing `bis.ts` and running the publisher alone republished the old
+bytes under a fresh manifest.
+
+Now implemented. **The source set is walked, not globbed by extension — R109 applied the hour
+you ruled it:** an extension list is blind to extensions nobody thought of, and the newest file
+is the one you did not anticipate.
+
+```
+A bundle fresh ..................... exit 0
+B touch web/src/engine/bis.ts ...... exit 2  "the bundle is STALE — web/src has changed 36s
+                                              since ... (156 source files walked, no
+                                              extension filter)"
+C rebuild, then publish ............ exit 0
+```
+
+### The decisive zones case, which I had NOT tested and my fix does close
+
+The `[1]` lens built a case I missed: a payload that **diverges from the vendored source while
+staying self-consistent** (Befallen shipped `facets=4/measured=2` against a source saying 5/3).
+With the source renamed away, that payload passed `verify.mjs`, `catalogue-audit.mjs` and all
+1,021 tests — **the entire CI gate green on a payload its own source contradicts.** Re-run
+against my fix:
+
+```
+source present ... exit 1   the grade check fires (as before)
+source absent  ... exit 1   was exit 0 / VERIFY PASSED
+```
+
+Closed. Reporting it because the case is stronger than the one I built for the same fix.
+
+### The race defect, measured through the app's own ranker
+
+I fixed the vocabulary earlier on a count. The `eligibility` lens supplied the consequence, and
+I reproduced it — `rankSlotItems`, CLR/DRU/SHM, tank weights, FEET, the real payload:
+
+```
+race UNSET   44.8 EP  Rune Etched Boots       ra=["BAR","TRL","OGR"]   <- #1
+             43.0 EP  Lustrous Russet Boots   ra=["ALL"]
+race HUM     43.0 EP  Lustrous Russet Boots   ra=["ALL"]               <- #1, correct
+```
+
+A Human cleric was shown, as their top recommendation, boots only a Barbarian, Troll or Ogre can
+wear — **and it is the Rune Etched set, the very set `PlanarGear.tsx` names as the case it
+fixed.** Before the fix they could not reach the second state; `HUM` was not in the dropdown.
+
+### Still open, as a COUNT and not as findings
+
+**Seven surviving findings I have not yet reproduced**, including one ship-blocker
+(`statDelta` zero-vs-unknown — note I *verified refuted* a differently-argued version of this
+earlier, and the new argument is not the one I refuted, so it gets a fresh run) and two on
+`Upgrades.tsx` two-handed edge cases adjacent to the one I fixed. Not reported as findings until
+I have run them.
+
+**Gate:** `tsc` clean, **1,032 tests in 68 files**, `verify.mjs` 66 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle `79e8dbd6`.

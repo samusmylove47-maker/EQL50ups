@@ -50,6 +50,26 @@
  */
 
 import type { ClassCode, SlotType } from './constants';
+import type { Item } from './types';
+
+/**
+ * A surveyed zone, as `manifest.surveyedZonesAt` publishes them.
+ *
+ * **Named `BisZoneSurvey`, not `ZoneSurvey`, because that name is already taken
+ * in this repository by a different shape.** `engine/types.ts:84` declares
+ * `ZoneSurvey` as `{ zone, slug, title, survey, measured, facets }` — the rich
+ * published record the Upgrades screen renders. This one is
+ * `{ title, levels? }`, which is all `publish-bis.mjs` emits into the seam.
+ *
+ * Two unrelated shapes under one name, in one codebase, is the hazard R81 names
+ * across repositories. A consumer reading this contract and then grepping for
+ * `ZoneSurvey` would land on the other one and build to six fields that are not
+ * there. The name carries the distinction so no one has to notice it.
+ */
+export interface BisZoneSurvey {
+  title: string;
+  levels?: string;
+}
 
 /* ------------------------------------------------------------------ input */
 
@@ -295,8 +315,37 @@ export interface BisCandidate {
  * function returning a different type, not a constant on this one.
  */
 
-/** The function 50 Upgrades exposes. Unordered — see the module note. */
-export type CandidatesFn = (input: BisInput) => BisCandidate[];
+/**
+ * The function 50 Upgrades exposes. Unordered — see the module note.
+ *
+ * **This declared a single `input` parameter until 1 Sep, and the shipped
+ * function has always taken the catalogue as a second, required one.** Probed
+ * against the published bundle rather than reasoned about:
+ *
+ * ```
+ * EQLS50Upgrades.candidates.length            -> 2
+ * EQLS50Upgrades.candidates({classes:['WAR'], level:50, race:null,
+ *                            currentGear:{}}) -> TypeError: catalog is not iterable
+ * ```
+ *
+ * A consumer writing to this type, exactly as published, got a crash. Nothing
+ * compared the two: a type in one file and a function in another drift in
+ * silence, which is the same shape as R106's fixture that nothing loaded.
+ *
+ * `bis.ts` now carries `const _contractShape: CandidatesFn = candidates;` — one
+ * line, checked by `tsc` on every CI run. It rejects this exact drift with
+ * *"Target signature provides too few arguments. Expected 2 or more, but got
+ * 1."*, which is the message that would have prevented it.
+ *
+ * The catalogue is deliberately NOT optional. A `candidates()` that quietly
+ * returned `[]` for a missing catalogue would be R98 again: an empty answer
+ * carrying a completeness claim, indistinguishable from "nothing qualifies".
+ */
+export type CandidatesFn = (
+  input: BisInput,
+  catalog: readonly Item[],
+  options?: { byId?: Map<string, Item>; surveyedZones?: readonly BisZoneSurvey[] },
+) => BisCandidate[];
 
 /**
  * Contract version. Bump the major when a field is removed or its meaning

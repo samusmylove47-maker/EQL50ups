@@ -1,23 +1,23 @@
 {
   "contract": "web/src/engine/bis-contract.ts",
   "contractVersion": "1.0.0",
-  "contractSha256_8": "957fad1a",
+  "contractSha256_8": "e1025f91",
   "recordsAt": "records",
   "surveyedZonesAt": "surveyedZones",
   "bundle": {
-    "file": "eqls-50upgrades.0d08b268.js",
-    "sha256_8": "0d08b268",
-    "bytes": 15702,
+    "file": "eqls-50upgrades.79e8dbd6.js",
+    "sha256_8": "79e8dbd6",
+    "bytes": 15534,
     "global": "EQLS50Upgrades"
   },
   "catalogue": {
     "file": "bis-catalog.json",
-    "sha256_8": "12da6f79",
+    "sha256_8": "c7b1ec35",
     "bytes": 1440016,
     "records": 3663,
     "withStats": 1713,
     "withObtainability": 3456
   },
-  "builtAt": "2026-09-01T01:29:17.114Z",
+  "builtAt": "2026-09-01T01:44:29.912Z",
   "caveat": "Stat values are overwhelmingly wiki-derived. Every record carries `sd`; only 5 of 3663 are tier-M."
 }

@@ -26,7 +26,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -37,6 +37,51 @@ const OUT = join(ROOT, 'web', 'public', 'bis');
 
 if (!existsSync(BUNDLE)) {
   console.error(`FATAL: ${BUNDLE} is missing. Run: cd web && npm run build:bis`);
+  process.exit(2);
+}
+
+/*
+ * STALE, not merely missing.
+ *
+ * The header above has promised since it was written that this "refuses rather
+ * than publishing a stale bundle", and until now the only check was the
+ * `existsSync` directly above — which refuses an ABSENT bundle and publishes a
+ * stale one without comment. Editing `bis.ts` and running this script alone
+ * republished yesterday's bytes under today's manifest, hash and all.
+ *
+ * The source set is walked, NOT globbed by extension. That is R109 applied:
+ * an extension-keyed coverage list is structurally blind to extensions nobody
+ * thought of, and the newest file is the one you did not anticipate. Every
+ * regular file under `web/src` counts, whatever it is called.
+ *
+ * Over-broad on purpose: a false alarm costs one `npm run build:bis`, and a
+ * miss costs a published bundle that does not match the source it claims.
+ */
+function newestMtime(dir) {
+  let newest = 0;
+  let files = 0;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const sub = newestMtime(full);
+      newest = Math.max(newest, sub.newest);
+      files += sub.files;
+    } else if (entry.isFile()) {
+      newest = Math.max(newest, statSync(full).mtimeMs);
+      files += 1;
+    }
+  }
+  return { newest, files };
+}
+
+const SRC = join(ROOT, 'web', 'src');
+const source = newestMtime(SRC);
+const bundleMtime = statSync(BUNDLE).mtimeMs;
+if (source.newest > bundleMtime) {
+  const behind = Math.round((source.newest - bundleMtime) / 1000);
+  console.error(`FATAL: the bundle is STALE — web/src has changed ${behind}s since `
+    + `${BUNDLE} was built (${source.files} source files walked, no extension filter). `
+    + 'Run: cd web && npm run build:bis');
   process.exit(2);
 }
 

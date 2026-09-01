@@ -25,13 +25,19 @@ import { canUseClass, canUseRace, type LoadoutContext } from './character';
 import type { Item } from './types';
 import type {
   Actionability, BisCandidate, BisInput, Obtainable, StatDelta,
+  BisZoneSurvey,
+  CandidatesFn,
 } from './bis-contract';
 
-/** Zone survey rows, as `meta.zones.surveyed` publishes them. */
-export interface ZoneSurvey {
-  title: string;
-  levels?: string;
-}
+/**
+ * Zone survey rows, as `meta.zones.surveyed` publishes them.
+ *
+ * Declared in `bis-contract.ts` — it is seam surface, and it lived here while
+ * the contract could not name it. Re-exported under the contract's name only;
+ * the bare `ZoneSurvey` is deliberately NOT re-exported, because
+ * `engine/types.ts` already owns that name for a six-field shape.
+ */
+export type { BisZoneSurvey } from './bis-contract';
 
 /**
  * The level gate is SUPPLIED, not derived, and that is deliberate.
@@ -187,7 +193,7 @@ function mobKey(name: string): string {
   return String(name).trim().toLowerCase();
 }
 
-function obtainability(item: Item, surveyed: Map<string, ZoneSurvey>): {
+function obtainability(item: Item, surveyed: Map<string, BisZoneSurvey>): {
   obtainable: Obtainable | 'not recorded';
   actionability: Actionability;
 } {
@@ -226,10 +232,28 @@ for (const position of SLOT_POSITIONS) {
  *
  * **Unordered.** The array order is an enumeration artefact — see the contract.
  */
+/*
+ * THE CONTRACT AND THIS FUNCTION AGREE, checked by `tsc` on every CI run.
+ *
+ * One line, and it earns its place: `CandidatesFn` declared a single `input`
+ * parameter until 1 Sep while this function has always required the catalogue
+ * as a second. Probed against the published bundle, not reasoned about —
+ * `EQLS50Upgrades.candidates({...})` threw `TypeError: catalog is not
+ * iterable`. A consumer writing to the contract exactly as published got a
+ * crash, and nothing in the repository compared the two.
+ *
+ * With the type wrong, this assignment fails with the message that would have
+ * prevented it: *"Target signature provides too few arguments. Expected 2 or
+ * more, but got 1."* A type in one file and a function in another drift in
+ * silence otherwise — the same shape as the fixture nothing loaded (R106).
+ */
+const _contractShape: CandidatesFn = candidates;
+void _contractShape;
+
 export function candidates(
   input: BisInput,
   catalog: readonly Item[],
-  options: { byId?: Map<string, Item>; surveyedZones?: readonly ZoneSurvey[] } = {},
+  options: { byId?: Map<string, Item>; surveyedZones?: readonly BisZoneSurvey[] } = {},
 ): BisCandidate[] {
   const ctx: LoadoutContext = {
     classes: input.classes,
@@ -238,7 +262,7 @@ export function candidates(
     // `input.level`. See `meetsSuppliedLevel`.
     levels: {} as LoadoutContext['levels'],
   };
-  const surveyed = new Map<string, ZoneSurvey>();
+  const surveyed = new Map<string, BisZoneSurvey>();
   for (const z of options.surveyedZones ?? []) surveyed.set(z.title.toLowerCase(), z);
   const byId = options.byId ?? new Map<string, Item>();
 
