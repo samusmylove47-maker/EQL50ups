@@ -47,20 +47,105 @@ const sha = (buf) => createHash('sha256').update(buf).digest('hex');
 const meta = JSON.parse(readFileSync(join(DATA, 'meta.json'), 'utf8'));
 const index = JSON.parse(readFileSync(join(DATA, 'items-index.json'), 'utf8'));
 
+/*
+ * EXPECTED SHARDS — an independent restatement, the same device verify.mjs §6
+ * uses, and here for a demonstrated reason rather than a stylistic one.
+ *
+ * Measured 2026-09-01, in a scratchpad copy of the tracked tree with all 19
+ * shard files deleted:
+ *
+ *   published web/public/bis/
+ *     bis-catalog.json  696692 bytes  3663 records (1713 with stats,
+ *                                                   0 with obtainability)
+ *   EXIT=0
+ *
+ * Half the catalogue gone — 1,440,016 bytes down to 696,692, obtainability
+ * 3,456 down to 0 — published with a clean exit and a manifest that recorded
+ * the truncated hash and size as though they were correct. The guard below
+ * `records.length !== meta.counts.items` cannot fire on this: every record is
+ * seeded from the index and the shards contribute no NEW names (3,663 either
+ * way, measured), so shard loss does not move the count being compared. A
+ * partial loss moves it no further.
+ *
+ * So the vocabulary is restated here rather than read off the directory, and
+ * the coverage figures are re-derived FROM THE SHARDS rather than from the
+ * merged result — a count taken from the thing being checked checks nothing.
+ */
+const SLOTS = ['EAR', 'HEAD', 'FACE', 'NECK', 'SHOULDERS', 'ARMS', 'BACK', 'WRIST', 'RANGE',
+  'HANDS', 'PRIMARY', 'SECONDARY', 'FINGERS', 'CHEST', 'LEGS', 'FEET', 'WAIST', 'AMMO'];
+const EXPECTED_SHARDS = new Set([...SLOTS, 'OTHER'].map((s) => `${s}.json`));
+
+const shardFiles = new Set(readdirSync(join(DATA, 'items')).filter((f) => f.endsWith('.json')));
+const missingShards = [...EXPECTED_SHARDS].filter((f) => !shardFiles.has(f)).sort();
+const extraShards = [...shardFiles].filter((f) => !EXPECTED_SHARDS.has(f)).sort();
+if (missingShards.length || extraShards.length) {
+  console.error(`FATAL: shard set does not match the slot vocabulary. `
+    + `missing=[${missingShards.join(',')}] extra=[${extraShards.join(',')}]. `
+    + 'Refusing to publish a catalogue assembled from an incomplete payload.');
+  process.exit(1);
+}
+
 const byName = new Map();
 for (const item of index.items) byName.set(item.n.toLowerCase(), { ...item });
-for (const file of readdirSync(join(DATA, 'items')).filter((f) => f.endsWith('.json')).sort()) {
+
+const shardCounts = new Map();
+for (const file of [...shardFiles].sort()) {
   const shard = JSON.parse(readFileSync(join(DATA, 'items', file), 'utf8'));
-  for (const item of shard.items ?? shard) {
+  const shardItems = shard.items ?? shard;
+  shardCounts.set(file.replace(/\.json$/, ''), shardItems.length);
+  for (const item of shardItems) {
     const key = item.n.toLowerCase();
     byName.set(key, { ...(byName.get(key) ?? {}), ...item });
   }
 }
 const records = [...byName.values()];
 
+/*
+ * Every shard read the number of items build.mjs says it wrote.
+ *
+ * `meta.counts.perSlot` comes from the OTHER program. That is the whole value
+ * of it: a count taken from the file being checked checks nothing. My first
+ * attempt at this guard compared the merged records against a set built in the
+ * merge loop itself, which was very nearly a tautology — it could not fail, and
+ * an A/B that flipped the merge order published at exit 0 with the guard
+ * silent. Replaced rather than kept alongside.
+ */
+const countMismatches = [];
+for (const [slot, n] of [...shardCounts].sort()) {
+  const declared = meta.counts?.perSlot?.[slot];
+  if (declared !== n) countMismatches.push(`${slot}: shard has ${n}, meta.counts.perSlot says ${declared}`);
+}
+if (countMismatches.length) {
+  console.error(`FATAL: shard contents disagree with the payload's own metadata:\n  `
+    + `${countMismatches.join('\n  ')}\nRefusing to publish.`);
+  process.exit(1);
+}
+
 if (records.length !== meta.counts?.items) {
   console.error(`FATAL: merged ${records.length} records, meta.counts.items says ${meta.counts?.items}. `
     + 'Refusing to publish a catalogue that disagrees with its own metadata.');
+  process.exit(1);
+}
+
+/*
+ * The check the record count cannot make.
+ *
+ * `src` and `st` exist only in the shards; `meta.counts` is written by
+ * build.mjs. So this compares the RESULT of the merge against a number from a
+ * different program — which is what makes it capable of failing. The record
+ * count above cannot: every record is seeded from the index, the shards
+ * contribute no new names, and 3,663 shards or no shards is still 3,663.
+ */
+const coverage = [
+  ['withAcquisition', records.filter((r) => r.src).length],
+  ['withStats', records.filter((r) => Object.keys(r.st ?? {}).length).length],
+];
+const covMismatches = coverage
+  .filter(([key, got]) => got !== meta.counts?.[key])
+  .map(([key, got]) => `${key}: merged records have ${got}, meta.counts says ${meta.counts?.[key]}`);
+if (covMismatches.length) {
+  console.error(`FATAL: the merge lost or invented data:\n  ${covMismatches.join('\n  ')}\n`
+    + 'Refusing to publish.');
   process.exit(1);
 }
 

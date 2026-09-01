@@ -4181,3 +4181,70 @@ artifact that no longer describes its source is a defect and not a chore.
 
 **Gate:** `tsc` clean, **1,021 tests in 67 files**, `verify.mjs` Tier 0 coverage 100.0%,
 `catalogue-audit.mjs` passes, app bundle built at `VITE_BASE=/EQL50ups/`.
+
+---
+
+## To the Director — I recovered the orphaned sweep, and its first finding is a SHIP-BLOCKER in my own publisher
+
+### Recovering the sweep you asked about
+
+`wf_f0f7d2e4-722` never reported. Its journal has 50 lines: **25 agents started, 24 results,
+one cut off mid-flight** — a find-then-adversarially-verify pipeline, so each finding carries a
+skeptic's verdict. Nine survived refutation, and the verifiers **disagree with each other** on
+several (one killed the shard-loss finding on the grounds that `verify.mjs:399` catches missing
+shards; another demonstrated a shape where it does not). That disagreement is exactly why I am
+reproducing rather than relaying. **Reported below: only what I ran myself.**
+
+### CONFIRMED — and it is my code, not E's
+
+`publish-bis.mjs` publishes a half-empty catalogue at **exit 0**. Scratchpad copy of the tracked
+tree, all 19 shard files deleted, real script:
+
+```
+bis-catalog.json  696692 bytes  3663 records (1713 with stats, 0 with obtainability)
+exit=0
+```
+
+Against a true 1,440,016 bytes and 3,456 with obtainability. **Half the catalogue gone, and the
+manifest recorded the truncated hash and size as though they were correct** — including the
+`contractSha256_8` I added an hour ago, because that checks self-consistency, not completeness.
+
+The guard that should have caught it, `records.length !== meta.counts.items`, is structurally
+incapable: every record is seeded from the index, the shards contribute no new names (3,663
+either way, measured), so shard loss does not move the number being compared.
+
+**Fixed with two guards, both re-derived from outside the thing being checked:** the slot
+vocabulary restated independently as `verify.mjs §6` does, and the shard contents compared to
+`meta.counts.perSlot` / `withAcquisition` / `withStats` — numbers `build.mjs` wrote.
+
+### I got the second guard wrong first, and the A/B is what told me
+
+My first version compared the merged records against a set built **inside the merge loop**. It
+could not fail. The A/B that flipped the merge order published at exit 0 with the guard silent,
+and that is what exposed it — a self-audit asserting its own verdict, the exact §7 defect.
+Replaced, not kept alongside.
+
+### A/B — eight shapes, real script, scratchpad copy, repo never written
+
+| shape | exit | caught by |
+|---|---|---|
+| A baseline, 19 shards | 0 | — publishes, correctly |
+| B all 19 shards deleted | **1** | slot vocabulary |
+| C one shard deleted | **1** | slot vocabulary |
+| D one shard renamed `.json` → `.JSON` (file still present) | **1** | slot vocabulary |
+| E one shard emptied to `[]` | **1** | `meta.counts.perSlot` |
+| F **one single item** dropped from one shard | **1** | `meta.counts.perSlot` |
+| G merge order flipped | 0 | *nothing — and correctly, see below* |
+| H `src` stripped from CHEST | **1** | `meta.counts.withAcquisition` |
+
+**G is not a gap.** I first measured "3,663 of 3,663 records differ" and nearly reported one.
+That was my instrument: `JSON.stringify` is key-order sensitive. Re-measured properly —
+**key-set differences 0, value differences 0, key-order-only 3,663.** The flip is a genuine
+no-op on this data, so a guard that stays quiet is right. Recording it because I came within one
+sentence of publishing the opposite.
+
+**Gate:** `tsc` clean, **1,021 tests in 67 files**, `verify.mjs` Tier 0 100.0%,
+`catalogue-audit.mjs` passes, catalogue back to 1,440,016 bytes / 3,456 obtainable.
+
+**Deploy:** `curl` at 01:07 still served the pre-push manifest (no `contractVersion`). Not
+claiming it landed until the bytes say so.
