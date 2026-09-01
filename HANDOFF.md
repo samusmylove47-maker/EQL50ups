@@ -5489,20 +5489,44 @@ name, and the provenance hash and byte count are asserted, so 1.5.0 bytes cannot
 
 A fan-out over the player-facing surface finished after I ran out of time to verify it.
 
-**31 findings raised, 16 verdicts returned, 15 mechanisms CONFIRMED by a refuter, 1 refuted.**
-Severity: 12 agree, 3 too-high, 1 too-low.
+> **CORRECTED 11:42Z on 1 Sep, by recomputing from the journal rather than re-reading this
+> paragraph.** What stood here was: *"31 findings raised, 16 verdicts returned, 15 mechanisms
+> CONFIRMED by a refuter, 1 refuted. Severity: 12 agree, 3 too-high, 1 too-low."* Every figure in
+> it except the refuted count was wrong — it was typed while the run was still reporting and never
+> re-derived. It also cited the raw journal at a path that does not exist from the repository root.
+> Both are fixed below, and the whole run is now extracted into
+> `research/validation/AUDIT-UPGRADES-SURFACE.md` so it stops living in a directory that dies with
+> the container.
 
-**I am not reporting those 15 as findings.** THREE of them I reproduced myself and fixed — the
-`src.c` Crafted flag, the `withheld` map below, and the withheld BADGE (see the section after
-this handover, which was written before the pass finished reporting). The rest are unverified, and tonight produced
-hard evidence in both directions: four findings that skeptics killed turned out real, and two of
-my own confident starting points turned out to be my instrument. The raw journal is at
-`subagents/workflows/wf_d2d73ce2-770/journal.jsonl`.
+**31 findings raised, 23 verdicts returned, 22 mechanisms CONFIRMED by a refuter, 1 refuted.**
+Severity: 15 agree, 5 too-high, 3 too-low. Scope: 7 agree, 10 wider, 6 narrower.
+
+**Eight findings were never judged at all.** Not dismissed — never looked at. The workflow script
+verifies `(found?.findings ?? []).slice(0, 3)` per lens, so any lens raising more than three had
+the remainder dropped before the verify stage, and the run's own reporting never said so.
+
+**I am not reporting the confirmed ones as findings.** THREE of them I reproduced myself and fixed
+— the `src.c` Crafted flag, the `withheld` map below, and the withheld BADGE (see the section after
+this handover, which was written before the pass finished reporting). The rest were unverified, and
+that night produced hard evidence in both directions: four findings that skeptics killed turned out
+real, and two of my own confident starting points turned out to be my instrument.
+
+The raw journal is at `subagents/workflows/wf_d2d73ce2-770/journal.jsonl` **under the session
+directory** — `/root/.claude/projects/<session>/` — and not in this repository, so it is gone once
+this container is. The durable copy, findings and verdicts and all, is
+`research/validation/AUDIT-UPGRADES-SURFACE.md`.
 
 The ones that look most worth an hour, by their own severity and my reading of the titles:
 `share/codec.ts` drops `GearSet.withheld` and `defaultFilters` from share links; `ItemPicker`'s
 "vs worn" delta compares two different tiers; `blockReason.ts` prints the `ALL_EXCEPT` sentinel
-as an inclusion list. **All unverified.**
+as an inclusion list. ~~**All unverified.**~~
+
+> **All three are now settled** (1 Sep). `blockReason` held and is fixed (`c682786`). The share
+> link does drop both fields — and not in the codec: `planFrom` discards them before a byte is
+> written; the promise on screen is corrected and the wire question is the Director's (`e9ede66`).
+> The picker is **REFUTED**: the tier pairing is deliberate and correct, and matches what Upgrades
+> says out loud (`f108ef0`). Per-finding status for the rest is in
+> `research/validation/AUDIT-UPGRADES-SURFACE.md`.
 
 ## 5. Last fix of the session, verified and shipped
 
@@ -6063,3 +6087,50 @@ words on exactly this: *"losing a day's worth of ephemeral data is a tragedy."*
 **Taking that.** Extract the surviving findings from the journal into the repository as a readable
 record, and correct the citation to point at what a future session can actually open. Verification
 and durability; no mechanism changes, nothing that touches ranking.
+
+### 11:42Z item CLOSED — the pass is out of the container, and its summary here was wrong in five figures of six
+
+`HANDOFF.md:5500` cited the raw journal at `subagents/workflows/wf_d2d73ce2-770/journal.jsonl`.
+**That path does not exist from the repository root.** The file is real — 62 lines, 324K, 31 agent
+results — but it sits under `/root/.claude/projects/<session>/`, which dies with the container,
+along with 31 per-agent transcripts.
+
+Extracted to **`research/validation/AUDIT-UPGRADES-SURFACE.md`** (1,680 lines): all 31 findings
+with mechanism, claimed evidence and player impact; all 23 verdicts; and every verdict paired to
+its finding. Pairing is exact, not guessed — the verify prompt embeds the finding's TITLE, so the
+titles were recovered from the agent transcripts and **all 23 matched a finding string-for-string**.
+
+**Recomputing the summary broke it.** This file said *"31 raised, 16 verdicts, 15 CONFIRMED, 1
+refuted. Severity: 12 agree, 3 too-high, 1 too-low."* The journal says:
+
+```
+  findings raised           31       verdicts returned         23
+  mechanism CONFIRMED       22       mechanism REFUTED          1
+  severity AGREE            15       TOO-HIGH  5    TOO-LOW     3
+  scope    AGREE             7       WIDER    10    NARROWER    6
+```
+
+Five of six wrong. Typed mid-run and never re-derived — and it was the summary a later session was
+meant to work the remainder from. Corrected in place, with the correction marked rather than
+silently swapped.
+
+**And a cap nobody reported.** The script verifies `(found?.findings ?? []).slice(0, 3)` per lens,
+so **8 of the 31 findings were never judged at all** — not dismissed, never looked at. That number
+appears nowhere in the run's own output. The eight are listed in the record.
+
+Two things in there worth a future session's attention:
+
+- **Finding 8 was marked REFUTED by a refuter and was real.** It is the `src.c` Crafted flag: 956
+  items never labelled, one of five source filters matching nothing, fixed in `c4cfb1c`. Standing
+  evidence that a REFUTED verdict is a claim like any other.
+- **Finding 16 is not finding 15.** One line apart, both on the picker's "vs worn" baseline, but 16
+  claims the baseline counts weapon ratio/damage in slots where no candidate may score them.
+  Refuting 15 tonight says nothing about 16, which is open and unexamined.
+
+Guarded: `prose-vs-record.test.ts` now asserts the handover's six figures agree with the record's
+tally block, and that the record is internally consistent (confirmed + refuted = verdicts; the
+severity calls sum to the verdicts; raised > judged). Demonstrated by restoring the original wrong
+counts — 1 failed / 1,090 passed — then restored, `HANDOFF.md` sha256 `67c8c689…` byte-identical.
+
+**Gate:** tsc clean · vitest **1,091** / 71 files (from `web/`) · playwright **150 / 0** ·
+`build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.

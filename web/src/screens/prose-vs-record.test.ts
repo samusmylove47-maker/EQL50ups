@@ -166,3 +166,58 @@ describe('the Share dialog on what actually travels in the link', () => {
       .toMatch(/empty/i);
   });
 });
+
+describe('the handover on what the fan-out actually returned', () => {
+  /**
+   * `HANDOFF.md` reported the pass as *"31 findings raised, 16 verdicts
+   * returned, 15 mechanisms CONFIRMED by a refuter, 1 refuted. Severity: 12
+   * agree, 3 too-high, 1 too-low."* Counted from the run's own journal, the
+   * figures are 31 / 23 / 22 / 1 and 15 / 5 / 3. Five of the six were wrong:
+   * typed mid-run, never re-derived, and left standing as the summary of a pass
+   * whose remaining findings the next session was meant to work from.
+   *
+   * The journal itself lived under the session directory and is gone with the
+   * container, so the numbers are now checked against the extraction committed
+   * at `research/validation/AUDIT-UPGRADES-SURFACE.md` — which is in the
+   * repository precisely so this check has something durable to read.
+   *
+   * Both documents are prose. Neither can be recomputed from the other by the
+   * app, so the guard is that they AGREE: the tally block in the record and the
+   * sentence in the handover state the same six numbers.
+   */
+  it('states the same counts the extracted record does', () => {
+    const record = read('../research/validation/AUDIT-UPGRADES-SURFACE.md');
+    const handoff = read('../HANDOFF.md');
+
+    const tally = (label: string): number => {
+      const m = new RegExp(`^\\s*${label}\\s+(\\d+)\\s*$`, 'm').exec(record);
+      expect(m, `the record's tally block names "${label}"`).toBeTruthy();
+      return Number(m?.[1]);
+    };
+
+    const raised = tally('findings raised');
+    const verdicts = tally('verdicts returned');
+    const confirmed = tally('mechanism CONFIRMED');
+    const refuted = tally('mechanism REFUTED');
+    const agree = tally('severity  AGREE');
+    const tooHigh = tally('severity  TOO-HIGH');
+    const tooLow = tally('severity  TOO-LOW');
+
+    // The record must be internally consistent before it is worth comparing to.
+    expect(confirmed + refuted, 'every verdict is confirmed or refuted').toBe(verdicts);
+    expect(agree + tooHigh + tooLow, 'every verdict carries a severity call').toBe(verdicts);
+    expect(raised, 'more raised than judged — the .slice(0, 3) cap').toBeGreaterThan(verdicts);
+
+    expect(handoff).toContain(
+      `**${raised} findings raised, ${verdicts} verdicts returned, `
+      + `${confirmed} mechanisms CONFIRMED by a refuter, ${refuted} refuted.**`,
+    );
+    expect(handoff).toContain(
+      `Severity: ${agree} agree, ${tooHigh} too-high, ${tooLow} too-low.`,
+    );
+    // The count the run never reported, and the reason it did not.
+    expect(handoff).toContain(`slice(0, 3)`);
+    expect(handoff, 'the dead repo-relative citation must not stand alone')
+      .toContain('under the session\ndirectory');
+  });
+});
