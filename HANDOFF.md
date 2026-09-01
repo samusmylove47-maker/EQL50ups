@@ -5670,3 +5670,25 @@ a clean tree and a list.
 **Final state:** working tree clean, 0 unpushed, local == remote, gap engine held at
 `VERSION "1.4.0"` / `REQUIRED_ENGINE_VERSION '1.4.0'`, gate green at **1,054 tests in 68 files**,
 `verify.mjs` 67 checks, Tier 0 coverage 100.0%.
+
+---
+
+## 06:40Z tick — tip `a46c37c`, no orders. The machine outlived its notice.
+
+Shutdown was announced for 06:00Z and it is 06:40Z, so the session is running on borrowed time
+rather than to a plan. That changes what is worth starting: nothing whose value depends on being
+finished.
+
+Range `aea914c..a46c37c`: **1 ruling commit, 69 added lines, ZERO mentions of this repo.**
+R203 is the owner's page-date design for the site; R204 is publishing D's lockouts build. The
+only occurrence of `B` is a status row recording this session as closed at `4705ecc` — a record,
+not an order.
+
+Tip advanced, write verified before the commit. Tree was already clean with 0 unpushed when the
+tick fired, and remains so.
+
+**Nothing started.** The open list is three rulings that are the Director's or the owner's, one
+relay (R196) I have explicitly written up as needing owner confirmation before anyone acts on it,
+and twelve unverified mechanisms from the pass. Every one of those is work that must be *finished
+and checked* to be worth anything, and I cannot promise a next hour. A clean tree and an accurate
+list is the better handover.
