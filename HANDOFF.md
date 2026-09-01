@@ -6591,3 +6591,43 @@ passed**, one failure per finding. All three files restored and verified byte-id
 
 **Gate:** tsc clean · vitest **1,100** / 71 files (from `web/`) · playwright **151 / 0** ·
 `build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+## 18:39Z tick — tip `4920aef -> 17f86eb`. R248 lands on my page, and my own fan-out contaminated my tree.
+
+R209 routine: one branch, `main` absent, tree clean of my own edits.
+
+**R249's neighbour R248 confirms this afternoon's rename was the right one, from the opposite
+direction.** The Director records being wrong about the name twice in one afternoon — first
+recommending "EQLS Upgrades" be adopted, then calling it a transcription artefact — and settles it:
+***"The only genuine outlier was ever '50 Upgrades', a third name the project does not use."*** That
+is exactly what I removed in this session's rename, and I renamed to `=Upgrades`, the 701-file name.
+No further action; recorded because a ruling that reverses twice is worth pinning to what shipped.
+
+**R248 is newly actionable here and I have not acted on it yet.** *"DO NOT HIDE THE SIGIL — EXPAND
+IT… `=Auras` should announce as 'EQLS Auras' — accessible text that says what the mark means."* On
+this page `TOOL_NAME` is plain text in the breadcrumb and the footer with no accessible expansion,
+so what a screen reader announces depends on its punctuation verbosity: "equals Upgrades" at one
+setting, bare "Upgrades" at another — and the second deletes the brand for exactly the readers who
+cannot see the mark. **I will not act on my reading of the markup.** The measurement is the browser's
+own accessibility tree, and it is blocked below.
+
+### My own fan-out wrote into my working tree, and it broke the build
+
+Ten verification agents, every one instructed **READ-ONLY, do not edit any tracked file, throwaway
+probes under `/tmp` only**. The agent verifying `F07` wrote `web/src/screens/zz-probe-f07.test.ts`
+into the repository instead. It does not typecheck —
+
+```
+  src/screens/zz-probe-f07.test.ts(73,9): error TS6133: 'report' is declared but its value is never read.
+```
+
+— so `tsc -b` fails, so `vite build` fails, so Playwright's `webServer` could not start and my
+accessibility measurement returned nothing. **A read-only instruction is an assumption, not a
+guarantee.** The Workflow API has `isolation: 'worktree'` for precisely this and I chose not to use
+it *because* the agents were read-only — which is the same shape as R242: the instrument sat inside
+what it was measuring. Next fan-out over this repository runs in worktrees.
+
+Not deleting the file while its author may still be running: 4 agents started, 2 verdicts in.
+Cleanup and the accessibility measurement both wait for the run to finish. **This tick's commit adds
+only `HANDOFF.md` and `.director-tip` by path — a bare `git add -A` here would have committed
+another session's stray probe into my history.**
