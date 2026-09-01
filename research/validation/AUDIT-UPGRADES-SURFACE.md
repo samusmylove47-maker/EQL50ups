@@ -72,6 +72,16 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F17` — the card title contradicted the table above it and its own body | closed; all three were NEVER JUDGED by the run | guarded in `prose-vs-record.test.ts` |
 | `F18` — a typed 106 beside the screen's own computed 105 — now interpolated | closed; all three were NEVER JUDGED by the run | guarded in `prose-vs-record.test.ts` |
 | `F20` — 7,341 restricted items claimed in a 3,663-item payload; real figures 164 / 248 | closed; all three were NEVER JUDGED by the run | guarded in `prose-vs-record.test.ts` |
+| `F04` — Measured-drops header counts the same mob twice when the payload spell | **PARTIAL**, measured | `VERIFIED-OPEN-FINDINGS.md` |
+| `F05` — A stale importer `withheld` entry locks a position out of the ranking  | **HOLDS**, measured | `VERIFIED-OPEN-FINDINGS.md` |
+| `F07` — The `nothing` bucket reports "nothing scored" for positions whose only | **PARTIAL**, measured | `VERIFIED-OPEN-FINDINGS.md` |
+| `F08` — An empty ranking headlines "Nothing outranks what you are wearing" whe | **HOLDS**, measured | `VERIFIED-OPEN-FINDINGS.md` |
+| `F12` — Primary row shows the first two-hander that clears the 0.05 EP floor,  | **HOLDS**, measured | `VERIFIED-OPEN-FINDINGS.md` |
+| `F19` — The front page's Earthshaker product shot has drifted from the shipped | **PARTIAL**, measured | `VERIFIED-OPEN-FINDINGS.md` |
+| `F22` — Picker's "vs worn" baseline counts weapon ratio/damage in slots where  | **HOLDS**, measured | `VERIFIED-OPEN-FINDINGS.md` |
+| `F27` — A good share link opened while the item catalog failed to load says th | **HOLDS**, measured | `VERIFIED-OPEN-FINDINGS.md` |
+| `F28` — Race unset skips the race gate entirely, so "Usable by this loadout" p | **PARTIAL**, measured | `VERIFIED-OPEN-FINDINGS.md` |
+| `F31` — items-index.json ships no required-level field, so the level gate and  | **HOLDS**, measured | `VERIFIED-OPEN-FINDINGS.md` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched

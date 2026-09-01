@@ -6670,3 +6670,40 @@ byte-identical.
 
 The ten-way verification fan-out is still running — 2 verdicts of 10 in (`F04` PARTIAL, `F05` HOLDS,
 both `measured`). Reporting when it lands.
+
+## The ten open findings are VERIFIED — 6 HOLDS, 4 PARTIAL, 0 refuted, all measured
+
+One agent each, read-only, against the shipped payload and Avenrae's own inventory. Full text in
+`research/validation/VERIFIED-OPEN-FINDINGS.md`; the raw journal is committed beside it at
+`raw/open-findings-verification.journal.jsonl`, so these verdicts can be re-derived rather than
+trusted — the same lesson `R225` cost me this afternoon.
+
+**Nine of the ten corrected the finding they were checking.** That is the result worth reporting:
+
+- **`F04`** — real, but the finding names the wrong file AND the wrong mechanism. 17 items affected,
+  9 in wearable slots. A header reads *"11 sightings across 7 mobs"* for an item measured on 5, with
+  "A fetid fiend" and "a fetid fiend" listed as two rows. **No ranking number changes.**
+- **`F05`** — HOLDS, and *"forever"* was too strong: `applySlots` clears the entry, so a whole-set
+  re-import fixes it; every other mutator — `equip`, unequip/re-equip, **Auto-fill** — leaves it, and
+  it survives a reload. Measured cost on the repo's own fixture: a genuine **+17.00 EP** row
+  disappears, headline total 293.01 where it should be 310.01, and the card prints *"No catalog
+  carries this item's stats"* about an item whose stats the payload does carry.
+- **`F07`** — PARTIAL; two of its three named causes are wrong and it needs a narrowed filter to
+  reach a reader at all.
+- **`F08`** — HOLDS, wrong line: `:1781` is the "No set to rank" branch, not the headline.
+- **`F12`** — HOLDS, line stale.
+- **`F19`** — PARTIAL, and **the drift is not where the finding says**: every stat in the front-page
+  product shot matches the shipped record exactly. What is wrong is the existence eyebrow.
+- **`F22`** — HOLDS and is **understated**: bows, thrown weapons, ammo and Any Slot on melee/balanced
+  profiles.
+- **`F27`** — HOLDS, plus a case it omits: `status: 'missing'` (a 404 or an unpublished payload), not
+  only a failed fetch.
+- **`F28`** — PARTIAL: with a race set the gate is correct; only race-unset is affected.
+- **`F31`** — HOLDS, and the scale it never stated: **3 of 3,663 records**, all clearing level 50.
+
+**Method note, and it is the reason the fan-out was worth its cost.** Had I fixed these from the
+findings as written, I would have edited **four wrong locations** and implemented **two wrong
+mechanisms** — and `F19` would have had me "correcting" stat values that are already exact.
+
+Taking `F05` next: it is reachable by pressing Auto-fill, it hides a real upgrade, and it prints a
+sentence the payload contradicts.
