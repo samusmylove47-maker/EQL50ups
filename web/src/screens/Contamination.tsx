@@ -469,6 +469,30 @@ export function Contamination() {
               {count(asCount(corpus?.sourceLines) ?? 0)} lines) of <code>web/src</code>.{' '}
               {asText(corpus?.excluded)}
             </p>
+            {/*
+              * What the coverage sentence above does NOT cover.
+              *
+              * That sentence reads as coverage of the payload, and until 1 Sep
+              * the number in it was a typed literal — `shards + 2` — that
+              * happened to match the files anyone had thought of. A file could
+              * ship, reach every browser, and sit outside every signature with
+              * nothing on screen saying so. Printed here rather than left to
+              * the reader to notice, because a coverage figure that omits what
+              * it missed is the fault this page exists to name in others.
+              */}
+            {corpus?.unscanned?.length ? (
+              <p className="cn-source">
+                <strong>
+                  Not scanned:{' '}
+                  {corpus.unscanned
+                    .map((entry) => asText(entry.file))
+                    .filter(Boolean)
+                    .join(', ')}
+                  .
+                </strong>{' '}
+                {asText(corpus?.unscannedNote)}
+              </p>
+            ) : null}
             <p className="cn-source">
               The hierarchy these tiers come from is on the <a href={href.sources}>Sources</a> page,
               with what was thrown out before the catalog shipped and what is known to be unreliable

@@ -4570,3 +4570,79 @@ I have run them.
 
 **Gate:** `tsc` clean, **1,032 tests in 68 files**, `verify.mjs` 66 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes, bundle `79e8dbd6`.
+
+---
+
+## To the Director — the R73 sweep's own skeptics refuted four findings I had already proved real
+
+The orphaned sweep (`wf_f0f7d2e4-722`) finally reported: **21 raised, 20 killed, 1 surviving.**
+
+### The methodological finding, which matters more than the defect
+
+**Four of the twenty it "killed" are ones I independently CONFIRMED by my own measurement and
+have already fixed tonight:**
+
+| finding | sweep's verdict | what I measured |
+|---|---|---|
+| zones.v1.json downgrades 3 hard checks to a warning | refuted ×1 | `exit 0`, `VERIFY PASSED`, 65 → 62 |
+| `checks run: N` is unguarded | refuted ×2 | one occurrence repo-wide; nothing reads it |
+| depth-1 checkout makes every date read as today | refuted ×2 | real shallow clone: `2026-09-01` vs a true `2026-08-16` |
+| `publish-bis` guard cannot fire on shard loss | refuted ×1 | 19 shards deleted → published, exit 0, obtainability 3,456 → 0 |
+
+**The adversarial layer produced false refutations on four real defects, two of them by a
+2-of-3 majority.** Every one of those four is now fixed with a demonstrated A/B. This is the
+strongest evidence yet for the rule I have been working under and you adopted as R100: *the
+commissioning session verifies; the fan-out neither finds nor refutes on its own authority.* A
+skeptic is not a safer oracle than a finder — it is another oracle, failing in the opposite
+direction, and its "refuted" reads as reassurance in a way a finder's claim does not.
+
+### The one surviving finding, verified and closed — R109's shape in my own repo
+
+`corpus.catalogFiles` was `catalog.shardFiles.length + 2` — a **typed literal**, rendered on the
+Contamination screen as *"across 21 payload files"*, which reads as coverage.
+
+```
+web/public/data holds ....... 23 files
+the scan opens .............. 21
+its own output .............. contamination.json
+UNACCOUNTED ................. focus-effects.json   27,720 bytes
+```
+
+`web/src/data/catalog.ts:419` fetches that file into **every browser**. 66 records of scraped
+prose, and **16 of them carry a percent figure beside the word "haste"** — the exact shape
+signature 01 exists to find. No signature has ever opened it, and the `excluded` sentence named
+test files and `quarantine.json` but not this.
+
+This is **R109 in my own tree, one directory over**: not an uncovered extension but an
+unenumerated file, invisible for the same reason — the coverage set was typed rather than
+derived.
+
+**Fixed as coverage, not as a patch:** the payload directory is walked with no extension filter,
+every file lands in exactly one of three buckets, `opened` and `unscanned` are both published,
+and the screen now prints what it did **not** scan directly beneath the sentence that used to
+imply it had.
+
+I have not scanned `focus-effects.json` — that is a new signature, and by my standing bound a
+signature is nearer mechanism than measurement. **Asking for a ruling**, with the measurement
+above as the evidence. Note the honest complication: those 16 are *spell* haste (casting speed),
+which is a different mechanic from the item `HASTE` stat, so the count may be entirely
+legitimate prose. Whether it is, is UNMEASURED — and unmeasured is what the report now says.
+
+### A/B — and the flaw I found in my own check
+
+| shape | result |
+|---|---|
+| A baseline | exit 0 |
+| B a new payload file, report stale | **exit 1** — names it |
+| C same file, report regenerated | exit 0, and the file is **named** in `unscanned`, on screen |
+| D `unscanned` emptied by hand to look clean | **exit 1** — names both |
+
+D is the one worth having: the report cannot lie about its own coverage.
+
+**My first draft of that check listed `items-index.json`, `meta.json` and `data/items/*` as
+fallbacks — a typed file list inside the check written to kill a typed file list.** It would
+have gone on passing for any file it happened to name. Both buckets now come from the report,
+and the report states what it opened. Caught by re-reading my own diff, not by a test.
+
+**Gate:** `tsc` clean, **1,032 tests in 68 files**, `verify.mjs` **67 checks**, Tier 0 100.0%,
+`catalogue-audit.mjs` passes. Restores verified by `sha256sum -c`.

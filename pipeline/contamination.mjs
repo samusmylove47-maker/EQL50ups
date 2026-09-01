@@ -116,12 +116,58 @@ function loadCatalog() {
     }
   }
 
+  /*
+   * WHAT THIS SCAN ACTUALLY OPENED, versus what ships.
+   *
+   * `catalogFiles` used to be `shardFiles.length + 2` — a typed literal for
+   * items-index.json and meta.json — and the Contamination screen renders it as
+   * *"across N payload files"*, which reads as coverage of the payload. It was
+   * not coverage; it was an arithmetic expression that happened to equal the
+   * number of files anyone had thought of.
+   *
+   * Measured 2026-09-01: `web/public/data` holds 23 files. The scan opens 21.
+   * `contamination.json` is this scan's own output. **The remaining one is
+   * `focus-effects.json` — 66 records of scraped prose that
+   * `web/src/data/catalog.ts:419` fetches into every browser, and 16 of them
+   * carry a percent figure beside the word "haste", which is the exact shape
+   * signature 01 exists to find.** No signature has ever opened it, and the
+   * `excluded` sentence named test files and quarantine.json but not this.
+   *
+   * The directory is now WALKED, with no extension filter — R109: an
+   * extension-keyed coverage list is blind to extensions nobody thought of.
+   * Every file lands in exactly one of three buckets, and `unscanned` is
+   * published rather than quietly omitted, because a coverage number that omits
+   * what it missed is the failure this whole report exists to prevent.
+   */
+  const walk = (dir, prefix = 'data') => {
+    const out = [];
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const rel = `${prefix}/${entry.name}`;
+      if (entry.isDirectory()) out.push(...walk(join(dir, entry.name), rel));
+      else if (entry.isFile()) out.push(rel);
+    }
+    return out;
+  };
+  const opened = new Set([
+    'data/items-index.json',
+    'data/meta.json',
+    ...shardFiles.map((f) => `data/items/${f}`),
+  ]);
+  /** This scan's own output. Scanning it would measure the scanner. */
+  const selfOutput = new Set(['data/contamination.json']);
+  const shipped = existsSync(DATA) ? walk(DATA) : [];
+  const unscanned = shipped
+    .filter((f) => !opened.has(f) && !selfOutput.has(f))
+    .map((f) => ({ file: f, bytes: statSync(join(DATA, f.replace(/^data\//, ''))).size }))
+    .sort((a, b) => (a.file < b.file ? -1 : 1));
+
   return {
     items: [...byName.values()],
     shardsOf,
     shardFiles: shardFiles.map((f) => `data/items/${f}`),
     indexCount: index?.count ?? index?.items?.length ?? 0,
     meta: readJson(join(DATA, 'meta.json')),
+    payload: { shipped, opened: [...opened].sort(), unscanned },
   };
 }
 
@@ -984,7 +1030,24 @@ const report = {
   corpus: {
     catalogItems: items.length,
     indexCount: catalog.indexCount,
-    catalogFiles: catalog.shardFiles.length + 2,
+    /* DERIVED from what was opened — never `shards + 2`. See loadCatalog(). */
+    catalogFiles: catalog.payload.opened.length,
+    /** The exact files opened, so a cross-check need not re-guess them. */
+    opened: catalog.payload.opened,
+    /**
+     * Payload files that ship to a browser and no signature reads.
+     *
+     * Published, not omitted. A coverage figure that leaves out what it missed
+     * is the exact failure this report exists to name in others.
+     */
+    unscanned: catalog.payload.unscanned,
+    unscannedNote:
+      'These files ship in web/public/data and every browser can fetch them, but no '
+      + 'signature opens them, so this report says nothing about their contents either '
+      + 'way. focus-effects.json is the live case: 66 scraped prose records, 16 of which '
+      + 'carry a percent figure beside the word "haste" — the shape signature 01 exists '
+      + 'to find. Whether those are contamination or ordinary spell-haste prose is '
+      + 'UNMEASURED, and unmeasured is what this line reports.',
     sourceFiles: source.length,
     sourceLines: source.reduce((n, f) => n + f.lines.length, 0),
     excluded:
@@ -999,7 +1062,7 @@ const report = {
     markedOnChangedMechanics: sum(changed, 'marked'),
     classicFormats: sum(format, 'unmarked') + sum(format, 'marked'),
     classicFormatsUnmarked: sum(format, 'unmarked'),
-    filesScanned: catalog.shardFiles.length + 2 + source.length,
+    filesScanned: catalog.payload.opened.length + source.length,
     statBlocksShipped: shippedStatBlocks,
     statBlocksCheckedAgainstTheGame: clientChecked,
     /*

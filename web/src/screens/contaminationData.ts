@@ -88,6 +88,9 @@ export interface ContaminationReport {
     sourceFiles?: number;
     sourceLines?: number;
     excluded?: string;
+    /** Payload files that ship to a browser and no signature opens. */
+    unscanned?: { file?: string; bytes?: number }[];
+    unscannedNote?: string;
   };
   headline?: {
     unmarkedOnChangedMechanics?: number;

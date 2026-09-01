@@ -1158,6 +1158,46 @@ if (!existsSync(TIER0)) {
  * forgetting one command. Re-scan into a temp file and compare the corpus
  * figures; the scan walks `web/src` and takes well under a second.
  */
+/*
+ * EVERY SHIPPED PAYLOAD FILE IS ACCOUNTED FOR — scanned, or named as unscanned.
+ *
+ * Derived here from the directory rather than read out of the report, so this
+ * is a genuine cross-check and not the report agreeing with itself. It is the
+ * check that was missing when `focus-effects.json` — 27,720 bytes of scraped
+ * prose that every browser fetches — sat outside every contamination signature
+ * with a coverage sentence on screen implying otherwise.
+ *
+ * No extension filter, by R109: the file that gets missed is the one whose
+ * extension nobody enumerated.
+ */
+{
+  const path = join(OUT, 'contamination.json');
+  if (existsSync(path)) {
+    const report = readJSON(path);
+    const walk = (dir, prefix = 'data') => readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory()
+        ? walk(join(dir, e.name), `${prefix}/${e.name}`)
+        : e.isFile() ? [`${prefix}/${e.name}`] : []));
+    const shipped = walk(OUT);
+    /*
+     * Both buckets come from the REPORT. The first draft of this check listed
+     * items-index.json, meta.json and `data/items/*` as fallbacks — a typed
+     * file list inside the check written to kill a typed file list, which would
+     * have gone on passing for any file it happened to name. The report states
+     * what it opened; this compares that to the directory.
+     */
+    const accounted = new Set([
+      ...(report?.corpus?.opened ?? []),
+      ...(report?.corpus?.unscanned ?? []).map((u) => u.file),
+      'data/contamination.json',
+    ]);
+    const unaccounted = shipped.filter((f) => !accounted.has(f)).sort();
+    assert('every shipped payload file is scanned or named as unscanned',
+      unaccounted.length === 0,
+      `${unaccounted.length} payload file(s) in neither bucket: ${unaccounted.join(', ')}`);
+  }
+}
+
 {
   const path = join(OUT, 'contamination.json');
   if (existsSync(path)) {
@@ -1319,7 +1359,7 @@ if (!existsSync(TIER0)) {
  * remembering-to-bump cost paid once per real change, against a class of defect
  * that is otherwise invisible by construction.
  */
-const EXPECTED_CHECKS = 66;
+const EXPECTED_CHECKS = 67;
 if (checks !== EXPECTED_CHECKS) {
   failures.push({
     check: 'this file ran every assertion it contains',
