@@ -186,3 +186,45 @@ describe('sanitizeState', () => {
     expect(result.state.characters).toHaveLength(1);
   });
 });
+
+/* ------------------------------------------------------------------------- *
+ * A withheld position survives a reload, or the reader's own record changes
+ * under them.
+ * ------------------------------------------------------------------------- */
+
+describe('GearSet.withheld round-trips', () => {
+  const state = (setExtra: Record<string, unknown>) => sanitizeState({
+    characters: [{ id: 'char_1', name: 'A', race: null, levels: { WAR: 50 }, loadouts: [], activeLoadoutId: null }],
+    sets: [{
+      id: 'set_1', characterId: 'char_1', name: 'Main Set',
+      slots: {}, weights: { AC: 2 }, createdAt: 1, updatedAt: 2, ...setExtra,
+    }],
+  })?.sets[0];
+
+  /**
+   * `withheld` is written by `store.applySlots` when the inventory importer
+   * reads a worn item no catalog can score — the Shadow Rage Helm is the live
+   * case. The Upgrades screen then says, in those words, that the slot is
+   * occupied by something it cannot measure, and declines to rank it.
+   *
+   * `sanitizeSet` builds the `GearSet` field by field and copied `notes` and
+   * `defaultFilters` but not this one. So the map survived until the next page
+   * load and then vanished: the position reverted to reading as EMPTY, and the
+   * screen went from "occupied by something we cannot measure" to ranking the
+   * whole slot as a free gain. **The reader's own recorded state changed
+   * silently between one visit and the next.**
+   *
+   * Driven through `sanitizeState`, which is the path a reload actually takes.
+   */
+  it('is preserved through a reload, not dropped', () => {
+    expect(state({ withheld: { HEAD: 'Shadow Rage Helm' } })?.withheld)
+      .toEqual({ HEAD: 'Shadow Rage Helm' });
+  });
+
+  it('drops a withheld map that is not a string record, rather than trusting it', () => {
+    expect(state({ withheld: 'nonsense' })?.withheld).toBeUndefined();
+    expect(state({ withheld: { HEAD: 42 } })?.withheld).toBeUndefined();
+    // An empty map carries no information and should not be stored.
+    expect(state({ withheld: {} })?.withheld).toBeUndefined();
+  });
+});

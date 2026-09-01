@@ -256,6 +256,27 @@ function sanitizeSet(raw: unknown): GearSet | null {
     updatedAt: finite(raw.updatedAt, now),
   };
   if (typeof raw.notes === 'string' && raw.notes) set.notes = raw.notes;
+  /*
+   * `withheld` — positions occupied by something no catalog can score.
+   *
+   * Written by `store.applySlots` when the inventory importer reads a worn item
+   * it cannot score; the Shadow Rage Helm is the live case. **This function
+   * builds the set field by field and did not copy it**, so the map survived
+   * until the next page load and then vanished: the position reverted to
+   * reading as EMPTY and the Upgrades screen went from "occupied by something
+   * we cannot measure" to ranking the whole slot as a free gain. The reader's
+   * own recorded state changed silently between one visit and the next.
+   *
+   * Values are checked rather than trusted — this is parsing localStorage,
+   * which anything on the origin can have written.
+   */
+  if (isRecord(raw.withheld)) {
+    const withheld: Record<string, string> = {};
+    for (const [position, value] of Object.entries(raw.withheld)) {
+      if (typeof value === 'string' && value) withheld[position] = value;
+    }
+    if (Object.keys(withheld).length) set.withheld = withheld;
+  }
   // Only a non-default choice is stored, so an untouched set carries no field
   // and the whole-library export stays as small as it was.
   if (raw.defaultFilters !== undefined) {
