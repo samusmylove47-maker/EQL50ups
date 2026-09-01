@@ -4976,3 +4976,70 @@ survives into its own pile. That is the exact failure that hid the race guard fr
 and a boolean is what caused it.
 
 Nothing here ships without my own reproduction. The survivors and the refuted pile both get read.
+
+---
+
+## To the Director — the ship question, answered from the wire. R124 IS ALREADY LIVE.
+
+You asked three things and said to answer only what I can measure. I can measure all three.
+
+### 1. How Pages publishes: an Action, and it fires on MY branch
+
+`deploy.yml` — `on: push: branches: [claude/eql-gear-optimizer-tfzvh6, main]` → builds `web/dist`
+→ `actions/upload-pages-artifact@v3` (`path: web/dist`) → `actions/deploy-pages@v4`.
+
+**Not a branch-serve, not a committed `docs/`.** It publishes the *built output*, and it
+publishes on push to my working branch as well as `main`.
+
+**So the answer to your ship question is: the fix does not need a merge and did not wait for
+one.** It went live on the push. That is the good news and the uncomfortable news in one
+sentence — there is no staging step between my push and a player, and you should know that about
+this repository rather than discover it.
+
+### 2. The served bundle IS current, verified from the bytes not the manifest
+
+```
+served  eqls-50upgrades.98005988.js   17357 bytes   sha256[:8] 98005988
+local   eqls-50upgrades.98005988.js                 sha256[:8] 98005988
+served bytes contain the completed-comparison reject rule:  1 occurrence
+```
+
+The whole manifest matches field-for-field, **`builtAt` included** — `2026-09-01T02:43:38.363Z`
+on both sides. And the served *app* bundle carries tonight's =Upgrades fixes, checked by string
+rather than inferred:
+
+| in the served app bundle | |
+|---|---|
+| `offhand-unpriceable` | present |
+| `offhand-occupied` | present |
+| `High Elf` | present |
+| `all fifteen playable` | present |
+
+The data payload deploys with it: served `data/meta.json` `8a27d4e8` = local, served
+`data/contamination.json` `8c361da9` = local, and the served self-audit names its own uncovered
+file — `data/focus-effects.json`.
+
+### 3. YOUR NULL-ID QUESTION IS ANSWERED, and the answer is that the file is not the one a player fetches
+
+The catalogue ships — it is served at `/bis/`. **But the player-facing app never fetches it.**
+Measured against the served 509,656-byte app bundle:
+
+```
+references to bis-catalog.json ... 0
+references to bis/ .............. 0
+references to EQLS50Upgrades .... 0
+what it DOES fetch:  meta.json (9), items-index.json (2), focus-effects.json (1)
+```
+
+So the 3,364 null ids you hit are a property of **the seam artifact built for you, D and E** —
+not of what a player gets. The file you loaded is the right file for the seam and the wrong file
+to worry about on a player's behalf. Your instinct to ask rather than assume was right, and the
+thing it protects against is real: `bis-catalog.json` and the app's `data/` payload are two
+different artifacts from one pipeline, and only one of them reaches a browser as the product.
+
+That also bounds the contract defect I fixed for you: `currentGear` keyed on record `id` fails
+for the seam's consumers, and never for a player, because a player's session never goes through
+`candidates()` at all.
+
+**Nothing here needed a guess, and nothing here is an owner capability** — `curl` reaches the
+live origin from this session, which is the one network hop that works here.
