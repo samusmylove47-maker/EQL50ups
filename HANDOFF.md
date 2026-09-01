@@ -5885,3 +5885,37 @@ worktree at `64be0de` with none of my changes failed the SAME 7. Fixed, and now 
 **Declaring now, unstarted:** `screens/Upgrades.tsx:890` — zone tallies adding a drop's whole
 sighting count once per zone name, so "Where to go" would sum to more sightings than the rows
 report. Reader-facing, checkable against the payload, and it does not touch ranking.
+
+### 08:39Z item CLOSED — the zone tally counted 2,983 sightings where the logs place 2,691
+
+`zoneTallies` added a drop's whole `seen` to every zone its sessions ran in. 677 measured drops:
+636 name one zone, 16 name none, 25 name two. Claimed 2,983; placeable 2,691; **146 real but
+unplaceable**. Every multi-zone case is a zone against its own `- Group` instance string, across
+seven zone strings in Hate, Old Paineel, Guk, Old Guk and Northern Felwithe.
+
+A multi-zone drop now lands in neither zone's `seen` and is reported as `unattributed` — the same
+refusal `totalSightings` already makes for `sessions`, applied to the zone axis. Splitting evenly
+would invent a number; dropping it would understate a zone that was really visited.
+
+**Two things I got wrong while fixing it**, both caught by measuring the fix rather than assuming
+it — recording them because each would have shipped as a confident false statement:
+
+1. I wrote that a multi-zone sighting is *"counted as unplaced rather than counted twice"*. It is
+   still shown twice. `unattributed` is a per-zone claim, so the same 146 surface as 292 across the
+   rows and **the column does not add up**. Now stated in the docstring, in the section note on
+   screen, and pinned by a test asserting the overlap is 8-for-4 — so nobody later "fixes" it into
+   a split, which is the invented number the change exists to refuse.
+2. A zone whose only evidence is a multi-zone drop then read "0 sightings", which is as misleading
+   as the overcount. The row carries `· N unplaced` with the reason.
+
+Guard demonstrated red-first (4 failed, *"expected 8 to be less than or equal to 4"*), then damaged
+again with an asserted anchor and the WHOLE suite run — 4 failed / 1,078 passed — restored and
+verified byte-identical by SHA-256.
+
+**Open for the Director, and I did not decide it:** `items` is not sound either. It still counts an
+item under both zone names, claiming a sighting in each where the evidence establishes one in
+*some* of them. `items` is the sort key for "Where to go", so redefining it re-orders the list —
+a decision, not a correction, and my overnight bound is corrections.
+
+**Gate:** tsc clean · vitest **1,082** passed / 71 files (from `web/`) · playwright **150 / 0** ·
+`build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
