@@ -575,13 +575,30 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
 // hand-set one would be caught here.
 {
   const zonesPath = join(ROOT, 'pipeline', 'sources', 'eqlsource', 'zones.v1.json');
-  const published = existsSync(zonesPath)
-    ? JSON.parse(readFileSync(zonesPath, 'utf8')).data?.zones ?? []
-    : [];
+  const zonesDoc = existsSync(zonesPath)
+    ? JSON.parse(readFileSync(zonesPath, 'utf8'))
+    : null;
+  const published = zonesDoc?.data?.zones ?? [];
   const emitted = meta.zones?.surveyed ?? [];
-  if (!published.length) {
-    warn('zones', 'no vendored zones.v1.json; zone surveys not checked');
-  } else {
+  /*
+   * Presence and shape are ASSERTED, not warned about.
+   *
+   * This was `if (!published.length) warn(...) else { three asserts }`, and
+   * measured 2026-09-01 it meant: rename the file away and `checks run` goes
+   * 65 -> 62, exit 0, VERIFY PASSED. Rename only the `data.zones` KEY and the
+   * same three vanish while the warning says "no vendored zones.v1.json" — a
+   * sentence that is now simply false, since the file is on disk.
+   *
+   * A survey grade is not decorative: it renders on hundreds of drop rows, and
+   * the rule on it is "verified means checked against source". Three checks
+   * that quietly stop running is the one way that rule fails silently.
+   */
+  assert('the vendored zones.v1.json is present and shaped as data.zones',
+    Array.isArray(zonesDoc?.data?.zones) && published.length > 0,
+    zonesDoc
+      ? `${zonesPath} parsed, but data.zones is ${JSON.stringify(zonesDoc?.data?.zones)?.slice(0, 40)}`
+      : `no file at ${zonesPath}`);
+  if (published.length) {
     assert('every published zone reaches the payload', emitted.length === published.length,
       `payload ${emitted.length} vs source ${published.length}`);
 
@@ -1281,6 +1298,40 @@ if (!existsSync(TIER0)) {
     console.log('  -- subject census --');
     for (const [name, n] of subjects) console.log(`     ${String(n).padStart(6)}  ${name}`);
   }
+}
+
+/*
+ * THE CHECK ON THE CHECKS.
+ *
+ * `checks run: N` was printed and read by nothing — measured 2026-09-01, one
+ * occurrence repo-wide (`grep -rn "checks run\|EXPECTED_CHECKS"` over every
+ * .mjs/.ts/.tsx/.yml/.json/.md outside node_modules): the `console.log` on the
+ * next line. Nothing compared it, so a whole section could stop running and
+ * leave no trace but a digit nobody looked at.
+ *
+ * That is not hypothetical. Renaming `zones.v1.json` away took it 65 -> 62,
+ * exit 0, VERIFY PASSED — three hard assertions about a grade that renders on
+ * hundreds of drop rows, gone in silence. Several blocks in this file are still
+ * guarded by an `existsSync` with no else, which is the same shape.
+ *
+ * So the count is pinned. **Bump it deliberately when you add or remove a
+ * check** — the failure below tells you the number to write. It is a
+ * remembering-to-bump cost paid once per real change, against a class of defect
+ * that is otherwise invisible by construction.
+ */
+const EXPECTED_CHECKS = 66;
+if (checks !== EXPECTED_CHECKS) {
+  failures.push({
+    check: 'this file ran every assertion it contains',
+    detail: `${checks} assertions ran, ${EXPECTED_CHECKS} expected. `
+      + (checks < EXPECTED_CHECKS
+        ? 'A block skipped itself — usually a missing or reshaped input behind an '
+          + '`existsSync` guard. Find it before trusting this run; the payload was NOT '
+          + 'fully checked.'
+        : 'Checks were added. If that was deliberate, set EXPECTED_CHECKS to '
+          + `${checks} in pipeline/verify.mjs.`),
+    examples: [],
+  });
 }
 
 // ---------------------------------------------------------------------------

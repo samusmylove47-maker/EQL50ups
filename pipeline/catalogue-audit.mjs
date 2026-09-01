@@ -31,8 +31,42 @@ const DATA = join(ROOT, 'web', 'public', 'data');
 const readJSON = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const JSON_OUT = process.argv.includes('--json');
 
+/**
+ * Is this a shallow clone? If so, no commit date here means anything.
+ *
+ * `actions/checkout@v4` defaults to `fetch-depth: 1` — checked against the
+ * action's own definition, not recalled:
+ *
+ *   curl https://raw.githubusercontent.com/actions/checkout/v4/action.yml
+ *   -> fetch-depth: … default: 1                                  (HTTP 200)
+ *
+ * A depth-1 clone has exactly one commit, which git grafts as a parentless
+ * root, so **every tracked file looks as though it was added in it** and
+ * `git log -1 -- <path>` returns the tip's date for all of them. Measured in a
+ * real `git clone --depth 1` of this repository on 2026-09-01: all five inputs
+ * printed `vendored 2026-09-01` against a true `2026-08-16`, and the audit
+ * still exited 0.
+ *
+ * That is worse than having no date. Section 2's own promise is that these come
+ * "from git rather than from a field somebody typed — a hand-written date is
+ * the first thing to go stale", and under CI the column would read as today on
+ * every deploy, forever: a staleness check that can never show staleness.
+ *
+ * `deploy.yml` now passes `fetch-depth: 0`. This guard is here because that
+ * line is one edit away from being lost, and a rule satisfiable by remembering
+ * to keep a line is not satisfied.
+ */
+const SHALLOW = (() => {
+  const run = spawnSync('git', ['rev-parse', '--is-shallow-repository'],
+    { cwd: ROOT, encoding: 'utf8' });
+  return (run.stdout ?? '').trim() === 'true';
+})();
+
 /** When a path was last committed — the date its bytes entered this repository. */
 function gitDate(relative) {
+  // Undated beats wrongly dated: rule 6 then fails loudly instead of the column
+  // printing today's date with total confidence.
+  if (SHALLOW) return null;
   const run = spawnSync('git', ['log', '-1', '--format=%as', '--', relative],
     { cwd: ROOT, encoding: 'utf8' });
   const date = (run.stdout ?? '').trim();
@@ -230,6 +264,22 @@ if (contradictory.length) {
  * no way to apply the staleness rule at all — the standard's own remedy for a
  * source that has fallen behind a patch cannot be reached.
  */
+/*
+ * Named separately from rule 6, because rule 6's message would be true and
+ * useless here: "these inputs carry no date" is a fact about the CLONE, not
+ * about the inputs, and a reader chasing missing snapshot dates through
+ * research/ would find nothing wrong with them.
+ */
+if (SHALLOW) {
+  failures.push({
+    check: 'the tree can support the commit dates this audit prints',
+    detail: 'this is a shallow clone, so every tracked file appears to have been added '
+      + 'in the single grafted commit and no `vendored` date can be trusted. Section 2 is '
+      + 'reported as undated rather than as today. Fix: `fetch-depth: 0` on the checkout '
+      + '(deploy.yml), or `git fetch --unshallow` locally.',
+  });
+}
+
 const undated = census.sourcesLastRead.filter((s) => !s.scraped && !s.vendored);
 if (undated.length) {
   failures.push({
@@ -356,7 +406,9 @@ if (JSON_OUT) {
     for (const f of failures) {
       console.log(`  FAIL  ${f.check}`);
       console.log(`        ${f.detail}`);
-      if (f.examples) console.log(`        e.g. ${f.examples.join(', ')}`);
+      // `.length`, not truthiness: an empty array is truthy and printed a bare
+      // "e.g." with nothing after it the first time a failure carried no examples.
+      if (f.examples?.length) console.log(`        e.g. ${f.examples.join(', ')}`);
     }
   }
 }

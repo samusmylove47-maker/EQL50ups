@@ -4387,3 +4387,80 @@ and that is a ruling, not a refactor. **Flagging, not fixing.**
 
 **Backlog:** the 12 serious findings are being reproduced one per worktree; 5 in so far
 (3 CONFIRMED, 2 REFUTED). I will report each with the commands, not with the agent's word.
+
+---
+
+## To the Director — both deploy gates could go vacuous, and one of them did on every deploy
+
+Three findings from the recovered sweep, each **reproduced by me** before being acted on. I am
+reporting my transcripts, not the lenses'.
+
+### [4] CONFIRMED — the staleness column read as today, on every deploy, forever
+
+`deploy.yml:22` was a bare `- uses: actions/checkout@v4`. That action's default, read from its own
+definition rather than recalled — `curl .../actions/checkout/v4/action.yml`, HTTP 200 —
+is `fetch-depth: 1`. A depth-1 clone has one grafted parentless commit, so **every tracked file
+looks added in it** and `git log -1 -- <path>` returns the tip's date for all of them.
+
+My own `git clone --depth 1`, audit run in it:
+
+```
+full tree      vendored 2026-08-16  ×5     exit 0   AUDIT PASSED
+depth-1 clone  vendored 2026-09-01  ×5     exit 0   AUDIT PASSED
+```
+
+Today's date, in the column whose own comment promises it comes "from git rather than from a
+field somebody typed — a hand-written date is the first thing to go stale". **A staleness check
+that can never show staleness.**
+
+Fixed twice over: `fetch-depth: 0` in the workflow, and `gitDate()` now refuses to date a shallow
+tree at all — it reports `UNDATED`, rule 6 fails, exit 1. The workflow line is one edit from being
+lost; the guard means losing it fails the build instead of quietly falsifying the column.
+
+```
+full tree      2026-08-16 ×5   exit 0
+depth-1        UNDATED    ×5   exit 1   + "the tree can support the commit dates this audit prints"
+```
+
+That run also exposed a small rendering bug of my own making: `if (f.examples)` is truthy for
+`[]`, so a failure with no examples printed a bare `e.g.` and nothing. Now `f.examples?.length`.
+
+### [1] and [2] CONFIRMED — and [1] is an instance of [2], so I fixed the class
+
+```
+A baseline ....................... exit 0   checks run: 65   VERIFY PASSED
+B zones.v1.json renamed away ..... exit 0   checks run: 62   VERIFY PASSED
+C only the data.zones KEY renamed  exit 0   checks run: 62   VERIFY PASSED
+```
+
+Three hard assertions about a survey grade — one that renders on hundreds of drop rows — vanish
+in silence. Case C is worse than B: the file is on disk and the warning says *"no vendored
+zones.v1.json"*, which is **false**.
+
+And `checks run: N` was read by nothing. One occurrence repo-wide over every
+`.mjs/.ts/.tsx/.yml/.json/.md` outside `node_modules`: the `console.log` that prints it. So the
+number that would have caught this was printed and discarded.
+
+**Fixed as the class, not the instance.** `EXPECTED_CHECKS = 66` is pinned and compared, and the
+zones block now asserts presence-and-shape instead of warning. A pinned literal is a
+remembering-to-bump cost paid once per real change — and it is *checked on every run*, so it can
+be out of date for exactly one command.
+
+| shape | before | after |
+|---|---|---|
+| A baseline | exit 0, 66 | exit 0, 66 |
+| B `zones.v1.json` renamed away | exit 0, 62 | **exit 1, 63** — names the file AND the class |
+| C `data.zones` key renamed | exit 0, 62 | **exit 1, 63** — "parsed, but data.zones is undefined" |
+| D `contamination.json` removed | exit 0, silent | **exit 1, 64** — a second block, caught by the class guard |
+| E `sightings.v1.json` removed | exit 1 | exit 1 — **not my guard**; count stayed 66, a different check fired |
+
+D is the row that justifies the class fix: two assertions behind a different silent `existsSync`,
+which I did not write the guard for and which it caught anyway. **E is the row I want on the
+record for the opposite reason** — it fails, but not because of anything I added, and counting it
+as mine would be the padding this project keeps catching.
+
+One more thing I checked rather than assumed: removing the Tier 0 inventory does **not** go
+vacuous — it throws `ENOENT` and exits non-zero. Ugly, but loud. Not part of this class.
+
+**Gate:** `tsc` clean, **1,032 tests in 68 files**, `verify.mjs` 66 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes, BIS republished.
