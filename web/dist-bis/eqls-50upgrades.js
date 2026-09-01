@@ -331,7 +331,7 @@ var EQLS50Upgrades = (function(exports) {
 				difficulty: null,
 				zoneLevels: zones.map((z) => surveyed.get(String(z).toLowerCase())).find((z) => z?.levels)?.levels ?? null
 			},
-			actionability: "unknown"
+			actionability: "not-yet-asked"
 		};
 	}
 	var POSITIONS_BY_TYPE = /* @__PURE__ */ new Map();

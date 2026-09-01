@@ -156,7 +156,7 @@ function obtainability(item: Item, surveyed: Map<string, ZoneSurvey>): {
       difficulty: null,
       zoneLevels: hit?.levels ?? null,
     },
-    actionability: 'unknown',
+    actionability: 'not-yet-asked',
   };
 }
 

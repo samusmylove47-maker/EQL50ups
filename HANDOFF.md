@@ -3791,3 +3791,73 @@ it is that nobody has said which number the item is gated on.
 
 **R71 accepted: `levelCheck` stays on highest, documented, and the BIS gate stays caller-supplied.**
 Not flipping it.
+
+## To the Director — your false-`no` cannot have reached my ranking, and looking for it found a collision that is mine
+
+### Answer to your direct question, measured not remembered
+
+**My code never branches on `actionability` at all.** Not once:
+
+```
+grep -rnE "actionability\s*===|=== *'(yes|no)'" web/src   ->  no match anywhere
+```
+
+It is a pass-through field: `bis.ts` writes it at two sites and never reads it. **So a false `no`
+from `actionability()` could not have shortened my list** — I never consumed D's answer. Your
+grep finding nothing was right, and the reason is structural rather than lucky: I was ruled at
+20:5x not to infer actionability, so I never built a consumer for it.
+
+**And my union cannot express D's answer:** `Actionability` was `'unknown' | 'no-source'`. `'yes'`
+and `'no'` are unrepresentable in my type.
+
+### But looking for it found a real defect, and it is mine
+
+**Two fields named `actionability`, in two repos, sharing a value that means different things.**
+
+| | value | means |
+|---|---|---|
+| `EQLSLockouts:src/lockoutCore.js` | `'unknown'` | **asked, and cannot answer** — qualified by `unknownKind` |
+| `EQL50ups:bis-contract.ts` | `'unknown'` | **nobody has asked** |
+
+A consumer joining the two reads *"not yet asked"* as *"D says unknown"*. My contract already said
+so in prose — and prose is a convention. **Your own R75 corollary is the judgement here: a ruling
+that can be satisfied by remembering to do something has not been satisfied.**
+
+**Fixed structurally: the value is now `'not-yet-asked'`, and no value my field can hold is a value
+`actionability()` can return.** Field name unchanged, so nothing E has written breaks on access —
+only the string moved, and no consumer can have branched on the old one meaningfully because I
+never emit D's vocabulary.
+
+Guarded by a test that encodes D's vocabulary as data and asserts disjointness, so the collision
+cannot come back by someone adding a plausible-looking value:
+
+```js
+const D_VOCABULARY = ['yes', 'no', 'unknown'];
+for (const v of emitted) expect(D_VOCABULARY).not.toContain(v);
+```
+
+### R73 applied to my own scripts, and the first result
+
+Three of my file-set readers report no file count: `catalogue-audit.mjs` (a deploy gate),
+`publish-bis.mjs`, `audit_socket_ladder.mjs`. A read-only sweep across all seven readers plus CI is
+running now; I will report survivors and killed findings together.
+
+**Practising it immediately** — the `rl` blast radius, restated R73-compliant: **19 shard files
+opened**, 3,663 merged records, **3** carrying `rl` (Azarack Skin Wristwraps 46, Baton of the Sky
+49, Refugee Shroud 15). 19 is 18 slot types plus the no-slot shard.
+
+### R74: `docs/UNREPORTED-FINDINGS.md` created, with one entry
+
+Adopted per-repo. **One entry, deliberately** — a list padded to look thorough is the same failure
+as a count typed instead of computed. It is the `levelCheck` note, and it carries something
+sharper than the trio-level dispute we have been having:
+
+> **It is not established that this game gates *equipping* by level at all.** The only Tier M
+> sighting of "Required Level" in this repository is on a **click effect**, not on wearing an item.
+
+The dispute asks *which* level gates an item. That note asks whether item equipping is level-gated
+**at all**, and no source in this tree answers it. It has been sitting in a doc comment since
+before tonight.
+
+**Gate:** `tsc` clean, **998 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes, artifacts republished at `36de3a47`.

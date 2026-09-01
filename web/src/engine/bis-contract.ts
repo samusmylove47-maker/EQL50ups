@@ -166,7 +166,22 @@ export interface Obtainable {
  * seen this character's log for that zone' as 'go and farm it' produces exactly
  * the recommendation that loses trust in one click."*
  *
- * B only ever emits `unknown` or `no-source`. **Whether a run is actually
+ * ## A NAME COLLISION ACROSS THIS SEAM, and why the value was renamed
+ *
+ * `EQLSLockouts:src/lockoutCore.js` exports `actionability(state, now, …)`
+ * returning **`'yes' | 'no' | 'unknown'`** with `because` and `unknownKind`.
+ * This field is also called actionability and, until 2026-09-01, also had a
+ * value called `'unknown'` — **and the two meant different things.** D's
+ * `'unknown'` means *asked, and cannot answer*, qualified by `unknownKind`.
+ * B's meant *nobody has asked*.
+ *
+ * A consumer joining the two would read "not yet asked" as "D says unknown".
+ * The contract already said so in prose, and prose is a convention: per R75, a
+ * rule that can be satisfied by remembering to do something has not been
+ * satisfied. **So the value is now `'not-yet-asked'`, and no value this field
+ * can hold is a value D's function can return.** The shape carries the rule.
+ *
+ * B only ever emits `not-yet-asked` or `no-source`. **Whether a run is actually
  * available this week is D's answer, not B's** — B publishes the key and the
  * fact that it has not been resolved, and a consumer that leaves it `unknown`
  * must band it separately rather than treating it as actionable or dropping it.
@@ -185,9 +200,12 @@ export interface Obtainable {
  * So B hands over everything eligible and anticipates nothing.
  */
 export type Actionability =
-  /** The catalogue records where this drops; nobody has asked D whether it is runnable. */
-  | 'unknown'
-  /** The catalogue records no source at all. Cannot be made actionable by any lookup. */
+  /**
+   * The catalogue records where this drops. **Nobody has asked =Lockouts yet.**
+   * Renamed from `'unknown'` on 2026-09-01 — see the collision note below.
+   */
+  | 'not-yet-asked'
+  /** The catalogue records no source at all. No lookup can make it actionable. */
   | 'no-source';
 
 export interface BisCandidate {

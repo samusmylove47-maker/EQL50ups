@@ -129,9 +129,26 @@ describe('obtainability — unknown is loud, never falsy', () => {
     expect(o.zones).toEqual(['Befallen']);
   });
 
-  it('is "unknown" — not actionable and not dropped — when a source exists but nobody has asked D', () => {
+  it('is "not-yet-asked" — not actionable and not dropped — when a source exists', () => {
     const catalog = [mk({ n: 'Dropped', st: { AC: 9 }, src: { z: ['Befallen'] } })];
-    expect(first(candidates({ ...trio }, catalog)).actionability).toBe('unknown');
+    expect(first(candidates({ ...trio }, catalog)).actionability).toBe('not-yet-asked');
+  });
+
+  /**
+   * The collision guard. EQLSLockouts:src/lockoutCore.js's actionability()
+   * returns 'yes' | 'no' | 'unknown'. No value THIS field can hold may overlap
+   * that vocabulary, or a consumer joining the two reads "nobody asked" as
+   * "D says unknown". A shape, not a convention -- R75.
+   */
+  it('emits no value that =Lockouts actionability() can also return', () => {
+    const D_VOCABULARY = ['yes', 'no', 'unknown'];
+    const catalog = [
+      mk({ n: 'Dropped', st: { AC: 9 }, src: { z: ['Befallen'] } }),
+      mk({ n: 'Mystery', st: { AC: 9 } }),
+    ];
+    const emitted = new Set(candidates({ ...trio }, catalog).map((c) => c.actionability));
+    expect(emitted.size).toBeGreaterThan(0);
+    for (const v of emitted) expect(D_VOCABULARY).not.toContain(v);
   });
 
   it('offers zoneLevels where the zone is surveyed, under its own name', () => {
