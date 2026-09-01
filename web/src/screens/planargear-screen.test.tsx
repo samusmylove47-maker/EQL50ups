@@ -18,6 +18,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../App';
 import { indexItems, useCatalog } from '../data/catalog';
 import { normalizeCatalog } from '../data/normalize';
+import { RACES } from '../engine/constants';
 import type { Item } from '../engine/types';
 import { emptyState } from '../state/persistence';
 import { useApp } from '../state/store';
@@ -242,13 +243,25 @@ describe.skipIf(!published)('planar gear screen, against the shipped catalog', (
      * Elf has no way to say so. Deriving the list from the planar pieces alone
      * gave three codes and left the wrong-race case unsayable, which is how this
      * assertion passed for the wrong reason the first time it was written.
+     *
+     * And then it passed for the wrong reason a SECOND time. It asked for `HEF`
+     * — Half Elf — while the comment above it says High Elf, which is `HIE`.
+     * `HEF` was in the hard-coded floor and `HIE` was not, so the assertion held
+     * while the case it was written to defend stayed broken. Now it asks for the
+     * code it means, and counts the whole list: a dropdown that offers a lower
+     * bound of the vocabulary is the defect, not a missing single entry.
      */
     const race = [...container.querySelectorAll<HTMLSelectElement>('.pl-field select')].find((el) =>
-      [...el.options].some((option) => option.value === 'HEF'),
+      [...el.options].some((option) => option.value === 'HIE'),
     );
-    if (!race) throw new Error('no race dropdown offering HEF');
+    if (!race) throw new Error('no race dropdown offering HIE (High Elf)');
+    // Every playable race, plus the "do not narrow" option.
+    expect(race.options).toHaveLength(RACES.length + 1);
+    for (const code of RACES) {
+      expect([...race.options].some((o) => o.value === code), `no option for ${code}`).toBe(true);
+    }
     act(() => {
-      race.value = 'HEF';
+      race.value = 'HIE';
       race.dispatchEvent(new Event('change', { bubbles: true }));
     });
     expect(container.innerHTML).not.toContain('Rune Etched Chestplate');

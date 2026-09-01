@@ -23,6 +23,60 @@ export const CLASS_NAMES: Record<ClassCode, string> = {
 
 export const CLASS_SET: ReadonlySet<string> = new Set(CLASSES);
 
+/**
+ * The fifteen playable races, as `meta.races` publishes them.
+ *
+ * **This list exists because the screens were deriving it from the item corpus
+ * and getting it wrong.** Measured 2026-09-01 against the shipped payload:
+ * 7,341 items carry a race restriction, but between them they name only five
+ * distinct codes — `BAR ELF IKS OGR TRL`. Both race dropdowns took that set,
+ * unioned a hard-coded floor of seven, and offered **7 of 15**. Eight playable
+ * races — Human, Erudite, High Elf, Dwarf, Halfling, Gnome, Kerran, Froglok —
+ * could not be selected at all, so those players left race blank and were then
+ * offered gear their character cannot wear.
+ *
+ * `PlanarGear.tsx` documents that exact failure in its own comment — *"a High
+ * Elf had no way to say so and was quietly offered a set their character cannot
+ * wear"* — and the floor added to fix it contains `HEF` (Half Elf), not `HIE`
+ * (High Elf). The bug outlived the comment describing it. Deriving a
+ * vocabulary from the subset of the corpus that happens to restrict on it is
+ * the mistake; `races.test.ts` pins this list to the payload's own.
+ */
+export const RACES = [
+  'HUM', 'BAR', 'ERU', 'ELF', 'HIE', 'DEF', 'HEF', 'DWF',
+  'TRL', 'OGR', 'HFL', 'GNM', 'IKS', 'KER', 'FRG',
+] as const;
+export type RaceCode = (typeof RACES)[number];
+
+export const RACE_SET: ReadonlySet<string> = new Set(RACES);
+
+/**
+ * Display names, and **PARTIAL on purpose**.
+ *
+ * Sourced from `research/data/thiole-EQLGearPlanner-chardata.json`, which
+ * carries a code→name map for fourteen of the fifteen. That file declares
+ * `verified: false` and its own `_README` says eqlwiki does not publish these
+ * numbers, so these are names from a third-party planner, not from the client.
+ *
+ * `KER` is absent. The source has `VAH` (Vah Shir) where this game has `KER`,
+ * and searching `research/` for a label turns up "Kerra" and "Kerran" only as
+ * zone and mob names — a place, not a race label. So no name is asserted for
+ * it, the type says so, and the UI falls back to the bare code. Typing one
+ * would be inventing the single fact this file exists not to invent.
+ */
+export const RACE_NAMES: Partial<Record<RaceCode, string>> = {
+  HUM: 'Human', BAR: 'Barbarian', ERU: 'Erudite', ELF: 'Wood Elf',
+  HIE: 'High Elf', DEF: 'Dark Elf', HEF: 'Half Elf', DWF: 'Dwarf',
+  TRL: 'Troll', OGR: 'Ogre', HFL: 'Halfling', GNM: 'Gnome',
+  IKS: 'Iksar', FRG: 'Froglok',
+};
+
+/** What a reader should see for a race code: its name, or the code itself. */
+export function raceLabel(code: string): string {
+  const name = RACE_NAMES[code as RaceCode];
+  return name ? `${name} (${code})` : code;
+}
+
 /*
  * `ARMOR_TIER` was here: sixteen class→armour-tier numbers, deleted 2026-08-31.
  *

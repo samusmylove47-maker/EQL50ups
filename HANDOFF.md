@@ -4248,3 +4248,80 @@ sentence of publishing the opposite.
 
 **Deploy:** `curl` at 01:07 still served the pre-push manifest (no `contractVersion`). Not
 claiming it landed until the bytes say so.
+
+---
+
+## To the Director — a player could not tell =Upgrades they were a Gnome, and we recommended them Ogre gear
+
+Back on =Upgrades itself, and this is a reader-facing defect rather than an infrastructure one.
+
+### Measured, against the shipped payload
+
+```
+meta.races declares .......................... 15
+items carrying a race restriction ............ 7,341
+distinct race codes those 7,341 name .......... 5   BAR ELF IKS OGR TRL
+codes the dropdown OFFERED .................... 7   (those 5 ∪ a hard-coded floor)
+declared but NOT selectable ................... 8   HUM ERU HIE DWF HFL GNM KER FRG
+```
+
+Both race dropdowns built their own vocabulary by scanning loaded items for restriction codes
+and unioning a floor of seven. It is a tempting shape — nothing invented, every code offered is
+one the eligibility check demonstrably understands — and it is wrong in the direction that
+matters: **a vocabulary derived from the subset of the data that happens to mention it can only
+ever be a lower bound.**
+
+The consequence is not cosmetic. Race left unset narrows nothing. So a Gnome, Human, Dwarf,
+Halfling, Erudite, High Elf, Kerran or Froglok had no way to say so, and was then shown
+Barbarian/Troll/Ogre-only armour as an upgrade. **That is a wrong recommendation, which is the
+one failure this project keeps designing away from.**
+
+### The part worth your attention: the bug outlived two comments describing it
+
+`PlanarGear.tsx` carried this, above the seven-code floor:
+
+> *"only three race codes appear on planar armour at all, so a High Elf had no way to say so and
+> was quietly offered a set their character cannot wear — the exact defect this screen fixes"*
+
+**The floor contains `HEF` — Half Elf. High Elf is `HIE`, and it was not there.** The comment
+diagnosed the defect correctly and the fix underneath it missed the very race it named.
+
+And the screen test did the same thing. Its comment says High Elf; its assertion asks for `HEF`.
+`HEF` was in the floor, so the test passed for eight months while the case it was written to
+defend stayed broken. **Two independent sites, both describing the bug in prose and both failing
+to encode it.** That is the §7 habit failing in its own words, and it is why the fix is a pinned
+vocabulary rather than a longer list.
+
+### Fixed
+
+`RACES` / `RACE_SET` in `constants.ts`, alongside the existing `CLASSES`. `races.test.ts` pins
+it to `meta.races` **both directions**, so app and pipeline cannot drift. The screen test now
+asks for `HIE`, counts the options, and requires every declared race to be present.
+
+### Labels, and the one I would not type
+
+`raceLabel()` renders `High Elf (HIE)` rather than a bare code. Names come from
+`research/data/thiole-EQLGearPlanner-chardata.json`, which carries **14 of 15**.
+
+**`KER` has no name and I did not give it one.** That source has `VAH` (Vah Shir) where this
+game has `KER`, and searching `research/` for a label turns up "Kerra" and "Kerran" only as zone
+and mob names — a place, not a race label. `RACE_NAMES` is `Partial<Record<…>>` so the type says
+so, and the UI falls back to the bare code. A test fails if anyone fills it in. **Flagging for
+you:** that source self-reports `verified: false`, so all fourteen names are third-party-planner
+names, not client-read. If you want them out until they are Tier 0, say so and they come out —
+the vocabulary fix stands without them.
+
+### A/B, three mutations, restore verified by `sha256sum -c` (OK)
+
+| mutation | caught by |
+|---|---|
+| `RACES` reverted to the old seven | 4 failed / 17 — including the mounted-DOM test |
+| `HIE` alone dropped | 4 failed / 17 |
+| a name invented for `KER` | 2 failed / 7 |
+
+**Gate:** `tsc` clean, **1,028 tests in 68 files**, `verify.mjs` Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle built at `VITE_BASE=/EQL50ups/`.
+
+**Deploy verified from the bytes, not from a green suite:** `curl` on the live Pages origin
+returns `contractVersion: "1.0.0"`, `contractSha256_8: "957fad1a"`, and the vendored engine at
+`var VERSION = "1.3.0"`, 26,610 bytes — matching the pin exactly.

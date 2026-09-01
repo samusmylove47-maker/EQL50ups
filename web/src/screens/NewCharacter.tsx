@@ -1,33 +1,25 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { validateClasses } from '../engine/character';
-import { LEVEL_CAP, type ClassCode } from '../engine/constants';
+import { LEVEL_CAP, RACES, raceLabel, type ClassCode } from '../engine/constants';
 import { ClassPicker } from '../components/ClassPicker';
-import { useCatalog } from '../data/catalog';
 import { href, navigate } from '../router';
 import { useApp } from '../state/store';
-
-/**
- * Race codes are read out of the item corpus rather than invented, so the
- * dropdown can only offer codes the eligibility check actually understands.
- * These are the codes present in the published catalog's restriction lists,
- * used as a floor until the catalog has loaded.
- */
-const OBSERVED_RACE_CODES = ['BAR', 'DEF', 'ELF', 'HEF', 'IKS', 'OGR', 'TRL'];
-const NON_RACE_TOKENS = new Set(['ALL', 'NONE', 'ALL_EXCEPT']);
 
 export function NewCharacter() {
   const createCharacter = useApp((s) => s.createCharacter);
   const createSet = useApp((s) => s.createSet);
-  const items = useCatalog((s) => s.items);
 
-  const races = useMemo(() => {
-    const found = new Set<string>();
-    for (const item of items) {
-      for (const code of item.ra) if (!NON_RACE_TOKENS.has(code)) found.add(code);
-    }
-    for (const code of OBSERVED_RACE_CODES) found.add(code);
-    return [...found].sort();
-  }, [items]);
+  /*
+   * Every playable race, not the subset the corpus happens to restrict on.
+   *
+   * This used to read race codes out of the loaded items and union a
+   * seven-code floor. Measured against the shipped payload: 7,341 items carry
+   * a restriction and between them name five distinct codes, so the dropdown
+   * offered 7 of 15 and eight races could not be picked at all. A player who
+   * cannot say they are a Gnome leaves it unset, and unset does not narrow —
+   * so they were shown Ogre-only gear as an upgrade.
+   */
+  const races = RACES;
 
   const [name, setName] = useState('');
   /*
@@ -115,15 +107,16 @@ export function NewCharacter() {
                 <option value="">Unset</option>
                 {races.map((code) => (
                   <option key={code} value={code}>
-                    {code}
+                    {raceLabel(code)}
                   </option>
                 ))}
               </select>
             </label>
           </div>
           <p className="hint">
-            Race is optional and only used to filter race-restricted items; the codes offered are
-            the ones the item catalog actually restricts on. Race base attributes are
+            Race is optional and only used to filter race-restricted items; all fifteen playable
+            races are offered, whether or not this catalog happens to carry an item restricted to
+            one. Leaving it unset does not narrow anything. Race base attributes are
             deliberately not modelled — the only available source self-reports as unverified, so the
             planner shows gear totals rather than inventing a starting point.
           </p>

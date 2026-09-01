@@ -13,3 +13,6 @@ dist
 # tracked bundle had already gone a hash stale behind the published one, which
 # is the dead-pointer-that-looks-live hazard this project has paid for before.
 web/dist-bis/
+
+# Workflow worktrees — transient, one per fan-out lens, never part of the tree.
+.claude/worktrees/

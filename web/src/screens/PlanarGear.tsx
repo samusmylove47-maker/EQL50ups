@@ -62,7 +62,7 @@ import {
   makeContext,
   type LoadoutContext,
 } from '../engine/character';
-import { CLASS_NAMES, LEVEL_CAP, type ClassCode } from '../engine/constants';
+import { CLASS_NAMES, LEVEL_CAP, RACES, raceLabel, type ClassCode } from '../engine/constants';
 import { PRESET_PROFILES, type WeightProfile } from '../engine/ep';
 import type { Item } from '../engine/types';
 import { BASE_STATE, tier as tierState } from '../engine/upgrade';
@@ -250,25 +250,22 @@ export function PlanarGear() {
   const pieces = useMemo(() => resolvePlanarPieces(items), [items]);
 
   /*
-   * Read out of the whole corpus, not out of the planar pieces.
+   * The published vocabulary, not a set observed in the corpus.
    *
-   * Deriving it from the pieces looked tidier and was a trap: only three race
-   * codes appear on planar armour at all (Rune Etched's BAR/TRL/OGR), so a High
-   * Elf had no way to say so and was quietly offered a set their character
-   * cannot wear — the exact defect this screen claims to fix. The floor below is
-   * the same list `NewCharacter` uses, and for the same reason: it is what the
-   * published catalog's restriction lists contain, so the dropdown can only
-   * offer codes the eligibility check actually understands.
+   * The comment that stood here had the diagnosis exactly right — *"only three
+   * race codes appear on planar armour at all, so a High Elf had no way to say
+   * so and was quietly offered a set their character cannot wear"* — and then
+   * widened from the pieces to the whole corpus, which is the same mistake one
+   * step further out. Measured 2026-09-01: the whole corpus names five distinct
+   * codes, the hard-coded floor added two more, and the dropdown offered 7 of
+   * 15. **`HIE` was not among them.** The High Elf this comment was written to
+   * rescue still had no way to say so, for a year of commits.
+   *
+   * A vocabulary derived from the subset of the data that happens to mention it
+   * can only ever be a lower bound. `RACES` is what `meta.races` publishes and
+   * what `verify.mjs` independently restates; `races.test.ts` pins them equal.
    */
-  const races = useMemo(() => {
-    const found = new Set<string>(['BAR', 'DEF', 'ELF', 'HEF', 'IKS', 'OGR', 'TRL']);
-    for (const item of items) {
-      for (const code of item.ra) {
-        if (code !== 'ALL' && code !== 'NONE' && code !== 'ALL_EXCEPT') found.add(code);
-      }
-    }
-    return [...found].sort();
-  }, [items]);
+  const races = RACES;
 
   /* ---- what we are optimising for --------------------------------------- */
 
@@ -581,7 +578,7 @@ export function PlanarGear() {
                 <option value="">Do not narrow on race</option>
                 {races.map((code) => (
                   <option key={code} value={code}>
-                    {code}
+                    {raceLabel(code)}
                   </option>
                 ))}
               </select>
