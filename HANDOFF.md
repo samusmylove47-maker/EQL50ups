@@ -5919,3 +5919,21 @@ a decision, not a correction, and my overnight bound is corrections.
 
 **Gate:** tsc clean · vitest **1,082** passed / 71 files (from `web/`) · playwright **150 / 0** ·
 `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+## 09:39Z tick — tip unchanged at `a46c37c`, declaring the share-link codec
+
+No orders. Tree clean, 0 unpushed. Both 07:39 declarations are closed.
+
+The shortlist at line 5502 named three worth an hour. `blockReason.ts` is closed (`c682786`).
+The remaining two, in order:
+
+1. **`share/codec.ts` drops `GearSet.withheld` and `defaultFilters` from share links.** UNVERIFIED.
+   If it holds, a link silently loses what the sender saw: `withheld` is the map recording a worn
+   item no catalog can score, and dropping it makes an unscoreable position read as EMPTY on the
+   receiving side — the same class of defect as the reload loss already fixed in `sanitizeSet`,
+   but across the one surface where the sender cannot see what the receiver gets.
+2. `ItemPicker`'s "vs worn" delta comparing two different tiers. UNVERIFIED.
+
+Taking 1. A codec is round-trippable by construction, so this is checkable without any judgement
+call: encode a set carrying both fields, decode, compare. Verification and, if it holds, a
+correction to a statement the receiver is shown. Neither touches ranking.
