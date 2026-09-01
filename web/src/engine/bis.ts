@@ -81,6 +81,18 @@ function statKeys(a: Item | null, b: Item | null): string[] {
   return [...keys];
 }
 
+/**
+ * What is in the slot now. Three states, and conflating two of them fabricates.
+ *
+ * - an `Item`      -> compare against it
+ * - `null`         -> the slot is EMPTY. It contributes zero, and that zero is
+ *                     measured rather than guessed.
+ * - `'unresolved'` -> the caller named something worn that this catalogue
+ *                     cannot resolve. **Not the same as empty.** Something IS
+ *                     in the slot and we do not know what it does.
+ */
+export type Worn = Item | null | 'unresolved';
+
 function statValue(item: Item | null, key: string): number | undefined {
   if (!item) return 0; // an empty slot genuinely contributes zero; that is not a guess
   if (key.startsWith('SV_')) return item.sv?.[key.slice(3)];
@@ -94,9 +106,26 @@ function statValue(item: Item | null, key: string): number | undefined {
  * nothing about what it does — the whole comparison is unavailable, not partial,
  * and it must not read as "no change".
  */
-export function statDelta(candidate: Item, worn: Item | null): StatDelta {
+export function statDelta(candidate: Item, worn: Worn): StatDelta {
   const candidateStatsUnknown = Boolean(candidate.statsUnknown)
     || (!Object.keys(candidate.st ?? {}).length && !Object.keys(candidate.sv ?? {}).length);
+
+  /*
+   * The caller says something is worn and this catalogue cannot resolve it.
+   * **Every key is unknown, and none is a difference.** Treating it as an empty
+   * slot would credit the candidate's WHOLE stat line as a gain against a zero
+   * nobody measured -- a confident wrong number, which is the one failure this
+   * module exists to avoid. `Upgrades.tsx` has always handled this as
+   * `worn-unresolved`; this module did not until 2026-09-01.
+   */
+  if (worn === 'unresolved') {
+    return {
+      delta: {},
+      unknown: statKeys(candidate, null).sort(),
+      candidateStatsUnknown,
+      replacesUnresolved: true,
+    };
+  }
 
   const delta: Record<string, number> = {};
   const unknown: string[] = [];
@@ -107,7 +136,7 @@ export function statDelta(candidate: Item, worn: Item | null): StatDelta {
     const diff = to - from;
     if (diff !== 0) delta[key] = diff;
   }
-  return { delta, unknown: unknown.sort(), candidateStatsUnknown };
+  return { delta, unknown: unknown.sort(), candidateStatsUnknown, replacesUnresolved: false };
 }
 
 /** Is the candidate better on ANY axis? Unknowns do not count as better. */
@@ -225,14 +254,18 @@ export function candidates(
     for (const slot of (item.sl ?? []) as (SlotType | 'ANY')[]) {
       for (const positionId of POSITIONS_BY_TYPE.get(slot) ?? []) {
         const wornId = input.currentGear[positionId] ?? null;
-        const worn = wornId ? byId.get(wornId) ?? null : null;
-        if (worn && worn.n === item.n) continue; // already wearing it
+        // A named-but-unresolvable id is NOT an empty slot -- see `Worn`.
+        const worn: Worn = wornId ? (byId.get(wornId) ?? 'unresolved') : null;
+        if (worn !== 'unresolved' && worn && worn.n === item.n) continue; // already wearing it
 
         const d = statDelta(item, worn);
         // An item whose stats are entirely unrecorded is still a candidate:
         // dropping it would hide a real upgrade behind a data gap. It carries
         // `candidateStatsUnknown` and ranks in the unknown band.
-        if (!d.candidateStatsUnknown && !betterOnSomeAxis(d)) continue;
+        // An unresolved slot yields no positive axis by construction, so it is
+        // kept for the same reason an unstatted candidate is: dropping it would
+        // hide a real upgrade behind a data gap rather than naming the gap.
+        if (!d.candidateStatsUnknown && !d.replacesUnresolved && !betterOnSomeAxis(d)) continue;
 
         const { obtainable, actionability } = obtainability(item, surveyed);
         out.push({
@@ -240,8 +273,8 @@ export function candidates(
           positionId,
           candidateItemId: item.id ?? null,
           candidateName: item.n,
-          replacesItemId: worn?.id ?? null,
-          replacesName: worn?.n ?? null,
+          replacesItemId: worn === 'unresolved' ? null : (worn?.id ?? null),
+          replacesName: worn === 'unresolved' ? null : (worn?.n ?? null),
           statDelta: d,
           obtainable,
           actionability,

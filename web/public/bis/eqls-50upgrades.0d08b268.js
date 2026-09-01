@@ -268,6 +268,12 @@ var EQLS50Upgrades = (function(exports) {
 	*/
 	function statDelta(candidate, worn) {
 		const candidateStatsUnknown = Boolean(candidate.statsUnknown) || !Object.keys(candidate.st ?? {}).length && !Object.keys(candidate.sv ?? {}).length;
+		if (worn === "unresolved") return {
+			delta: {},
+			unknown: statKeys(candidate, null).sort(),
+			candidateStatsUnknown,
+			replacesUnresolved: true
+		};
 		const delta = {};
 		const unknown = [];
 		for (const key of statKeys(candidate, worn)) {
@@ -283,7 +289,8 @@ var EQLS50Upgrades = (function(exports) {
 		return {
 			delta,
 			unknown: unknown.sort(),
-			candidateStatsUnknown
+			candidateStatsUnknown,
+			replacesUnresolved: false
 		};
 	}
 	/** Is the candidate better on ANY axis? Unknowns do not count as better. */
@@ -384,18 +391,18 @@ var EQLS50Upgrades = (function(exports) {
 			if (!eligibility(item, ctx, input.level).eligible) continue;
 			for (const slot of item.sl ?? []) for (const positionId of POSITIONS_BY_TYPE.get(slot) ?? []) {
 				const wornId = input.currentGear[positionId] ?? null;
-				const worn = wornId ? byId.get(wornId) ?? null : null;
-				if (worn && worn.n === item.n) continue;
+				const worn = wornId ? byId.get(wornId) ?? "unresolved" : null;
+				if (worn !== "unresolved" && worn && worn.n === item.n) continue;
 				const d = statDelta(item, worn);
-				if (!d.candidateStatsUnknown && !betterOnSomeAxis(d)) continue;
+				if (!d.candidateStatsUnknown && !d.replacesUnresolved && !betterOnSomeAxis(d)) continue;
 				const { obtainable, actionability } = obtainability(item, surveyed);
 				out.push({
 					slot,
 					positionId,
 					candidateItemId: item.id ?? null,
 					candidateName: item.n,
-					replacesItemId: worn?.id ?? null,
-					replacesName: worn?.n ?? null,
+					replacesItemId: worn === "unresolved" ? null : worn?.id ?? null,
+					replacesName: worn === "unresolved" ? null : worn?.n ?? null,
 					statDelta: d,
 					obtainable,
 					actionability,

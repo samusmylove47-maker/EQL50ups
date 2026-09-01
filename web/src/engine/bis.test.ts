@@ -377,3 +377,44 @@ describe('no candidate field is a constant pretending to be information', () => 
     expect(constants).not.toContain('eligibilityReason');
   });
 });
+
+/* ------------------------------------------------------------------------- *
+ * An unresolvable worn item is NOT an empty slot.
+ *
+ * Found by an adversarial audit on 2026-09-01 and reproduced before fixing: a
+ * `currentGear` id this catalogue cannot resolve was treated as an empty slot,
+ * so a candidate's ENTIRE stat line was credited as a gain against a zero
+ * nobody measured, with `unknown: []` asserting the comparison was complete.
+ *
+ *   before:  delta {"AC":500}  unknown []      <- fabricated
+ *   after :  delta {}          unknown ["AC"]  replacesUnresolved true
+ * ------------------------------------------------------------------------- */
+
+describe('an unresolvable worn item is not an empty slot', () => {
+  const cand = mk({ n: 'Great Vest', st: { AC: 500 } });
+
+  it('claims NO gain against something it cannot resolve', () => {
+    const out = candidates(
+      { ...trio, currentGear: { CHEST: 'no-such-id' } }, [cand], { byId: new Map() },
+    );
+    const c = first(out);
+    expect(c.statDelta.delta).toEqual({});
+    expect(c.statDelta.unknown).toEqual(['AC']);
+    expect(c.statDelta.replacesUnresolved).toBe(true);
+  });
+
+  it('still offers it, so a data gap is named rather than hiding an upgrade', () => {
+    const out = candidates(
+      { ...trio, currentGear: { CHEST: 'no-such-id' } }, [cand], { byId: new Map() },
+    );
+    expect(out.length).toBeGreaterThan(0);
+    expect(first(out).replacesName).toBeNull();
+  });
+
+  it('a genuinely EMPTY slot still credits the whole line, because that zero is measured', () => {
+    const out = candidates({ ...trio }, [cand]);
+    const c = first(out);
+    expect(c.statDelta.delta).toEqual({ AC: 500 });
+    expect(c.statDelta.replacesUnresolved).toBe(false);
+  });
+});

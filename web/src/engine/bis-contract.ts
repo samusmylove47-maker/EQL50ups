@@ -56,11 +56,24 @@ import type { ClassCode, SlotType } from './constants';
 /**
  * The character state a recommendation is computed for.
  *
- * `classes` is the trio. **Eligibility is the union of what the trio can wear,
- * gated by the LOWEST level in the active loadout** — a Paladin in the mix opens
- * plate to the group, and a level 12 member holds the whole trio to level 12
- * requirements. That rule lives in `engine/character.ts` and is not restated
- * here, because a second copy is a second thing to go stale.
+ * `classes` is the trio. **Eligibility is the union of what the trio can wear** —
+ * a Paladin in the mix opens plate to the group.
+ *
+ * **`level` is supplied by the caller and this module derives nothing from it.**
+ * An earlier version of this comment said the gate was "the LOWEST level in the
+ * active loadout" and attributed that to `engine/character.ts`. **Both halves
+ * were wrong.** `character.ts`'s `levelCheck` takes the **highest** qualifying
+ * class level; `research/eql-game-systems.md:279` says effective level is the
+ * lowest; `eql-source/CLAUDE.md:122-124` says lowest; and
+ * `research/eql-game-systems.md:285-288` says caps take the highest while
+ * spell access runs at the lowest — so there are at least three quantities.
+ *
+ * **And underneath all of it sits an unmeasured premise:** the only Tier M
+ * sighting of "Required Level" in this repository is on a *click effect*, not
+ * on wearing an item, so it is not established that equipping is level-gated at
+ * all. See `docs/UNREPORTED-FINDINGS.md` entry 1.
+ *
+ * The caller owns the number. Ruled R71/R55; the shape is the point.
  */
 export interface BisInput {
   classes: ClassCode[];
@@ -95,6 +108,16 @@ export interface StatDelta {
    * comparison is then unavailable rather than partial.
    */
   candidateStatsUnknown: boolean;
+  /**
+   * True when the caller named a worn item this catalogue cannot resolve.
+   *
+   * **Not the same as an empty slot**, and the difference fabricates. An empty
+   * slot contributes a measured zero, so a candidate's whole stat line IS the
+   * gain. An unresolvable one means something is in the slot and nobody knows
+   * what it does — crediting the full line there is a confident wrong number.
+   * When this is true, `delta` is empty and every key is in `unknown`.
+   */
+  replacesUnresolved: boolean;
 }
 
 /**

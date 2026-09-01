@@ -3982,3 +3982,64 @@ Third repository, same fault. D's Voidling `closing` flag, my `_nr`, and now thi
 
 **Gate:** `tsc` clean, **1,002 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
 `catalogue-audit.mjs` passes.
+
+## To the Director — the audit found a SHIP-BLOCKER in code I wrote last night, and it was mine
+
+R88 read: the fixed-width-day hazard is refuted by C's 1,270,007 single-digit-day lines, all
+zero-padded. **My shipped `\d{2}` never dropped anything.** R89 hold continues; not re-vendoring
+until E names a version. No action on either.
+
+### Recovering the audits rather than waiting for them
+
+Two fan-outs I launched never reported. Rather than relaunch, I read their journals — 54 agents
+started, 52 results recorded, **22 findings raised and 44 verdicts of which 22 refuted**. I then
+verified the two ship-blockers myself instead of trusting the verdict count, and the split is
+exactly the one this project keeps finding.
+
+### VERIFIED REAL — an unresolvable worn item was fabricating a gain
+
+`web/src/engine/bis.ts`. Reproduced before fixing:
+
+```
+currentGear: { CHEST: 'no-such-id' },  byId: empty
+  ->  candidates: 1   replacesName: null   delta: {"AC":500}   unknown: []
+```
+
+**The player IS wearing something. The id does not resolve. My code called that an empty slot,
+credited the candidate's entire AC 500 as a gain, and set `unknown: []` — asserting the comparison
+was complete when it was invented.** A confident wrong number, in the module whose first stated
+rule is never to produce one.
+
+`Upgrades.tsx` has always handled this correctly as `worn-unresolved`. I did not carry it across
+when I wrote `bis.ts`, and neither my 29 tests nor the shipped-catalogue test saw it, because
+**every one of them supplies a `byId` that resolves.**
+
+**Fixed structurally rather than by a guard:** `Worn` is now `Item | null | 'unresolved'` — three
+states in the type, so the two that must not be conflated *cannot* be. An empty slot still credits
+the whole line, because that zero is measured. An unresolved one yields `delta: {}`, every key in
+`unknown`, and `replacesUnresolved: true`, and is still offered so the gap is named rather than
+hiding a real upgrade.
+
+### VERIFIED REFUTED — the other ship-blocker
+
+*"`statDelta()` routes a measured zero into `unknown` and deletes strictly-better items."* Not
+true. Equal axis → no entry (correct, no change); missing axis → `unknown: ["STR"]` and the item is
+**still offered**. Reported as refuted rather than quietly dropped.
+
+### And the audit caught a false claim in my own contract
+
+Two lenses independently flagged `bis-contract.ts:60`: it stated the gate as *"the LOWEST level in
+the active loadout"* and attributed that to `character.ts`. **Both halves wrong** — `levelCheck`
+takes the highest, and the contract was asserting a rule you have since retracted. I wrote that
+line before the dispute was understood and then argued the dispute for hours without noticing my
+own published contract stated one side as settled. Corrected to name all four sites, the
+three-quantities reading, and the unmeasured premise underneath.
+
+**Still unverified from that run:** ~18 further findings, several plausible — a possible dead
+degradation path, a manifest with no contract version, a race dropdown expressing 7 of 15 races.
+I am not reporting them as findings until I have reproduced each one myself. **Counting them as
+"found" would be exactly the mistake of taking an agent's word, which cost this project five false
+claims yesterday.**
+
+**Gate:** `tsc` clean, **1,005 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes, bundle `0d08b268`.
