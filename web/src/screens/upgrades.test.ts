@@ -503,6 +503,96 @@ describe('the measured drop data', () => {
     expect(tallies[1]?.title).toBe('The Permafrost Caverns - Group');
   });
 
+  /*
+   * A drop whose sessions ran in more than one zone.
+   *
+   * `MeasuredDrop.zones` is "zone strings the sessions ran in" and `seen` is
+   * that mob's total across all of them — there is NO per-zone split in the
+   * payload. The tally added the whole of `seen` to every zone named, so a mob
+   * seen four times across two zone strings printed "4 sightings" under each,
+   * and the section summed to eight events for four.
+   *
+   * Measured over the shipped payload with `node -e` across
+   * `web/public/data/items/*.json`: 677 measured drops, of which 636 name one
+   * zone, 16 name none, and 25 name two. Summing `seen` gives 2,881; summing it
+   * once per zone name gives 2,983. 102 sightings that never happened, all of
+   * them the Plane of Hate against its "- Group" instance string.
+   *
+   * The true split is unknowable from what ships, so it is not guessed. This
+   * file already refuses exactly this trade for `sessions`, in the test above:
+   * a number that would "print a sample size larger than the sample" is not
+   * reported at all rather than reported wrong.
+   */
+  const HATE = 'The Plane of Hate';
+  const HATE_GROUP = 'The Plane of Hate - Group';
+
+  function twoZoneRows(): UpgradeReport['rows'] {
+    return [
+      { candidate: { item: item({
+        n: 'Indicolite Boots',
+        sl: ['FEET'],
+        ms: [{ mob: 'Grandmaster R`tal', seen: 4, sessions: 4, zones: [HATE, HATE_GROUP] }],
+      }) } },
+    ] as unknown as UpgradeReport['rows'];
+  }
+
+  it('never attributes one mob’s sightings to two zones at once', () => {
+    const tallies = zoneTallies(twoZoneRows());
+    const total = tallies.reduce((n, t) => n + t.seen, 0);
+    expect(total, 'four sightings cannot become eight').toBeLessThanOrEqual(4);
+  });
+
+  it('reports an unattributable sighting as unattributed rather than as zero or as both', () => {
+    const tallies = zoneTallies(twoZoneRows());
+    expect(tallies.map((t) => t.zone).sort()).toEqual([HATE, HATE_GROUP].sort());
+    for (const tally of tallies) {
+      // Nothing is attributed, because nothing can be.
+      expect(tally.seen, `${tally.zone} claims sightings it cannot place`).toBe(0);
+      // But the sightings are real and are not silently dropped.
+      expect(tally.unattributed, `${tally.zone} lost the sighting entirely`).toBe(4);
+    }
+  });
+
+  it('still attributes a single-zone drop in full, and mixes the two correctly', () => {
+    const rows = [
+      { candidate: { item: item({
+        n: 'Mixed',
+        sl: ['FEET'],
+        ms: [
+          { mob: 'Solo Zone Mob', seen: 5, sessions: 2, zones: [HATE] },
+          { mob: 'Grandmaster R`tal', seen: 4, sessions: 4, zones: [HATE, HATE_GROUP] },
+        ],
+      }) } },
+    ] as unknown as UpgradeReport['rows'];
+    const byZone = new Map(zoneTallies(rows).map((t) => [t.zone, t]));
+    expect(byZone.get(HATE)?.seen).toBe(5);
+    expect(byZone.get(HATE)?.unattributed).toBe(4);
+    expect(byZone.get(HATE_GROUP)?.seen).toBe(0);
+    expect(byZone.get(HATE_GROUP)?.unattributed).toBe(4);
+  });
+
+  /*
+   * The both-zones behaviour is the CONTRACT, not a leftover of the overcount.
+   * `unattributed` answers "how many sightings might be here", per zone, so the
+   * same four appear under both candidates and the column does not add up —
+   * over the shipped payload, 146 real sightings surface as 292 across rows.
+   * Pinned so nobody "fixes" it into a split, which would be the invented
+   * number this whole change exists to refuse.
+   */
+  it('repeats the same unattributed count under every candidate zone, and does not split it', () => {
+    const tallies = zoneTallies(twoZoneRows());
+    expect(tallies.map((t) => t.unattributed)).toEqual([4, 4]);
+    const summed = tallies.reduce((n, t) => n + t.unattributed, 0);
+    expect(summed, 'the column overlaps on purpose — 8 shown for 4 events').toBe(8);
+    // And none of it leaked into the placeable count.
+    expect(tallies.reduce((n, t) => n + t.seen, 0)).toBe(0);
+  });
+
+  it('leaves a single-zone roll-up untouched — no unattributed sightings anywhere', () => {
+    const rows = [{ candidate: { item: BOULDER } }] as unknown as UpgradeReport['rows'];
+    for (const tally of zoneTallies(rows)) expect(tally.unattributed).toBe(0);
+  });
+
   it('has nothing to roll up when nothing on the list has been measured', () => {
     const rows = [
       { candidate: { item: item({ n: 'Unwatched', sl: ['FEET'] }) } },

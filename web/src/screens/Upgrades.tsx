@@ -859,8 +859,30 @@ export interface ZoneTally {
   slug: string | null;
   /** How many listed upgrades have a measured sighting in this zone. A count. */
   items: number;
-  /** How many sightings, across those items. A count. */
+  /**
+   * How many sightings, across those items, **that can be placed in this zone**.
+   * A count. Only a drop whose sessions all ran in one zone contributes here.
+   */
   seen: number;
+  /**
+   * Sightings that are real, touch this zone, and cannot be attributed to it.
+   *
+   * A `MeasuredDrop` carries one `seen` total and a LIST of zones its sessions
+   * ran in, with no per-zone split. When that list names more than one zone, the
+   * count belongs to some of them in an unknown division — so it is reported
+   * here rather than added to `seen` (which would overstate) or discarded
+   * (which would understate). Never both, never invented.
+   *
+   * **This field DOES NOT ADD UP ACROSS ZONES, by construction.** The same four
+   * sightings appear as `unattributed: 4` under every zone they might belong to,
+   * because the claim it makes is per-zone — "this many sightings might be
+   * here" — not a share of a total. Over the shipped payload the 146 real
+   * sightings behind it surface as 292 across the rows. Summing this column is
+   * the same mistake as summing `sessions`, which `totalSightings` refuses for
+   * the same reason. `upgrades.test.ts` pins the both-zones behaviour so it
+   * cannot be quietly "fixed" into a split by someone assuming it is additive.
+   */
+  unattributed: number;
   survey: ZoneSurvey | null;
 }
 
@@ -876,6 +898,32 @@ export interface ZoneTally {
  * An item counts once per zone however many of its mobs dropped it there, so
  * `items` is "upgrades on this list you could come home with", not a tally of
  * mobs.
+ *
+ * ## Why a sighting is sometimes counted in no zone at all
+ *
+ * A `MeasuredDrop` is one mob with one `seen` total and `zones` — "zone strings
+ * the sessions ran in", plural, with **no per-zone breakdown anywhere in the
+ * payload**. This function used to add the whole of `seen` to every zone in that
+ * list, so `{mob: 'Grandmaster R`tal', seen: 4, zones: ['The Plane of Hate',
+ * 'The Plane of Hate - Group']}` printed "4 sightings" under each and the
+ * section claimed eight events for four.
+ *
+ * Measured across `web/public/data/items/*.json`: 677 measured drops, 636 with
+ * one zone, 16 with none, 25 with two. Summing `seen` gives 2,881; summing it
+ * once per zone name gives 2,983 — **102 sightings that never happened**, every
+ * one of them the Plane of Hate against its "- Group" instance string.
+ *
+ * Splitting the count evenly would invent a number, and dropping it would
+ * understate a zone that really was visited. So a multi-zone drop contributes
+ * to `unattributed` and to neither zone's `seen`. `totalSightings` in this same
+ * file already refuses this trade for `sessions`, and for the same reason: a
+ * figure that would "print a sample size larger than the sample" is not printed.
+ *
+ * **`items` is deliberately NOT changed here, and it is not fully sound
+ * either.** It still counts the item under both zone names, which claims a
+ * sighting in each where the evidence establishes one in *some* of them. That is
+ * the list's sort key, so changing it re-orders "Where to go" — a decision
+ * rather than a correction, and it is on the open list for the Director.
  */
 export function zoneTallies(rows: readonly UpgradeRow[]): ZoneTally[] {
   const byZone = new Map<string, ZoneTally>();
@@ -883,21 +931,29 @@ export function zoneTallies(rows: readonly UpgradeRow[]): ZoneTally[] {
     const drops = measuredDrops(row.candidate.item);
     if (!drops.length) continue;
     // Per item, not per drop row: two mobs in one zone is one place to go.
-    const seenHere = new Map<string, number>();
+    const seenHere = new Map<string, { seen: number; unattributed: number }>();
     const surveyHere = new Map<string, ZoneSurvey>();
     for (const drop of drops) {
-      for (const zone of drop.zones ?? []) {
-        seenHere.set(zone, (seenHere.get(zone) ?? 0) + Math.max(0, drop.seen));
+      const zones = drop.zones ?? [];
+      const seen = Math.max(0, drop.seen);
+      // One zone: the count is placed. More than one: it is real but homeless.
+      const placed = zones.length === 1;
+      for (const zone of zones) {
+        const counts = seenHere.get(zone) ?? { seen: 0, unattributed: 0 };
+        if (placed) counts.seen += seen;
+        else counts.unattributed += seen;
+        seenHere.set(zone, counts);
         const survey = (drop.zs ?? []).find((entry) => entry.zone === zone);
         if (survey && !surveyHere.has(zone)) surveyHere.set(zone, survey);
       }
     }
-    for (const [zone, seen] of seenHere) {
+    for (const [zone, counts] of seenHere) {
       const survey = surveyHere.get(zone) ?? null;
       const tally = byZone.get(zone);
       if (tally) {
         tally.items += 1;
-        tally.seen += seen;
+        tally.seen += counts.seen;
+        tally.unattributed += counts.unattributed;
         if (!tally.survey && survey) {
           tally.survey = survey;
           tally.title = survey.title;
@@ -909,7 +965,8 @@ export function zoneTallies(rows: readonly UpgradeRow[]): ZoneTally[] {
           title: survey?.title ?? zone,
           slug: survey?.slug || null,
           items: 1,
-          seen,
+          seen: counts.seen,
+          unattributed: counts.unattributed,
           survey,
         });
       }
@@ -1787,7 +1844,10 @@ export function Upgrades({ id }: { id: string }) {
                 <span className="tier tM">Tier M · measured</span>
                 <span className="hint">
                   Zones these listed upgrades were seen dropping in — counts of items and
-                  sightings, never a rate, and never a ranking of one zone over another.
+                  sightings, never a rate, and never a ranking of one zone over another. A
+                  sighting whose sessions ran in more than one zone is added to no zone’s
+                  count and marked unplaced under each zone it might belong to — so the
+                  unplaced figures overlap and are not meant to be added up.
                 </span>
               </header>
               <ol className="upg-zonelist">
@@ -1797,7 +1857,28 @@ export function Upgrades({ id }: { id: string }) {
                     <span className="upg-zonecount">
                       <b>{num(tally.items)}</b> of {num(rows.length)} listed
                     </span>
-                    <span className="upg-zoneseen">{pluralize(tally.seen, 'sighting')}</span>
+                    {/*
+                      A zone whose only evidence is a multi-zone drop reads "0
+                      sightings", which is as misleading as the overcount it
+                      replaced unless the page says why. So the sightings that
+                      cannot be placed are named here rather than left out.
+                    */}
+                    <span className="upg-zoneseen">
+                      {pluralize(tally.seen, 'sighting')}
+                      {tally.unattributed ? (
+                        <span
+                          className="upg-zoneunplaced"
+                          title={
+                            `${pluralize(tally.unattributed, 'sighting')} came from sessions that `
+                            + 'ran in this zone and at least one other, and the logs do not say '
+                            + 'which. Counted here rather than split or discarded.'
+                          }
+                        >
+                          {' · '}
+                          {num(tally.unattributed)} unplaced
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="upg-zonesurvey">
                       {tally.survey
                         ? surveyText(tally.survey)
