@@ -6321,3 +6321,24 @@ migration behind it, so it is not mine. The app is honest about not knowing mean
 
 **Gate:** tsc clean · vitest **1,097** / 71 files (from `web/`) · playwright **150 / 0** ·
 `build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+## 15:0xZ — Director check-in: the stranger test, and it is the same item I had just declared
+
+The Director asks for a stranger walk before promotion: someone arrives with no log, no imported
+inventory and no idea what this is — does the empty state explain itself, or look broken? The
+audit's Lockouts finding is the shape to look for (`/log on` appears zero times on that page and
+zero times in its 280KB bundle, and EQ logging is off by default, so a new reader gets an empty
+grid indistinguishable from a broken tool).
+
+That is the same thing I had just told the owner was the top pre-announcement item, from the other
+end: **`F11` — the screen ranks as soon as `items-index.json` lands, so every row may read "nobody
+has measured it dropping" until the 19 shards arrive.** Raised by the fan-out, never judged. If it
+holds it is a first-impression defect on every cold load, which is precisely the stranger's load.
+
+Taking both as one item: walk every route with clean storage in a real browser against a local
+build — permitted by CLAUDE.md §5, which puts geometry and rendering in scope and only the network
+hop out — and report what a new reader actually sees, verbatim.
+
+Bounds unchanged and restated because the Director named them: no `main`, no restructuring for
+integration, no hosting change, and provenance discipline is not to be weakened while tidying.
+Nothing here does any of those.
