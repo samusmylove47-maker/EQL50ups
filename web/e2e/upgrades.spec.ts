@@ -190,3 +190,58 @@ test('the source-standing band is visible against what sits above it', async ({ 
   // Comfortably separable from the ground it now sits on.
   expect(seen!.distance).toBeGreaterThan(60);
 });
+
+/**
+ * The screen may never say more items are unmeasured than actually are.
+ *
+ * `catalog.status === 'ready'` is set on `items-index.json` alone, and the index
+ * carries no `src` and no `ms` — acquisition lives in the 19 per-slot shards
+ * fetched afterwards. So the ranking paints 23 rows while those are in flight,
+ * and every one of them rendered the absence branch: "No acquisition data is
+ * recorded for this item, and nobody has measured it dropping. That is a gap in
+ * our data, not a statement that it cannot be obtained."
+ *
+ * Measured on a local preview with the payload warm, sampling every 100ms from
+ * navigation: 23 rows said it at 100ms where the true count is 1. A first-time
+ * visitor over the network fetches 693KB of index against 1.6MB of shards, so
+ * their window is longer — and what they are shown in it is a confident,
+ * considered-sounding false statement rather than a loading state. This is the
+ * first screen a new reader reaches after making a character.
+ *
+ * Fixing it once was not enough: reading the LIVE shard flags merely moved the
+ * window, because the ranking is computed from a snapshot and there is a gap
+ * between the shards landing and the re-ranked report arriving. The flag is now
+ * captured beside the report it describes.
+ *
+ * The assertion is a relation, not a number: whatever the true count of
+ * unmeasured items turns out to be, the claim may never be made about more rows
+ * than that. It cannot go stale when the catalogue changes.
+ */
+test('never claims more items are unmeasured than the settled page shows', async ({ page }) => {
+  test.slow();
+  const NOBODY = /nobody has measured it dropping/g;
+  const countClaims = () =>
+    page.evaluate(() => (document.body.innerText.match(/nobody has measured it dropping/g) ?? []).length);
+
+  const hash = await createCharacter(page, { name: 'Cold Load' });
+  await page.goto(`/${hash.replace(/\/[a-z]*$/, '')}/upgrades`);
+
+  const during: number[] = [];
+  for (let i = 0; i < 25; i++) {
+    during.push(await countClaims());
+    await page.waitForTimeout(100);
+  }
+
+  await expect(page.locator('.upg-list > li').first()).toBeVisible();
+  await page.waitForTimeout(1500);
+  const settled = await countClaims();
+
+  const worst = Math.max(...during);
+  expect(
+    worst,
+    `claimed "nobody has measured it dropping" on ${worst} rows mid-load,`
+    + ` but only ${settled} are actually unmeasured (samples: ${during.join(',')})`,
+  ).toBeLessThanOrEqual(settled);
+  // And the sentence must really be reachable, or this passes vacuously.
+  expect(NOBODY.test(await page.evaluate(() => document.body.innerText))).toBe(true);
+});

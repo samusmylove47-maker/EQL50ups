@@ -6342,3 +6342,45 @@ hop out — and report what a new reader actually sees, verbatim.
 Bounds unchanged and restated because the Director named them: no `main`, no restructuring for
 integration, no hosting change, and provenance discipline is not to be weakened while tidying.
 Nothing here does any of those.
+
+### Stranger test done, and `F11` CONFIRMED — it was never judged by the run, and it is the Lockouts shape
+
+**The walk first.** Clean storage, every route, real browser against a local build. **No empty state
+looks broken.** Landing explains the tool in one paragraph and offers two actions; `/#/characters`
+says "No characters yet" with what a character *is* and a Create button; `/#/upgrades` with no set
+says "No set to rank", explains that upgrades are ranked against a character's gear set, and offers
+two ways out; `/#/items` opens on 3,663 matches. Nothing has the Lockouts failure — nothing shows an
+empty grid with no explanation.
+
+**But the screen just past the empty state did.** `F11`, raised by the fan-out and dropped by the
+`.slice(0, 3)` cap before any verifier saw it. Sampling every 100ms from navigation, local preview,
+payload warm:
+
+```
+    0ms  rows=0   "nobody has measured it dropping" = 0
+  100ms  rows=23  "nobody has measured it dropping" = 23     <- every row
+  600ms  rows=23  "nobody has measured it dropping" = 1      <- the truth
+```
+
+`catalog.status === 'ready'` is set on `items-index.json` alone, and the index carries no `src` and
+no `ms` — acquisition is in the 19 shards fetched afterwards. So 23 rows painted the absence branch:
+*"No acquisition data is recorded for this item, and nobody has measured it dropping. That is a gap
+in our data, not a statement that it cannot be obtained."* A considered, trustworthy sentence, false
+about 22 of the 23. This is the first screen a new reader reaches after making a character, and over
+the network they fetch 693KB of index against 1.6MB of shards, so their window is longer than half a
+second.
+
+**Fixing it once was not enough, and the second measurement is the useful part.** Reading the live
+shard flags moved the window rather than closing it — 0 at 100ms, then back to **23 at 300ms**,
+settling to 1 at 400ms. The ranking is computed from a snapshot, so between the shards landing and
+the re-ranked report arriving the flag was fresh while the rows were stale. The flag is now captured
+beside the report it describes, and the claim never exceeds the truth at any sample.
+
+Guarded as a RELATION rather than a number — the claim may never be made about more rows than are
+actually unmeasured — so it cannot go stale when the catalogue changes. Demonstrated by making the
+report always assert the shards had landed: **1 failed / 7 passed**, and the failure prints the whole
+sample trace `0,23,23,1,1,…`. Restored, sha256 `560bb10c…` byte-identical. An earlier attempt at the
+mutation failed to build, so it proved the compiler rather than the guard; redone so it compiles.
+
+**Gate:** tsc clean · vitest **1,097** / 71 files (from `web/`) · playwright **151 / 0** ·
+`build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.

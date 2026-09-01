@@ -38,7 +38,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { activeContext, describeCharacter, type LoadoutContext } from '../engine/character';
-import { SLOT_POSITIONS, weaponCountsAt, type SlotPosition } from '../engine/constants';
+import { SLOT_POSITIONS, SLOT_TYPES, weaponCountsAt, type SlotPosition } from '../engine/constants';
 import { scoreItem, scoresWeapons, type WeightProfile } from '../engine/ep';
 import { resolveItem } from '../engine/stats';
 import { BASE_STATE, normalizeState, tier, type UpgradeState } from '../engine/upgrade';
@@ -1213,11 +1213,18 @@ function SourceBlock({
   item,
   drops,
   alsoFor = [],
+  acquisitionReady = true,
 }: {
   item: Item;
   /** Passed in rather than recomputed: the row above it already asked. */
   drops?: readonly MeasuredDrop[];
   alsoFor?: string[];
+  /**
+   * Whether the shards carrying `src` and `ms` have landed. Defaults true so
+   * that every other caller keeps its present behaviour; the ranking passes the
+   * real value, because it paints before those shards arrive.
+   */
+  acquisitionReady?: boolean;
 }) {
   const lines = acquisitionLines(item);
   const measured = drops ?? measuredDrops(item);
@@ -1263,9 +1270,11 @@ function SourceBlock({
           </>
         ) : (
           <p className="upg-source-none">
-            {measured.length
-              ? 'No wiki catalog records where this comes from. The sightings above are all anyone has, and they came from the game rather than from a page.'
-              : 'No acquisition data is recorded for this item, and nobody has measured it dropping. That is a gap in our data, not a statement that it cannot be obtained.'}
+            {!acquisitionReady
+              ? 'Still loading where this comes from — the item catalogue arrives before the drop and source data does.'
+              : measured.length
+                ? 'No wiki catalog records where this comes from. The sightings above are all anyone has, and they came from the game rather than from a page.'
+                : 'No acquisition data is recorded for this item, and nobody has measured it dropping. That is a gap in our data, not a statement that it cannot be obtained.'}
           </p>
         )}
       </div>
@@ -1318,6 +1327,7 @@ function Row({
   context,
   onEquip,
   onOpen,
+  acquisitionReady,
 }: {
   row: UpgradeRow;
   rank: number;
@@ -1326,6 +1336,8 @@ function Row({
   context: LoadoutContext | undefined;
   onEquip: () => void;
   onOpen: () => void;
+  /** False while the shards carrying `src`/`ms` are still in flight. */
+  acquisitionReady: boolean;
 }) {
   const { position, candidate } = row;
   const width = scale > 0 ? Math.max(4, Math.round((row.gain / scale) * 100)) : 0;
@@ -1541,7 +1553,12 @@ function Row({
             </p>
           ) : null}
         </div>
-        <SourceBlock item={candidate.item} drops={drops} alsoFor={row.alsoFor} />
+        <SourceBlock
+          item={candidate.item}
+          drops={drops}
+          alsoFor={row.alsoFor}
+          acquisitionReady={acquisitionReady}
+        />
       </div>
     </li>
   );
@@ -1606,6 +1623,20 @@ export function Upgrades({ id }: { id: string }) {
   const [basisKind, setBasisKind] = useState<'worn' | 'fixed'>('worn');
   const [fixedTier, setFixedTier] = useState<UpgradeState>(tier(0));
   const [report, setReport] = useState<UpgradeReport | null>(null);
+  /*
+   * Whether the report on screen was built from a catalog that HAD the
+   * acquisition shards — not whether they have landed by now.
+   *
+   * Reading the live flag was measurably wrong. The ranking is computed off a
+   * snapshot and published when it finishes, so between the shards landing and
+   * the re-ranked report arriving there is a window where the flag says "loaded"
+   * while the rows still hold pre-shard items. Sampling every 100ms across that
+   * window showed all 23 rows going back to "nobody has measured it dropping"
+   * at 300ms before settling to the true 1 at 400ms — the same false sentence,
+   * moved rather than removed. Set beside `setReport`, so the two can only
+   * change together.
+   */
+  const [reportHasAcquisition, setReportHasAcquisition] = useState(false);
   const [progress, setProgress] = useState<UpgradeProgress | null>(null);
   const [detail, setDetail] = useState<{ item: Item; upgrade: UpgradeState; position: SlotPosition } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -1641,9 +1672,39 @@ export function Upgrades({ id }: { id: string }) {
   const weighted = hasAnyWeight(weights);
   const ready = catalog.status === 'ready';
 
+  /*
+   * Has the data that ANSWERS "where does this drop" actually arrived?
+   *
+   * `catalog.status === 'ready'` is set on the strength of `items-index.json`
+   * alone, and the index carries no `src` and no `ms` — acquisition lives in the
+   * 19 per-slot shards `ensureAll()` fetches afterwards. So the ranking paints
+   * 23 rows while those are still in flight, and every one of them rendered
+   * `SourceBlock`'s absence branch: "No acquisition data is recorded for this
+   * item, and nobody has measured it dropping."
+   *
+   * Measured on a local preview with the payload warm, sampling every 100ms
+   * from navigation: at 100ms all 23 rows said it; by 600ms only 1 did, which
+   * is the true count. A first-time visitor over the network fetches 693KB of
+   * index against 1.6MB of shards, so their window is longer than that, and
+   * what they are shown in it is a confident false statement rather than a
+   * loading state.
+   *
+   * `shards` is what the store already records and what nothing on this screen
+   * read. `undefined` means never requested, so a shard is outstanding when it
+   * is absent or still `'loading'`.
+   */
+  const acquisitionReady = useMemo(
+    () => SLOT_TYPES.every((slot) => {
+      const status = catalog.shards[slot];
+      return status === 'ready' || status === 'missing';
+    }),
+    [catalog.shards],
+  );
+
   useEffect(() => {
     if (!gearSet || !ready || !weighted) {
       setReport(null);
+      setReportHasAcquisition(false);
       setProgress(null);
       return;
     }
@@ -1665,6 +1726,7 @@ export function Upgrades({ id }: { id: string }) {
       );
       if (cancelled) return;
       setReport(result);
+      setReportHasAcquisition(acquisitionReady);
       setProgress(null);
     })();
     return () => {
@@ -1672,7 +1734,7 @@ export function Upgrades({ id }: { id: string }) {
     };
   }, [
     gearSet, ready, weighted, catalog, views, context, weights,
-    filterEra, filterSource, filterHideNoDrop, basis,
+    filterEra, filterSource, filterHideNoDrop, basis, acquisitionReady,
   ]);
 
   /*
@@ -1972,6 +2034,7 @@ export function Upgrades({ id }: { id: string }) {
                   rank={index + 1}
                   scale={best}
                   context={context}
+                  acquisitionReady={reportHasAcquisition}
                   onEquip={() => equip(row)}
                   onOpen={() =>
                     setDetail({
