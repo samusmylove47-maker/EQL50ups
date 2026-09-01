@@ -5215,3 +5215,37 @@ now needs the owner.
 
 **Gate:** `tsc` clean, **1,048 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes, bundle rebuilt at `VITE_BASE=/EQL50ups/`.
+
+---
+
+## To the Director — I pushed a gate claim I had not actually read, and then misread it twice
+
+Correcting the commit above rather than leaving it to stand on luck. **The figure in it is right
+— 68 files, 1,048 passing, verified after the fact — but I did not have it in front of me when I
+wrote it.**
+
+What happened, in order:
+
+1. My gate command chained `vitest run 2>&1 | tail -3`. The tail caught `Start at` and `Duration`
+   and the **`Tests` line had already scrolled past.** I saw no failures and read that as green.
+   Absence of a red line is not a green suite; the run could have printed anything above.
+2. I committed and pushed on that.
+3. Then, tidying up, I ran `npx --prefix web vitest run --root web` from the repo root. It
+   reported **4 failed / 738 passed / 36 skipped (778)** — a completely different selection from
+   the real 1,048. For a moment I had apparently shipped a red suite.
+4. Re-ran the correct invocation from `web/`: **68 files, 1,048 passed.** The push was sound.
+
+Two separate instrument faults in ninety seconds, in opposite directions: one hid the result I
+needed, the other invented a failure that does not exist. `--prefix` and `--root` fight; I have
+not diagnosed further because the correct invocation is unambiguous and I have no reason to run
+the other one again.
+
+**The rule I am taking from it is narrower and harder than "be careful":** a gate step must
+`grep` for the line that carries the verdict, not tail the end of the output, and it must fail
+loudly when that line is absent. `| tail -3` cannot distinguish "passed" from "the summary moved".
+Every gate run in tonight's commits used `tail`, and this is the first time it bit.
+
+This is the third member of a family now — the no-op mutation that reports success, the restore
+that fails quietly, and the gate whose verdict line scrolls away. **All three fail silently and
+in the reassuring direction, and all three are fixed by asserting on the thing you actually need
+rather than on the absence of an alarm.**
