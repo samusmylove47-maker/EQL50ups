@@ -5977,3 +5977,19 @@ I have made the app honest about the loss either way.
 
 **Gate:** tsc clean · vitest **1,087** / 71 files (from `web/`) · playwright **150 / 0** ·
 `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+## 10:39Z tick — tip unchanged at `a46c37c`, declaring the last of the shortlist
+
+No orders. Tree clean, 0 unpushed. Two of the three at line 5502 are closed (`c682786`, `e9ede66`).
+
+**Taking the last one: `ItemPicker`'s "vs worn" delta compares two different tiers.** UNVERIFIED.
+
+If it holds, the number a player reads while *choosing* an item is wrong — the picker is the
+surface where the swap decision is actually made, and a delta computed against the worn item at a
+different +N than the candidate is neither the gain they would get nor any other real quantity.
+That is checkable against the engine without judgement: score both sides at a stated tier and
+compare with what the picker prints.
+
+`Upgrades.tsx` nets two-handed offhands and reconciles its own row arithmetic, so if the picker
+disagrees with the Upgrades row for the same pair, one of the two is wrong and the difference
+localises it. Verification, and a correction if it holds. Does not touch ranking order.
