@@ -429,8 +429,27 @@ test('no destructive control drops focus to <body>', async ({ page }) => {
   await overflow.click();
   await page.locator('.menu-body.right .menu-item', { hasText: 'Delete set' }).click();
   await page.waitForURL(/#\/characters$/);
-  const afterDeleteSet = await active();
-  expect(afterDeleteSet.tag, 'focus after Delete set').not.toBe('BODY');
+  /*
+   * Polled, and this is the only step that has to be.
+   *
+   * Every other check here reads `active()` straight after an assertion that
+   * already forced a settled DOM — a `toHaveCount`, a `waitFor`. `waitForURL`
+   * does not: it resolves on the hash change, which is BEFORE React commits the
+   * destination and before the effect there claims focus. Reading once in that
+   * gap sees `<body>` and fails on an app that is behaving correctly.
+   *
+   * Measured rather than assumed. A probe sampling `document.activeElement`
+   * every 50ms after this navigation found `H1[page-title]` already focused at
+   * the first sample — so focus does arrive, and fast. The failure only
+   * appeared under the suite's two-worker load: 3 of 3 passes running this test
+   * alone, 2 failures in 3 running its file.
+   *
+   * The assertion is unchanged — focus must not be left on `<body>`. Only the
+   * moment it is read moves.
+   */
+  await expect
+    .poll(async () => (await active()).tag, { message: 'focus after Delete set' })
+    .not.toBe('BODY');
 
   // 6. Delete character, which unmounts the card the button sits in.
   await page.getByRole('button', { name: /delete character/i }).click();

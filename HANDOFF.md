@@ -5993,3 +5993,50 @@ compare with what the picker prints.
 `Upgrades.tsx` nets two-handed offhands and reconciles its own row arithmetic, so if the picker
 disagrees with the Upgrades row for the same pair, one of the two is wrong and the difference
 localises it. Verification, and a correction if it holds. Does not touch ranking order.
+
+### 10:39Z item — the ItemPicker tier finding is REFUTED, and the correct behaviour was unguarded
+
+The finding said the picker's "vs worn" delta compares two different tiers. **The behaviour is
+real. It is not a defect**, and I am not changing it.
+
+The picker scores candidates at `rankPreview` and the worn item at `currentUpgrade`. That is the
+right pairing, because the stepper is labelled **"Preview at"** and `onSelect(item, rankPreview)`
+equips at exactly that tier — so `candidate@preview − worn@its own tier` is the gain a player gets
+by pressing Enter, the only number on that screen they can act on. Scoring the worn item at the
+preview tier too would answer a question nobody asked: *what if I also upgraded the helm I am
+about to take off.*
+
+It is the same rule Upgrades states out loud. `basisText` reads *"every candidate at +N"* —
+candidate, not both — and `candidateUpgrade = basis.kind === 'worn' ? wornUpgrade : basis.upgrade`
+against a `wornEp` always scored at `wornUpgrade`. The picker opens with `preview = currentUpgrade`
+(Upgrades' DEFAULT 'worn' basis) and stepping it moves to the fixed basis. Both screens agree in
+both modes.
+
+**I nearly filed a defect that the UI already guards.** A probe showed the worn helm's own row
+scoring −6.0 against itself at a mismatched tier — but `currentItem && !isEquipped` suppresses the
+delta on the equipped row, so it never reaches a reader. That suppression was covered NOWHERE: the
+e2e suite counts `.equipped-now` and clicks it and never checked the delta was absent.
+
+So the correct behaviour is now pinned — empty slot shows no delta, the worn row never
+self-compares at any preview tier, and the candidate moves with the preview while the worn side
+does not. Guard demonstrated by applying **the exact fix the finding would have prompted** (worn
+scored at `rankPreview`): 1 failed / 1,089 passed, reading `+6 vs worn` where the truth is `+16` —
+the arithmetic the test's own comment predicts. Restored, sha256 `2c4c0920…` byte-identical.
+
+### And a flaky e2e test, root-caused rather than re-run
+
+`set-editor.spec.ts:378` failed in the full suite. Not mine — only a vitest file had changed since
+the previous 150/0, and e2e runs the built bundle. But *flaky is not a diagnosis*: **3 of 3 passes
+alone, 2 failures in 3 running its file.**
+
+Step 5 reads `document.activeElement` straight after `waitForURL`, which resolves on the hash
+change — before React commits the destination and before the effect there claims focus. Every
+other step in that test reads focus after a `toHaveCount`/`waitFor` that already forced a settled
+DOM. A probe sampling activeElement every 50ms after the navigation found `H1[page-title]` already
+focused at the first sample, so **the app is correct and the assertion was racy**. Polled instead
+of sampled; the assertion itself is unchanged. **4 of 4 whole-file runs** where it was 1 of 3.
+
+**Gate:** tsc clean · vitest **1,090** / 71 files (from `web/`) · playwright **150 / 0** ·
+`build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+**The line-5502 shortlist is now closed: three of three.**

@@ -255,3 +255,87 @@ describe('the highlight when the list membership changes', () => {
     expect(equippedHead()).toBe(SPREAD);
   });
 });
+
+/**
+ * The "vs worn" delta, and why comparing two tiers is the RIGHT answer here.
+ *
+ * A fan-out raised this as a defect: the picker scores candidates at the
+ * preview tier while scoring the worn item at the tier it is actually worn at,
+ * so the delta "compares two different tiers". The behaviour is real. It is not
+ * a defect, and these tests exist so that nobody fixes it into one.
+ *
+ * The picker's stepper is labelled **"Preview at"**, and `onSelect(item,
+ * rankPreview)` equips at exactly that tier. So `score(candidate @ preview) −
+ * score(worn @ its own tier)` is the gain a player would actually get by
+ * pressing Enter — the only number on this screen they can act on. Scoring the
+ * worn item at the preview tier too would answer a question nobody asked:
+ * what if I also upgraded the helm I am about to take off.
+ *
+ * It is the same rule the Upgrades screen states out loud. `basisText` there
+ * reads *"every candidate at +N"* for a fixed basis — candidate, not both — and
+ * `candidateUpgrade = basis.kind === 'worn' ? wornUpgrade : basis.upgrade`
+ * against a `wornEp` always scored at `wornUpgrade`. The picker opens with
+ * `preview = currentUpgrade`, which is Upgrades' DEFAULT 'worn' basis, and
+ * stepping it moves to the fixed basis. Both modes agree across both screens.
+ *
+ * The one case where a cross-tier delta would be visibly absurd — the row for
+ * the helm already on your head, reading a non-zero "vs worn" against itself — is
+ * suppressed by `!isEquipped`. That suppression was covered nowhere: the e2e
+ * suite counts `.equipped-now` and clicks it, and nothing asserted the delta
+ * line is gone from it. It is the guard that makes the rest of this sound, so
+ * it is pinned here.
+ */
+describe('the delta the picker prints against the worn item', () => {
+  function deltaFor(name: string): string | null {
+    const row = [...container.querySelectorAll<HTMLElement>('.results .result')]
+      .find((node) => node.querySelector('.iname')?.textContent === name);
+    expect(row, `the ${name} row`).toBeTruthy();
+    const delta = [...(row?.querySelectorAll<HTMLElement>('.result-score .d') ?? [])]
+      .find((node) => /vs worn/.test(node.textContent ?? ''));
+    return delta?.textContent?.trim() ?? null;
+  }
+
+  function equipHeadAt(name: string, raises: number): void {
+    // Equip through the picker so the stored tier is the one the row was scored
+    // at — the same path a player takes.
+    raisePreview(raises);
+    click([...container.querySelectorAll<HTMLElement>('.results .result')]
+      .find((node) => node.querySelector('.iname')?.textContent === name));
+    act(() => {
+      container.querySelector<HTMLElement>('[aria-label^="Head"]')?.click();
+    });
+  }
+
+  it('shows no delta at all while the slot is empty', () => {
+    // Nothing to compare against: the delta would equal the whole stat vector.
+    expect(deltaFor(LUMP)).toBeNull();
+    expect(deltaFor(SPREAD)).toBeNull();
+  });
+
+  it('never prints a delta on the row you are already wearing', () => {
+    equipHeadAt(LUMP, 0);
+    expect(equippedHead()).toBe(LUMP);
+    expect(deltaFor(SPREAD), 'other rows still compare').not.toBeNull();
+    expect(deltaFor(LUMP), 'the worn row must not compare with itself').toBeNull();
+
+    // And it stays gone once the preview tier and the worn tier disagree, which
+    // is precisely when a self-comparison would print a non-zero number.
+    raisePreview(5);
+    expect(deltaFor(LUMP), 'still no self-delta at a different preview tier').toBeNull();
+  });
+
+  it('measures the candidate at the preview tier against the worn item as worn', () => {
+    equipHeadAt(LUMP, 0); // LUMP at +0: STR 20 -> 20 EP under these weights.
+
+    // At preview +0 both sides are at +0, so the delta is the plain difference:
+    // SPREAD is 4+4+4+4 = 16 against LUMP's 20.
+    expect(deltaFor(SPREAD)).toBe('-4 vs worn');
+
+    // At +5 the candidate gains a flat point per tier per attribute (16 -> 36)
+    // while the worn LUMP stays at the +0 it is actually worn at: 36 - 20 = 16.
+    // If the worn side moved with the preview it would read 36 - 30 = +6.0.
+    raisePreview(5);
+    expect(deltaFor(SPREAD), 'the worn side must NOT move with the preview')
+      .toBe('+16 vs worn');
+  });
+});
