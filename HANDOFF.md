@@ -6261,3 +6261,21 @@ either key. Which order to prefer is a ranking decision, not a correction.
 
 **Gate:** tsc clean · vitest **1,095** / 71 files (from `web/`) · playwright **150 / 0** ·
 `build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+## 14:39Z tick — tip unchanged at `a46c37c`, declaring `F23`
+
+No orders. Tree clean, 0 unpushed. Open: **8 confirmed, 8 never judged.**
+
+**Taking `F23` — "Import-withheld slot prints `+0` for gear the export said was `+5` — the parsed
+tier is discarded."** `Upgrades.tsx:464`, CONFIRMED, scope NARROWER, and severity **TOO-LOW**: the
+refuter judged it worse than its author did, which is the only finding in the pass where that
+happened and the reason it goes ahead of the four prose items still open.
+
+It is a wrong number about the reader's *own* gear, on the screen that exists to compare against
+it — and it is wrong in the direction that flatters the recommendation, since a position read at
+`+0` understates what is already worn.
+
+Verification first, against the shipped catalog and Avenrae's own `/outputfile inventory`, the same
+harness that settled `F15`. If it holds, the fix is whatever makes the printed tier match the
+export; if the tier genuinely is not knowable at that point, the number must not be printed as `+0`.
+Neither touches ranking order.
