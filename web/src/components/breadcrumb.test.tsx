@@ -17,6 +17,7 @@
  *    tool's name turns into a link once it stops being where you are.
  */
 
+import { readFileSync } from 'node:fs';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -136,5 +137,35 @@ describe('the breadcrumb carries the current screen', () => {
   it('names the failure rather than going quiet on an unknown route', () => {
     render('#/no-such-page');
     expect(crumb().at(-1)).toBe('Not found');
+  });
+});
+
+/**
+ * The page's own name, against the name the project uses.
+ *
+ * `index.html` carried `50 Upgrades` in its `<title>`, `og:title` and
+ * description while every other surface — nav, breadcrumb, footer, 701 files
+ * across the site — said `=Upgrades`. The owner's account of the sigil is that
+ * `=` stands for E-Q-L-S, read "equals", so `=Upgrades` and "EQLS Upgrades" are
+ * one name; this page was the only thing using a third.
+ *
+ * Pinned against `TOOL_NAME` rather than against a literal, so renaming the
+ * constant renames the page and nothing has to be remembered.
+ */
+describe('the page title uses the name the project uses', () => {
+  const html = readFileSync('index.html', 'utf8');
+  const rendered = html.replace(/<!--[\s\S]*?-->/g, '');
+
+  it('titles the document with TOOL_NAME', () => {
+    expect(rendered).toContain(`<title>${TOOL_NAME} — EQL Source</title>`);
+    expect(rendered).toContain(`content="${TOOL_NAME} — EQL Source"`);
+  });
+
+  it('uses no other name for the tool in anything a reader or crawler sees', () => {
+    // The og: and description fields are read by people and by link unfurlers,
+    // so a second name there is the same defect as one in the title.
+    const head = /<head>([\s\S]*?)<\/head>/.exec(rendered)?.[1] ?? '';
+    expect(head, 'the head must be found').not.toBe('');
+    expect(head, 'a name the project does not use').not.toMatch(/50 Upgrades/);
   });
 });

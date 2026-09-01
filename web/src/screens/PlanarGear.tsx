@@ -230,7 +230,7 @@ export function PlanarGear() {
     if (!trio.length) return undefined;
     /*
      * A hand-picked trio is assumed to be at the level cap. Stated rather than
-     * hidden: this planner is called "50 Upgrades", every planar piece in this
+     * hidden: this planner is called `=Upgrades`, every planar piece in this
      * catalog carries no level requirement at all, and the alternative default —
      * level 1 — would silently blank the screen the day one does. Adopt a saved
      * character to use its real per-class levels instead.

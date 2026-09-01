@@ -6,15 +6,26 @@
     <meta name="color-scheme" content="dark" />
     <meta
       name="description"
-      content="50 Upgrades — a gear planner for EverQuest Legends trios. Rank every slot by what it actually gains, with the source tier of every number on screen. No account; sets travel in the link."
+      content="=Upgrades — a gear planner for EverQuest Legends trios. Rank every slot by what it actually gains, with the source tier of every number on screen. No account; sets travel in the link."
     />
     <!--
       Titled the way the site titles its pages: "<page> — EQL Source", as in
       "Tools — EQL Source" and "Sky Ledger — EQL Source". This tool is one page
       of that site, published on its /tools/ index, not a site of its own.
+
+      The page name is `=Upgrades`, which is what the rest of the project calls
+      this tool: 701 files across the site against 8 — its own title, og:title
+      and description — that said "50 Upgrades". The owner's own account of the
+      sigil is that `=` stands for E-Q-L-S, read "equals", so `=Upgrades` and
+      "EQLS Upgrades" are one name and this page was the only surface using a
+      third. `chrome.test.tsx` pins the title against `TOOL_NAME` so the two
+      cannot drift apart again.
+
+      The published URL stays `/tools/50-upgrades` — it is the site's to change,
+      not this repository's, and links already exist against it.
     -->
-    <title>50 Upgrades — EQL Source</title>
-    <meta property="og:title" content="50 Upgrades — EQL Source" />
+    <title>=Upgrades — EQL Source</title>
+    <meta property="og:title" content="=Upgrades — EQL Source" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="EQL Source" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
