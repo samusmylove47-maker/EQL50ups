@@ -193,13 +193,24 @@ describe("the footer's Tools column", () => {
     expect(foot, 'no .site-foot block in the served page — the chrome may have been restructured')
       .not.toBeNull();
 
-    const column = /<h4>\s*Tools\s*<\/h4>\s*<ul>([\s\S]*?)<\/ul>/.exec(foot?.[1] ?? '');
-    expect(column, 'no Tools column in the served footer — its column set may have changed')
-      .not.toBeNull();
-
+    /*
+     * Anchored on the footer's TOOL LINKS, not on a `<h4>Tools</h4>` heading.
+     *
+     * It was anchored on that heading, and on 1 Sep 2026 the site removed it —
+     * the tool names became headings in their own right — so this check failed
+     * with "no Tools column in the served footer" while the eight tools were all
+     * still there, unchanged, in order. The column heading was the most
+     * decorative thing in the block and therefore the worst thing to depend on.
+     *
+     * The links are what this constant is a copy of, so they are what is
+     * compared. A genuine change — a tool added, removed, renamed or reordered —
+     * still fails, which is the whole point; a restyling no longer does.
+     */
     const live = [
-      ...(column?.[1] ?? '').matchAll(/<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g),
-    ].map((m) => [text(m[2] ?? ''), canonical(m[1] ?? '')]);
+      ...(foot?.[1] ?? '').matchAll(/<a[^>]*href="([^"]*\/tools\/[^"]*)"[^>]*>([\s\S]*?)<\/a>/g),
+    ].map((m) => [text(m[2] ?? ''), canonical(m[1] ?? '')])
+      // The footer also links the tools index itself; this column is the tools.
+      .filter(([, href]) => href !== `${SITE}/tools/`);
 
     expect(
       live,

@@ -6815,3 +6815,47 @@ JSX element — never by the engine, the pipeline or the payload — so the fix 
 
 Neither touches ranking, persisted shape, or the published wire format. Verifying each myself before
 fixing: the verdicts are a fan-out's, and nine of ten of those corrected the finding they checked.
+
+### `F22` CLOSED — the picker's own three numbers disagreed, and two live drifts fell out on the way
+
+**The defect.** `rankSlotItems` scores candidates with `weaponCounts: weaponCountsAt(slot)`, FALSE
+for a worn position — Range, Ammo, an Any Slot — because a bow on your back deals no damage there.
+`wornScore` passed no `weaponCounts` at all, and `ep.ts:148` defaults it to true, so the **worn item
+alone** was paid for damage no candidate in that slot could earn. Reproduced in the DOM on a seeded
+Range slot:
+
+```
+  Bow of Real Stats       ep=12   chip "-52 vs worn"     <- ranked above, called a loss
+  Bow of Borrowed Damage  ep= 2   (worn, no chip)
+```
+
+Guarded as a RELATION — a candidate ranked above the worn item may not be labelled a loss — so it
+cannot go stale. Demonstrated: **1 failed / 1,107 passed**, restored byte-identical.
+
+**My own test passed when it should have been red, and I caught it by printing rather than
+trusting.** It looked the worn row up inside the delta-bearing subset — and the worn row correctly
+has no delta, so `worn` was `undefined` and the offender filter short-circuited to empty. A guard
+that cannot fire is worse than none; the reason is now written into the test.
+
+**And the restore discipline earned itself.** My first A/B re-inserted the fixed line by matching
+`        existing,` — which occurs twice, and the first is inside the `rankSlotItems` call. The line
+landed there, which would have passed `weaponCounts` into the CANDIDATE ranking. The SHA check
+caught it; the tests would not have, because it typechecked and the suite was green. Resolved by
+discarding to HEAD and re-applying in one unambiguous edit, then A/B-ing from a saved copy rather
+than from a hand-rebuilt file.
+
+### Two live site drifts, both caught by checks that then needed fixing themselves
+
+**The masthead** renamed `=Index` to **"Items & mobs"** and "Search" to **"Site search"**. Copied.
+The check would have driven a defect into this page: it never decoded HTML entities, so passing it
+required putting `&amp;` into `SITE_NAV`, which React escapes again and renders literally.
+
+**The footer** removed its `<h4>Tools</h4>` heading — the tool names are headings now. The check
+anchored on that heading and failed with *"no Tools column in the served footer"* while all eight
+tools were present, unchanged and in order. **The most decorative thing in the block was the worst
+thing to depend on.** Re-anchored on the tool links, which is what the constant is a copy of; a
+genuine change still fails, a restyling no longer does. Verified stable across two fetches, so it
+was not a mid-deploy artefact.
+
+**Gate:** tsc clean · vitest **1,108** / 71 files · playwright **151 / 0** · `build.mjs` 0 ·
+`verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.

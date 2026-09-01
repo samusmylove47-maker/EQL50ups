@@ -31,7 +31,7 @@
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { LoadoutContext } from '../engine/character';
-import { ERA_ORDER, type SlotPosition } from '../engine/constants';
+import { ERA_ORDER, weaponCountsAt, type SlotPosition, type SlotType } from '../engine/constants';
 import { scoreItem, type WeightProfile } from '../engine/ep';
 import type { StatTotals } from '../engine/stats';
 import { BASE_STATE, type UpgradeState } from '../engine/upgrade';
@@ -236,10 +236,33 @@ export function ItemPicker({
     [catalog.revision, catalog.items, deferredQuery],
   );
 
-  /** The worn item scored under the same lens, so every row can show a delta. */
+  /**
+   * The worn item scored under the same lens, so every row can show a delta.
+   *
+   * **`weaponCounts` is the lens, and it used to be only the sentence.**
+   * `rankSlotItems` scores every candidate with `weaponCounts:
+   * weaponCountsAt(slot)`, which is FALSE for a worn position — Range, Ammo, an
+   * Any Slot — because a bow on your back deals no damage there. This call
+   * passed no `weaponCounts` at all, and the scorer defaults it to true
+   * (`ep.ts:148`, `ctx.weaponCounts ?? true`), so the WORN item alone was paid
+   * for damage no candidate in that slot could earn.
+   *
+   * The screen then contradicted itself: the EP column ranked a candidate above
+   * the worn item while the chip beside it called the same swap a loss, in red.
+   * Measured on the shipped payload — worn Bow of the Underfoot 7.2 EP, top
+   * candidate 12.3 EP, chip reading "-16.9 vs worn". Nothing was ever
+   * mis-ranked and nothing wrong was persisted or shared: row order comes from
+   * `rankSlotItems`, which gates correctly. Only the one number the picker
+   * exists to show was wrong.
+   */
   const wornScore = useMemo(
-    () => (currentItem ? scoreItem(currentItem, currentUpgrade, weights, { existing }).total : 0),
-    [currentItem, currentUpgrade, weights, existing],
+    () => (currentItem
+      ? scoreItem(currentItem, currentUpgrade, weights, {
+        existing,
+        weaponCounts: weaponCountsAt(position.type as SlotType | 'ANY'),
+      }).total
+      : 0),
+    [currentItem, currentUpgrade, weights, existing, position.type],
   );
 
   /**

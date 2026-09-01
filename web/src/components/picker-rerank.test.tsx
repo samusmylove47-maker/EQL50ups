@@ -41,8 +41,10 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const SPREAD = '[Fixture] Helm of Four Small Things';
 const LUMP = '[Fixture] Helm of One Big Thing';
 const FILLER = '[Fixture] Helm of Nothing Much';
+const WORN_BOW = '[Fixture] Bow of Borrowed Damage';
+const BETTER_BOW = '[Fixture] Bow of Real Stats';
 
-const WEIGHTS = { STR: 1, STA: 1, AGI: 1, DEX: 1 };
+const WEIGHTS = { STR: 1, STA: 1, AGI: 1, DEX: 1, DMG: 1, RATIO: 1 };
 
 function helm(name: string, st: Record<string, number>): Item {
   return {
@@ -55,16 +57,29 @@ let container: HTMLDivElement;
 let root: Root;
 let setId = '';
 
+/** A ranged weapon: RANGE is a worn position, so weapon damage does NOT count there. */
+function bow(name: string, st: Record<string, number>, dmg: number): Item {
+  return {
+    id: null, n: name, sl: ['RANGE'], cl: ['ALL'], ra: ['ALL'],
+    st, sv: {}, fl: ['FIXTURE'], av: true, era: 'Classic',
+    wp: { dmg, dly: 30, skill: 'Archery' },
+  };
+}
+
 function seedCatalog(): void {
   const items = [
     helm(SPREAD, { STR: 4, STA: 4, AGI: 4, DEX: 4 }),
     helm(LUMP, { STR: 20 }),
     helm(FILLER, { STR: 1 }),
+    // Worn bow: modest stats, big damage. Candidate bow: better stats, no damage.
+    bow(WORN_BOW, { STR: 2 }, 60),
+    bow(BETTER_BOW, { STR: 12 }, 0),
   ];
   const bySlot = new Map<string, Item[]>();
   for (const slot of SLOT_TYPES) bySlot.set(slot, []);
   bySlot.set('ANY', []);
-  bySlot.set('HEAD', items);
+  bySlot.set('HEAD', items.filter((i) => i.sl.includes('HEAD')));
+  bySlot.set('RANGE', items.filter((i) => i.sl.includes('RANGE')));
   useCatalog.setState({
     status: 'ready',
     error: null,
@@ -337,5 +352,78 @@ describe('the delta the picker prints against the worn item', () => {
     raisePreview(5);
     expect(deltaFor(SPREAD), 'the worn side must NOT move with the preview')
       .toBe('+16 vs worn');
+  });
+});
+
+/**
+ * The picker's three numbers must agree with each other.
+ *
+ * `rankSlotItems` scores candidates with `weaponCounts: weaponCountsAt(slot)`,
+ * which is FALSE for a worn position such as Range, Ammo or an Any Slot — a bow
+ * hanging on your back deals no damage, so no candidate is paid for its ratio.
+ * `wornScore` called `scoreItem` with no `weaponCounts` at all, and the scorer
+ * defaults it to true (`ep.ts:148`, `ctx.weaponCounts ?? true`), so the WORN
+ * item alone was paid for damage nobody else could earn.
+ *
+ * The result is a screen that contradicts itself: the EP column ranks a
+ * candidate above the worn item while the chip beside it calls the same swap a
+ * loss, in red. On the shipped payload the verified case was a worn Bow of the
+ * Underfoot at 7.2 EP against a top candidate at 12.3 EP, with the chip reading
+ * "-16.9 vs worn".
+ *
+ * Asserted as a RELATION rather than a number: whatever the EPs turn out to be,
+ * a candidate the picker ranks ABOVE the worn item may not be labelled a loss.
+ * That cannot go stale when the fixtures or the weights change.
+ */
+describe('the picker does not disagree with itself in a slot where weapons do not count', () => {
+  function openRange(): void {
+    act(() => {
+      container.querySelector<HTMLElement>('[aria-label^="Range"]')?.click();
+    });
+  }
+
+  function rows(): Array<{ name: string; ep: number; delta: string | null }> {
+    return [...container.querySelectorAll<HTMLElement>('.results .result')].map((row) => {
+      const score = row.querySelector<HTMLElement>('.result-score');
+      const ep = Number(score?.querySelector('.n')?.textContent ?? 'NaN');
+      const delta = [...(score?.querySelectorAll<HTMLElement>('.d') ?? [])]
+        .find((d) => /vs worn/.test(d.textContent ?? ''));
+      return {
+        name: row.querySelector('.iname')?.textContent ?? '',
+        ep,
+        delta: delta?.textContent?.trim() ?? null,
+      };
+    });
+  }
+
+  it('never calls a candidate a loss while ranking it above what is worn', () => {
+    act(() => {
+      useApp.getState().equip(setId, 'RANGE', WORN_BOW);
+    });
+    openRange();
+    const all = rows();
+    /*
+     * The worn row is found in ALL rows, not in the deltas.
+     *
+     * The first version of this looked it up inside the delta-bearing subset —
+     * and the worn row deliberately has no delta, so `worn` was undefined, the
+     * offender filter short-circuited, and the test passed against a screen
+     * that was printing "-52 vs worn" for a candidate it ranked 12 against 2.
+     * A guard that cannot fire is worse than none.
+     */
+    const worn = all.find((r) => r.name === WORN_BOW);
+    expect(worn, 'the worn bow must be listed').toBeTruthy();
+    expect(worn?.delta, 'and must not compare with itself').toBeNull();
+
+    const listed = all.filter((r) => r.delta !== null && Number.isFinite(r.ep));
+    expect(listed.length, 'the Range picker must list scored candidates').toBeGreaterThan(0);
+    const offenders = listed
+      .filter((r) => r.name !== WORN_BOW)
+      .filter((r) => /^-/.test(r.delta ?? '') && r.ep > (worn?.ep ?? Infinity));
+
+    expect(
+      offenders.map((r) => `${r.name} ranked ${r.ep} EP over worn ${worn?.ep} yet labelled ${r.delta}`),
+      'the EP column and the "vs worn" chip must not contradict each other',
+    ).toEqual([]);
   });
 });

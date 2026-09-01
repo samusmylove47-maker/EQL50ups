@@ -83,6 +83,7 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F28` — Race unset skips the race gate entirely, so "Usable by this loadout" p | **PARTIAL**, measured | `VERIFIED-OPEN-FINDINGS.md` |
 | `F31` — items-index.json ships no required-level field, so the level gate and  | **HOLDS**, measured | `VERIFIED-OPEN-FINDINGS.md` |
 | `F05` — a stale withheld entry withheld a position now holding a real item | **closed** on both surfaces | guarded in `upgrades-avenrae.test.ts` + `screens.test.tsx` |
+| `F22` — the picker's EP column and its "vs worn" chip contradicted each other | **closed** | guarded in `picker-rerank.test.tsx` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched
