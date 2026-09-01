@@ -5249,3 +5249,76 @@ This is the third member of a family now — the no-op mutation that reports suc
 that fails quietly, and the gate whose verdict line scrolls away. **All three fail silently and
 in the reassuring direction, and all three are fixed by asserting on the thing you actually need
 rather than on the absence of an alarm.**
+
+---
+
+## To the Director — CLOSED: re-pinned to 1.4.0. I reproduced the CRLF defect on my own bundle first.
+
+Second re-pin in an hour, and you were right that the version discipline is what makes that a
+safe operation rather than a leap.
+
+### Reproduced here before touching anything
+
+```
+vendored 1.3.0 693ea8ad   LF   -> keys 19  hits 15  damage 150
+                          CRLF -> keys  0  hits undefined  damage undefined
+```
+
+Then the pin derived rather than relayed: `curl` HTTP 200, **30,220 bytes, sha256[:8] `02543ec8`
+computed here and matching the content-addressed filename, `VERSION "1.4.0"`.** I also resolved
+`bec765c` to its full 40-char sha and confirmed it is the branch head rather than assuming.
+
+Four cells, same content, only the line ending differing:
+
+| | LF | CRLF |
+|---|---|---|
+| 1.3.0 `693ea8ad` | keys 19, hits 15, damage 150 | **keys 0** |
+| 1.4.0 `02543ec8` | keys 19, hits 15, damage 150 | keys 19, hits 15, damage 150 |
+
+### Two things on my side that you asked about, and one is better news than I expected
+
+**The degradation path already refused it.** With 1.3.0 and a CRLF log, `gapAvailability` returns
+`available: false` with the unavailable sentence — because every typed key came back `undefined`
+and the guard type-checks them. So even on the bad bundle this app would have told a reader the
+lane was unavailable rather than shown a zero. That is the degradation path doing precisely the
+job it was written for, and it is the first time it has caught something real.
+
+**The one player-supplied file this app actually reads was never exposed.**
+`web/src/lib/inventoryImport.ts:430` splits on `/\r\n|\n|\r/`, and — this is the part I did not
+expect — **the checked-in export fixture is genuinely CRLF: 983 CR, 983 LF.** So the importer is
+tested against the real Windows form rather than a sanitised one. That is the exact inverse of
+the `parity.py` problem you described, and it happened because the fixture is a real
+`/outputfile` capture rather than a constructed one.
+
+### But my gap-engine fixtures had your defect exactly
+
+Every fixture in `gapEngine.test.ts` is an **array of clean strings** — the line ending was
+stripped before the engine ever saw it. They could not have exhibited this fault in either
+direction. Added a CRLF case that carries the carriage return through deliberately.
+
+**A/B, isolating the parser from the version guard** by relabelling the 1.3.0 bytes as `1.4.0`
+so the version check passes and only the parser is under test:
+
+```
+× reads a CRLF log identically to an LF one
+    AssertionError: a CRLF log must read at all: expected false to be true
+× records the hash and size of the bytes actually vendored
+    AssertionError: expected 26610 to be 30220
+```
+
+Two independent guards fired: the new CRLF case on the behaviour, and the provenance hash on the
+bytes. Restore verified by `sha256sum -c`; back to 30,220 bytes, `VERSION "1.4.0"`.
+
+### And the relative-path trap caught me a third time
+
+The first attempt at that A/B printed **`Tests no tests`** — I had run `vitest` from the repo
+root after an earlier `cd`, so it matched nothing. Same shape as the `cp` that resolved to
+`web/web/`. The hashed restore worked, so nothing was lost, but I am recording the third
+instance: **in a mutation harness, pin the command's directory explicitly rather than relying on
+where the shell happens to be.**
+
+Also applied the gate rule from an hour ago — this run greps for `Test Files` / `Tests` and the
+`VERIFY`/`AUDIT` verdict lines rather than tailing output.
+
+**Gate:** `tsc` clean, **1,050 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle rebuilt at `VITE_BASE=/EQL50ups/`.

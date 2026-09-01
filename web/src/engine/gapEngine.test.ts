@@ -95,8 +95,21 @@ describe('the degradation path — every one of these must still ship', () => {
    * read the contract for can move a field under us the same way.
    */
   it('refuses a NEWER engine too, because newer is not the same as compatible', () => {
-    expect(gapAvailability(engine({ version: '1.4.0' }), LINES, CTX).available).toBe(false);
+    expect(gapAvailability(engine({ version: '1.5.0' }), LINES, CTX).available).toBe(false);
     expect(gapAvailability(engine({ version: '2.0.0' }), LINES, CTX).available).toBe(false);
+  });
+
+  /**
+   * 1.3.0 is not a hypothetical old version either. It was vendored here for
+   * under an hour and it returns ZERO EVENTS on a CRLF log — the normal form,
+   * since EverQuest runs on Windows. The guard refusing it by version is the
+   * reason a second bundle swap in one night was a safe operation.
+   */
+  it('refuses 1.3.0, the CRLF-blind build vendored before it', () => {
+    const r = gapAvailability(engine({ version: '1.3.0' }), LINES, CTX);
+    expect(r.available).toBe(false);
+    if (r.available) throw new Error('unreachable');
+    expect(r.version).toBe('1.3.0');
   });
 
   it('treats a throwing engine as an absent one', () => {
@@ -350,6 +363,38 @@ describe('the vendored bundle', () => {
     }
     // And they are genuinely different populations, or the distinction is moot.
     expect(POPULATION_OF.damage_dealt).not.toBe(POPULATION_OF.spells_landed);
+  });
+
+  /**
+   * A CRLF log, which is the NORMAL form — EverQuest runs on Windows.
+   *
+   * **Every fixture in this file could only ever have been LF.** They are arrays
+   * of clean strings, so the line ending was stripped before the engine ever saw
+   * it — the harness sanitising its input before handing it to the thing under
+   * test, which is exactly why neither side caught this for two versions. 1.3.0
+   * returned ZERO EVENTS on a CRLF log and said "no outgoing damage lines
+   * matched": true about a file it could not read.
+   *
+   * So this case carries the carriage return through deliberately.
+   */
+  it.skipIf(!present)('reads a CRLF log identically to an LF one', () => {
+    const sandbox: Record<string, unknown> = {};
+    vm.createContext(sandbox);
+    vm.runInContext(readFileSync(VENDORED, 'utf8'), sandbox);
+    const global = sandbox.EQLSGapEngine as never;
+
+    const lf = gapAvailability(global, MONTH_BOUNDARY_FIGHT, CTX);
+    const crlf = gapAvailability(global, MONTH_BOUNDARY_FIGHT.map((l) => `${l}\r`), CTX);
+
+    expect(lf.available, 'the LF control').toBe(true);
+    expect(crlf.available, 'a CRLF log must read at all').toBe(true);
+    if (!lf.available || !crlf.available) throw new Error('unreachable');
+
+    // Same content, only the line ending differs — so the same measurement.
+    expect(crlf.measured.engaged_seconds).toBe(lf.measured.engaged_seconds);
+    expect(crlf.measured.damage_dealt).toBe(lf.measured.damage_dealt);
+    // And not a measurement of nothing, which is how the old build failed.
+    expect(crlf.measured.damage_dealt).toBeGreaterThan(0);
   });
 
   it.skipIf(!present)('is pinned to a commit, not a branch', () => {

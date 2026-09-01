@@ -10,7 +10,7 @@
  *
  * ## The version assertion, and why it is exact
  *
- * `EQLSGapEngine.version` must read exactly `1.3.0` before any measured key is
+ * `EQLSGapEngine.version` must read exactly `1.4.0` before any measured key is
  * touched. Not a range, not a minimum: a major bump changes the `Report` shape
  * and a minor one changed `months_seen` from `["Aug"]` to `2` in the space of
  * an hour. An engine that is merely *newer* is not automatically readable.
@@ -29,6 +29,29 @@
  * a no-op apart, and on a space-padded (`ctime`) day 1.2.0 dropped every line
  * after midnight while 1.3.0 keeps them. Strictly better, inert on the form we
  * have actually seen written.
+ *
+ * ## Why the pin moved twice in one hour, and why that was safe
+ *
+ * 1.4.0 fixes a defect that returns **zero events on a CRLF log**. `(.*)$` will
+ * not match past a carriage return, so on a Windows-written log every line
+ * fails the timestamp match, the file parses to nothing, and the engine takes
+ * its no-outgoing-damage path and reports that — **a true statement about a
+ * file it could not read.** EverQuest runs on Windows, so CRLF is the normal
+ * case and every LF log this project tested against was the lucky one.
+ *
+ * Measured here, four cells, same content, only the line ending differing:
+ *
+ * ```
+ *   1.3.0 693ea8ad  LF   -> keys 19  hits 15  damage 150
+ *   1.3.0 693ea8ad  CRLF -> keys  0  hits undefined
+ *   1.4.0 02543ec8  LF   -> keys 19  hits 15  damage 150
+ *   1.4.0 02543ec8  CRLF -> keys 19  hits 15  damage 150
+ * ```
+ *
+ * **The exact-version guard is what made a second swap safe at four in the
+ * morning**: 1.4.0 declares itself, and anything else is refused rather than
+ * read hopefully. A repo without that would have been asking for a bundle
+ * change on trust.
  *
  * ## Three populations, and the denominator this module exists to get right
  *
@@ -99,7 +122,7 @@ export interface GapMeasured {
   }>;
 }
 
-export const REQUIRED_ENGINE_VERSION = '1.3.0';
+export const REQUIRED_ENGINE_VERSION = '1.4.0';
 
 export type GapAvailability =
   | { available: true; version: string; measured: GapMeasured }

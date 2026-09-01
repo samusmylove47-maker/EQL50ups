@@ -47,7 +47,16 @@
   // B'S EXACT-EQUALITY GUARD MEANS B MUST RE-PIN TO READ THIS. That is B's design and
   // B's call; it is named in HANDOFF.md's STATUS block as REPIN NEEDED so the
   // divergence cannot sit undeclared. check_contract.py fails if it ever does.
-  var VERSION = "1.3.0";
+  // 1.3.0 -> 1.4.0, 1 Sep 2026. `measured.window.endpoint` is additive: the engaged
+  // denominator's convention, and the MEASURED size of choosing it -- 14.04% on the
+  // log this engine was built against, 2.24% to 13.79% on three others, refused below
+  // 30 inter-hit gaps. No existing value moves and `dps` is unchanged.
+  // THIS FORCES B'S SECOND RE-PIN IN AN HOUR and that cost is named rather than
+  // avoided: the alternative was hiding a computed figure inside an existing string,
+  // which is a loophole in the rule that a changed bundle needs a changed version,
+  // and a number in prose is one a consumer cannot compute against. Declared as
+  // REPIN NEEDED: 1.4.0 in HANDOFF.md; check_contract.py fails without it.
+  var VERSION = "1.4.0";
 
   // Every numeric key in `measured` is over ONE of three populations, and until
   // 1 Sep 2026 the report did not say which. Measured on the log this engine was
@@ -125,16 +134,26 @@
     // 2026 by Session C asking what the segmentation rule was. The log is
     // append-only and chronological, so counting distinct (month, day) pairs in
     // file order is monotonic without a calendar, and survives Dec->Jan too.
-    var dayIdx = -1, prevKey = null, key;
+    var dayIdx = -1, prevKey = null, key, ln;
     for (i = 0; i < lines.length; i++) {
-      m = TS.exec(lines[i]);
+      // STRIP A TRAILING CARRIAGE RETURN. Without this a CRLF log parsed to ZERO
+      // events -- `(.*)$` will not match past the \r -- and this engine returned an
+      // EMPTY measured block for it. corpus/amp/eqlog_Shara_rivervale_20260829.txt IS
+      // CRLF, so one of the two logs committed to sky-ledger could not be read by the
+      // bundle we ship; and EverQuest runs on Windows, so CRLF is the NORMAL case.
+      // Python was saved only by universal-newline text mode and had the same hole for
+      // any caller that split the bytes itself. parity.py ran one SYNTHETIC LF log, so
+      // the gate could not exhibit the fault. Found 1 Sep 2026.
+      ln = lines[i];
+      if (ln.charCodeAt(ln.length - 1) === 13) ln = ln.slice(0, -1);
+      m = TS.exec(ln);
       if (!m) continue;
-      key = lines[i].slice(5, 8) + "|" + m[1];
+      key = ln.slice(5, 8) + "|" + m[1];
       if (key !== prevKey) { dayIdx += 1; prevKey = key; }
       // TS anchors on ^\[\w{3} \w{3} , so for any line it matched, chars 5..7 ARE
       // the month token. Sliced rather than captured: adding a group would shift
       // every numeric group below, and the bound tonight is no new regex.
-      months[lines[i].slice(5, 8)] = 1;
+      months[ln.slice(5, 8)] = 1;
       t = dayIdx * 86400 + parseInt(m[2], 10) * 3600 +
           parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
       ev.push([t, m[5]]);
@@ -388,8 +407,50 @@
     // THE POPULATIONS, stated. `all_lines` is the denominator spells_landed and
     // resists were always missing; `in_window` is the one dps and damage_dealt
     // already used without saying so.
+    // THE ENDPOINT CONVENTION AND WHAT IT COSTS. `engaged` sums (last hit - first hit)
+    // per run, so the time the FINAL SWING of each engagement occupied is not in the
+    // denominator. A legitimate convention -- shipped meters differ, which is what
+    // dps_window_note is for -- but a convention with an unstated size is how four
+    // meters end up 2.03x apart. Measured over four logs the alternative convention
+    // moves DPS by 14.04%, 50.00%, 2.24% and 13.79%: NOT a constant, so not a
+    // footnote either. `dps` does not move; which convention is right is a mechanism
+    // claim and I am not making one. GATED at 30 gaps -- on a 21s log the figure read
+    // 50%, which is noise wearing a measurement's clothes.
+    var hitSecs = {}, k2;
+    for (i = 0; i < hits.length; i++) {
+      for (j = 0; j < rr.length; j++) {
+        if (hits[i].t >= rr[j][0] && hits[i].t <= rr[j][1]) { hitSecs[hits[i].t] = 1; break; }
+      }
+    }
+    var nSecs = 0;
+    for (k2 in hitSecs) if (Object.prototype.hasOwnProperty.call(hitSecs, k2)) nSecs++;
+    var nGaps = nSecs - rr.length, endpoint;
+    if (nGaps >= 30 && engaged && dealt) {
+      var ihi = engaged / nGaps, alt = dealt / (engaged + rr.length * ihi);
+      endpoint = {
+        convention: "first hit to last hit, per engagement",
+        interhit_seconds: round(ihi, 2),
+        gaps_measured: nGaps,
+        dps_if_each_run_extended_by_one_interval: round(alt, 1),
+        sensitivity: alt ? round(m.dps / alt, 4) : null,
+        note: "The final swing of each engagement is outside this denominator. " +
+          "`dps` is unchanged and this states what the other convention would give " +
+          "-- not which is correct."
+      };
+    } else {
+      endpoint = {
+        convention: "first hit to last hit, per engagement",
+        gaps_measured: nGaps,
+        sensitivity: null,
+        note: "NOT CLAIMED: " + nGaps + " inter-hit gaps is under the 30 needed to " +
+          "estimate an interval. On a 21s log this figure read 50%, which is noise, " +
+          "so it is refused rather than emitted."
+      };
+    }
+
     m.window = {
       basis: "engaged",
+      endpoint: endpoint,
       in_window: { hits: inWindow, damage: dealt },
       all_lines: { hits: hits.length, damage: allDamage },
       melee_time: { seconds: L.meleeSeconds, auto_attack_attempts: L.autoAttempts },

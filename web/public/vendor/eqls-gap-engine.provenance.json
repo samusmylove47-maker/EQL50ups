@@ -1,33 +1,28 @@
 {
   "file": "eqls-gap-engine.js",
   "global": "EQLSGapEngine",
-  "version": "1.3.0",
-  "sha256_8": "693ea8ad",
-  "bytes": 26610,
+  "version": "1.4.0",
+  "sha256_8": "02543ec8",
+  "bytes": 30220,
   "source": {
     "repo": "samusmylove47-maker/sky-ledger",
-    "path": "bundle/eqls-gap-engine.693ea8ad.js",
-    "commit": "40c71d56438239436f5f3a900a72ed30f5b0d89d",
-    "url": "https://raw.githubusercontent.com/samusmylove47-maker/sky-ledger/40c71d56438239436f5f3a900a72ed30f5b0d89d/bundle/eqls-gap-engine.693ea8ad.js"
+    "path": "bundle/eqls-gap-engine.02543ec8.js",
+    "commit": "bec765c20101d60403160f7097fd81cf335a9ef7",
+    "url": "https://raw.githubusercontent.com/samusmylove47-maker/sky-ledger/bec765c20101d60403160f7097fd81cf335a9ef7/bundle/eqls-gap-engine.02543ec8.js"
   },
   "vendoredAt": "2026-09-01",
   "why_pinned_to_a_commit": "A branch name moves under you. The commit sha fixes exactly these bytes.",
-  "why_the_version_moved": "1.2.0 -> 1.3.0. The PREVIOUS vendor (d6e17bec) also declared 1.2.0 while differing in behaviour, so an exact-version guard could not tell them apart. The Director ruled that a bundle whose behaviour changed needs a version that changed, and held this re-vendor until the source bumped it. This pin is the first one whose version actually moved.",
+  "why_the_version_moved": "1.3.0 -> 1.4.0, the second re-pin in an hour. 1.3.0 returns ZERO EVENTS on a CRLF log: '(.*)$' will not match past a carriage return, so every line fails the timestamp match, the file parses to nothing, and the engine takes its no-outgoing-damage path and says so — a true statement about a file it could not read. EverQuest runs on Windows, so CRLF is the NORMAL case and every LF log either side had tested against was the lucky one.",
   "verified_here": {
-    "note": "Checked with our own instrument, not by relaying the source figures. Filename-vs-content hash compared, then both bundles A/B run on IDENTICAL input.",
+    "note": "Derived, not relayed. Content hash computed from the fetched bytes and compared to the content-addressed filename; then a four-cell matched pair, same content, only the line ending differing.",
     "filename_matches_content_hash": true,
-    "ab_identical_input": {
-      "zero_padded_day": {
-        "note": "the form C measured EQ actually writes, over 1,270,007 single-digit-day lines",
-        "1.2.0": "1 engagement, 78s, 20 hits",
-        "1.3.0": "1 engagement, 78s, 20 hits — a no-op on real data"
-      },
-      "space_padded_day": {
-        "note": "the ctime() form; not established that EQ writes it",
-        "1.2.0": "0 engagements, 5 hits — the 15 lines after midnight were dropped",
-        "1.3.0": "1 engagement, 78s, 20 hits"
-      }
+    "matched_pair": {
+      "1.3.0 693ea8ad LF": "keys 19, hits 15, damage 150",
+      "1.3.0 693ea8ad CRLF": "keys 0, hits undefined, damage undefined",
+      "1.4.0 02543ec8 LF": "keys 19, hits 15, damage 150",
+      "1.4.0 02543ec8 CRLF": "keys 19, hits 15, damage 150"
     },
-    "conclusion": "Strictly better and inert on the real form. Adopted."
-  }
+    "our_own_exposure": "The seam is not wired into the app, and gapAvailability already REFUSED the 1.3.0 CRLF report — measured: available false, the unavailable sentence — because every typed key was undefined. The degradation path did its job. Separately, web/src/lib/inventoryImport.ts:430 splits on /\\r\\n|\\n|\\r/ and its checked-in export fixture is genuinely CRLF (983 CR, 983 LF), so the one player-supplied file this app actually reads was never exposed."
+  },
+  "conclusion": "Strictly better and identical on the LF form. Adopted."
 }

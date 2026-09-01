@@ -7,7 +7,7 @@
   "_whyNotVersionedInTheFilename": "It was `gap-contract-1.2.0.json` until 1 Sep 2026, and it went stale the moment the pin moved — a name that must be renamed by hand is a name that will be wrong. The version it is asserted against now lives in `assertedEngineVersion` below, and `gapEngine.test.ts` fails if that field and `REQUIRED_ENGINE_VERSION` ever disagree. Renaming was a published-path change and is called out in the commit that made it.",
 
   "_versionAssertion": "A consumer asserts EQLSGapEngine.version === assertedEngineVersion EXACTLY before reading any key below — a newer engine is refused as readily as an older one. On any other value it must emit its unknown band and ship anyway: B is never blocked on E and E is never blocked on B.",
-  "assertedEngineVersion": "1.3.0",
+  "assertedEngineVersion": "1.4.0",
 
   "_thisFixtureIsLoaded": "gapEngine.test.ts feeds the `measured` block below through the real gapAvailability(). Between 31 Aug and 1 Sep nothing loaded this file at all, so it was a document claiming to be a check. It is now a check.",
 
