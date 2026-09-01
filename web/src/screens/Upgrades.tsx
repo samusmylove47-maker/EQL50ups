@@ -132,7 +132,27 @@ export interface UpgradeRow {
 }
 
 /** Why a position was left out of the ranking rather than ranked at zero. */
-export type WithheldReason = 'worn-unstatted' | 'worn-unresolved' | 'profile-blind-to-weapons';
+export type WithheldReason =
+  | 'worn-unstatted' | 'worn-unresolved' | 'profile-blind-to-weapons' | 'offhand-occupied';
+
+/**
+ * The reasons that hold a slot back **even when nothing is worn in it**.
+ *
+ * Two of the four reasons are properties of the worn item, so an empty slot
+ * ranks normally. Two are properties of the situation — the profile cannot
+ * score weapons at all, or the offhand is not a slot this character has — and
+ * those apply to an empty hand exactly as much as a full one.
+ *
+ * This was an inline `reason === 'profile-blind-to-weapons'` in the emit loop.
+ * Adding `offhand-occupied` did nothing at first because of it: the reason was
+ * computed correctly, the slot was not withheld, and the shield was still
+ * offered. A membership test makes the question unavoidable — a new reason has
+ * to be classified, not merely added.
+ */
+const WITHHELD_WITHOUT_WORN: ReadonlySet<WithheldReason> = new Set<WithheldReason>([
+  'profile-blind-to-weapons',
+  'offhand-occupied',
+]);
 
 export interface WithheldRow {
   position: SlotPosition;
@@ -387,6 +407,16 @@ export function* upgradeSteps(
     if (name) wornAt.set(name.toLowerCase(), view.position.id);
   }
 
+  /**
+   * The two-handed weapon this loadout is already holding, if any.
+   *
+   * Read once, before the per-position pass, because `SECONDARY` needs to know
+   * about `PRIMARY` and the pass visits positions in paper-doll order rather
+   * than in an order that guarantees Primary comes first.
+   */
+  const wornTwoHander =
+    views.find((v) => v.position.id === 'PRIMARY' && isTwoHanded(v.item ?? undefined))?.item ?? null;
+
   const rows: UpgradeRow[] = [];
   const withheld: WithheldRow[] = [];
   const nothing: SlotPosition[] = [];
@@ -437,15 +467,32 @@ export function* upgradeSteps(
      */
     const blindToWeapons = weaponCounts && !scoresWeapons(weights);
 
-    const reason: WithheldReason | null = blindToWeapons
-      ? 'profile-blind-to-weapons'
-      : view.unresolved
-        ? 'worn-unresolved'
-        : view.item && statsAreUnknown(view.item)
-          ? 'worn-unstatted'
-          : withheldName
+    /*
+     * The offhand of a character already holding a two-hander is not a slot.
+     *
+     * The two-handed rule was only ever applied in one direction — a two-handed
+     * CANDIDATE has the offhand it empties subtracted from its gain, and says
+     * so. Worn, it was not applied at all, so a player wielding a greatsword
+     * was ranked a shield into a hand that is not free. Advice they cannot
+     * take, which is the same error as offering a Wizard-only cowl to a
+     * Warrior, and that one has been guarded since the first week.
+     *
+     * Withheld rather than dropped: `WITHHELD_TEXT` names it on screen, because
+     * a slot that silently vanishes reads as "nothing better exists".
+     */
+    const offhandOccupied = position.id === 'SECONDARY' && wornTwoHander !== null;
+
+    const reason: WithheldReason | null = offhandOccupied
+      ? 'offhand-occupied'
+      : blindToWeapons
+        ? 'profile-blind-to-weapons'
+        : view.unresolved
+          ? 'worn-unresolved'
+          : view.item && statsAreUnknown(view.item)
             ? 'worn-unstatted'
-            : null;
+            : withheldName
+              ? 'worn-unstatted'
+              : null;
 
     const wornEp =
       view.item && !reason
@@ -498,10 +545,7 @@ export function* upgradeSteps(
   for (const entry of queue) {
     const best = take(entry);
 
-    // A blind profile withholds the slot whether or not anything is worn: the
-    // defect is in the scoring, not in the item, so an empty hand still cannot
-    // be ranked.
-    if (entry.reason && (entry.wornName || entry.reason === 'profile-blind-to-weapons')) {
+    if (entry.reason && (entry.wornName || WITHHELD_WITHOUT_WORN.has(entry.reason))) {
       withheld.push({
         position: entry.position,
         reason: entry.reason,
@@ -1268,6 +1312,8 @@ const WITHHELD_TEXT: Record<WithheldReason, string> = {
     'This item is not in the catalog this build shipped, so there is nothing to compare it with. It may be spelled differently on the wiki, or absent from it.',
   'profile-blind-to-weapons':
     'This profile weights no weapon term, so damage and delay would score nothing here and the slot would be ranked on its stat line alone — which puts a 1-damage baton above a 40-damage greatsword. Rather than invent a weapon weight nobody has measured, the slot is left unranked. Switch to Melee DPS or Balanced, which do weight weapon ratio.',
+  'offhand-occupied':
+    'The weapon in your Primary takes both hands, so there is no offhand to fill. Ranking one here would be advice you cannot act on. That a weapon is two-handed is read from its skill string, a wiki field — the payload records nothing about a weapon occupying both hands. Swap to a one-handed Primary and this slot ranks normally.',
 };
 
 export function Upgrades({ id }: { id: string }) {

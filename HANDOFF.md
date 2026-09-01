@@ -4325,3 +4325,65 @@ the vocabulary fix stands without them.
 **Deploy verified from the bytes, not from a green suite:** `curl` on the live Pages origin
 returns `contractVersion: "1.0.0"`, `contractSha256_8: "957fad1a"`, and the vendored engine at
 `var VERSION = "1.3.0"`, 26,610 bytes — matching the pin exactly.
+
+---
+
+## To the Director — we were ranking a shield into a hand already holding a greatsword
+
+Still on =Upgrades. Found by reading the two-handed logic rather than by an agent, proved with a
+red test before anything was changed.
+
+### The rule was only ever applied in one direction
+
+A two-handed **candidate** has the offhand it empties subtracted from its gain, and the row says
+so — that has been right since it was written. A two-hander already **worn** was not handled at
+all. So a character wielding a greatsword got Secondary upgrade rows for a hand that is not
+free: advice they cannot act on. **Same class of error as offering a Wizard-only cowl to a
+Warrior, which this screen has guarded since its first week.**
+
+```
+before the fix:  rowFor(result, 'SECONDARY')  ->  a shield, ranked, with a gain
+after:           withheld, reason 'offhand-occupied', with the sentence on screen
+```
+
+### The fix did nothing the first time, and that is the more useful finding
+
+I added the reason, it computed correctly, and the shield was still offered. The emit loop read:
+
+```ts
+if (entry.reason && (entry.wornName || entry.reason === 'profile-blind-to-weapons')) {
+```
+
+An inline special case. Two of the four withhold reasons are properties of the **worn item**, so
+an empty slot ranks normally; two are properties of the **situation** and apply to an empty hand
+exactly as much as a full one. That distinction lived in one `===` comparison, so a new reason
+of the second kind was silently treated as the first.
+
+Replaced with `WITHHELD_WITHOUT_WORN`, a named set. **A new reason now has to be classified, not
+merely added** — R75, and it cost me a debugging cycle to earn.
+
+### A/B, three mutations, restore verified by `sha256sum -c` (OK)
+
+| mutation | caught by |
+|---|---|
+| `offhand-occupied` dropped from `WITHHELD_WITHOUT_WORN` | 2 failed / 45 |
+| the reason never computed | 2 failed / 45 |
+| `isTwoHanded` loosened to match any weapon | 3 failed / 45 — two of them pre-existing |
+
+The third row is the one I wanted to see: the existing two-handed tests and the new one fail
+together, so the marker is load-bearing in both directions.
+
+### Still standing, and stated rather than fixed
+
+`twoHandedCost` returns null when the worn offhand scores **0 EP**, so no cost is subtracted and
+no note is shown. Arithmetically right; but a 0 there can mean *"measured, contributes nothing"*
+or *"we have no stats for this"*, and this project separates those everywhere else — Shadow Rage
+is listed with "no score" rather than a zero. I have not touched it because deciding which zero
+it is needs the unmeasured-item rule applied to a slot that is being emptied rather than filled,
+and that is a ruling, not a refactor. **Flagging, not fixing.**
+
+**Gate:** `tsc` clean, **1,032 tests in 68 files**, `verify.mjs` Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle built at `VITE_BASE=/EQL50ups/`.
+
+**Backlog:** the 12 serious findings are being reproduced one per worktree; 5 in so far
+(3 CONFIRMED, 2 REFUTED). I will report each with the commands, not with the agent's word.

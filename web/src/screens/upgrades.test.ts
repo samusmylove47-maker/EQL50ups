@@ -19,7 +19,7 @@ import { normalizeCatalog } from '../data/normalize';
 import { rankSlotItems, scoreContextFrom, slotViews, statDeltas, totalsFor } from '../selectors/gear';
 import { DEFAULT_SET_FILTERS, type SetFilters } from '../lib/setFilters';
 import {
-  acquisitionLines, computeUpgrades, dateSpan, hasAnyWeight, isLore, measuredDrops,
+  acquisitionLines, computeUpgrades, dateSpan, hasAnyWeight, isLore, isTwoHanded, measuredDrops,
   totalSightings, unweightedLosses, weightedDeltas, zoneTallies,
   type CompareBasis, type UpgradeReport,
 } from './Upgrades';
@@ -728,5 +728,77 @@ describe('a two-handed primary nets off the offhand it costs', () => {
     addItem(GREATSWORD);
     const primary = rowFor(report(gearSet()), 'PRIMARY');
     expect(primary?.twoHanded).toBeNull();
+  });
+});
+
+/* ------------------------------------------------------------------------- *
+ * A two-handed weapon takes BOTH hands, and the offhand is a slot like any
+ * other until it isn't.
+ *
+ * The screen already handles one direction: a two-handed CANDIDATE has the
+ * offhand it empties subtracted from its gain, and says so. The other
+ * direction — a two-hander already WORN — was not handled at all, and it is
+ * the one that produces a recommendation a player cannot act on.
+ * ------------------------------------------------------------------------- */
+
+const TWO_HANDER = item({
+  n: '[Fixture] Greatsword of Both Hands',
+  sl: ['PRIMARY'],
+  st: { STR: 10, AC: 5 },
+  wp: { skill: '2H Slashing', dmg: 20, dly: 40 },
+});
+
+const SHIELD = item({
+  n: '[Fixture] Sturdy Buckler',
+  sl: ['SECONDARY'],
+  st: { AC: 12, STA: 5 },
+});
+
+describe('a worn two-hander occupies the offhand', () => {
+  beforeEach(() => {
+    addItem(TWO_HANDER);
+    addItem(SHIELD);
+  });
+
+  it('is recognised as two-handed from the only marker the payload carries', () => {
+    expect(isTwoHanded(TWO_HANDER)).toBe(true);
+    expect(isTwoHanded(SHIELD)).toBe(false);
+  });
+
+  /**
+   * The defect. With a two-hander worn in Primary, Secondary is not a slot this
+   * character can fill — so ranking a shield into it is advice they cannot take.
+   * It is the same class of error as offering a Wizard-only cowl to a Warrior,
+   * and that case has been guarded since the first week.
+   */
+  it('does not offer an upgrade into an offhand the worn weapon occupies', () => {
+    const set = gearSet({ PRIMARY: { itemName: TWO_HANDER.n, upgrade: tier(0) } });
+    const result = report(set);
+
+    expect(rowFor(result, 'SECONDARY')).toBeUndefined();
+  });
+
+  it('says WHY the offhand is not ranked, rather than dropping it silently', () => {
+    const set = gearSet({ PRIMARY: { itemName: TWO_HANDER.n, upgrade: tier(0) } });
+    const held = report(set).withheld.find((entry) => entry.position.id === 'SECONDARY');
+
+    expect(held?.reason).toBe('offhand-occupied');
+  });
+
+  /** And with a one-hander worn, the offhand ranks normally. */
+  it('still ranks the offhand when the worn Primary leaves a hand free', () => {
+    const oneHander = item({
+      n: '[Fixture] Short Blade',
+      sl: ['PRIMARY'],
+      st: { STR: 4 },
+      wp: { skill: '1H Slashing', dmg: 9, dly: 22 },
+    });
+    addItem(oneHander);
+
+    const set = gearSet({ PRIMARY: { itemName: oneHander.n, upgrade: tier(0) } });
+    const result = report(set);
+
+    expect(rowFor(result, 'SECONDARY')).toBeDefined();
+    expect(result.withheld.find((e) => e.position.id === 'SECONDARY')).toBeUndefined();
   });
 });
