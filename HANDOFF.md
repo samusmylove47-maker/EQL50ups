@@ -5456,9 +5456,11 @@ trigger list names `main` as a second entry that can never fire. So:
 - **Every push you make goes live to a player immediately.** There is no review step.
 - **"The owner merges" has nothing to attach to.** There is no branch to merge into.
 
-This is surfaced to the owner as a governance decision. **Do not create `main` to fix it** — a
-publish target is a capability, and creating one because you noticed it is missing is the owner's
-call, not a session's. Work as if every push ships, because it does.
+**Do not create `main`.** — and the reason is no longer "it is the owner's call to make". The
+question has been **WITHDRAWN**, and it was the wrong question. See the correction at the very
+bottom of this file: the owner's direction is that this tool becomes a MODULE inside the site,
+built by Session A. This repository stops being a publishing surface, so a publish gate in it is
+not the fix. Work as if every push ships, because until that rebuild it does.
 
 ## 2. The gap engine is HELD at 1.4.0. Do not re-pin without reading why.
 
@@ -5479,7 +5481,7 @@ name, and the provenance hash and byte count are asserted, so 1.5.0 bytes cannot
 | Is an absent stat key a measured zero or an unknown? (A 843 / B 1,687 shipped / C 1,456) | **Director** |
 | Should `focus-effects.json` get a contamination signature? 16 of 66 carry a percent by "haste" | **Director** |
 | Should the 14 `verified:false` race display names ship at all? | **Director** |
-| `levelCheck` — highest vs lowest across the trio | blocked on CAPTURE-REQUESTS §2 |
+| `levelCheck` — highest vs lowest across the trio | **ANSWERED — see the bottom of this file. The premise was wrong.** |
 | Slot vocabulary unification | parked with the Director |
 | Adding tonight's method rules to the hourly check-in prompt | needs owner approval — `update_trigger` returned *requires approval* |
 
@@ -5593,3 +5595,58 @@ anything reads it — which is R106's "a document pretending to be a check", one
 
 **Final gate:** `tsc` clean, **1,054 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes, bundle builds at `VITE_BASE=/EQL50ups/`.
+
+---
+
+# CORRECTIONS TO THE HANDOVER ABOVE — read these before acting on it
+
+Both arrived from the owner after the handover was written. **Neither is for tonight**, and both
+make something above stale. Recorded rather than acted on.
+
+## R196 — the game does not gate equipping by level at all
+
+The owner's direct statement: the only level requirements in EverQuest Legends are on **click and
+proc effects**, because those carry high-level spells that would be game-breaking early. Wearing
+an item is not level-gated.
+
+**This settles a dispute that consumed hours of this project and it settles it by dissolving it.**
+`docs/UNREPORTED-FINDINGS.md` entry 1 recorded that the single Tier M sighting of "Required Level"
+in this repository was on a *click effect*, and that it was therefore not established the game
+gates equipping at all. That was filed as a cautious observation about a thin sample. **It was the
+whole rule.**
+
+What follows, for whoever picks this up:
+
+- `levelCheck`'s highest-vs-lowest argument is **not blocked on a capture** and never needed one.
+  It is answering a question the game does not ask.
+- `item.rl` is **not a wear gate.** Three of 3,663 shipped records carry it; `bis.ts`'s
+  `meetsSuppliedLevel` and `character.ts`'s `levelCheck` both treat it as one.
+- `bis-contract.ts`'s `BisInput.level` doc walks a reader through three competing quantities and a
+  dispute. That prose is now describing a question with no referent.
+
+**Do not rip it out on the strength of this note.** It is a second-hand relay of an owner
+statement, and the standing rule that a claim is verified before it is acted on does not stop
+applying because the claim is convenient. Confirm it with the owner directly, then decide whether
+`rl` becomes an effect-availability gate rather than an equip gate.
+
+## The branch question is withdrawn, and it was the wrong question
+
+I reported — correctly — that this repository has one head, no `main`, and a `deploy.yml` trigger
+that can never fire, and I surfaced it as a governance decision for the owner.
+
+**The owner's answer is that the framing was wrong.** The site pointing at a GitHub Pages URL is
+itself the problem; the direction is that =Upgrades becomes a **module built into the site by
+Session A**, and this repository stops being a publishing surface at all. A publish gate here
+would be fixing the wrong layer.
+
+That is a **next-Tuesday rebuild, explicitly not tomorrow.** The owner was clear the work is not
+discarded by becoming a module. **Still do not create `main`** — now because there is no reason
+to, rather than because the decision was pending.
+
+## What this means for section 1 of the handover
+
+Section 1 still reads as true — every push ships, there is no staging — and that remains the
+operating reality until the rebuild. What changed is the *conclusion*: it is not an open
+governance question awaiting a decision. It has one, and the answer is architectural rather than
+procedural. I have edited section 1 to point here rather than leaving it to send the next session
+after a decision that is already made.
