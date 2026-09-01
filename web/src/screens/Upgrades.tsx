@@ -287,8 +287,32 @@ export function unweightedLosses(
  *
  * The game allows exactly one, so recommending the same Lore item for three
  * positions — which is what Avenrae's Cloak of Scales did before this existed —
- * is a plan the client will refuse. It is offered once, in the position where it
- * gains the most, and the other positions fall through to their next best.
+ * is a plan the client will refuse. It is offered once, and the other positions
+ * fall through to their next best.
+ *
+ * **It is NOT necessarily offered where it gains the most, and this docstring
+ * used to say it was.** The hand-out walks positions in order of `provisional`
+ * — `(ranked[0]?.score ?? 0) - wornEp`, computed from the raw top of each
+ * position's ranking *before* the filters `take()` later applies: items worn
+ * elsewhere, items already Lore-claimed, MIN_GAIN, offhand netting. A position
+ * whose top-ranked item is worn at another slot therefore carries a provisional
+ * it can never realise, is served too early, and can take the single Lore copy
+ * from a position that gains more.
+ *
+ * Measured against the shipped catalog and Avenrae's `/outputfile inventory`,
+ * on the Balanced preset, worn basis: of 8 Lore awards, 7 are the only position
+ * that can hold the item at all, and the eighth is placed worse —
+ *
+ * ```
+ *   Cloak of Scales -> Any Slot 1  +31.5      Back would gain +34.5
+ * ```
+ *
+ * Reordering the queue is NOT obviously an improvement and is deliberately not
+ * done here: by the finding's own measurement the shipped order totals 293.010
+ * against 292.510 for a true-best-available order, so greedy is sub-optimal
+ * under either key. Which order to prefer is a ranking decision. What was in
+ * this repository's power to fix, and is fixed, is the page claiming an
+ * optimality it does not deliver.
  */
 export function isLore(item: Item): boolean {
   return item.fl.includes('LORE') || item.fl.includes('LORE_EQUIPPED');
@@ -1226,8 +1250,22 @@ function SourceBlock({
       {lore ? (
         <p className="upg-srcline">
           <span className="upg-srclabel">Lore</span>
+          {/*
+            This said "One only, so it is offered in the single position where
+            it gains the most." The hand-out is greedy and does not guarantee
+            that. Measured against the shipped catalog and Avenrae's own
+            inventory export, the Cloak of Scales is offered at Any Slot 1 for
+            +31.5 where Back gains +34.5 from it — the page claiming optimality
+            on the row that does not have it. `upgrades-avenrae.test.ts` holds
+            the measurement and fails if this sentence reappears while any Lore
+            award is not at its best position.
+
+            What is said instead is what is actually true and is the thing a
+            reader needs: it goes to one position, and the others fall through.
+          */}
           <span className="upg-srctext">
-            One only, so it is offered in the single position where it gains the most.
+            One only, so it goes to a single position and the others fall through to their
+            next best.
           </span>
         </p>
       ) : null}

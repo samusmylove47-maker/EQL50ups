@@ -22,7 +22,7 @@ import type { CatalogState } from '../data/catalog';
 import { normalizeCatalog, statsAreUnknown, type SlotCode } from '../data/normalize';
 import { itemIdIndex, readInventory, toSlotMap, withheldMap } from '../lib/inventoryImport';
 import { DEFAULT_SET_FILTERS } from '../lib/setFilters';
-import { slotViews } from '../selectors/gear';
+import { rankSlotItems, scoreContextFrom, slotViews, totalsFor } from '../selectors/gear';
 import { computeUpgrades, isLore } from './Upgrades';
 
 const INVENTORY = '../research/validation/tier0-inventory-Avenrae.txt';
@@ -215,6 +215,76 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
       );
       expect(elsewhere, `${row.candidate.item.n} in ${row.position.label}`).toBe(false);
     }
+  });
+
+
+  /**
+   * The Lore row may not claim an optimality the hand-out does not deliver.
+   *
+   * The row rendered "One only, so it is offered in the single position where
+   * it gains the most." The hand-out is greedy: positions are served in order
+   * of `provisional`, which is computed from the raw top of each position's
+   * ranking BEFORE `take()` filters out items worn elsewhere, items already
+   * Lore-claimed, MIN_GAIN and offhand netting. A position whose top-ranked
+   * item is worn at another slot is therefore served too early and can take the
+   * single copy from a position that gains more.
+   *
+   * This is written as a CONDITIONAL, not as a pin on the current placement.
+   * Pinning "Cloak of Scales sits at Any Slot 1" would freeze a defect as
+   * expected behaviour. What is pinned is the honesty relation: if any Lore
+   * award is not at the position that gains most from it, the screen must not
+   * tell the reader that it is. Fix the allocation and this still passes; put
+   * the claim back without fixing the allocation and it fails.
+   */
+  it('does not claim the Lore item is placed where it gains most, unless it is', () => {
+    const views = slotViews(importedSet, state);
+    // Mirrors computeUpgrades: each position ranked with its own cap headroom.
+    const scoreAt = (row: (typeof report.rows)[number], item: Item): number | null => {
+      const existing = scoreContextFrom(totalsFor(views, row.position.id, CONTEXT));
+      const hit = rankSlotItems(state, {
+        slot: row.position.type as SlotCode,
+        context: CONTEXT,
+        weights: importedSet.weights,
+        upgrade: row.wornUpgrade,
+        existing,
+      }).find((e) => e.item.n === item.n);
+      return hit ? hit.score : null;
+    };
+
+    const awarded = report.rows.filter((row) => isLore(row.candidate.item));
+    expect(awarded.length, 'the fixture must actually exercise Lore').toBeGreaterThan(0);
+
+    const misplaced: string[] = [];
+    for (const row of awarded) {
+      const item = row.candidate.item;
+      for (const other of report.rows) {
+        if (other.position.id === row.position.id) continue;
+        if (!item.sl.includes(other.position.type)) continue;
+        const score = scoreAt(other, item);
+        if (score === null) continue;
+        const rival = score - other.wornEp;
+        if (rival > row.gain + 1e-9) {
+          misplaced.push(
+            `${item.n}: ${row.position.label} +${row.gain.toFixed(1)}`
+            + ` but ${other.position.label} +${rival.toFixed(1)}`,
+          );
+        }
+      }
+    }
+
+    const source = readFileSync('src/screens/Upgrades.tsx', 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    const claimsOptimal = /offered in the single position where it gains the most/.test(source);
+
+    if (misplaced.length) {
+      expect(
+        claimsOptimal,
+        `the screen claims optimal Lore placement, but: ${misplaced.join('; ')}`,
+      ).toBe(false);
+    }
+    // Recorded either way, so a future reader sees what the fixture measured.
+    expect(Array.isArray(misplaced)).toBe(true);
   });
 
   it('never asks for two of a Lore item', () => {

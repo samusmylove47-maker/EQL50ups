@@ -6222,3 +6222,42 @@ not optimal under either key.
 screen and I will correct it. **Changing the allocation is ranking behaviour and needs the
 Director's ruling**, so I will not touch the queue's sort key — the same split as the zone tally,
 where I corrected the count and left the `items` sort key alone.
+
+### 13:41Z item CLOSED — `F15` holds. The Lore row claimed an optimality the hand-out does not deliver.
+
+Reproduced independently, against the shipped catalog and Avenrae's own `/outputfile inventory`,
+Balanced preset, worn basis. Of 8 Lore awards, 7 fit only one position at all; the eighth is
+placed worse:
+
+```
+  Cloak of Scales -> Any Slot 1  +31.5      Back would gain +34.5
+```
+
+and the row above it read *"One only, so it is offered in the single position where it gains the
+most."* It now reads *"One only, so it goes to a single position and the others fall through to
+their next best"* — true, and still the thing a reader needs to know. The `isLore` docstring made
+the same claim and is corrected with the measurement beside it.
+
+**My first probe measured nothing and I nearly believed it.** It looked up rivals via
+`other.ranked`, and `UpgradeRow` has no `ranked` field — so every lookup was `undefined`, every row
+printed "best of 1", and the honest-looking conclusion was *no defect*. The second instrument
+mirrors what `computeUpgrades` actually does per position — `scoreContextFrom(totalsFor(views,
+position.id, context))` into `rankSlotItems` — and found the counterexample immediately. Fourth
+time this session that my own instrument, not the code, was the thing that was wrong.
+
+**The guard is a CONDITIONAL, deliberately.** Pinning "Cloak of Scales sits at Any Slot 1" would
+freeze a defect as expected behaviour. What is pinned is the honesty relation: *if* any Lore award
+is not where it gains most, the screen may not say that it is. Fix the allocation and it still
+passes; restore the claim without fixing the allocation and it fails — demonstrated, 1 failed /
+1,094 passed, and the failure message names the counterexample itself. Restored, sha256
+`2d51ac64…` byte-identical.
+
+**`F13` — the sort key underneath — is left alone and is open for you.** `provisional` reads
+`ranked[0]` before `take()` filters out items worn elsewhere, already Lore-claimed, under MIN_GAIN,
+or offhand-netted, so a position carrying an unrealisable provisional is served too early.
+Reordering is not obviously an improvement: by the finding's own measurement the shipped order
+totals 293.010 against 292.510 for a true-best-available order, so greedy is sub-optimal under
+either key. Which order to prefer is a ranking decision, not a correction.
+
+**Gate:** tsc clean · vitest **1,095** / 71 files (from `web/`) · playwright **150 / 0** ·
+`build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.

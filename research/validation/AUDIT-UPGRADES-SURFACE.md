@@ -65,6 +65,8 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F25` — GearSet.withheld is also dropped on every page reload, because sanitizeSet does not copy | closed | `52c7e0e` |
 | `F29` — blockReason prints the ALL_EXCEPT sentinel as an inclusion list, producing a sentence th | closed | `c682786` |
 | `F30` — The item window's Class and Race requirement rows print the raw ALL_EXCEPT token, so an  | closed | `c682786` |
+| `F15` — the Lore row claimed the item is placed where it gains most | claim corrected; allocation untouched pending a ruling | guarded in `upgrades-avenrae.test.ts` |
+| `F13` — the provisional sort key that causes it | **open** — ranking behaviour, needs a ruling | — |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched
