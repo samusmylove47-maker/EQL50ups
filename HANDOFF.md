@@ -6427,3 +6427,55 @@ would have passed. Restored, sha256 `0696a9e3…`.
 **Gate:** tsc clean · vitest **1,097** / 71 files (from `web/`) · `build.mjs` 0 (from root) ·
 `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED. Playwright green at 151 as of the
 previous commit; nothing here touches the app.
+
+## ORDER ANSWERED — the URL measurement. It fits at 351 characters, and it stops working on patch day.
+
+Encoded, not estimated: shipped codec at `SHARE_VERSION = 3`, shipped catalogue, the repository's own
+`/outputfile inventory`. Every case round-tripped before its length was believed. Full record at
+`research/validation/URL-STATE-MEASUREMENT.md`.
+
+**The number asked for: a fully-geared character — all 23 positions, every item at +10 — is a
+351-character URL.** Payload 304, of which gear is 268 and character/weights/name cost 36. Name
+interning is a 3.8x lever (304 against 1,146). The app's own dialog warns above 900, so 351 is
+comfortably inside, and the fragment is never transmitted.
+
+**Version marker: already built in and already refusing.** It is the first byte; a payload with a
+foreign version byte decodes to `null` rather than being read hopefully.
+
+**But the permanence question answers the other way, and it decides the design.** The interned link
+is small because it stores an INDEX into a dictionary built from the catalogue's own name list, and
+that list changes on patch day:
+
+```
+  interned link, same dictionary         -> decodes
+  interned link, PATCHED dictionary      -> REFUSED (null)
+  name-carrying link, patched dictionary -> decodes, same items
+```
+
+Nothing ever mis-decodes — the v3 checksum turns a dictionary shift into a refusal rather than into
+somebody else's gear, and that is worth keeping. But **a 351-character link posted in October is
+dead after the next patch; a 1,185-character name-carrying one survives.** That is exactly the "new
+code reading an old artifact" shape, live inside the mechanism a permanent link would be built on.
+
+**AND THE PREMISE IN THE ORDER IS WRONG, WHICH IS THE PART THAT MATTERS TODAY.** "You hold the
+catalogue: 3,663 items with IDs." **They do not have IDs.** Counted twice from different files:
+
+```
+  items-index.json  3,663 rows   299 numeric ids   3,364 null
+  all shard files   4,004 rows   336 numeric ids   ->  8.4% have one
+```
+
+The codec does not read `id` anywhere; it is name-keyed throughout. Item IDs *are* the right lever —
+stable across patches where dictionary indices are not — and if every item had one, 23 slots pack to
+79 bytes, **a 155-character URL**. That is a calculation over a format that does not exist, gated
+entirely on populating `id` first.
+
+**R209 made routine, run this tick:** one branch, `main` absent, live bundle
+`assets/index-C8sRW4_T.js`, HEAD builds `assets/index-C8sRW4_T.js` — same content hash, so the live
+deploy is HEAD. Will run every tick from here.
+
+**Naming: no action taken and none deepened.** "EQLS Upgrades" still appears 0 times and I have not
+added a fourth spelling. The decision is not mine.
+
+**Gate:** tsc clean · vitest **1,097** / 71 files · `build.mjs` 0 · `verify.mjs` PASSED Tier 0
+100.0% · `catalogue-audit` PASSED.
