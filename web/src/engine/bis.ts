@@ -134,6 +134,30 @@ function betterOnSomeAxis(d: StatDelta): boolean {
  */
 const NOT_A_PLACE = /removed from game/i;
 
+/**
+ * A mob name folded to a key another repository can join on.
+ *
+ * **Case only.** Measured 2026-09-01 over 2,315 distinct `src.m` strings:
+ * **90 differ from another only by case** — `"a magician"` / `"A Magician"`,
+ * `"The gnoll high shaman"` / `"the gnoll high shaman"`. EQ capitalises a
+ * leading article line-initially and not mid-sentence, so the case is a
+ * property of where the name was written down, not of the mob. Folding it is
+ * lossless and it collapses one mob's two keys into one.
+ *
+ * **What is deliberately NOT folded: the leading article.** 35 further strings
+ * differ only by `a` / `an` / `the` — `"a goblin warrior"` against
+ * `"goblin warrior"` — and stripping it would be a claim that those name the
+ * same creature. That is a mechanism claim about the game, and every reversal
+ * this project logged last night was a mechanism claim. It is filed in
+ * `docs/UNREPORTED-FINDINGS.md` as unresolved rather than silently merged.
+ *
+ * `mobs` keeps every string verbatim; this only ADDS a joinable key beside it,
+ * so nothing a consumer already reads changes.
+ */
+function mobKey(name: string): string {
+  return String(name).trim().toLowerCase();
+}
+
 function obtainability(item: Item, surveyed: Map<string, ZoneSurvey>): {
   obtainable: Obtainable | 'not recorded';
   actionability: Actionability;
@@ -153,6 +177,7 @@ function obtainability(item: Item, surveyed: Map<string, ZoneSurvey>): {
   return {
     obtainable: {
       zones, mobs, quests, vendors, crafted, measuredDrop,
+      mobKeys: [...new Set(mobs.map(mobKey))],
       difficulty: null,
       zoneLevels: hit?.levels ?? null,
     },

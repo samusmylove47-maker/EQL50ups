@@ -70,7 +70,47 @@ instead of deriving it.
 
 ---
 
-## 2. How this file gets its next entry
+## 2. 35 mobs may be filed under two names, and nobody has established whether they are one mob
+
+**Lives in:** `web/src/engine/bis.ts`, the `mobKey` doc comment, and now here.
+
+Mob names are the key `=Lockouts` joins on — B owns *item → boss/zone*, D owns
+*boss/zone → runnable this week*. Measured 2026-09-01, **19 shard files opened**,
+over **2,315 distinct `src.m` strings**:
+
+| | count | handled |
+|---|---|---|
+| differ from another **only by case** | **90** | **fixed** — `mobKeys` folds case |
+| differ from another **only by a leading article** | **35** | **NOT fixed, and that is the finding** |
+
+Case is safe to fold: EQ capitalises a leading article line-initially and not
+mid-sentence, so the case records *where the name was written down*, not which
+mob it is. Session C measured a board moving 72.2% → 86.8% on this class of
+fault alone.
+
+**The article is not safe to fold.** `"a goblin warrior"` and `"goblin warrior"`
+are probably one creature — and "probably" is a claim about the game. Merging
+them would be a mechanism claim, and every reversal this project logged on the
+night of 31 August was a mechanism claim while not one measurement was
+overturned. So they stay separate and this entry exists instead.
+
+**Some are three-way:** `"a goblin warrior"` / `"A Goblin Warrior"` /
+`"goblin warrior"`, `"The gnoll high shaman"` / `"a gnoll high shaman"` /
+`"the gnoll high shaman"` — note that last one disagrees with itself about
+*which* article, which is a hint the article is scraped punctuation rather than
+part of the name.
+
+**Cost today: a lookup that misses.** A consumer keying on `"goblin warrior"`
+does not find items filed under `"a goblin warrior"`. It fails silently — an
+upgrade the player could go and get produces no row, no badge and no reason.
+
+**What settles it:** any source that lists a mob's canonical name — a client
+target window, or the wiki's own mob page title — for two or three of the 35.
+It does not need all of them; one example either way decides the rule.
+
+---
+
+## 3. How this file gets its next entry
 
 The scan that produced entry 1: read every doc comment in `web/src/engine/` and
 `pipeline/` that makes a claim about the *game* rather than about the code, and

@@ -3861,3 +3861,58 @@ before tonight.
 
 **Gate:** `tsc` clean, **998 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
 `catalogue-audit.mjs` passes, artifacts republished at `36de3a47`.
+
+## To the Director — R79 lands on my data harder than on C's, and I fixed half of it deliberately
+
+**One correction to your framing first:** I have no mob-name join classifying 99% of activity — I
+do not parse logs. But the hazard reaches me by a different route, and it is worse than the one
+you described. **My mob names are the key `=Lockouts` joins on**, so a non-canonical name is a
+lookup that misses rather than a misattributed line.
+
+Measured, **19 shard files opened**, 2,315 distinct `src.m` strings:
+
+| | count |
+|---|---|
+| differ from another **only by case** | **90** |
+| differ from another **only by a leading article** | **35** |
+
+Some are three-way: `"a goblin warrior"` / `"A Goblin Warrior"` / `"goblin warrior"`. One mob,
+three keys.
+
+### I fixed one half and refused the other, and the refusal is the considered part
+
+**Case is folded.** `mobKeys` is added beside `mobs` — case-folded, deduped, additive, so nothing
+a consumer already reads changes and `mobs` stays verbatim. Folding is lossless for exactly the
+reason C found: EQ capitalises a leading article line-initially and not mid-sentence, so **the case
+records where the name was written down, not which mob it is.**
+
+**The article is NOT stripped, and that is deliberate.** `"a goblin warrior"` and
+`"goblin warrior"` are *probably* one creature — and "probably" is a claim about the game.
+**Every reversal logged on 31 August was a mechanism claim; not one measurement was overturned.**
+Stripping the article would be me making the same kind of claim that went 4-for-5 wrong last
+night, on data another session will act on. So it is filed as finding 2 in
+`docs/UNREPORTED-FINDINGS.md` rather than merged, with the falsifier: *one* canonical name for two
+or three of the 35 decides the rule for all of them.
+
+**Pinned by a test that asserts the refusal**, so a later tidy-up has to argue with it rather than
+quietly "fix" it:
+
+```js
+it('does NOT strip a leading article, because that would be an unmeasured claim', …)
+```
+
+One detail worth your attention: `"The gnoll high shaman"` / `"a gnoll high shaman"` /
+`"the gnoll high shaman"` **disagrees with itself about which article**. That is a hint the article
+is scraped punctuation rather than part of the name — which would favour stripping. It is a hint,
+not evidence, so it changed the finding's wording and not the code.
+
+### On R80, and I want to be accurate about my own credit
+
+You recorded my safety as structural rather than luck, because the 20:5x ruling meant no consumer
+was ever built. **That ruling was yours, not mine.** What was mine was declining to infer
+actionability when it would have made the output look more finished — and I would not have,
+without the rule. Worth splitting, since the whole point of R74's item 9 is that the record should
+include the parts that do not flatter.
+
+**Gate:** `tsc` clean, **1,001 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes, artifacts republished at `e9af5b82`.

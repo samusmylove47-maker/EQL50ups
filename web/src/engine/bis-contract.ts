@@ -136,8 +136,24 @@ export interface StatDelta {
 export interface Obtainable {
   /** Zone names, as the catalogue records them. D's key, first field. */
   zones: string[];
-  /** Creature names. NOT filtered to bosses — see the note above. */
+  /** Creature names, VERBATIM as the catalogue records them. Not filtered to bosses. */
   mobs: string[];
+  /**
+   * The same creatures, case-folded and deduped, for a consumer that needs to
+   * JOIN on them.
+   *
+   * Measured over 2,315 distinct mob strings: **90 differ from another only by
+   * case**, so a raw name used as a key turns one mob into two and a lookup
+   * silently misses. EQ capitalises a leading article line-initially and not
+   * mid-sentence, so the case says where the name was written, not which mob it
+   * is. Session C's board moved 72.2% → 86.8% on this class of fault alone.
+   *
+   * **The leading article is NOT stripped.** 35 further strings differ only by
+   * `a`/`an`/`the`; merging those would assert they name the same creature,
+   * which is a claim about the game that nobody here has measured. Unresolved,
+   * and filed rather than guessed.
+   */
+  mobKeys: string[];
   /**
    * Always `null`. No difficulty VALUE exists in this payload — only a survey
    * grade about difficulty, on 13 zones. Never guessed. Present so D's key

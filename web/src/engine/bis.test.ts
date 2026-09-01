@@ -300,3 +300,40 @@ describe('a wiki note is not a place', () => {
     expect(o.zones).toEqual(['Befallen']);
   });
 });
+
+/* ------------------------------------------------------------------------- *
+ * Mob names as JOIN KEYS.
+ *
+ * Measured over the shipped catalogue's 2,315 distinct `src.m` strings: 90
+ * differ from another only by case, and 35 further differ only by a leading
+ * article. A raw name used as a lookup key turns one mob into two, and the
+ * lookup misses silently. Session C's board moved 72.2% -> 86.8% on this alone.
+ * ------------------------------------------------------------------------- */
+
+describe('mob names are joinable', () => {
+  it('folds case, so one mob is one key', () => {
+    const catalog = [mk({
+      n: 'Two Spellings', st: { AC: 9 },
+      src: { m: ['a magician', 'A Magician', 'The Gnoll High Shaman'] },
+    })];
+    const o = first(candidates({ ...trio }, catalog)).obtainable as Exclude<BisCandidate['obtainable'], 'not recorded'>;
+    expect(o.mobKeys).toEqual(['a magician', 'the gnoll high shaman']);
+  });
+
+  it('keeps `mobs` verbatim, so nothing a reader sees is rewritten', () => {
+    const catalog = [mk({ n: 'Verbatim', st: { AC: 9 }, src: { m: ['A Magician'] } })];
+    const o = first(candidates({ ...trio }, catalog)).obtainable as Exclude<BisCandidate['obtainable'], 'not recorded'>;
+    expect(o.mobs).toEqual(['A Magician']);
+  });
+
+  /**
+   * The deliberate non-fix. Stripping `a`/`an`/`the` would assert that those
+   * strings name the same creature -- a claim about the game nobody measured.
+   * This pins the refusal so a later "tidy-up" has to argue with it.
+   */
+  it('does NOT strip a leading article, because that would be an unmeasured claim', () => {
+    const catalog = [mk({ n: 'Article', st: { AC: 9 }, src: { m: ['a goblin warrior', 'goblin warrior'] } })];
+    const o = first(candidates({ ...trio }, catalog)).obtainable as Exclude<BisCandidate['obtainable'], 'not recorded'>;
+    expect(o.mobKeys).toEqual(['a goblin warrior', 'goblin warrior']);
+  });
+});
