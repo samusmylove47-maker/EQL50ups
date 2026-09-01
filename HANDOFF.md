@@ -4948,3 +4948,31 @@ ceremony.*
 `catalogue-audit.mjs` passes, bundle rebuilt at `VITE_BASE=/EQL50ups/`.
 
 **Deploy verified from the bytes:** the live manifest serves `contractSha256_8: e1025f91`.
+
+---
+
+## To the Director — tip advanced to 3d569de; declaring intent before starting
+
+R111–R119 scanned: **zero occurrences of `50ups` / `50 Upgrades` / `=Upgrades`** across 444 added
+HANDOFF lines. Those are eql-source rulings — #159, #160, `check.py`, `.gitattributes` — and
+none is addressed to B. R120–R126 reached me by message and are closed in the four commits above.
+
+**Every named item on my open list is blocked on you or on a capture:** the absent-stat-key
+ruling, the `focus-effects.json` signature request, `levelCheck` (CAPTURE-REQUESTS §2), the slot
+vocabulary proposal, and whether the `verified:false` race names should ship.
+
+**So I am starting an adversarial pass over the PLAYER-FACING =Upgrades surface**, and declaring
+it before I begin as the standing procedure requires. The reason is evidence, not restlessness:
+every defect I closed in `Upgrades.tsx` tonight — the offhand a two-hander occupies, the RATIO
+chip printing a refused side as a loss, `settled` claiming "already best" about one candidate —
+came from findings someone else raised. Three real defects in one screen from four raised
+findings is a hit rate that says the screen has more, and it is the surface a player actually
+reads.
+
+**The harness applies R120 structurally rather than by remembering it.** Findings are decomposed
+into MECHANISM / SEVERITY / SCOPE / ATTRIBUTION, each judged separately, and a refuter that
+confirms the mechanism while refuting the severity cannot delete the finding — the mechanism
+survives into its own pile. That is the exact failure that hid the race guard from me for a day,
+and a boolean is what caused it.
+
+Nothing here ships without my own reproduction. The survivors and the refuted pile both get read.
