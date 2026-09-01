@@ -202,7 +202,11 @@ var EQLS50Upgrades = (function(exports) {
 	*    recommending unequippable gear is the failure that loses trust in one
 	*    click.
 	* 3. **Never assert obtainability we do not have.** `difficulty` is always
-	*    `null` and unknown actionability is `'unknown'`, never `false`.
+	*    `null`, and an unasked actionability is `'not-yet-asked'` — never `false`,
+	*    and no longer `'unknown'`. That value was renamed on 2026-09-01 precisely
+	*    so that nothing this module emits can collide with D's own
+	*    `'yes' | 'no' | 'unknown'`; this line still named the old one, which is
+	*    the drift the rename was meant to end.
 	*/
 	/**
 	* The level gate is SUPPLIED, not derived, and that is deliberate.
@@ -298,6 +302,35 @@ var EQLS50Upgrades = (function(exports) {
 		return Object.values(d.delta).some((v) => v > 0);
 	}
 	/**
+	* Did we manage to compare every axis, on both sides?
+	*
+	* **Only a complete comparison may be used to REJECT a candidate**, and that
+	* distinction is the whole of this function. `betterOnSomeAxis` reads `delta`
+	* alone; a candidate whose entire gain sits on an axis the worn item does not
+	* record has an empty `delta` and looks, to that test, exactly like a candidate
+	* that is not better.
+	*
+	* Measured on the shipped bundle 2026-09-01: worn Banded Cloak `{AC:7}`,
+	* candidate Mammoth Hide Cloak `{AC:7, WIS:4}` — equal AC, four more WIS, five
+	* more cold resist — and `candidates()` returned **nothing**. The same item
+	* against an empty slot returned the full `{AC:7, WIS:4, SV_COLD:5}`. Over
+	* 220,430 same-slot pairs, 3,910 of 40,054 strictly-better pairs were dropped.
+	*
+	* The contract already said what should happen instead. `StatDelta.unknown`'s
+	* own doc: a candidate with a non-empty `unknown` *"is offering an incomplete
+	* comparison and **should rank below** an equal candidate whose comparison is
+	* complete."* Rank below — not vanish. And the module note says **B does not
+	* rank**; dropping a row is ranking it last, silently, in the one module whose
+	* job is to enumerate and let E decide.
+	*
+	* `candidateStatsUnknown` and `replacesUnresolved` were already exempted at the
+	* call site for exactly this reason. `unknown` is the third state of the same
+	* kind and was the one nobody added.
+	*/
+	function comparisonIsComplete(d) {
+		return !d.candidateStatsUnknown && !d.replacesUnresolved && d.unknown.length === 0;
+	}
+	/**
 	* A zone string the wiki wrote as a note rather than as a place.
 	*
 	* The same test as `pipeline/contamination.mjs` signature 11
@@ -389,7 +422,7 @@ var EQLS50Upgrades = (function(exports) {
 				const worn = wornId ? byId.get(wornId) ?? "unresolved" : null;
 				if (worn !== "unresolved" && worn && worn.n === item.n) continue;
 				const d = statDelta(item, worn);
-				if (!d.candidateStatsUnknown && !d.replacesUnresolved && !betterOnSomeAxis(d)) continue;
+				if (comparisonIsComplete(d) && !betterOnSomeAxis(d)) continue;
 				const { obtainable, actionability } = obtainability(item, surveyed);
 				out.push({
 					slot,

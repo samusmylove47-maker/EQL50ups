@@ -418,3 +418,65 @@ describe('an unresolvable worn item is not an empty slot', () => {
     expect(c.statDelta.replacesUnresolved).toBe(false);
   });
 });
+
+/* ------------------------------------------------------------------------- *
+ * A candidate we cannot fully compare is OFFERED, not deleted.
+ *
+ * The contract is explicit about what an incomplete comparison means:
+ * `StatDelta.unknown`'s own doc says such a candidate "should rank below an
+ * equal candidate whose comparison is complete." Rank below. Not vanish. And
+ * `bis-contract.ts`'s module note says **B does not rank** — dropping a row IS
+ * ranking it, last, silently, in the one module whose stated job is to enumerate
+ * and let E decide.
+ *
+ * Measured on the shipped bundle before this was fixed: worn Banded Cloak
+ * `{AC:7}`, candidate Mammoth Hide Cloak `{AC:7, WIS:4}` — equal AC, four more
+ * WIS, five more cold resist — and `candidates()` returned `[]`. The same item
+ * against an EMPTY slot returned the full `{AC:7, WIS:4, SV_COLD:5}`. One item,
+ * one stat block, credited in full or erased depending only on what it was
+ * being compared against.
+ * ------------------------------------------------------------------------- */
+
+describe('an incomplete comparison is offered with its gap named', () => {
+  const worn = mk({ n: 'Banded Cloak', sl: ['BACK'], st: { AC: 7 } });
+  const better = mk({ n: 'Mammoth Hide Cloak', sl: ['BACK'], st: { AC: 7, WIS: 4 } });
+
+  it('names the axis it could not difference', () => {
+    const d = statDelta(better, worn);
+    expect(d.unknown).toContain('WIS');
+    expect(d.delta).toEqual({});
+    expect(d.candidateStatsUnknown).toBe(false);
+  });
+
+  it('OFFERS the candidate rather than dropping it', () => {
+    const input = { ...trio, currentGear: { BACK: 'w' } };
+    const got = candidates(input, [better], { byId: new Map([['w', worn]]) });
+    expect(got.length).toBe(1);
+    expect(first(got).statDelta.unknown).toContain('WIS');
+  });
+
+  /**
+   * The asymmetry that made this visible, pinned. The same candidate against an
+   * empty slot has always been offered with a full delta; against a worn item
+   * missing one axis it disappeared entirely.
+   */
+  it('offers it against a worn item exactly as it does against an empty slot', () => {
+    const againstEmpty = candidates({ ...trio, currentGear: {} }, [better], {});
+    const againstWorn = candidates(
+      { ...trio, currentGear: { BACK: 'w' } }, [better], { byId: new Map([['w', worn]]) },
+    );
+    expect(againstEmpty.length).toBe(1);
+    expect(againstWorn.length).toBe(againstEmpty.length);
+  });
+
+  /** A comparison that IS complete and shows no gain is still dropped. */
+  it('still drops a candidate we can fully compare and that is not better', () => {
+    const worse = mk({ n: 'Thin Cloak', sl: ['BACK'], st: { AC: 3 } });
+    const d = statDelta(worse, worn);
+    expect(d.unknown).toEqual([]);
+    const got = candidates(
+      { ...trio, currentGear: { BACK: 'w' } }, [worse], { byId: new Map([['w', worn]]) },
+    );
+    expect(got).toEqual([]);
+  });
+});

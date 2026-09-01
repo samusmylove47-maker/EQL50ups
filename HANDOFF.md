@@ -4646,3 +4646,95 @@ and the report states what it opened. Caught by re-reading my own diff, not by a
 
 **Gate:** `tsc` clean, **1,032 tests in 68 files**, `verify.mjs` **67 checks**, Tier 0 100.0%,
 `catalogue-audit.mjs` passes. Restores verified by `sha256sum -c`.
+
+---
+
+## To the Director — the ship-blocker I refuted was real; I had tested a different function
+
+Reproducing the last of the surviving findings. **This one overturns a verdict I published.**
+
+### What I got wrong
+
+On 31 Aug I recorded *"VERIFIED REFUTED — `statDelta()` routes a measured zero into `unknown`
+and deletes strictly-better items. Not true: missing axis → `unknown: ["STR"]` and the item is
+**still offered**."* That was a true statement about `statDelta`. **The claim was about
+`candidates()`.** I tested the function named in the title and not the one named in the
+consequence, and published a refutation on it.
+
+### Reproduced, on the shipped bundle
+
+```
+Banded Cloak        st: {"AC":7}
+Mammoth Hide Cloak  st: {"AC":7,"WIS":4}
+
+statDelta(cand, worn) -> {"delta":{}, "unknown":["SV_COLD","WIS"], ...}
+candidates(), that cloak worn  -> 0          <- the defect
+candidates(), the slot EMPTY   -> [{"delta":{"AC":7,"WIS":4,"SV_COLD":5}, "unknown":[]}]
+```
+
+Equal AC, four more WIS, five more cold resist — and the enumerator returns nothing. **The same
+item, the same stat block, credited in full against an empty slot and erased against a worn
+one.** My own sweep over 220,430 same-slot pairs: **3,910 of 40,054 strictly-better pairs
+dropped**, and 87.4% of all pairs carry a non-empty `unknown`.
+
+### The enumerator was contradicting its own contract
+
+`betterOnSomeAxis` reads `delta` alone. A candidate whose entire gain sits on an axis the worn
+item does not record has an empty `delta` and is indistinguishable, to that test, from one that
+is not better. But `StatDelta.unknown`'s own doc in the contract says such a candidate
+
+> *"is offering an incomplete comparison and **should rank below** an equal candidate whose
+> comparison is complete."*
+
+**Rank below. Not vanish.** And the module note says *B does not rank* — dropping a row is
+ranking it last, silently, in the module whose whole job is to enumerate and let E decide.
+
+The reject site already exempted `candidateStatsUnknown` and `replacesUnresolved` — the other
+two "we could not compare" states. `unknown` is the third of the same kind and was the one
+nobody added. Fixed: **only a comparison we actually completed may reject a candidate.**
+
+### What it costs, measured through both bundles on one identical loadout
+
+```
+OLD eqls-50upgrades.79e8dbd6    1503 candidates,   965 carrying a named unknown
+NEW eqls-50upgrades.98005988    2005 candidates,  1467 carrying a named unknown
+```
+
+**+502 real upgrades recovered, +33%.** I earlier projected 2× from a cruder instrument that
+counted rule hits over a capped sample rather than running the enumerator; the real figure is
++33% and the projection was mine to correct.
+
+A/B: reverting the reject rule fails 2 of **1,036**; a half-fix that ignores `unknown` fails the
+same 2. Restore verified by `sha256sum -c`.
+
+### RULING NEEDED — is an absent stat key a measured zero, or an unknown?
+
+The above fixes the deletion without touching what `unknown` **means**. The deeper claim is that
+`unknown` should barely exist, and the evidence is strong enough that I will not decide it alone:
+
+- **0 explicit zeros in 3,743 stat values across 3,663 records.** The payload has no way to
+  write "this stat is zero" other than by omitting the key.
+- `statsUnknown` — 16 records — is the payload's designated "we do not know this item's stats".
+- The rest of the engine already reads absent as zero: `stats.ts` drops absent keys with
+  `if (base)`, `selectors/gear.ts` coerces with `finite()`.
+- **`bis.ts` itself reads an absent ITEM as a measured zero, one line above**:
+  `if (!item) return 0; // an empty slot genuinely contributes zero; that is not a guess`.
+
+So the same missing value is a measured zero in one direction and an unrecorded unknown in the
+other, inside one function. Against that: the contract's rule 4 says *a zero is a claim*, and
+that was a deliberate choice, so changing it is yours.
+
+Offered-set size under each reading, measured:
+
+| rule | candidates offered |
+|---|---|
+| A — as shipped before today | 843 |
+| B — offer whenever incomplete *(shipped now)* | 1,687 |
+| C — absent is a measured zero | 1,456 |
+
+**C is not the noisiest option; B is.** Under C, `unknown` collapses to the genuinely unrecorded
+and every offer is a real gain on a real axis. I have shipped B because it is the reading the
+current contract already mandates. **C is a contract change and it is yours to rule.**
+
+**Gate:** `tsc` clean, **1,036 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle `98005988`.

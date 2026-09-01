@@ -5,19 +5,19 @@
   "recordsAt": "records",
   "surveyedZonesAt": "surveyedZones",
   "bundle": {
-    "file": "eqls-50upgrades.79e8dbd6.js",
-    "sha256_8": "79e8dbd6",
-    "bytes": 15534,
+    "file": "eqls-50upgrades.98005988.js",
+    "sha256_8": "98005988",
+    "bytes": 17357,
     "global": "EQLS50Upgrades"
   },
   "catalogue": {
     "file": "bis-catalog.json",
-    "sha256_8": "74effc76",
+    "sha256_8": "aba6d917",
     "bytes": 1440016,
     "records": 3663,
     "withStats": 1713,
     "withObtainability": 3456
   },
-  "builtAt": "2026-09-01T02:10:28.806Z",
+  "builtAt": "2026-09-01T02:20:27.879Z",
   "caveat": "Stat values are overwhelmingly wiki-derived. Every record carries `sd`; only 5 of 3663 are tier-M."
 }
