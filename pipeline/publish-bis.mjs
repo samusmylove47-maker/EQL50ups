@@ -64,6 +64,19 @@ if (records.length !== meta.counts?.items) {
   process.exit(1);
 }
 
+/* ------------------------------------------------------- the contract's id */
+
+const CONTRACT_REL = 'web/src/engine/bis-contract.ts';
+const contractSource = readFileSync(join(ROOT, CONTRACT_REL));
+const versionMatch = /export const BIS_CONTRACT_VERSION\s*=\s*'([^']+)'/
+  .exec(contractSource.toString('utf8'));
+if (!versionMatch) {
+  console.error(`FATAL: no BIS_CONTRACT_VERSION found in ${CONTRACT_REL}. `
+    + 'Refusing to publish a manifest that cannot say which contract it implements.');
+  process.exit(1);
+}
+const contractVersion = versionMatch[1];
+
 /* -------------------------------------------------------------- the write */
 
 rmSync(OUT, { recursive: true, force: true });
@@ -89,6 +102,27 @@ const withSrc = records.filter((r) => r.src).length;
 
 const manifest = {
   contract: 'web/src/engine/bis-contract.ts',
+  /*
+   * WHICH contract, not just where it lives.
+   *
+   * `bis-contract.ts` says of its own version constant: "E asserts on this
+   * before reading a payload." It shipped for a day without reaching the
+   * manifest, so the assertion E was told to make was one E could not make —
+   * a consumer holding these three files could name the contract's PATH and
+   * nothing about which revision of it the bundle implements.
+   *
+   * The hash is here for the reason the gap-engine pin needed one: two
+   * different byte-sets shipped upstream as `1.2.0` in a single night, and a
+   * version string alone cannot separate them. A version says what changed on
+   * purpose; a hash says whether anything changed at all.
+   *
+   * Extracted by regex because this is an .mjs script and the constant lives
+   * in TypeScript. That is the weak link, and it is guarded by the strong one:
+   * `bis-contract.test.ts` imports the real constant and fails if this file
+   * and that one ever disagree.
+   */
+  contractVersion,
+  contractSha256_8: sha(contractSource).slice(0, 8),
   /*
    * WHERE THE RECORDS ARE. One line, and it exists because the artifact
    * without it produced the same fault in two independent consumers ten

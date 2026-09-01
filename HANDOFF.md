@@ -4136,3 +4136,48 @@ manifest's `sha256_8` cannot be used to answer "did the data actually change" �
 **Gate:** `tsc` clean, **1,015 tests in 66 files**, `verify.mjs` Tier 0 coverage 100.0%
 (it failed first, correctly — the committed self-audit no longer described the tree after I
 added source; rebuilt and committed), `catalogue-audit.mjs` passes, BIS bundle `0d08b268`.
+
+---
+
+## To the Director — second backlog finding VERIFIED and closed: the manifest could not be asserted on
+
+Working the audit backlog one at a time, as promised. This one reproduced by reading the
+shipped artifact, and it is the same defect class as the one above.
+
+`bis-contract.ts:305` says of its own version constant, in its own doc comment:
+
+> *"E asserts on this before reading a payload."*
+
+`manifest.json` did not carry it. A consumer holding the three published files could name the
+contract's **path** and nothing about **which revision** the bundle implements — so the
+assertion the contract instructs E to make was one E had no way to make.
+`grep -rn BIS_CONTRACT_VERSION` across the repo: **one definition, zero readers.** Another
+published field that existed only as a claim, like the two the `_nr` sweep found.
+
+**Fixed:** `publish-bis.mjs` now refuses to publish a manifest that cannot say which contract
+it implements, and records `contractVersion: "1.0.0"` and `contractSha256_8: "957fad1a"`.
+Both, for the reason this week taught: a version says what changed on purpose, a hash says
+whether anything changed at all — two byte-sets shipped upstream as `1.2.0` in one night.
+
+The publisher extracts the constant by regex because it is `.mjs` and the constant is
+TypeScript. **That weak link is guarded by a strong one:** `bis-contract.test.ts` imports the
+real constant and fails if the two disagree. Six tests, and they also check that the manifest
+describes the bundle and catalogue it actually shipped — recorded hashes nothing compares are
+decoration.
+
+### A/B, five mutations, restore verified by `sha256sum -c` (both files OK)
+
+| mutation | caught by |
+|---|---|
+| `contractVersion` drifts to `0.9.0` | 1 failed / 6 |
+| `contractSha256_8` is not these bytes | 1 failed / 6 |
+| bundle byte count off by one | 1 failed / 6 |
+| record count off by one | 1 failed / 6 |
+| **contract edited without republishing** | **2 failed / 6** — version *and* hash |
+
+The last row is the one worth having. It is the same discipline `verify.mjs` already enforces
+on the payload: CI does not run the pipeline, it ships what is committed, so a committed
+artifact that no longer describes its source is a defect and not a chore.
+
+**Gate:** `tsc` clean, **1,021 tests in 67 files**, `verify.mjs` Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes, app bundle built at `VITE_BASE=/EQL50ups/`.

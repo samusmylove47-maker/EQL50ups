@@ -1,5 +1,7 @@
 {
   "contract": "web/src/engine/bis-contract.ts",
+  "contractVersion": "1.0.0",
+  "contractSha256_8": "957fad1a",
   "recordsAt": "records",
   "surveyedZonesAt": "surveyedZones",
   "bundle": {
@@ -10,12 +12,12 @@
   },
   "catalogue": {
     "file": "bis-catalog.json",
-    "sha256_8": "da58e646",
+    "sha256_8": "e31d3968",
     "bytes": 1440016,
     "records": 3663,
     "withStats": 1713,
     "withObtainability": 3456
   },
-  "builtAt": "2026-09-01T01:01:10.785Z",
+  "builtAt": "2026-09-01T01:05:47.766Z",
   "caveat": "Stat values are overwhelmingly wiki-derived. Every record carries `sd`; only 5 of 3663 are tier-M."
 }
