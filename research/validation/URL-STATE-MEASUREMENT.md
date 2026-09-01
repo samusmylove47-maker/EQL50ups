@@ -62,8 +62,28 @@ both small and permanent. **The catalogue cannot currently supply them.**
   id range 1,069 .. 177,931  (18 bits)
 ```
 
-Counted twice from different files, and the codec does not read `id` at all today — it is name-keyed
-throughout.
+**Corroborated by a different KIND of instrument, not merely a second file.** My first two counts
+were the same instrument — `typeof id === "number"` over parsed JSON — run over two files, which
+`R259` names exactly: *"corroboration requires a different kind of instrument, not a different
+author."* Re-checked three more ways:
+
+```
+  my scan of items-index.json                          299
+  the app's own itemIdIndex(), built by shipped code   299
+  the pipeline's published meta.counts.withNumericId   299
+  the UPSTREAM name->id table, items.v1.json           257 rows
+```
+
+**And the pipeline already publishes the reason, which is the part that decides whether "populate
+the ids" is even a task:**
+
+> `meta.provenance.itemIds.note` — *"Only 299 of 3663 items have a numeric id; they come from a
+> live client export, not from any wiki source."*
+
+**Item IDs cannot be scraped.** They exist only for items a player has actually held and exported.
+The upstream table is 257 pairs; the ceiling on an ID-keyed wire format is therefore not a
+data-cleanup task but a function of how many inventory dumps the project collects. The codec does
+not read `id` at all today — it is name-keyed throughout.
 
 **If every item carried an ID**, 23 slots at 5 bits of position + 18 of id + 4 of tier, plus a
 version byte, packs to 79 bytes — **108 base64url characters, a 155-character URL**. That is a

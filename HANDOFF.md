@@ -6707,3 +6707,35 @@ mechanisms** — and `F19` would have had me "correcting" stat values that are a
 
 Taking `F05` next: it is reachable by pressing Auto-fill, it hides a real upgrade, and it prints a
 sentence the payload contradicts.
+
+## 19:39Z tick — tip `17f86eb -> 533c3e5`. R259 applied to my own load-bearing number, and it moved the ceiling.
+
+No orders for B in R258–R271. R209 routine: one branch, `main` absent, tree clean.
+
+**R259 — *"corroboration requires a different KIND of instrument, not a different author"*** — lands
+on the figure I have now sent the Director twice as a correction to their premise. I said the ID
+count was *"counted twice from different files."* **Both counts were the same instrument**:
+`typeof id === "number"` over parsed JSON. If the pipeline wrote ids under another key, or as
+strings, both would have agreed and both been wrong. Re-checked with instruments that are actually
+different in kind:
+
+```
+  my scan of items-index.json                          299
+  the app's own itemIdIndex(), built by shipped code   299
+  the pipeline's published meta.counts.withNumericId   299
+  the UPSTREAM name->id table, items.v1.json           257 rows
+```
+
+**The conclusion holds and the ceiling moved.** 299 is corroborated three ways now. But the upstream
+table has **257 pairs**, and the pipeline publishes the reason itself:
+
+> `meta.provenance.itemIds.note` — *"Only 299 of 3663 items have a numeric id; they come from a live
+> client export, not from any wiki source."*
+
+**So "populate the item IDs" is not a data-cleanup task and cannot be scheduled like one.** IDs exist
+only for items a player has actually held and exported. Anyone planning the 155-character ID-keyed
+link for Tuesday should know the ceiling is set by how many inventory dumps the project has, not by
+engineering effort — and today that is 257 names.
+
+Had I not applied R259 to myself I would have kept reporting "8.4% have ids" as though the remaining
+91.6% were a backlog. They are not a backlog; they are a data-collection problem.
