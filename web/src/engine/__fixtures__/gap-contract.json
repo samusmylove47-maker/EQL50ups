@@ -1,0 +1,70 @@
+{
+  "_fixture": "gap-contract",
+  "_what": "The `measured` block 50 Upgrades needs from EQLSGapEngine. HAND-WRITTEN by Session B, not generated from any engine output — it states what B needs, so E makes it pass rather than B describing what E already does.",
+  "_why": "Every one of these is a value the engine already computes and then discards. This is not a request for new modelling; it is a request to stop throwing away.",
+  "_never": "B does not ask for a rate, a ceiling, or any modelled absolute. Those are E's and they stay E's. B needs measured quantities it can divide by and attribute against.",
+
+  "_whyNotVersionedInTheFilename": "It was `gap-contract-1.2.0.json` until 1 Sep 2026, and it went stale the moment the pin moved — a name that must be renamed by hand is a name that will be wrong. The version it is asserted against now lives in `assertedEngineVersion` below, and `gapEngine.test.ts` fails if that field and `REQUIRED_ENGINE_VERSION` ever disagree. Renaming was a published-path change and is called out in the commit that made it.",
+
+  "_versionAssertion": "A consumer asserts EQLSGapEngine.version === assertedEngineVersion EXACTLY before reading any key below — a newer engine is refused as readily as an older one. On any other value it must emit its unknown band and ship anyway: B is never blocked on E and E is never blocked on B.",
+  "assertedEngineVersion": "1.3.0",
+
+  "_thisFixtureIsLoaded": "gapEngine.test.ts feeds the `measured` block below through the real gapAvailability(). Between 31 Aug and 1 Sep nothing loaded this file at all, so it was a document claiming to be a check. It is now a check.",
+
+  "measured": {
+    "engaged_seconds": 218,
+    "_engaged_seconds": "int, seconds. The denominator for anything expressed per second of combat.",
+
+    "melee_seconds": 222,
+    "_melee_seconds": "int, seconds, and DELIBERATELY DISTINCT from engaged_seconds. E's own report already notes 222s in melee against 218s engaged; a consumer that divides by the wrong one is wrong by ~2% silently. Both are needed precisely because they differ.",
+
+    "damage_dealt": 18844,
+    "_damage_dealt": "int, outgoing damage INSIDE THE ENGAGED WINDOW ONLY. Until 1.3.0 this fixture called it 'the denominator for share-of-output' and that was WRONG — spells_landed is counted over every line in the log, so the division crosses a population boundary. E measured it: 202% on the log the engine was built against, 324% on a short one, 34% and 0% on two others, so the error is not even a constant a reader could learn to subtract. The sound denominator is window.all_lines.damage. B's `shareOfOutput()` is the only supported way to take the ratio.",
+
+    "months_seen": 3,
+    "_months_seen": "int, distinct calendar months the log covers. Not a duration — a staleness signal. A recommendation built on a log from three months ago is a different claim from one built on last night, and the reader is entitled to know which.",
+
+    "window": {
+      "_added": "1.3.0, and the reason B re-pinned rather than staying put. Three populations were always in this block; until now it did not say so.",
+      "basis": "engaged",
+      "in_window": { "hits": 402, "damage": 18844 },
+      "all_lines": { "hits": 611, "damage": 27301 },
+      "_all_lines": "THE share denominator. Every line in the log, which is the population spells_landed and resists were always counted over.",
+      "keys_by_population": {
+        "in_window": ["damage_dealt", "dps", "engaged_seconds", "engagements"],
+        "all_lines": ["crit_rate", "hits_counted", "killing_blows_excluded_from_rates", "months_seen", "resists", "spells_landed", "stance_inferred"],
+        "melee_time": ["auto_attack_attempts", "lanes", "melee_seconds", "time_in_melee_s"],
+        "annotation": ["dps_window", "dps_window_note", "stance_evidence", "window"]
+      },
+      "_keys_by_population": "B asserts only the two filings it depends on — damage_dealt under in_window, spells_landed under all_lines — against the REAL bundle, in POPULATION_OF. If E re-files either, that test fails and a human re-reads this contract instead of quietly dividing one population by another."
+    },
+
+    "spells_landed": {
+      "_shape": "Keyed by the RAW log string, verbatim, because that is the only key a consumer can join back to a log line it is showing a player. The normalised name is a VALUE, never the key — normalisation is lossy and B must be able to see what was actually written.",
+      "Cannibalization I": {
+        "landings": 47,
+        "normalised_key": "Cannibalize",
+        "damage_total": 0,
+        "damage_median": 0,
+        "damage_max": 0,
+        "_worked_entry": "The rank suffix is stripped and the family name normalised: 'Cannibalization I' -> 'Cannibalize'. Both must survive: the raw string joins to the log, the normalised key joins to a catalogue. A zero damage_total here is a real measurement — Cannibalize costs health and deals none — and is not the same as 'not recorded'.",
+        "_zero_is_not_missing": "A spell that landed 47 times with 0 damage is measured. A spell absent from this object entirely is unmeasured. A consumer must not read the first as the second, and must not read a landings count of 0 as evidence a spell is unused — a count of zero is indistinguishable from a vocabulary miss and routes to the unknown band."
+      },
+      "Shadow Vortex": {
+        "landings": 12,
+        "normalised_key": "Shadow Vortex",
+        "damage_total": 4104,
+        "damage_median": 342,
+        "damage_max": 411,
+        "_why_median": "B takes magnitude from damage_median, never from a catalogue figure and never from damage_total/landings. The median is robust to a partial resist or a crit at the tail, and it sidesteps the ceiling formula entirely."
+      }
+    }
+  },
+
+  "_bounds_this_fixture_does_not_relax": [
+    "Never invent a number. A key absent from `measured` is unmeasured and must reach the reader as unknown, never as zero.",
+    "Never divide across a population. A share is only a share against the population its numerator came from.",
+    "Nothing here promises anything about loot. The LOOT lockout is not observable from a log.",
+    "B does not rank. This block feeds E's ranking; B supplies candidates and deltas."
+  ]
+}

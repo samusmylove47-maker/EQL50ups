@@ -10,17 +10,40 @@
  *
  * ## The version assertion, and why it is exact
  *
- * `EQLSGapEngine.version` must read exactly `1.2.0` before any measured key is
+ * `EQLSGapEngine.version` must read exactly `1.3.0` before any measured key is
  * touched. Not a range, not a minimum: a major bump changes the `Report` shape
  * and a minor one changed `months_seen` from `["Aug"]` to `2` in the space of
  * an hour. An engine that is merely *newer* is not automatically readable.
  *
+ * The pin was held at 1.2.0 through a re-vendor because **two different
+ * byte-sets shipped as 1.2.0 in one night** — 20,337 bytes (`d6e17bec`, what we
+ * had pinned) and a larger build that changed the parser. An exact-equality
+ * guard cannot tell those apart, which is the one failure a pin exists to
+ * prevent. The version moved to 1.3.0 at source before we re-pinned, so this is
+ * the first pin here whose version actually discriminates.
+ *
  * **What the vendored copy is pinned to** is recorded beside it in
  * `web/public/vendor/eqls-gap-engine.provenance.json` — the source commit, the
- * content hash, and a verification we ran ourselves rather than accepted:
- * one continuous fight spanning 31 Aug 23:59 into 1 Sep 00:00 segments as
- * **one** engagement of 78 seconds. The previous build split it in two, because
- * its day index ran backwards across a month boundary.
+ * content hash, the byte count, and an A/B we ran ourselves rather than
+ * accepted. Both bundles on identical input: on a zero-padded day the two are
+ * a no-op apart, and on a space-padded (`ctime`) day 1.2.0 dropped every line
+ * after midnight while 1.3.0 keeps them. Strictly better, inert on the form we
+ * have actually seen written.
+ *
+ * ## Three populations, and the denominator this module exists to get right
+ *
+ * 1.3.0 added `measured.window`, and it is the reason this re-pin was not
+ * optional. The numbers in `measured` are over **three different populations**:
+ * `damage_dealt` counts only hits inside the engaged window, while
+ * `spells_landed` counts every line in the log. Our own published contract
+ * named `damage_dealt` as "the denominator for share-of-output" — and E
+ * measured that division at 202% on the log the engine was built against, 324%
+ * on another, so it is not even a constant a reader could learn to subtract.
+ *
+ * The correct denominator for a spell's share is `window.all_lines.damage`.
+ * `window` is therefore type-checked here exactly as hard as `months_seen`: an
+ * engine that cannot say which population a number is over is an engine this
+ * app declines to divide by.
  *
  * ## What "unknown" means here, and why it is not silence
  *
@@ -32,13 +55,41 @@
  * everything B computes from the catalogue — ships unaffected.
  */
 
+/**
+ * Which population a `measured` number is over.
+ *
+ * The engine publishes this itself, as `measured.window.keys_by_population`,
+ * rather than leaving each consumer to guess. `POPULATION_OF` records the two
+ * filings this app depends on, so that if the engine ever re-files them the
+ * seam test fails and someone re-reads the contract instead of quietly
+ * dividing one population by another.
+ */
+export const POPULATION_OF = {
+  damage_dealt: 'in_window',
+  spells_landed: 'all_lines',
+} as const;
+
+/** The window block. `all_lines.damage` is the only sound share denominator. */
+export interface GapWindow {
+  basis: string;
+  in_window: { hits: number; damage: number };
+  /** Total outgoing damage over EVERY line — what `spells_landed` totals are over. */
+  all_lines: { hits: number; damage: number };
+  keys_by_population: Record<string, readonly string[]>;
+}
+
 /** The subset of E's `measured` block this app reads. See the contract fixture. */
 export interface GapMeasured {
   engaged_seconds: number;
   melee_seconds: number;
+  /**
+   * Outgoing damage **inside the engaged window only**. Not the denominator for
+   * a spell's share of output — see `shareOfOutput`, and the module header.
+   */
   damage_dealt: number;
   /** A COUNT of distinct months, never the months themselves. A staleness signal. */
   months_seen: number;
+  window: GapWindow;
   spells_landed: Record<string, {
     landings: number;
     normalised_key: string;
@@ -48,7 +99,7 @@ export interface GapMeasured {
   }>;
 }
 
-export const REQUIRED_ENGINE_VERSION = '1.2.0';
+export const REQUIRED_ENGINE_VERSION = '1.3.0';
 
 export type GapAvailability =
   | { available: true; version: string; measured: GapMeasured }
@@ -115,8 +166,38 @@ export function gapAvailability(
     || typeof measured.spells_landed !== 'object' || measured.spells_landed === null) {
     return { available: false, version, why: UNAVAILABLE_TEXT };
   }
+  /*
+   * `window` is checked as hard as `months_seen`, and for the same reason: the
+   * failure it prevents is silent. Without it there is no sound denominator for
+   * a share, and the obvious wrong one — `damage_dealt` — returns a plausible
+   * percentage rather than an error. 202% on one log, 324% on another, 34% on a
+   * third: wrong, and not wrong by a constant. An engine that will not say
+   * which population a number is over is one this app declines to divide by.
+   */
+  const w = measured.window as Partial<GapWindow> | undefined;
+  if (!w || typeof w.all_lines !== 'object' || w.all_lines === null
+    || typeof w.all_lines.damage !== 'number'
+    || typeof w.in_window !== 'object' || w.in_window === null
+    || typeof w.in_window.damage !== 'number') {
+    return { available: false, version, why: UNAVAILABLE_TEXT };
+  }
 
   return { available: true, version, measured: measured as GapMeasured };
+}
+
+/**
+ * A spell's share of this character's output, or `null` when it cannot be one.
+ *
+ * Exists so that the right denominator is the reachable one. The published
+ * contract named `damage_dealt`, which is scoped to the engaged window while
+ * `spells_landed` is scoped to every line; dividing across that boundary gave
+ * 202% on the engine's own corpus. Returns `null` rather than `Infinity` or a
+ * misleading zero when there is nothing measured to divide by.
+ */
+export function shareOfOutput(measured: GapMeasured, damageTotal: number): number | null {
+  const denominator = measured.window.all_lines.damage;
+  if (!(denominator > 0)) return null;
+  return damageTotal / denominator;
 }
 
 /**

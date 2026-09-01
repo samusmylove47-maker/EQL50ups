@@ -33,9 +33,49 @@
   // (ad4f2a70, the Sky Ledger Windows release, 100,482,932 bytes, and the site's
   // published download link is pinned to it). This field is EQLSGapEngine's, per
   // BUNDLE-CONTRACT section 2. Say "EQLSGapEngine 1.1.0", never "sky-ledger 1.1.0".
-  var VERSION = "1.2.0";
+  // 1.2.0 -> 1.3.0, 1 Sep 2026, RULED by the Director and not taken unilaterally.
+  // TWO byte-sets shipped as 1.2.0 within one night -- d6e17bec (20,337 b, B's pin)
+  // and 32a50df4 (25,443 b) -- and the second changed the PARSER: a self-hit guard on
+  // the melee branch and a day-of-month class that accepts a space-padded day. B's
+  // guard asserts version === "1.2.0" exactly and refuses a newer engine as readily
+  // as an older one, so B's pin could not tell the fixed engine from the broken one.
+  // That is the failure the pin exists to prevent, and it was mine to fix at source.
+  // MINOR, not MAJOR: no key was removed, renamed or retyped, and `measured.window`
+  // and `coverage.self_damage_excluded` are additive. Values a consumer reads CAN
+  // change for the same log -- that is the point of the fix -- but semver governs the
+  // shape of the contract, not bug-for-bug stability of the numbers.
+  // B'S EXACT-EQUALITY GUARD MEANS B MUST RE-PIN TO READ THIS. That is B's design and
+  // B's call; it is named in HANDOFF.md's STATUS block as REPIN NEEDED so the
+  // divergence cannot sit undeclared. check_contract.py fails if it ever does.
+  var VERSION = "1.3.0";
 
-  var TS = /^\[\w{3} \w{3} (\d{2}) (\d{2}):(\d{2}):(\d{2}) \d{4}\] (.*)$/;
+  // Every numeric key in `measured` is over ONE of three populations, and until
+  // 1 Sep 2026 the report did not say which. Measured on the log this engine was
+  // built against: sum(spells_landed[*].damage_total) / damage_dealt = 202%, and
+  // B's contract names that exact division -- damage_dealt is "the denominator for
+  // share-of-output". 324% on the short log, 34% and 0% on two outside logs, so the
+  // error is not a constant a reader could learn to subtract. No value moves: the
+  // report states its populations and publishes the totals. Rescoping was the wrong
+  // fix -- scoping spells_landed to the window would DELETE a spell that landed only
+  // outside it, and B's contract says an absent spell is unmeasured, not unused.
+  var POPULATIONS = {
+    in_window: ["damage_dealt", "dps", "engaged_seconds", "engagements"],
+    all_lines: ["crit_rate", "hits_counted", "killing_blows_excluded_from_rates",
+                "months_seen", "resists", "spells_landed", "stance_inferred"],
+    melee_time: ["auto_attack_attempts", "lanes", "melee_seconds", "time_in_melee_s"],
+    annotation: ["dps_window", "dps_window_note", "stance_evidence", "window"]
+  };
+
+  // DAY OF MONTH: [ \d]\d, NOT \d{2}. Widened 1 Sep 2026, evidence INCOMPLETE and
+  // said so rather than left as a clean-looking pattern. EQ timestamps have ctime()'s
+  // layout and ctime SPACE-PADS a single-digit day -- `Sun Sep  1 00:00:00 2026`.
+  // Against that, \d{2} matches nothing and BOTH ENGINES DROP EVERY LINE ON DAYS 1-9
+  // OF ANY MONTH. Measured: no log in this corpus has a single-digit day (4 logs,
+  // 189,460 lines), so a zero here proves the shape has not occurred, not that the
+  // parser handles it; and the widening is INERT on this corpus, byte-identical
+  // report. NOT measured: what EQ Legends actually writes. One log from a day 1-9
+  // settles it. The class accepts both forms, so it is right either way.
+  var TS = /^\[\w{3} \w{3} ([ \d]\d) (\d{2}):(\d{2}):(\d{2}) \d{4}\] (.*)$/;
   var SPELL = /^You hit (.+?) for (\d+) points of (\w+) damage by (.+?)\.(\s*\(Critical\))?$/;
   var MELEE = /^You (slash|pierce|hit|crush|bash|kick|punch|backstab|strike)(?:es)? (.+?) for (\d+) points of damage\.(\s*\(Critical\))?$/;
   var SLAIN = /^You have slain (.+?)!$/;
@@ -107,14 +147,32 @@
     return { ev: ev, kills: kills, months: Object.keys(months).sort() };
   }
 
+  // SELF-DAMAGE. D relayed 1 Sep 2026 that a self-hit with NO `by <spell>` clause
+  // falls through to the melee shape and is emitted as ordinary OUTGOING damage, and
+  // warned that dropping rows where actor equals target SILENTLY DROPS REAL DAMAGE --
+  // a log cannot tell one entity hitting itself from two entities sharing a name.
+  // Correct, and it does not apply here: every regex is anchored `^You`, so the string
+  // compared is the REFLEXIVE PRONOUN, not a mob name. Two entities cannot both be
+  // called `yourself`; `Heart harpie` can be two, and is a charm pet at the top of the
+  // damage board. Measured over 4 logs, 189,460 lines: SPELL branch 202 lines / 92,822
+  // damage (already excluded), MELEE branch 0 lines. The hole was real in the code with
+  // no instances in the corpus, and 0 lines matched both patterns -- so match ORDER was
+  // never protecting anything either. check_selfhits.py supplies the positive control.
+  var SELF_TARGETS = { yourself: 1 };
+
   function hitsOf(ev, kills) {
-    var out = [], resists = {}, i, m, b, t;
+    // An exclusion of 92,822 points should not be silent: counted and surfaced in
+    // coverage.self_damage_excluded rather than dropped where no reader can see it.
+    var out = [], resists = {}, i, m, b, t,
+        selfhit = { spell: 0, spell_damage: 0, melee: 0, melee_damage: 0 };
     for (i = 0; i < ev.length; i++) {
       t = ev[i][0]; b = ev[i][1];
       m = SPELL.exec(b);
       if (m) {
         // "You hit yourself ... by Cannibalize" is an HP-for-mana trade, not output.
-        if (m[1].toLowerCase() !== "yourself") {
+        if (SELF_TARGETS[m[1].toLowerCase()]) {
+          selfhit.spell++; selfhit.spell_damage += parseInt(m[2], 10);
+        } else {
           out.push({ t: t, tgt: m[1], amt: parseInt(m[2], 10), kind: "spell",
                      verb: m[4], crit: !!m[5], kill: !!kills[t + " " + m[1]] });
         }
@@ -122,6 +180,11 @@
       }
       m = MELEE.exec(b);
       if (m) {
+        // THE HOLE D FOUND: this branch had no self-target guard.
+        if (SELF_TARGETS[m[2].toLowerCase()]) {
+          selfhit.melee++; selfhit.melee_damage += parseInt(m[3], 10);
+          continue;
+        }
         out.push({ t: t, tgt: m[2], amt: parseInt(m[3], 10), kind: "melee",
                    verb: m[1], crit: !!m[4], kill: !!kills[t + " " + m[2]] });
         continue;
@@ -129,7 +192,7 @@
       m = RESIST.exec(b);
       if (m) resists[m[2]] = (resists[m[2]] || 0) + 1;
     }
-    return { hits: out, resists: resists };
+    return { hits: out, resists: resists, selfhit: selfhit };
   }
 
   function lanesOf(ev, gap) {
@@ -217,18 +280,30 @@
     // "refused in all cases" in its own detail and therefore was not.
     var report = { context: context, measured: {}, deltas: [],
                    refusals: alwaysRefused(), coverage: {} };
+    report.coverage.self_damage_excluded = {
+      spell_lines: hr.selfhit.spell, spell_damage: hr.selfhit.spell_damage,
+      melee_lines: hr.selfhit.melee, melee_damage: hr.selfhit.melee_damage,
+      note: "A first-person line whose target is the reflexive pronoun is an " +
+        "HP-for-mana trade or self-inflicted damage, never output. Reported " +
+        "rather than dropped silently: 92,822 points on the corpus log."
+    };
     if (!hits.length) {
-      report.coverage = { note: "no outgoing damage lines matched; nothing measured" };
+      // ASSIGN THE NOTE, do not replace the block: replacing it dropped
+      // self_damage_excluded on the early-return path, so a log that is ONLY
+      // self-damage reported nothing excluded. Same shape as the refusals bug
+      // of 31 Aug -- the engine going silent exactly when it knew least.
+      report.coverage.note = "no outgoing damage lines matched; nothing measured";
       return report;
     }
 
     var rr = runs(hits.map(function (h) { return h.t; }), GAP)
              .filter(function (r) { return r[1] - r[0] >= MIN_ENGAGEMENT; });
-    var engaged = 0, dealt = 0;
+    var engaged = 0, dealt = 0, inWindow = 0, allDamage = 0;
     for (i = 0; i < rr.length; i++) engaged += rr[i][1] - rr[i][0];
     for (i = 0; i < hits.length; i++) {
+      allDamage += hits[i].amt;
       for (j = 0; j < rr.length; j++) {
-        if (hits[i].t >= rr[j][0] && hits[i].t <= rr[j][1]) { dealt += hits[i].amt; break; }
+        if (hits[i].t >= rr[j][0] && hits[i].t <= rr[j][1]) { dealt += hits[i].amt; inWindow++; break; }
       }
     }
     var nk = hits.filter(function (h) { return !h.kill; });
@@ -309,6 +384,21 @@
         per_melee_second: L.meleeSeconds ? round(L.laneT[v].length / L.meleeSeconds, 4) : null
       };
     });
+
+    // THE POPULATIONS, stated. `all_lines` is the denominator spells_landed and
+    // resists were always missing; `in_window` is the one dps and damage_dealt
+    // already used without saying so.
+    m.window = {
+      basis: "engaged",
+      in_window: { hits: inWindow, damage: dealt },
+      all_lines: { hits: hits.length, damage: allDamage },
+      melee_time: { seconds: L.meleeSeconds, auto_attack_attempts: L.autoAttempts },
+      keys_by_population: POPULATIONS,
+      note: "Three populations in one block. A share is only a share against the " +
+        "population its numerator came from: sum(spells_landed[*].damage_total) " +
+        "divides by window.all_lines.damage, NOT by damage_dealt. Dividing it by " +
+        "damage_dealt on the log this engine was built against gives 202%."
+    };
 
     if (st.name === "Balanced" && melee.length) {
       var sum = 0;

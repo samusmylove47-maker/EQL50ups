@@ -4043,3 +4043,96 @@ claims yesterday.**
 
 **Gate:** `tsc` clean, **1,005 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
 `catalogue-audit.mjs` passes, bundle `0d08b268`.
+
+---
+
+## To the Director — re-vendored at 1.3.0, and it was not a version bump
+
+You lifted the R89 hold once the source moved off 1.2.0. Re-pinned. But reading the bytes
+before trusting them turned up something bigger than the pin: **1.3.0 fixes a defect in *my*
+published contract, not in E's parser.**
+
+### The pin, derived from the bytes rather than relayed
+
+```
+$ sha256sum web/public/vendor/eqls-gap-engine.js | cut -c1-8   -> 693ea8ad
+$ wc -c     web/public/vendor/eqls-gap-engine.js               -> 26610
+$ grep -o 'var VERSION = "[^"]*"' ...                          -> 1.3.0
+```
+
+`sky-ledger@40c71d56438239436f5f3a900a72ed30f5b0d89d`. The upstream filename is
+content-addressed and addresses these bytes. Previous pin, recovered from my own git history
+rather than from E's account of it: `d6e17bec`, 20,337 bytes, declaring `1.2.0` — which
+matches E's note that two byte-sets shipped as 1.2.0 in one night. **This is the first pin
+here whose version can discriminate.**
+
+### THE FINDING: my contract named a denominator that is wrong by 202%
+
+`measured.damage_dealt` is scoped to the **engaged window**. `measured.spells_landed` is
+counted over **every line in the log**. My fixture called `damage_dealt` *"the denominator for
+share-of-output"* — which divides across a population boundary. E measured that exact
+division: **202%** on the log the engine was built against, 324% / 34% / 0% on three others.
+Not a constant a reader could learn to subtract.
+
+1.3.0's `measured.window` is the fix, and it is why the re-pin was not optional. What I did:
+
+- `GapWindow` typed, and `window.all_lines.damage` documented as the only sound denominator.
+- **`window` is now type-checked at the seam exactly as hard as `months_seen`** — because the
+  failure it prevents is *silent*. The wrong denominator does not throw; it returns a
+  plausible percentage. An engine that will not say which population a number is over is one
+  this app declines to divide by, and the lane goes to the unknown band instead.
+- `shareOfOutput()` exists so the right denominator is the *reachable* one. A comment saying
+  "use all_lines.damage" is satisfiable by remembering, which by R75 is not satisfied.
+- `POPULATION_OF` records the two filings I depend on, asserted **against the real bundle**
+  via the engine's own `keys_by_population`. If E re-files either, that test fails.
+
+### The contract fixture was a document pretending to be a check
+
+`grep -rn "gap-contract" --include=*.ts --include=*.tsx --include=*.mjs` returned **nothing**.
+Nothing loaded it. It stated the version in its *filename*, so the moment the pin moved the
+name was wrong — R75 again: a name you must remember to rename is a name that will be stale.
+
+`git mv gap-contract-1.2.0.json gap-contract.json`. **Published-path change, flagged for E.**
+The version now lives in `assertedEngineVersion`, a test compares it to
+`REQUIRED_ENGINE_VERSION`, and the fixture's `measured` block is fed through the real
+`gapAvailability()`. It is a check now.
+
+### A/B — five mutations, whole suite, restore verified by SHA-256
+
+| mutation | caught by |
+|---|---|
+| pin reverted to `'1.2.0'` | 5 failed / 24 |
+| `window` runtime check deleted | 1 failed / 24 |
+| `shareOfOutput` divides by `damage_dealt` (the published defect) | 4 failed / 24 |
+| provenance records a hash that is not these bytes | 1 failed / 24 |
+| provenance records the wrong byte count | 1 failed / 24 |
+
+`sha256sum -c` on both mutated files after restore: **OK**.
+
+### VERIFIED — the "possible dead degradation path" from the audit backlog
+
+I said I would reproduce each finding before reporting it. This one reproduced, from the
+built bundle rather than the shell:
+
+```
+$ grep -c "gapAvailability\|EQLSGapEngine" dist/assets/index-Cr2_lKib.js   -> 0
+```
+
+**The seam is not wired to anything.** No `<script>` tag in `index.html`, no import in `src`,
+nothing calls `gapAvailability`. The bundle ships at `dist/vendor/eqls-gap-engine.js` and
+nothing loads it. This is not a regression — there is no spell lane yet, and I told you in
+ANSWER 1 that we hold no spell data — so the seam is deliberately ahead of its consumer. But
+the re-pin does **not** mean the app now reads 1.3.0. It means the app is *ready* to, and I
+am not going to let the commit imply otherwise. That is one of the ~18 off the backlog; I am
+not going to print "17" as though I had recounted them.
+
+### One smaller thing
+
+`bis-catalog.json` came back byte-identical in length with a different hash. Cause, checked
+key by key: only `builtAt` moved, a fixed-width ISO string. Records identical. So the
+manifest's `sha256_8` cannot be used to answer "did the data actually change" — it answers
+"was it rebuilt". Noting it rather than fixing it in a re-vendor commit.
+
+**Gate:** `tsc` clean, **1,015 tests in 66 files**, `verify.mjs` Tier 0 coverage 100.0%
+(it failed first, correctly — the committed self-audit no longer described the tree after I
+added source; rebuilt and committed), `catalogue-audit.mjs` passes, BIS bundle `0d08b268`.

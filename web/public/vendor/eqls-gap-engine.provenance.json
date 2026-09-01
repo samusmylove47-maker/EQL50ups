@@ -1,23 +1,33 @@
 {
   "file": "eqls-gap-engine.js",
   "global": "EQLSGapEngine",
-  "version": "1.2.0",
-  "sha256_8": "d6e17bec",
-  "bytes": 20337,
+  "version": "1.3.0",
+  "sha256_8": "693ea8ad",
+  "bytes": 26610,
   "source": {
     "repo": "samusmylove47-maker/sky-ledger",
-    "path": "bundle/eqls-gap-engine.js",
-    "commit": "6c9fc313358635cdba7676e839eaef5d0df19ba5",
-    "url": "https://raw.githubusercontent.com/samusmylove47-maker/sky-ledger/6c9fc313358635cdba7676e839eaef5d0df19ba5/bundle/eqls-gap-engine.js"
+    "path": "bundle/eqls-gap-engine.693ea8ad.js",
+    "commit": "40c71d56438239436f5f3a900a72ed30f5b0d89d",
+    "url": "https://raw.githubusercontent.com/samusmylove47-maker/sky-ledger/40c71d56438239436f5f3a900a72ed30f5b0d89d/bundle/eqls-gap-engine.693ea8ad.js"
   },
-  "vendoredAt": "2026-08-31",
-  "why_pinned_to_a_commit": "A branch name moves under you and makes the artifact unreproducible. The commit sha fixes exactly these bytes.",
+  "vendoredAt": "2026-09-01",
+  "why_pinned_to_a_commit": "A branch name moves under you. The commit sha fixes exactly these bytes.",
+  "why_the_version_moved": "1.2.0 -> 1.3.0. The PREVIOUS vendor (d6e17bec) also declared 1.2.0 while differing in behaviour, so an exact-version guard could not tell them apart. The Director ruled that a bundle whose behaviour changed needs a version that changed, and held this re-vendor until the source bumped it. This pin is the first one whose version actually moved.",
   "verified_here": {
-    "note": "Checked with our own instrument rather than accepting the report. A synthetic log of ONE continuous fight spanning 31 Aug 23:59:40 -> 1 Sep 00:00:58 was fed to this bundle.",
-    "engagements": 1,
-    "engaged_seconds": 78,
-    "meaning": "1 engagement is the fixed behaviour. The month-boundary defect split a continuous fight in two because the day index ran backwards across a month end.",
-    "months_seen_type": "number",
-    "months_seen_note": "Emitted as an int, not a list. That was caught by our hand-written contract fixture: the spec said count and the first build shipped the thing being counted."
+    "note": "Checked with our own instrument, not by relaying the source figures. Filename-vs-content hash compared, then both bundles A/B run on IDENTICAL input.",
+    "filename_matches_content_hash": true,
+    "ab_identical_input": {
+      "zero_padded_day": {
+        "note": "the form C measured EQ actually writes, over 1,270,007 single-digit-day lines",
+        "1.2.0": "1 engagement, 78s, 20 hits",
+        "1.3.0": "1 engagement, 78s, 20 hits — a no-op on real data"
+      },
+      "space_padded_day": {
+        "note": "the ctime() form; not established that EQ writes it",
+        "1.2.0": "0 engagements, 5 hits — the 15 lines after midnight were dropped",
+        "1.3.0": "1 engagement, 78s, 20 hits"
+      }
+    },
+    "conclusion": "Strictly better and inert on the real form. Adopted."
   }
 }
