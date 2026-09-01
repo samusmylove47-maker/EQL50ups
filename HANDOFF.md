@@ -5749,3 +5749,71 @@ above is trustworthy.
 
 **Gate:** `tsc` clean, **1,057 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes, bundle builds at `VITE_BASE=/EQL50ups/`.
+
+---
+
+## Overnight, second pass — three false claims on reader-facing pages, all cited to records that contradict them
+
+Same constraint: verification, and statements provably false on screen. Nothing touching ranking.
+
+### 1. The front page called this project's best result an error
+
+The `+0 to +10` card said the client windows *"corrected two of them — **including the synthetic
+SV Void** an upgraded item grants."*
+
+`TIER0-VALIDATION.md §1` says the opposite about that rule:
+
+```
+| SV Void (synthetic, `= full`, ≥2 attrs) | 10 | 10 | MATCH |
+```
+
+and in prose, *"appears exactly as predicted. That is strong evidence the whole model is correct,
+not coincidence."* `UI-REFERENCE.md:78` calls the same window *"confirming the synthetic SV Void"*.
+
+**The count of two was right; the example was exactly backwards.** The record names the two rules
+the client actually overturned — the weight rounding, and the percentage branch, which truncates
+(`Cloak of Flames SV Fire 15 → 25`, not 26). The SV Void is the one rule recovered from a
+calculator's source, documented nowhere, predicted, and then matched exactly — and the front page
+described it as a mistake being fixed. Corrected, and the sentence now says what it was.
+
+### 2. "Nine of nine predictions exact" — the record holds seven, the page listed six
+
+Two sites, both citing `TIER0-VALIDATION.md §1` by name. That table has **seven rows, all MATCH**.
+The enumeration printed beside the claim named **six** things. **Three different numbers for one
+result, on the front page, as the headline evidence.**
+
+Now `seven of seven`, with the damage bonus added to the enumeration so the list matches the count.
+
+**And a passing test was pinning the wrong one.** `sources.test.tsx`'s
+`it('states the Tier M receipt beside the hero item window')` asserted
+`/nine of nine predictions exact/` — inside a describe block titled *"the landing page cites the
+evidence it actually has."* It now derives the count from the record's table, as does the new
+guard. A test that pins a figure passes forever after the figure goes wrong.
+
+### 3. "Two out of two" was a denominator that stopped moving
+
+Sources §04 said *"Both of the items a client window has been read for contradict the catalog's
+flag line… it is two out of two."* Section 03 of the same file derives
+`count(clientVerified.length)` and correctly says **five**. The payload: **5 client-verified, 2
+contradicting.**
+
+One page, one set, two different sample sizes — and the argument rested entirely on the stale
+one. *Two of two* reads as every sample; two of five does not. Both figures are now derived.
+
+### The instrument failures this time
+
+- **My first Landing guard passed on the restored defect.** It sliced ±400 characters around
+  `indexOf('SV Void')`, and the first occurrence in that file is a data constant hundreds of lines
+  above the card — the window never contained the sentence under test. **A window is a way to
+  miss**, and there was no reason to narrow a search that was already cheap. Now whole-file.
+- **My first Sources guard failed on its own comment.** The comment quotes the prose it replaced,
+  which is what makes it worth having; the check searched raw source. Fixed by searching *rendered*
+  source — comments stripped — so a good comment cannot fail the test for being accurate. That is
+  the second time tonight a check of mine did this.
+
+**A/B, each anchor asserted, restores hashed:** SV Void claim restored → 1 failed / 1,060; the
+nine-of-nine count restored → 1 failed / 1,060; the hardcoded denominator restored → 1 failed /
+1,060.
+
+**Gate:** `tsc` clean, **1,060 tests in 69 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle builds at `VITE_BASE=/EQL50ups/`.

@@ -553,6 +553,12 @@ function Standing({ meta }: { meta: SourceMeta | null }) {
 
 function Reliability({ meta }: { meta: SourceMeta | null }) {
   const rel = meta?.dataReliability;
+  /*
+   * The same list section 03 renders, read from the same place, so the two
+   * sections cannot state different sample sizes for one set. They did: this
+   * one had "two out of two" typed into prose while section 03 derived five.
+   */
+  const clientVerifiedCount = asList(meta?.sourceStanding?.stats?.clientVerified).length;
   if (!rel) {
     return (
       <Section
@@ -676,10 +682,23 @@ function Reliability({ meta }: { meta: SourceMeta | null }) {
                 </div>
               ))}
             </div>
+            {/*
+              * Both figures DERIVED, and that is the point of the change.
+              *
+              * This read "Both of the items a client window has been read for
+              * contradict … it is two out of two". The denominator was typed
+              * when two items were client-verified, and three more were added
+              * without it moving — while section 03, ten screens up, renders
+              * `count(clientVerified.length)` and correctly says five. The page
+              * stated two different sample sizes for the same set, and the
+              * rhetorical weight sat entirely on the one that had gone stale:
+              * two of two reads as every sample, two of five does not.
+              */}
             <p className="src-note">
-              Both of the items a client window has been read for contradict the catalog&apos;s flag
-              line. Two samples is not a rate — but it is two out of two, and one of them is the
-              weapon on this app&apos;s front page.
+              {count(asList(flags?.clientVerifiedContradictions).length)} of the{' '}
+              {count(clientVerifiedCount)} items a client window has been read for contradict the
+              catalog&apos;s flag line. That is not a rate — the sample is far too small — but one
+              of them is the weapon on this app&apos;s front page.
             </p>
           </>
         ) : null}

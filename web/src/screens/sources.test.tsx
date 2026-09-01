@@ -340,10 +340,31 @@ describe('the landing page cites the evidence it actually has', () => {
     expect(text).not.toMatch(/wiki-verified/i);
   });
 
+  /**
+   * **This assertion was changed on 2026-09-01, and it was passing.**
+   *
+   * It pinned `/nine of nine predictions exact/`. `TIER0-VALIDATION.md §1` — the
+   * record the sentence cites by name — holds SEVEN rows, all MATCH, and the
+   * page's own enumeration beside the claim named six things. Three different
+   * numbers for one result, and a test whose title is "cites the evidence it
+   * actually has" was holding the one the evidence does not support.
+   *
+   * It now DERIVES the count from the record, so the page, the record and this
+   * test cannot drift apart. A test that pins a figure will pass forever after
+   * the figure goes wrong; a test that derives it cannot.
+   */
   it('states the Tier M receipt beside the hero item window', async () => {
     useCatalog.getState().loadFixture();
     const text = await render(<Landing />);
-    expect(text).toMatch(/nine of nine predictions exact/i);
+
+    const record = readFileSync('../research/validation/TIER0-VALIDATION.md', 'utf8');
+    const table = record.slice(record.indexOf('### Earthshaker'));
+    const rows = table.slice(0, table.indexOf('\n\n')).split('\n')
+      .filter((l) => l.startsWith('|') && !l.startsWith('| Field') && !l.startsWith('|---'));
+    const matches = rows.filter((l) => l.includes('MATCH')).length;
+    expect(matches, 'the record must still hold a full table of matches').toBe(rows.length);
+    const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+    expect(text).toMatch(new RegExp(`${WORDS[matches]} of ${WORDS[matches]} predictions exact`, 'i'));
     expect(text).toMatch(/read\s+off a live client/i);
   });
 

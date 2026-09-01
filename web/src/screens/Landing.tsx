@@ -80,7 +80,8 @@ const SAMPLE: Item = {
   vf: ['DLY', 'DMG', 'STA', 'STR'],
   sdc:
     'TIER0-VALIDATION.md §1: observed in a live client window at +10 — Base Dmg 74, Delay 70, ' +
-    'Ratio 1.057, Strength 16, Stamina 16, SV Void 10. Nine of nine predictions exact.',
+    'Ratio 1.057, Dmg Bon 50, Strength 16, Stamina 16, SV Void 10. Seven of seven predictions ' +
+    'exact.',
 };
 
 export function Landing() {
@@ -188,9 +189,9 @@ export function Landing() {
             <p className="hint showcase-note">
               Shown at <strong>+10</strong>, and these are not estimates. This exact window was read
               off a live client and the planner reproduces it:{' '}
-              <strong>nine of nine predictions exact</strong> — 74 damage, delay unchanged at 70,
-              ratio 1.057, Strength and Stamina 16, and the synthetic SV Void at 10, a rule that
-              appears in no documentation. Its flag line is the one part a client contradicts, which
+              <strong>seven of seven predictions exact</strong> — 74 damage, delay unchanged at
+              70, ratio 1.057, damage bonus 50, Strength and Stamina 16, and the synthetic SV Void
+              at 10, a rule that appears in no documentation. Its flag line is the one part a client contradicts, which
               is what <a href={href.sources}>Sources</a> is for.
             </p>
           </div>
@@ -253,8 +254,10 @@ export function Landing() {
             <p>
               Every equipped item carries an inline upgrade control. The scaling rules were
               re-derived from the wiki's own item-level slider and then checked against live client
-              windows, which corrected two of them — including the synthetic SV Void an upgraded
-              item grants.
+              windows, which corrected two of them — the weight rounding, and the percentage
+              branch, which truncates rather than rounds. The synthetic SV Void an upgraded item
+              grants went the other way: it exists in no documentation, was recovered from the
+              calculator's source alone, and the client showed it exactly as predicted.
             </p>
           </div>
           <div className="feature">
