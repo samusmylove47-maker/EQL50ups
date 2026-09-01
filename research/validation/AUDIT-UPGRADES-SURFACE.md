@@ -88,6 +88,7 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F27` — a good link, opened with no catalog, was blamed on the sender | **closed** | guarded in `shared-set-offline.test.tsx` + `codec.test.ts` |
 | `F08` — an unsearched ranking claimed you were already wearing the best | **closed** | guarded in `emptyRanking.test.ts` + `upgrades-screen.test.tsx` |
 | `F28` — "Usable by this loadout" over a race gate that never ran | **closed** | guarded in `race-unjudged.test.ts` + `itemwindow.test.tsx` |
+| `F31` — the level gate had nothing to read until the shards landed | **closed** | guarded in `verify.mjs` + `index-gate-parity.test.ts` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched
@@ -1863,6 +1864,62 @@ SHARD verdict: This loadout cannot equip it
 ```
 
 **Player impact.** For those three items the app gives two different answers to the same question depending on which shards happen to have loaded: a set opened from a share link shows "Usable by this loadout" and no Level row, and the verdict flips to "This loadout cannot equip it — Level 15 — your WAR is 10" once the reader opens that slot's picker. The Level requirement is also simply invisible on the item browser's dialog for as long as `ensureAll`'s fetches are in flight.
+
+
+**CLOSED.** Fixed exactly where the verifier said, and guarded as a rule rather than as a field.
+
+*The fix.* `rl` joins `INDEX_FIELDS` in `pipeline/build.mjs`. It is the third leg of `canUse`
+(`canUseClass && canUseRace && meetsLevel`); `cl` and `ra` had ridden the index for years for
+precisely the reason stated in the comment above that list — "the picker ranks straight off the
+index before any shard has loaded" — and this was the one gate field the rule had not been applied
+to. Payload regenerated and committed. Measured cost: `items-index.json` **693,110 -> 693,134
+bytes, 24 bytes**, on three of 3,663 records.
+
+*What I checked before fixing it, and would not have known otherwise.* The upstream
+`nathanbates-items.json` carries **five** records with `required_level`, not three — so the first
+question was whether the pipeline was dropping two. It is not: `Shroud of the Sky` and `Spiroc Beak
+Earcuff` are both in `pipeline/quarantine.json` with `why: "no era in any source"`, which is the
+documented era policy doing its job. Three is the correct shipped count.
+
+*What this does NOT do.* `character.ts` already records, at length, that the level gate's
+qualifying-class rule is a planner inference rather than a Tier 0 observation, and that it is not
+even established that Legends gates *equipping* by level — and it notes that "a patch that populates
+`rl` turns it live on every list at once". This change does not settle any of that. It makes the
+answer the app gives before the shards land equal to the answer it gives after. The dormant design
+question is untouched and stays open.
+
+*Two guards, of deliberately different kinds.* A shape assertion and a behaviour assertion see
+different failures, and neither subsumes the other.
+
+1. `pipeline/verify.mjs` — every field the eligibility gate reads must ride the index **and agree
+   with the shard**. Written over a `GATE_FIELDS = ['cl','ra','rl']` list rather than over `rl`, so
+   the next field the gate learns to read is covered without anyone remembering this section. The
+   agreement half matters as much as the presence half: `mergeItems` lets a shard overwrite the
+   index, so a gate field that *differs* is a verdict that changes under the reader mid-session.
+   Note this file's own `EXPECTED_CHECKS` meta-check caught the added assertion and made me declare
+   it — 67 -> 68.
+2. `web/src/data/index-gate-parity.test.ts` — runs the app's real `canUse` over the index alone and
+   over the index-plus-shards, and requires the same verdict. Probe levels are **read off the
+   payload** (each shipped `rl`, and `rl - 1`) rather than picked, because a level above all of them
+   would pass no matter what the index omitted. It also carries a guard against itself: if `rl` ever
+   stops shipping, the parity assertion would pass vacuously, so a first test fails if no shipped
+   record carries one.
+
+*A/B, end to end through the real payload* — `rl` removed from `INDEX_FIELDS`, `build.mjs` re-run,
+both instruments observed, then restored, rebuilt, and `items-index.json` **verified byte-identical
+by `sha256sum -c`**:
+
+    verify.mjs : FAIL — every eligibility-gate field (cl, ra, rl) rides the index and agrees
+                 with the shard: 3 records gate on a field the index omits or contradicts
+                   PRIMARY: Baton of the Sky — rl index=null shard=49
+                   SHOULDERS: Refugee Shroud — rl index=null shard=15
+                   WRIST: Azarack Skin Wristwraps — rl index=null shard=46
+    vitest     : 2 failed — "12 items change verdict when their shard lands"
+
+The 12 is worth checking rather than nodding at, and it checks out exactly: 8 probe levels
+(1, 14, 15, 45, 46, 48, 49, 50) against three requirements gives Refugee Shroud 2 failures,
+Azarack 4 and Baton 6. That arithmetic is also what rules out an off-by-one in `levelCheck`, whose
+rule is `best >= required` — at level 15 the level-15 shroud passes, and no such row appears.
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
 

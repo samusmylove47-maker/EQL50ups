@@ -696,6 +696,8 @@ per race: {"HUM":85,"ERU":85,"ELF":83,"HIE":85,"DEF":85,"HEF":85,"DWF":85,"HFL":
 
 **Smallest fix.** Add 'rl' to INDEX_FIELDS in pipeline/build.mjs (the array at 2148-2160), then `node pipeline/build.mjs && node pipeline/verify.mjs` and commit the regenerated web/public/data/ — CI does not run the pipeline, so an uncommitted payload ships unchanged. This touches BOTH sensitive surfaces: it changes ranking behaviour (canUse's level gate fires during the pre-shard window, removing candidates that are currently offered) and it changes the published payload shape (items-index.json gains one field on 3 of 3,663 records; ~30 bytes on a 693 KB index). No web/ change is needed — normalize.ts:296 already reads raw.rl, mergeItems already lets the shard re-enrich, and ItemWindow's row is already conditional on the field.
 
+> **Closed.** Done as described, plus two guards of different kinds: `verify.mjs` now asserts the rule (`GATE_FIELDS = ['cl','ra','rl']` must ride the index and agree with the shard, so the next gate field is covered automatically), and `web/src/data/index-gate-parity.test.ts` asserts the behaviour (the app's own `canUse` must give the same verdict from the index alone as from index-plus-shards, at levels read off the payload). Upstream carries five records with `required_level`; the two that do not ship are quarantined as "no era in any source", so three is correct. Measured index cost: 24 bytes. See the CLOSED note under F31 in `AUDIT-UPGRADES-SURFACE.md`.
+
 <details><summary>Commands run, and what they returned</summary>
 
 ```

@@ -2173,6 +2173,17 @@ const INDEX_FIELDS = [
   // browser lists from the index, and a provenance mark that only exists on a
   // hover window is a mark 3,500 rows never get.
   'ex', 'sd', 'sdc', 'vf',
+  // `rl` is the third leg of the eligibility gate — `canUse` is
+  // `canUseClass && canUseRace && meetsLevel` — and `cl` and `ra` have ridden
+  // the index for exactly the reason stated above this list. This one did not,
+  // and the rule applies to it identically: until its shard landed, the level
+  // check had nothing to check against, so a level-10 character was offered a
+  // level-15 Refugee Shroud and its item window showed no Level row at all.
+  // Three of 3,663 records carry it (Baton of the Sky 49, Refugee Shroud 15,
+  // Azarack Skin Wristwraps 46), so this costs the index about thirty bytes.
+  // `verify.mjs` now asserts the rule itself rather than this field, so the
+  // next gate field is covered without anyone remembering to come back here.
+  'rl',
 ];
 const DETAIL_OMIT = new Set(['key']);
 

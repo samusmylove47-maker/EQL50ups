@@ -399,9 +399,31 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
   assert('one shard per slot plus the no-slot shard', missing.length === 0 && extra.length === 0,
     `missing=[${missing.join(',')}] extra=[${extra.join(',')}]`);
 
+  /*
+   * Every field the app's eligibility gate reads must ride the index, and must
+   * say the same thing there as in the shard.
+   *
+   * `canUse` is `canUseClass && canUseRace && meetsLevel`, over `cl`, `ra` and
+   * `rl`. The picker, the ranking and the paper doll all score straight off the
+   * index before any shard has landed — build.mjs says exactly that where
+   * INDEX_FIELDS is declared, as the reason `wt`, `ra`, `statsUnknown`,
+   * `evidence` and `xo` ride it. `rl` was the one gate field that rule had not
+   * been applied to: three shipped records carried it in their shard and none
+   * in the index, so a level-10 character was offered a level-15 Refugee Shroud
+   * until SHOULDERS.json arrived, and every reader saw those three item windows
+   * with the Level row missing entirely.
+   *
+   * Written as the rule rather than as `rl`, so the next field the gate learns
+   * to read is covered without anyone remembering this. The agreement half
+   * matters as much as the presence half: `mergeItems` lets a shard overwrite
+   * the index, so a gate field that differs is a verdict that changes under the
+   * reader mid-session.
+   */
+  const GATE_FIELDS = ['cl', 'ra', 'rl'];
+
   const byKeyIndex = new Map(items.map((i) => [nameKey(i.n), i]));
   const seen = new Set();
-  const wrongSlot = [], mismatched = [], orphan = [];
+  const wrongSlot = [], mismatched = [], orphan = [], gateDrift = [];
   for (const [slot, shard] of shards) {
     for (const it of shard.items ?? []) {
       const k = nameKey(it.n);
@@ -414,11 +436,21 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
           JSON.stringify(idx.sl ?? []) !== JSON.stringify(it.sl ?? []) || idx.id !== it.id) {
         mismatched.push(`${slot}: ${it.n}`);
       }
+      for (const field of GATE_FIELDS) {
+        const onIndex = JSON.stringify(idx[field] ?? null);
+        const onShard = JSON.stringify(it[field] ?? null);
+        if (onIndex !== onShard) {
+          gateDrift.push(`${slot}: ${it.n} — ${field} index=${onIndex} shard=${onShard}`);
+        }
+      }
     }
   }
   assert('every shard item actually belongs to that slot', wrongSlot.length === 0, `${wrongSlot.length} misfiled items`, wrongSlot);
   assert('no shard item is missing from the index', orphan.length === 0, `${orphan.length} orphaned shard items`, orphan);
   assert('index and shard records agree on name/id/slots/stats', mismatched.length === 0, `${mismatched.length} divergent records`, mismatched);
+  assert(`every eligibility-gate field (${GATE_FIELDS.join(', ')}) rides the index and agrees with the shard`,
+    gateDrift.length === 0,
+    `${gateDrift.length} records gate on a field the index omits or contradicts`, gateDrift);
   const unsharded = items.filter((i) => !seen.has(nameKey(i.n))).map((i) => i.n);
   assert('every index item appears in at least one shard', unsharded.length === 0, `${unsharded.length} items reachable from no shard`, unsharded);
 }
@@ -1359,7 +1391,7 @@ if (!existsSync(TIER0)) {
  * remembering-to-bump cost paid once per real change, against a class of defect
  * that is otherwise invisible by construction.
  */
-const EXPECTED_CHECKS = 67;
+const EXPECTED_CHECKS = 68;
 if (checks !== EXPECTED_CHECKS) {
   failures.push({
     check: 'this file ran every assertion it contains',

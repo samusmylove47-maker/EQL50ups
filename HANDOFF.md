@@ -7195,3 +7195,61 @@ ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PA
 field, so the level gate is inert during the pre-shard window. It is the only one of the four that
 changes the published payload, so it is the only one where CI shipping a stale `web/public/data/`
 would matter.
+
+## `F31` CLOSED — the level gate now has something to read before the shards land
+
+`items-index.json` lands first at ~693 KB; the nineteen shards follow at ~1.6 MB. Everything that
+judges eligibility runs against whatever the catalogue holds at that moment, which for the first
+stretch of every visit is the index alone. `rl` rode only the shards, so for that window the level
+check had nothing to check against: a level-10 character was offered a level-15 Refugee Shroud and
+then watched it vanish, and all three affected item windows showed no Level row at all.
+
+`rl` joins `INDEX_FIELDS`. `cl` and `ra` have ridden the index for exactly the reason the comment
+above that list already states — *"the picker ranks straight off the index before any shard has
+loaded"* — and `rl` is the third leg of the same `canUse`. Cost, measured: `items-index.json`
+**693,110 -> 693,134 bytes. Twenty-four bytes.**
+
+**What I checked before fixing it.** Upstream `nathanbates-items.json` carries **five** records with
+`required_level`, not three, so the first question was whether the pipeline was dropping two. It is
+not — `Shroud of the Sky` and `Spiroc Beak Earcuff` are in `pipeline/quarantine.json` under
+`why: "no era in any source"`, which is the era policy working. Three is the correct shipped count,
+and I would not have known that from the finding.
+
+**What this does not do, and I want it on the record.** `character.ts` already documents at length
+that the level gate's qualifying-class rule is a planner inference rather than a Tier 0 observation,
+that this project's own research on effective level points the other way, and that it is not
+established Legends gates *equipping* by level at all — and it says outright that "a patch that
+populates `rl` turns it live on every list at once". **This change settles none of that.** It makes
+the answer before the shards equal the answer after. The dormant question is still dormant and is
+not mine to close.
+
+**Two guards, of deliberately different kinds** — R259's point, applied to instruments rather than
+authors. A shape check cannot see a field the gate stops reading; a behaviour check cannot see a
+field no shipped record happens to carry.
+
+1. `verify.mjs` asserts the **rule**: `GATE_FIELDS = ['cl','ra','rl']` must ride the index *and
+   agree with the shard*. Agreement matters as much as presence — `mergeItems` lets a shard
+   overwrite the index, so a gate field that differs is a verdict that changes under the reader
+   mid-session. Written over the list so the next gate field is covered without anyone remembering.
+   That file's own `EXPECTED_CHECKS` meta-check caught my added assertion and made me declare it,
+   67 -> 68, which is the R225 habit paying for itself.
+2. `index-gate-parity.test.ts` asserts the **behaviour**: the app's real `canUse` must give the same
+   verdict from the index alone as from index-plus-shards. Probe levels are read off the payload
+   rather than chosen, because a level above all three requirements would pass no matter what the
+   index omitted — and it carries a guard against itself, failing if no shipped record carries an
+   `rl` at all, since that is the state in which the parity assertion would pass vacuously.
+
+**A/B, end to end through the real payload.** `rl` removed from `INDEX_FIELDS`, `build.mjs` re-run,
+both instruments observed red — `verify.mjs` naming all three records, vitest reporting *"12 items
+change verdict when their shard lands"* — then restored, rebuilt, and `items-index.json` verified
+**byte-identical by `sha256sum -c`**. The 12 is arithmetic worth doing rather than nodding at: eight
+probe levels against three requirements gives 2 + 4 + 6. That is also what rules out an off-by-one
+in `levelCheck` — its rule is `best >= required`, so the level-15 shroud passes at level 15, and no
+such row appears.
+
+Gate: `tsc` clean · vitest **1,142 passed / 76 files** · playwright **151 passed** · `npm run build`
+ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+**Remaining from my own list: F04, F07, F12.** All three are `Upgrades.tsx` ranking questions, and
+F12 is the one with a wrong recommendation in it — a Primary row showing the first two-hander that
+clears the floor rather than the best. F12 next.
