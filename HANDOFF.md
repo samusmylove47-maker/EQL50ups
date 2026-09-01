@@ -6134,3 +6134,27 @@ counts — 1 failed / 1,090 passed — then restored, `HANDOFF.md` sha256 `67c8c
 
 **Gate:** tsc clean · vitest **1,091** / 71 files (from `web/`) · playwright **150 / 0** ·
 `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+## 12:42Z tick — tip unchanged at `a46c37c`. The record I shipped an hour ago numbers its findings three different ways.
+
+No orders. Tree clean, 0 unpushed.
+
+**A defect I introduced in `AUDIT-UPGRADES-SURFACE.md`, found by using it.** Reaching for the next
+open finding, I followed "finding 17" from a table into the full text and landed on a different
+finding. The generator numbers the same 31 findings three incompatible ways:
+
+```
+  verdict table        1..23   (only findings that were judged)
+  never-judged table   1..8    (restarts)
+  full text            1..31   (continuous, over all findings)
+```
+
+So "finding 8" is the `src.c` Crafted flag in the table and *"Nothing outranks what you are
+wearing"* in the full text; the two picker findings are rows 15 and 16 in the table and entries 21
+and 22 in the body. **Every cross-reference I wrote yesterday hour — in that file's own status
+section, in the commit message, and in my report — resolves to the wrong entry.** The document
+whose entire purpose is to be the durable, citable record of the pass is not citable.
+
+**Taking that, ahead of any finding.** One stable id across the whole document, both tables and the
+body, and the status table rebuilt by matching on TITLE rather than on position so it cannot drift
+again. Correcting my own published error; nothing here touches the app.
