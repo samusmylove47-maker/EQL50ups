@@ -6040,3 +6040,26 @@ of sampled; the assertion itself is unchanged. **4 of 4 whole-file runs** where 
 `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
 
 **The line-5502 shortlist is now closed: three of three.**
+
+## 11:42Z tick — tip unchanged at `a46c37c`. The shortlist is closed; the citation under it is broken.
+
+No orders. Tree clean, 0 unpushed. All three line-5502 items are closed (`c682786`, `e9ede66`,
+`f108ef0` — two real, one refuted).
+
+Going to the remainder, I could not open the record. **Line 5500 of this file cites the raw journal
+as `subagents/workflows/wf_d2d73ce2-770/journal.jsonl`. That path does not exist.** It reads as
+repository-relative and resolves to nothing from the repository root:
+
+```
+find . -name journal.jsonl -not -path ./node_modules/*   ->   (nothing)
+```
+
+The file is real, at 62 lines / 324K, but it lives at an absolute path under
+`/root/.claude/projects/…/b71726cd-…/subagents/workflows/wf_d2d73ce2-770/` — **inside the session
+directory, which dies with this container.** So the handover's own pointer to the evidence behind
+roughly twelve still-unverified findings is both mis-cited and not durable. The owner's standing
+words on exactly this: *"losing a day's worth of ephemeral data is a tragedy."*
+
+**Taking that.** Extract the surviving findings from the journal into the repository as a readable
+record, and correct the citation to point at what a future session can actually open. Verification
+and durability; no mechanism changes, nothing that touches ranking.
