@@ -173,3 +173,66 @@ describe('screens render without throwing or printing NaN', () => {
     expect(render('#/')).toContain('storage is full');
   });
 });
+
+/**
+ * The share dialog on what the link cannot carry.
+ *
+ * `planFrom` builds the shared plan as `{name, slots, weights, notes}`, so
+ * `GearSet.withheld` never reaches the wire — verified by round-tripping the
+ * real codec, not by reading the type. The dialog promised "The whole plan
+ * travels in the link — every item, …" regardless.
+ *
+ * `prose-vs-record.test.ts` forbids the old sentence in the source. This checks
+ * the replacement actually REACHES a reader, and only when it applies: the
+ * caveat is behind `withheldNames.length`, and a conditional that never fires
+ * is the same as no caveat at all.
+ */
+describe('the share dialog names the positions a link cannot carry', () => {
+  function openShare(setId: string): string {
+    window.location.hash = `#/set/${setId}`;
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    let root: Root | null = null;
+    act(() => {
+      root = createRoot(container);
+      root.render(<App />);
+    });
+    const button = [...container.querySelectorAll('button')]
+      .find((b) => /share/i.test(b.textContent ?? ''));
+    expect(button, 'the Share button').toBeTruthy();
+    act(() => button?.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    const html = container.innerHTML;
+    act(() => (root as Root | null)?.unmount());
+    container.remove();
+    return html;
+  }
+
+  it('says nothing extra when every worn item can be scored', () => {
+    const { setId } = seed();
+    const html = openShare(setId);
+    expect(html).toContain('Share link');
+    expect(html, 'no caveat where none applies').not.toContain('will not travel');
+  });
+
+  it('names the withheld items, and says the receiver sees those positions empty', () => {
+    const { setId } = seed();
+    useApp.getState().applySlots(setId, {}, false, { CHEST: 'Shadow Rage Helm' });
+    const html = openShare(setId);
+    expect(html).toContain('Shadow Rage Helm');
+    expect(html).toMatch(/1 position will not travel/);
+    expect(html).toMatch(/cannot score/);
+    expect(html).toMatch(/empty/);
+  });
+
+  it('counts and lists more than one', () => {
+    const { setId } = seed();
+    useApp.getState().applySlots(setId, {}, false, {
+      CHEST: 'Shadow Rage Helm',
+      ARMS: 'Unscoreable Vambraces',
+    });
+    const html = openShare(setId);
+    expect(html).toMatch(/2 positions will not travel/);
+    expect(html).toContain('Shadow Rage Helm');
+    expect(html).toContain('Unscoreable Vambraces');
+  });
+});

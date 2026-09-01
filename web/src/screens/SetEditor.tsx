@@ -11,6 +11,7 @@ import { href, navigate, type SetTab } from '../router';
 import { planFrom, shareUrl } from '../share/codec';
 import { characterFor, setsForCharacter, useApp } from '../state/store';
 import { downloadJson } from '../lib/download';
+import { pluralize } from '../lib/format';
 import { publishPickerDefaults, resetPickerDefaults } from '../lib/pickerDefaults';
 import { queueImportNotice, takeImportNotice } from '../lib/importNotice';
 import {
@@ -104,6 +105,18 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
   const link = useMemo(
     () => (gearSet && character ? shareUrl(planFrom(character, gearSet), dictionary) : ''),
     [gearSet, character, dictionary],
+  );
+
+  /*
+   * The item names in positions the link cannot carry.
+   *
+   * Read off `gearSet.withheld` rather than recomputed: it is the same map the
+   * importer wrote and the doll reads, so the dialog cannot disagree with the
+   * page behind it about which positions these are.
+   */
+  const withheldNames = useMemo(
+    () => Object.values(gearSet?.withheld ?? {}).filter((name) => Boolean(name)),
+    [gearSet],
   );
 
   const onImportFile = async (file: File) => {
@@ -468,15 +481,43 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
       {dialog === 'share' ? (
         <Modal title="Share this set" onClose={() => setDialog(null)} width={720}>
           <div className="modal-body stack">
+            {/*
+              This said "The whole plan travels in the link — every item, every
+              +N, …", and that was an absolute promise the codec does not keep.
+              `planFrom` builds the plan as {name, slots, weights, notes}, so
+              `withheld` and `defaultFilters` are dropped before a byte is
+              written — verified by round-tripping the real codec, not by
+              reading the type. A sender pasting a link was told everything went
+              with it. `prose-vs-record.test.ts` holds the transcript.
+            */}
             <p className="hint">
-              The whole plan travels in the link — every item, every +N, exaltation donors, your
-              per-class levels and every loadout. No account and no backend, so there is nothing
-              to expire and nothing to send: the plan is in the link itself, not on a server
-              holding it for you.
+              Your equipped plan travels in the link — every item you have equipped, every +N,
+              exaltation donors, your per-class levels and every loadout. No account and no
+              backend, so there is nothing to expire and nothing to send: the plan is in the link
+              itself, not on a server holding it for you.
               {dictionary
                 ? ' Item names are interned against this build of the item catalog, which is what keeps it short.'
                 : ' Item data has not loaded, so names travel in full and the link is longer than it needs to be.'}
             </p>
+            {/*
+              Named at the moment of sharing rather than in a footnote, and only
+              when this set actually has one: a caveat every sender reads and
+              almost none of them need is a caveat nobody reads.
+            */}
+            {withheldNames.length ? (
+              <p className="hint">
+                <strong>
+                  {pluralize(withheldNames.length, 'position')} will not travel:{' '}
+                  {withheldNames.join(', ')}.
+                </strong>{' '}
+                Your import found {withheldNames.length === 1 ? 'it' : 'them'} occupied by an item
+                this build cannot score, and a link carries no way to say that — so whoever opens
+                this one sees{' '}
+                {withheldNames.length === 1 ? 'that position' : 'those positions'} as empty, and
+                the upgrade ranked against{' '}
+                {withheldNames.length === 1 ? 'it' : 'them'} will read as a larger gain than it is.
+              </p>
+            ) : null}
             <div className="copy-field">
               <input type="text" readOnly value={link} aria-label="Share link" onFocus={(e) => e.target.select()} />
               <button type="button" className="btn btn-primary btn-sm" onClick={() => void copyLink()}>

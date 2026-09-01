@@ -5937,3 +5937,43 @@ The remaining two, in order:
 Taking 1. A codec is round-trippable by construction, so this is checkable without any judgement
 call: encode a set carrying both fields, decode, compare. Verification and, if it holds, a
 correction to a statement the receiver is shown. Neither touches ranking.
+
+### 09:39Z item — share-link finding HOLDS, and the loss is earlier than the finding said
+
+The finding named `share/codec.ts`. **It is not the codec.** `planFrom` builds the plan as
+`{name, slots, weights, notes}`, so `withheld` and `defaultFilters` are gone before a byte is
+written. Verified by round-tripping the real codec rather than by reading the `Pick<>`:
+
+```
+planFrom set keys : ["name","slots","weights","notes"]
+withheld on plan  : undefined
+decoded withheld  : undefined
+```
+
+`withheld` is the half that matters. `types.ts` keeps it so that *"wearing something we cannot
+measure"* stays distinguishable from *"wearing nothing"*, because otherwise *"the upgrades ranking
+measured a candidate against nothing and reported the whole item as gain"*. Dropped from a link,
+the receiver sees the position as EMPTY and is shown an inflated gain — the same defect
+`sanitizeSet` was fixed for on reload, on the one surface where the sender cannot see what the
+receiver gets. `defaultFilters` is a picker preference; losing it is a UX loss, not a false claim.
+
+**What I fixed, and what I deliberately did not.** The share dialog said:
+
+> *"The whole plan travels in the link — every item, every +N, exaltation donors, your per-class
+> levels and every loadout."*
+
+That is an absolute promise the codec does not keep, and it is a statement provably false on
+screen — so it is corrected, and when the set actually carries withheld positions the dialog now
+names them and says the receiver will see them as empty. Guard demonstrated: red first, then
+damaged (`{withheldNames.length ?` -> `{false ?`, asserted anchor) and the WHOLE suite run — 2
+failed / 1,085 passed — restored and verified byte-identical by SHA-256.
+
+**I did NOT add `withheld` to the wire, and that is the open question.** The codec is a published
+format — its own comment: *"append only, never reorder, or every link already in a Discord
+scrollback starts decoding to other items"* — so extending it is new mechanism work and yours to
+rule on, not mine. The options as I see them: add it behind a new flag bit in v3 (append-only, old
+links unaffected, old decoders are only this app), or leave the link lossy and keep the disclosure.
+I have made the app honest about the loss either way.
+
+**Gate:** tsc clean · vitest **1,087** / 71 files (from `web/`) · playwright **150 / 0** ·
+`build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.

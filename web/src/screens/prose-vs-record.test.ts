@@ -118,3 +118,51 @@ describe('the Sources page on how many items a client window was read for', () =
     expect(contradictions.length).toBeLessThanOrEqual(verified.length);
   });
 });
+
+describe('the Share dialog on what actually travels in the link', () => {
+  /**
+   * The dialog said **"The whole plan travels in the link — every item, every
+   * +N, exaltation donors, your per-class levels and every loadout."**
+   *
+   * Two of `GearSet`'s fields do not travel, and it is not the codec that drops
+   * them — `planFrom` builds the plan as `{name, slots, weights, notes}` before
+   * a byte is written. Verified by round-trip through the real codec rather
+   * than by reading the type:
+   *
+   * ```
+   *   planFrom set keys : ["name","slots","weights","notes"]
+   *   withheld on plan  : undefined
+   *   decoded withheld  : undefined
+   * ```
+   *
+   * `withheld` is the one that matters. It records a position an import found
+   * OCCUPIED by an item this build cannot score — `types.ts` keeps it precisely
+   * so that "wearing something we cannot measure" stays distinguishable from
+   * "wearing nothing", because otherwise "the upgrades ranking measured a
+   * candidate against nothing and reported the whole item as gain". Dropped
+   * from a link, the receiver sees that position as EMPTY and is shown an
+   * inflated gain for it — the same defect `sanitizeSet` was fixed for on
+   * reload, on the one surface where the sender cannot see what the receiver
+   * gets.
+   *
+   * Whether `withheld` should be ADDED to the wire is not settled here: the
+   * codec is a published format ("append only, never reorder, or every link
+   * already in a Discord scrollback starts decoding to other items") and that
+   * is the Director's call. What is settled is that the page must not promise
+   * something it does not do.
+   */
+  it('does not claim the whole plan travels, when two fields do not', () => {
+    const share = rendered('src/screens/SetEditor.tsx');
+    expect(share, 'the dialog claimed the WHOLE plan travels')
+      .not.toContain('The whole plan travels in the link');
+    expect(share, 'an unqualified "every item" is the same promise reworded')
+      .not.toMatch(/travels in the link — every item,/);
+  });
+
+  it('names what stays behind, in the words the rest of the app uses for it', () => {
+    const share = rendered('src/screens/SetEditor.tsx');
+    expect(share).toMatch(/cannot score/);
+    expect(share, 'the reader is told the receiver sees it as empty')
+      .toMatch(/empty/i);
+  });
+});
