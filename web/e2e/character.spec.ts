@@ -125,7 +125,20 @@ test('race can be set and unset, and the codes come from the catalog', async ({ 
   await race.selectOption({ index: 1 });
   await create(page).click();
   await page.waitForURL(/#\/set\//);
-  await expect(page.locator('.set-header .sub')).toContainText(options[1] ?? '');
+  /*
+   * The header carries the CODE, which is what this test's name claims and what
+   * `SetWorkspace` prints. It used to assert the whole option label instead, and
+   * that assumption broke the moment race options gained display names: the
+   * dropdown reads "Human (HUM)" via `raceLabel` while the header reads
+   * "50 WAR · HUM". Neither is wrong — the test was pinning one surface's
+   * formatting to another's. So the code is extracted from the label rather than
+   * typed here, and a label with no name (KER, which has no sourced display
+   * name) still yields its bare code.
+   */
+  const label = options[1] ?? '';
+  const code = /\(([A-Z]+)\)\s*$/.exec(label)?.[1] ?? label.trim();
+  expect(code, 'a race code, not a sentence').toMatch(/^[A-Z]{2,4}$/);
+  await expect(page.locator('.set-header .sub')).toContainText(code);
 });
 
 test('the form submits from the keyboard alone', async ({ page }) => {

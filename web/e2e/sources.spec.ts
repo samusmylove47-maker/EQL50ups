@@ -65,5 +65,19 @@ test('the landing page cites the client capture rather than the wiki', async ({ 
   await page.waitForTimeout(400);
   const body = await page.evaluate(() => document.body.innerText);
   expect(body.toLowerCase()).not.toContain('wiki-verified');
-  expect(body.toLowerCase()).toContain('nine of nine predictions exact');
+  /*
+   * This asserted the literal "nine of nine predictions exact" — a second typed
+   * copy of a count that `TIER0-VALIDATION.md` holds and that
+   * `prose-vs-record.test.ts` DERIVES from it. The record's table has seven
+   * MATCH rows, the page was corrected to "seven of seven", and this copy went
+   * stale in the same breath, exactly as a typed number does.
+   *
+   * So this stops carrying a number at all. What it checks is what only a
+   * browser can: that the claim reaches a reader, self-consistent (N of the same
+   * N), citing the client capture. Which N is right is the derived test's job,
+   * and there is now one place that knows.
+   */
+  expect(body.toLowerCase()).toContain('read off a live client');
+  expect(body.toLowerCase(), 'a self-consistent "N of N" claim, whatever N is')
+    .toMatch(/\b(\w+) of \1 predictions exact\b/);
 });

@@ -281,19 +281,35 @@ export function screenName(route: Route): string | null {
   }
 }
 
+/**
+ * The breadcrumb separator: `&nbsp;/&nbsp;` plus a zero-width space.
+ *
+ * The non-breaking spaces are theirs and they stay \u2014 a plain space collapses
+ * against the .24em tracking and the slashes crowd the words.
+ *
+ * **The zero-width space is ours, and it is a bug fix, not a flourish.** With
+ * `&nbsp;` on both sides of every separator the whole trail was one unbreakable
+ * run: no break opportunity existed anywhere in `EQL Source / Tools /
+ * =Upgrades / Characters`. Measured at a 320px viewport, `.crumb` was correctly
+ * constrained to 284px and its text ran to 328, pushing the document to 346
+ * against a 320 client width \u2014 26px of sideways scroll on every route with a
+ * screen name, which is what five of the suite's width assertions were failing
+ * on. `\u200b` costs zero pixels and lets the line break *after* the slash, so
+ * the slash trails its line the way a breadcrumb should and the rendered
+ * geometry at every width that already fitted is unchanged.
+ */
+const CRUMB_SEP = '\u00a0/\u00a0\u200b';
+
 function ToolBar({ route }: { route: Route }) {
   const screen = screenName(route);
   return (
     <div className="tool-bar">
       <div className="shell">
-        {/* Their separator is `&nbsp;/&nbsp;`, which is what gives the trail
-            its air at this tracking. A plain space collapses against the
-            .24em and the slashes crowd the words. */}
         <p className="crumb">
           <a href={SITE_HOME}>EQL Source</a>
-          <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
+          <span aria-hidden="true">{CRUMB_SEP}</span>
           <a href={SITE_TOOLS_INDEX}>Tools</a>
-          <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
+          <span aria-hidden="true">{CRUMB_SEP}</span>
           {/* On a deeper screen the tool's name stops being where you are and
               becomes a step you can walk back to, so it becomes a link \u2014 to
               this app's own landing, not to the site's page about it. */}
@@ -302,7 +318,7 @@ function ToolBar({ route }: { route: Route }) {
           ) : (
             <>
               <a href={href.landing}>{TOOL_NAME}</a>
-              <span aria-hidden="true">{'\u00a0/\u00a0'}</span>
+              <span aria-hidden="true">{CRUMB_SEP}</span>
               <span className="crumb-here">{screen}</span>
             </>
           )}

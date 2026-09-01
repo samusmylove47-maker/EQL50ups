@@ -74,7 +74,24 @@ test('primary navigation reaches every screen and marks the current one', async 
   await expect(mark).toContainText('EQL Source');
 
   const crumb = page.locator('.crumb');
-  await expect(crumb).toContainText('50 Upgrades');
+  /*
+   * The tool's name is READ off the page, not typed here.
+   *
+   * This asserted the literal "50 Upgrades" and went red when the site renamed
+   * every tool to the `=` convention on 2026-08-31 and `TOOL_NAME` followed it
+   * to "=Upgrades" — a typed copy of a name that the app holds in one constant
+   * and `breadcrumb.test.tsx` already derives from it.
+   *
+   * What is checked instead is the invariant that constant exists for, in its
+   * own words: a reader who clicks this tool in the site footer and lands on a
+   * breadcrumb naming it differently "has been shown two names for one thing".
+   * The footer marks this tool `aria-current="true"`, so the two surfaces are
+   * compared to each other and neither name is written down here.
+   */
+  const footMark = page.locator('.site-foot a[aria-current="true"]');
+  const toolName = (await footMark.innerText()).trim();
+  expect(toolName, 'the footer must mark exactly one tool as this one').not.toBe('');
+  await expect(crumb).toContainText(toolName);
   await expect(crumb.locator('a').first()).toHaveAttribute(
     'href',
     'https://eqlsource.com/',
