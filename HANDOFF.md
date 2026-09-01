@@ -5650,3 +5650,23 @@ operating reality until the rebuild. What changed is the *conclusion*: it is not
 governance question awaiting a decision. It has one, and the answer is architectural rather than
 procedural. I have edited section 1 to point here rather than leaving it to send the next session
 after a decision that is already made.
+
+---
+
+## Final tick — 05:39Z, tip `aea914c`, no orders, nothing started
+
+Range `c993e735..aea914c` scanned: **8 ruling commits, 759 added lines, ONE mention of this
+repo** — the owner's own sentence, *"Our site's EQL50ups points to a page on our github, rather
+than on our actual site"*, which is the module direction already recorded in the corrections
+above. **No orders addressed to B.**
+
+Tip advanced to `aea914c`, and the write was verified before this was committed rather than
+after — the failure two ticks ago was reporting that step without performing it.
+
+Nothing new started. With ~20 minutes to shutdown, beginning work I could not finish and verify
+would leave the next session a half-applied change to reconstruct, which is worse than leaving it
+a clean tree and a list.
+
+**Final state:** working tree clean, 0 unpushed, local == remote, gap engine held at
+`VERSION "1.4.0"` / `REQUIRED_ENGINE_VERSION '1.4.0'`, gate green at **1,054 tests in 68 files**,
+`verify.mjs` 67 checks, Tier 0 coverage 100.0%.
