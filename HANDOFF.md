@@ -6199,3 +6199,26 @@ code.** The vitest one is the dangerous member: exit 0, plausible number, nine t
 
 **Gate:** tsc clean · vitest **1,094** / 71 files (from `web/`) · playwright **150 / 0** ·
 `build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+## 13:41Z tick — tip unchanged at `a46c37c`, declaring `F15` (with `F13` as its mechanism)
+
+No orders. Tree clean, 0 unpushed. With the record now citable, the open list is exact: **9
+findings confirmed-and-open, 8 never judged.**
+
+**Taking `F15` — Upgrades tells the reader a Lore item is placed where it gains the most, and the
+allocation is greedy, so it is not.** `Upgrades.tsx:1146` renders the unconditional sentence *"One
+only, so it is offered in the single position where it gains the most."* `F13` is the mechanism
+under it: the Lore hand-out queue is sorted by `provisional: (ranked[0]?.score ?? 0) - wornEp`
+(`:536`), which reads the raw top of the ranking BEFORE the filters `take()` later applies — items
+worn elsewhere, items already Lore-claimed, MIN_GAIN, offhand netting. A position whose top-ranked
+item is worn at another slot carries a provisional it can never realise, is served too early, and
+can claim the single Lore copy ahead of a position that gains more from it.
+
+The finding's own author measured it as a **wrong-slot and false-claim defect, not a lost-EP one**:
+reordering the queue by true-best-available gives 292.510 against the shipped 293.010, so greedy is
+not optimal under either key.
+
+**What I intend, and the line I am not crossing.** The sentence is a statement provably false on
+screen and I will correct it. **Changing the allocation is ranking behaviour and needs the
+Director's ruling**, so I will not touch the queue's sort key — the same split as the zone tally,
+where I corrected the count and left the `items` sort key alone.
