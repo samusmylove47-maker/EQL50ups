@@ -172,7 +172,21 @@ function normalizeSource(raw: unknown): ItemSource | undefined {
   if (mobs.length) src.m = mobs;
   if (quests.length) src.q = quests;
   if (vendors.length) src.v = vendors;
-  if (raw.c === true || raw.crafted === true || raw.playerCrafted === true) src.c = true;
+  /*
+   * `raw.c === 1` is the encoding that actually ships.
+   *
+   * `pipeline/build.mjs:1532` writes `if (crafted) src.c = 1` — the compact
+   * numeric flag this payload uses. This line listed three spellings and not
+   * that one, and `1 === true` is `false`, so on the shipped payload **956
+   * records carried `src.c === 1` and 0 survived here.** Every one lost its
+   * "Crafted" label on the item card and in the Upgrades row, and `'crafted'`
+   * — one of the five values in `SOURCE_FILTERS` — matched nothing.
+   *
+   * `=== 1` rather than a truthy test, deliberately: an explicit `0` means NOT
+   * crafted and must not become `true`, and a stray string is not a flag.
+   */
+  if (raw.c === true || raw.c === 1
+    || raw.crafted === true || raw.playerCrafted === true) src.c = true;
   return Object.keys(src).length ? src : undefined;
 }
 
