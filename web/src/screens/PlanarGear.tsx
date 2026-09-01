@@ -987,7 +987,14 @@ export function PlanarGear() {
         num="07"
         id="pl-sources"
         title="Where these numbers come from"
-        lede="Per piece, never in bulk. The tool this replaces badges every stat on the page T3 — one honest sentence about a hundred and six rows that do not all deserve the same sentence."
+        /*
+          The lede said "a hundred and six rows". `resolvePlanarPieces` over the
+          shipped shards returns 105, and this screen's own header prints that
+          computed figure four hundred lines above. A number typed beside the
+          number it is meant to be is the fault this repository is built around,
+          so it is interpolated now and cannot drift.
+        */
+        lede={`Per piece, never in bulk. The tool this replaces badges every stat on the page T3 — one honest sentence about ${count(pieces.length)} rows that do not all deserve the same sentence.`}
       >
         <p className="pl-body">
           Most of these pieces are wiki item records. Some of those records carry an era that places

@@ -331,3 +331,100 @@ describe('the extracted audit record is citable', () => {
     }
   });
 });
+
+describe('three numeric claims in web/src/screens, against the payload they name', () => {
+  const NON_RACE = new Set(['ALL', 'NONE', 'ALL_EXCEPT']);
+  const index = () => {
+    const raw = JSON.parse(read('public/data/items-index.json')) as unknown;
+    const rows = (Array.isArray(raw) ? raw : Object.values(raw as object).find(Array.isArray));
+    return (rows ?? []) as Array<{ ra?: string[] }>;
+  };
+
+  /**
+   * The Sources card titled "The largest reason is not an expansion" sat
+   * directly above a table this page renders largest-first, whose top row is
+   * `era:Velious` — an expansion — and its own body said "second largest" two
+   * lines below. One card, two claims, and the number on screen above both.
+   *
+   * Conditional rather than pinned to Velious: if the largest quarantine reason
+   * ever stops being an expansion, the stronger sentence becomes true and this
+   * must not block it.
+   */
+  it('does not call the largest quarantine reason a non-expansion while it is one', () => {
+    const meta = JSON.parse(read('public/data/meta.json')) as {
+      counts?: { purge?: { quarantineReasons?: Array<{ reason: string; items: number }> } };
+    };
+    const reasons = meta.counts?.purge?.quarantineReasons ?? [];
+    expect(reasons.length, 'the payload must publish quarantine reasons').toBeGreaterThan(0);
+
+    const largest = reasons[0];
+    const sorted = [...reasons].sort((a, b) => b.items - a.items);
+    expect(largest?.reason, 'the payload lists them largest-first').toBe(sorted[0]?.reason);
+
+    if (/^era:/.test(largest?.reason ?? '')) {
+      expect(
+        rendered('src/screens/Sources.tsx'),
+        `the largest reason is ${largest?.reason}, an expansion`,
+      ).not.toContain('The largest reason is not an expansion');
+    }
+  });
+
+  /**
+   * The Planar lede said "a hundred and six rows" where `resolvePlanarPieces`
+   * returns 105 — and this screen's own header prints the computed figure four
+   * hundred lines above it. `planar.test.ts` pinned only `> 100`, so a typed
+   * number sat beside a derived one and nothing compared them.
+   */
+  it('states no planar row count in prose that the screen computes itself', () => {
+    const source = rendered('src/screens/PlanarGear.tsx');
+    const WORDS = /\b(a hundred and \w+|one hundred and \w+|\d{2,4}) rows\b/i;
+    const typed = WORDS.exec(source);
+    expect(
+      typed,
+      `a literal row count is written in the prose: "${typed?.[0]}" — interpolate it instead`,
+    ).toBeNull();
+    // And the lede must really be there, or this passes for the wrong reason.
+    expect(source).toMatch(/rows that do not all deserve the same sentence/);
+  });
+
+  /**
+   * `NewCharacter.tsx` justified its race list with "7,341 items carry a
+   * restriction" — against a payload of 3,663 items in total, so the figure
+   * could not have been true of anything. Both readings are derived here
+   * because they answer different questions and the comment cites both.
+   */
+  it('counts race-restricted items the way NewCharacter says it does', () => {
+    const rows = index();
+    expect(rows.length, 'the index must load').toBeGreaterThan(0);
+
+    const namesARace = rows.filter((i) => (i.ra ?? []).some((c) => !NON_RACE.has(c))).length;
+    const notJustAll = rows.filter((i) => {
+      const ra = i.ra ?? [];
+      return ra.length > 0 && !(ra.length === 1 && ra[0] === 'ALL');
+    }).length;
+    const codes = new Set(rows.flatMap((i) => (i.ra ?? []).filter((c) => !NON_RACE.has(c))));
+
+    // Whatever they are, no figure may exceed the corpus that produced it.
+    expect(namesARace).toBeLessThanOrEqual(rows.length);
+    expect(notJustAll).toBeLessThanOrEqual(rows.length);
+
+    /*
+     * No "must not contain 7,341" here, and the omission is deliberate.
+     *
+     * It was written that way first and it failed — on the corrected comment,
+     * which quotes the impossible figure in order to say it was impossible.
+     * That is the third time in this repository a guard has failed against the
+     * comment explaining its own fix; the other two were solved by searching
+     * RENDERED source, which is not available here because the claim IS a
+     * comment.
+     *
+     * The three positive assertions below are sufficient: a comment that
+     * reverted to the old text could not contain the derived lines, so the
+     * revert fails anyway — without forbidding an honest historical note.
+     */
+    const source = read('src/screens/NewCharacter.tsx');
+    expect(source).toContain(`items naming an actual race code      ${namesARace}`);
+    expect(source).toContain(`items whose \`ra\` is not simply ALL    ${notJustAll}`);
+    expect(source).toContain(`distinct race codes named               ${codes.size}`);
+  });
+});

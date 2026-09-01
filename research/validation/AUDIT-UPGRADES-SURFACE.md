@@ -69,6 +69,9 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F13` — the provisional sort key that causes it | **open** — ranking behaviour, needs a ruling | — |
 | `F23` — an import-withheld slot printed `+0` for gear the export parsed as `+5` | closed; the tier is reported unknown rather than zero | guarded in `upgrades-avenrae.test.ts` |
 | `F11` — every row said "nobody has measured it dropping" until the shards landed | **CONFIRMED and closed** — was never judged by the run | guarded in `e2e/upgrades.spec.ts` |
+| `F17` — the card title contradicted the table above it and its own body | closed; all three were NEVER JUDGED by the run | guarded in `prose-vs-record.test.ts` |
+| `F18` — a typed 106 beside the screen's own computed 105 — now interpolated | closed; all three were NEVER JUDGED by the run | guarded in `prose-vs-record.test.ts` |
+| `F20` — 7,341 restricted items claimed in a 3,663-item payload; real figures 164 / 248 | closed; all three were NEVER JUDGED by the run | guarded in `prose-vs-record.test.ts` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched

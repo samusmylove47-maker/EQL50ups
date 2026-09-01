@@ -13,11 +13,23 @@ export function NewCharacter() {
    * Every playable race, not the subset the corpus happens to restrict on.
    *
    * This used to read race codes out of the loaded items and union a
-   * seven-code floor. Measured against the shipped payload: 7,341 items carry
-   * a restriction and between them name five distinct codes, so the dropdown
-   * offered 7 of 15 and eight races could not be picked at all. A player who
-   * cannot say they are a Gnome leaves it unset, and unset does not narrow —
-   * so they were shown Ogre-only gear as an upgrade.
+   * seven-code floor, so the dropdown offered 7 of 15 and eight races could not
+   * be picked at all. A player who cannot say they are a Gnome leaves it unset,
+   * and unset does not narrow — so they were shown Ogre-only gear as an upgrade.
+   *
+   * **The figure this comment used to cite was impossible.** It said "7,341
+   * items carry a restriction" against a payload holding 3,663 items in total.
+   * Re-measured over `web/public/data/items-index.json`, and the two readings
+   * are given separately because they answer different questions:
+   *
+   *   items naming an actual race code      164
+   *   items whose `ra` is not simply ALL    248   (164 + 59 ALL_EXCEPT + NONE)
+   *   distinct race codes named               5   BAR ELF IKS OGR TRL
+   *
+   * The narrow figure is the one this argument rests on: the dropdown was built
+   * from codes the corpus names, and 164 items between them name five. The
+   * five-codes half was right all along; only the population was wrong.
+   * `prose-vs-record.test.ts` derives both counts and fails if either drifts.
    */
   const races = RACES;
 

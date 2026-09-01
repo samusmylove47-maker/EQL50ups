@@ -391,10 +391,21 @@ function Purge({ meta }: { meta: SourceMeta | null }) {
           </p>
         </Card>
 
+        {/*
+          The title read "The largest reason is not an expansion", directly under
+          a table this page renders largest-first whose top row is `era:Velious`
+          at 2,828 — an expansion. Its own body says "second largest" two lines
+          below. Measured from the payload the page is drawn from:
+            node -e 'console.log(require("./web/public/data/meta.json")
+              .counts.purge.quarantineReasons.slice(0,3))'
+            -> era:Velious 2828, no era in any source 2230, era:Kunark 1438
+          Title now agrees with the body and with the table. `sources.test.tsx`
+          fails if it claims otherwise while the largest really is an expansion.
+        */}
         <Card
           standing="distrust"
           eyebrow="Era-less is not classic"
-          title="The largest reason is not an expansion"
+          title="The second largest reason is not an expansion"
         >
           <p>
             An item with no era anywhere is <em>unconfirmed</em>, not assumed in-era. The second

@@ -6549,3 +6549,45 @@ true and this repository's rule is compute-it-or-do-not-print-it.
 
 Verification first for each, against the shipped payload with a command; then correction; then a
 guard that derives rather than transcribes, so none of the three can drift again.
+
+### 17:39Z item CLOSED — `F17`, `F18`, `F20`. All three held, and one of the findings' own numbers was wrong too.
+
+None had ever been judged — all three were dropped by the run's `.slice(0, 3)` cap — so each was
+verified before it was touched.
+
+**`F17` HELD.** `meta.counts.purge.quarantineReasons` opens `era:Velious 2828`, then
+`no era in any source 2230`, then `era:Kunark 1438`. The card was titled *"The largest reason is not
+an expansion"* directly above that table, while its own body two lines down said *"second largest"*.
+Title now agrees with the body and with the number on screen above both.
+
+**`F18` HELD.** `resolvePlanarPieces` over the shipped shards returns **105**; the lede said *"a
+hundred and six rows"*, four hundred lines below a header printing the computed figure. Interpolated
+now, so it cannot drift. `planar.test.ts` had pinned only `> 100`.
+
+**`F20` HELD — and the finding's own replacement figure was wrong.** The comment claimed 7,341
+race-restricted items in a payload of 3,663; the finding said the real number is 248. **I measure
+164.** Both are defensible and they answer different questions, so the comment now states both:
+
+```
+  items naming an actual race code      164
+  items whose `ra` is not simply ALL    248    (164 + 59 ALL_EXCEPT + NONE)
+  distinct race codes named               5    BAR ELF IKS OGR TRL
+```
+
+The narrow figure is the one the argument rests on — the dropdown was built from codes the corpus
+names. The five-codes half was right all along; only the population was wrong. **Had I taken 248 on
+the finding's word I would have replaced one unchecked number with another**, which is the whole
+fault class.
+
+**The guard collided with its own explanation, for the third time in this repository.** My first
+version asserted the comment must not contain `7,341` — and failed against the corrected comment,
+which quotes the figure in order to say it was impossible. The other two occurrences were solved by
+searching RENDERED source; that is unavailable here because the claim IS a comment. Resolved by
+deleting the negative assertion: the three positive derived assertions already make a revert fail,
+without forbidding an honest historical note. Recorded in the test rather than just fixed.
+
+All three guards demonstrated together by restoring all three defects at once: **3 failed / 1,097
+passed**, one failure per finding. All three files restored and verified byte-identical by SHA-256.
+
+**Gate:** tsc clean · vitest **1,100** / 71 files (from `web/`) · playwright **151 / 0** ·
+`build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
