@@ -519,15 +519,33 @@ export function* upgradeSteps(
   /* ---- pass two: hand the candidates out, one Lore item to one slot ---- */
 
   const claimed = new Set<string>();
-  const take = (entry: SlotRanking): UpgradeCandidate | null => {
+  /**
+   * The best candidate this position may actually use.
+   *
+   * `accept` runs BEFORE the Lore claim, and that ordering is the whole point:
+   * a candidate we are about to reject must not consume the single Lore item
+   * another slot could have had.
+   *
+   * It exists because the caller could previously only see the FIRST candidate.
+   * A two-hander that ranked top on raw EP and then lost its offhand netting
+   * ended the position outright — no row, and the slot counted as "already
+   * best" — while a one-hander one place down the list was a real gain nobody
+   * looked at.
+   */
+  const take = (
+    entry: SlotRanking,
+    accept: (candidate: UpgradeCandidate) => boolean = () => true,
+  ): UpgradeCandidate | null => {
     for (const scored of entry.ranked) {
       if (scored.score <= 0) break; // the list is ordered; nothing below helps
       const key = scored.item.n.toLowerCase();
       const owner = wornAt.get(key);
       if (owner !== undefined && owner !== entry.position.id) continue;
       if (claimed.has(key)) continue;
+      const candidate = { item: scored.item, upgrade: entry.candidateUpgrade, ep: scored.score };
+      if (!accept(candidate)) continue;
       if (isLore(scored.item)) claimed.add(key);
-      return { item: scored.item, upgrade: entry.candidateUpgrade, ep: scored.score };
+      return candidate;
     }
     return null;
   };
@@ -543,7 +561,27 @@ export function* upgradeSteps(
   });
 
   for (const entry of queue) {
-    const best = take(entry);
+    /*
+     * Netting is decided PER CANDIDATE, inside the walk down the ranked list.
+     *
+     * `settled` is rendered to the reader verbatim as "N already best", which
+     * is a claim about the whole pool. Evaluating one candidate and stopping
+     * made it a claim about one candidate — and told the reader the opposite of
+     * what happened. It now means what it says: every candidate was tried and
+     * none beat what is worn.
+     */
+    let twoHanded: UpgradeRow['twoHanded'] = null;
+    let gain = 0;
+    let consideredAny = false;
+    const best = take(entry, (candidate) => {
+      consideredAny = true;
+      const netting = twoHandedCost(entry, candidate, byPosition, weights);
+      const netGain = candidate.ep - entry.wornEp - (netting?.offhandEp ?? 0);
+      if (netGain < MIN_GAIN) return false;
+      twoHanded = netting;
+      gain = netGain;
+      return true;
+    });
 
     if (entry.reason && (entry.wornName || WITHHELD_WITHOUT_WORN.has(entry.reason))) {
       withheld.push({
@@ -558,19 +596,13 @@ export function* upgradeSteps(
     }
 
     if (!best) {
-      nothing.push(entry.position);
-      continue;
-    }
-
-    /*
-     * A two-handed Primary empties the Secondary, and the 23 positions are
-     * ranked independently — so without this the offhand is given up for free
-     * and a two-hander that loses the trade still wins on paper.
-     */
-    const twoHanded = twoHandedCost(entry, best, byPosition, weights);
-    const gain = best.ep - entry.wornEp - (twoHanded?.offhandEp ?? 0);
-    if (gain < MIN_GAIN) {
-      settled += 1;
+      /*
+       * Two different facts, and they were one branch. `settled` says the pool
+       * was searched and nothing in it beats what you wear; `nothing` says the
+       * pool held no usable candidate at all.
+       */
+      if (consideredAny) settled += 1;
+      else nothing.push(entry.position);
       continue;
     }
 
@@ -580,7 +612,22 @@ export function* upgradeSteps(
       entry.view.item,
       entry.wornUpgrade,
     );
-    const before = ratioAt(entry.view.item, entry.wornUpgrade);
+    /*
+     * BOTH sides gated, or neither.
+     *
+     * `after` was gated on `weaponCounts` and `before` was not, and the `?? 0`
+     * below turned the refused side into the number zero. A worn bow in RANGE
+     * therefore rendered `RATIO 0.167 → 0.000` — the engine declining to answer,
+     * printed as an answer, and printed as a LOSS against a candidate that need
+     * not carry a weapon block at all.
+     *
+     * `WEAPON_POSITIONS` is `{PRIMARY, SECONDARY}`, and `constants.ts` is
+     * explicit that RANGE is excluded on purpose rather than overlooked: this
+     * engine models no ranged attack, so paying for ratio there would invent a
+     * benefit the rest of the app cannot see. A position that does not pay for
+     * ratio has nothing true to say about one, on either side.
+     */
+    const before = entry.weaponCounts ? ratioAt(entry.view.item, entry.wornUpgrade) : null;
     const after = entry.weaponCounts ? ratioAt(best.item, entry.candidateUpgrade) : null;
 
     rows.push({

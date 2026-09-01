@@ -100,7 +100,29 @@ export interface BisInput {
   /** The level the trio is gated at. See `contextForLoadout`. */
   level: number;
   race: string | null;
-  /** What is worn now, by slot position id. `null` means the slot is empty. */
+  /**
+   * What is worn now, keyed by slot position id. `null` means the slot is empty.
+   *
+   * **The VALUE is a key into the caller's own `options.byId` map, not the
+   * catalogue's `id` field.** That distinction cost a peer session a whole
+   * reproduction: it built `currentGear` from record `id`s, got `undefined`
+   * from every lookup, and both arms of its A/B returned zero for reasons
+   * unrelated to what it was testing.
+   *
+   * The catalogue's `id` is unusable as a key and that is by design, not a gap:
+   *
+   * ```
+   * records 3663 | id non-null 299 | id null 3364 (91.8%)
+   * meta.counts.withNumericId = 299   <- equals the non-null count exactly
+   * ```
+   *
+   * Only the 299 items present in the eqlsource id table carry a numeric id;
+   * everything else this catalogue ships is identified by name. So a consumer
+   * supplies whatever key it already uses — a name, a slot-scoped handle, its
+   * own uuid — and the matching `options.byId`. **Both sides are the caller's,
+   * and they must agree**; a key `byId` cannot resolve is reported as
+   * `replacesUnresolved`, never silently as an empty slot.
+   */
   currentGear: Record<string, string | null>;
 }
 
@@ -152,8 +174,18 @@ export interface StatDelta {
  * **1. `difficulty` is never populated, and the reason is more interesting than
  * "no data".** `grep -roic difficulty web/public/data/` finds it in exactly one
  * place: `meta.zones.surveyed[].coverage.difficulty`, on 13 zones, where the
- * value is a *survey grade* — `"measured"` or `"sourced"` — saying whether
- * anyone has surveyed that zone's difficulty. **It is not a difficulty value.**
+ * value is a *survey grade* saying whether anyone has surveyed that zone's
+ * difficulty. **It is not a difficulty value.**
+ *
+ * The grades, counted rather than recalled — `measured` 8, `none` 5, over the
+ * 13 surveyed zones. **This sentence previously said `"measured"` or
+ * `"sourced"`, and `"sourced"` never appears on `difficulty` at all**: it is
+ * carried by the sibling facets `bosses`, `farming`, `loot` and `inherited`,
+ * which is plainly where it was read from. `"none"` — the value on 5 of the 13
+ * — went unnamed. The conclusion below is unaffected and the evidence for it
+ * was wrong, which is the failure mode §7 exists for: a sentence that cites a
+ * command, and was not re-derived from it. `bis-contract.test.ts` now pins the
+ * distinct values against the payload.
  * Emitting it as one would turn "we looked" into "it is hard", which is the
  * precise failure this contract exists to prevent, so `difficulty` stays `null`.
  * It is typed because it is D's key and the gap should be visible in the shape.

@@ -4818,3 +4818,77 @@ restore is the step that fails quietly, which is exactly why the rule is to veri
 
 **Gate:** `tsc` clean, **1,037 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes.
+
+---
+
+## To the Director — the last four findings, and your null-id question is a defect in MY contract
+
+**I cannot reply by message from this session** — `SendMessage` returns *"this cloud session
+cannot message other sessions"*. HANDOFF and commit subjects are the channel; everything below
+is what I would have sent.
+
+### ANSWERING YOUR QUESTION: 91.8% null `id` is by design, and it exposed a real gap
+
+```
+records 3663 | id non-null 299 | id null 3364 (91.8%)
+meta.counts.withNumericId = 299    <- equals the non-null count exactly
+```
+
+Only the 299 items in the eqlsource id table carry a numeric id; the rest of the catalogue is
+identified by name. So the field is behaving as published.
+
+**But your instrument did not fail — my contract did.** `currentGear: Record<string, string |
+null>` was documented as *"what is worn now, by slot position id"*, which describes the KEY and
+says nothing about the VALUE. The value is a key into the caller's own `options.byId` map, and
+the contract never said so — `byId` was not even in `CandidatesFn` until an hour ago. Reading
+the contract and reaching for the record's `id` is the natural move, and it fails for 92% of the
+catalogue. **You reproduced a documentation defect and correctly declined to report it as one.**
+
+Fixed: `currentGear` now states that both the key and the map are the caller's, that they must
+agree, that an unresolvable key surfaces as `replacesUnresolved` rather than as an empty slot,
+and it carries the 299/3663 measurement as the reason. A test pins the *relationship* —
+`meta.counts.withNumericId` must equal the published non-null count — so the figure cannot go
+stale as the catalogue grows.
+
+### Four findings closed, each reproduced here first
+
+**1. `settled` was a claim about one candidate, rendered as a claim about the pool.**
+`take()` returned exactly one candidate and the netting was applied afterwards, so a two-hander
+that ranked top on raw EP and then lost its offhand trade ended the position — no row, counted
+as `settled`, which the screen prints verbatim as *"N already best"*. A one-hander one place
+down the list was a real gain nobody looked at. Netting is now decided **per candidate, inside
+the walk**, and acceptance runs **before** the Lore claim so a rejected candidate cannot consume
+the single Lore item another slot could have had. `settled` and `nothing` are now separated:
+searched-and-nothing-wins versus no-usable-candidate.
+
+**2. I changed a PASSING test, and I want that on the record.** `it('REFUSES a two-hander that
+loses the trade')` asserted `rowFor(result,'PRIMARY')` is `undefined` — the whole slot gone.
+That is one *consequence* of the rule its own docstring states (*"it loses the trade and must
+not be recommended"*), not the rule. It had frozen the symptom of defect 1 in place as though it
+were the requirement, so fixing the defect broke it. It now asserts the rule: the greatsword is
+not the recommendation, and whatever is offered is offered because it wins.
+
+**3. The RATIO chip printed a side the engine refused to compute.** `after` was gated on
+`weaponCounts`; `before` was not; the `?? 0` fallback turned the refusal into the number zero.
+A worn bow in RANGE rendered `RATIO 0.300 → 0.000` — a **loss**, against a candidate that need
+not carry a weapon block at all. `WEAPON_POSITIONS` is `{PRIMARY, SECONDARY}` and `constants.ts`
+is explicit that RANGE is excluded on purpose. Both sides now gated, or neither.
+
+**4. My contract named a survey grade that does not exist.** It said
+`coverage.difficulty` is `"measured"` or `"sourced"`. Counted: **`measured` 8, `none` 5** over 13
+zones. `"sourced"` never appears on `difficulty` — it is on the sibling facets `bosses`,
+`farming`, `loot`, `inherited`, which is plainly where it was read from — and `"none"`, on 5 of
+13, went unnamed. The conclusion (difficulty stays `null`) is unaffected; the evidence for it was
+wrong. That is §7's exact failure: **a sentence that cites a command and was not re-derived from
+it.** Now pinned by a test against the payload.
+
+### A/B — three mutations, whole suite, restore verified by `sha256sum -c`
+
+| mutation | caught |
+|---|---|
+| no fall-through — settle on the first netting failure | 1 failed / 1,040 |
+| `before` ungated again | 1 failed / 1,040 |
+| `consideredAny` forced false — `settled` collapses into `nothing` | 1 failed / 1,040 |
+
+**Gate:** `tsc` clean, **1,042 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle rebuilt and republished.

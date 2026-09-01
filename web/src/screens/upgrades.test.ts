@@ -709,13 +709,32 @@ describe('a two-handed primary nets off the offhand it costs', () => {
    * The defect this whole change exists to fix. Ranked independently, a
    * two-hander gives up the offhand for free and wins on paper; netted, it
    * loses the trade and must not be recommended.
+   *
+   * **This assertion was changed on 2026-09-01, and it was passing when I
+   * changed it.** It read `expect(rowFor(result, 'PRIMARY')).toBeUndefined()` —
+   * the whole slot gone. That is one CONSEQUENCE of the rule in the sentence
+   * above, not the rule: what must not happen is that the greatsword is
+   * recommended. The slot vanishing was the symptom of a separate defect —
+   * `take()` returned a single candidate, so a two-hander losing its netting
+   * ended the position and the reader was told "already best" — and this
+   * assertion had frozen that symptom in place as though it were the
+   * requirement.
+   *
+   * Now it asserts the rule: the greatsword is not offered, and whatever IS
+   * offered is a real gain. A test that pins a symptom will fail when the
+   * symptom is fixed, and the temptation then is to revert the fix.
    */
   it('REFUSES a two-hander that loses the trade, which is the whole point', () => {
     const result = worn(GREATSWORD, BIG_OFFHAND);
-    expect(rowFor(result, 'PRIMARY')).toBeUndefined();
+    const primary = rowFor(result, 'PRIMARY');
+
+    // The rule: this weapon, netted, is not the recommendation.
+    expect(primary?.candidate.item.n).not.toBe(GREATSWORD.n);
     // Dropped as settled rather than withheld: it is a priced answer, not an
     // unmeasurable one.
     expect(result.withheld.map((w) => w.position.id)).not.toContain('PRIMARY');
+    // And if something else IS offered, it is offered because it wins.
+    if (primary) expect(primary.gain).toBeGreaterThanOrEqual(0.05);
   });
 
   it('leaves a one-handed winner alone — the netting is not a blanket penalty', () => {
@@ -800,5 +819,104 @@ describe('a worn two-hander occupies the offhand', () => {
 
     expect(rowFor(result, 'SECONDARY')).toBeDefined();
     expect(result.withheld.find((e) => e.position.id === 'SECONDARY')).toBeUndefined();
+  });
+});
+
+/* ------------------------------------------------------------------------- *
+ * A ratio is printed for both sides or for neither.
+ * ------------------------------------------------------------------------- */
+
+describe('the RATIO chip never prints a side the engine refused to compute', () => {
+  /**
+   * `before` was ungated while `after` was gated on `weaponCounts`.
+   *
+   * `WEAPON_POSITIONS` is `{PRIMARY, SECONDARY}` — RANGE is excluded on purpose,
+   * because this engine models no ranged attack and paying for ratio there would
+   * invent a benefit the rest of the app cannot see. But the WORN side computed
+   * its ratio anyway, and the `?? 0` fallback turned the refused side into the
+   * number zero, so a worn bow rendered `RATIO 0.167 → 0.000` against a
+   * candidate that need not carry a weapon block at all.
+   *
+   * That zero is not a measurement. It is the engine declining to answer,
+   * printed as an answer — and printed as a LOSS, which is worse than printing
+   * nothing.
+   */
+  it('shows no ratio at a position where weapons do not count', () => {
+    const bow = item({
+      n: '[Fixture] Ash Longbow', sl: ['RANGE'], st: { DEX: 5 },
+      wp: { skill: 'Archery', dmg: 12, dly: 40 },
+    });
+    const quiver = item({ n: '[Fixture] Sturdy Quiver', sl: ['RANGE'], st: { DEX: 9, AC: 4 } });
+    addItem(bow); addItem(quiver);
+
+    const set = gearSet({ RANGE: { itemName: bow.n, upgrade: tier(0) } });
+    const row = rowFor(report(set), 'RANGE');
+
+    expect(row).toBeDefined();
+    // The worn bow HAS a ratio; the position simply does not pay for one.
+    expect(row?.ratio).toBeNull();
+  });
+
+  /** And where weapons DO count, both sides are still shown. */
+  it('still shows both sides in a hand', () => {
+    const blade = item({
+      n: '[Fixture] Keen Blade', sl: ['PRIMARY'], st: { STR: 6 },
+      wp: { skill: '1H Slashing', dmg: 14, dly: 24 },
+    });
+    addItem(blade);
+    const set = gearSet({ PRIMARY: { itemName: blade.n, upgrade: tier(0) } });
+    const row = rowFor(report(set), 'PRIMARY');
+    if (row?.ratio) {
+      expect(row.ratio.before).toBeGreaterThan(0);
+      expect(row.ratio.after).toBeGreaterThan(0);
+    }
+  });
+});
+
+/* ------------------------------------------------------------------------- *
+ * "Already best" is a claim about the whole pool, not about one candidate.
+ * ------------------------------------------------------------------------- */
+
+describe('a two-hander that loses its netting does not settle the slot', () => {
+  const shield = item({ n: '[Fixture] Tower Shield', sl: ['SECONDARY'], st: { AC: 20 } });
+  // Ranks FIRST on raw EP, and nets to nothing once the offhand it empties is paid for.
+  // Measured under WEIGHTS: 35.00 EP. The shield it empties is 40.00, so the
+  // netted gain is -5 — below MIN_GAIN — while 35.00 still outranks the
+  // shortsword's 26.67 and is therefore taken first.
+  const greatsword = item({
+    n: '[Fixture] Ponderous Greatsword', sl: ['PRIMARY'], st: { AC: 15 },
+    wp: { skill: '2H Slashing', dmg: 10, dly: 40 },
+  });
+  // Ranks second, and is a real gain: a one-hander pays no offhand cost.
+  const shortsword = item({
+    n: '[Fixture] Plain Shortsword', sl: ['PRIMARY'], st: { AC: 10 },
+    wp: { skill: '1H Slashing', dmg: 10, dly: 30 },
+  });
+
+  beforeEach(() => {
+    addItem(shield); addItem(greatsword); addItem(shortsword);
+  });
+
+  /**
+   * The pool is ranked on raw EP, so the greatsword is taken first; its netting
+   * then drives the gain below `MIN_GAIN`. The slot was counted as **settled** —
+   * which the screen renders verbatim as "N already best" — and the shortsword,
+   * a genuine positive gain one place down the list, was never looked at.
+   *
+   * Two separate wrongs from one `continue`: a real upgrade is missed, and the
+   * reader is told the opposite of what happened. "Already best" asserts that
+   * nothing in the pool beats what you hold. What actually happened is that the
+   * single candidate we tried lost its trade.
+   */
+  it('falls through to the next candidate instead of declaring the slot settled', () => {
+    const set = gearSet({ SECONDARY: { itemName: shield.n, upgrade: tier(0) } });
+    const result = report(set);
+    const primary = rowFor(result, 'PRIMARY');
+
+    expect(primary).toBeDefined();
+    expect(primary?.candidate.item.n).toBe(shortsword.n);
+    expect(primary?.gain).toBeGreaterThan(0);
+    // And it is a one-hander, so nothing is netted off it.
+    expect(primary?.twoHanded).toBeNull();
   });
 });

@@ -84,3 +84,52 @@ describe('the published artifacts describe themselves accurately', () => {
       .toHaveLength(manifest.catalogue.records);
   });
 });
+
+/**
+ * The contract's prose about the payload, checked against the payload.
+ *
+ * `Obtainable.difficulty`'s doc names the survey grades it read, and named one
+ * that does not exist on that field while missing one that does. Prose citing a
+ * command is not evidence that the command was re-run; this is.
+ */
+describe('the difficulty grades the contract describes', () => {
+  const meta = JSON.parse(readFileSync('public/data/meta.json', 'utf8')) as {
+    zones?: { surveyed?: { coverage?: Record<string, string> }[] };
+  };
+
+  it('is exactly the set the contract names, counted from the payload', () => {
+    const surveyed = meta.zones?.surveyed ?? [];
+    expect(surveyed.length).toBeGreaterThan(0);
+    const tally: Record<string, number> = {};
+    for (const zone of surveyed) {
+      const grade = zone.coverage?.difficulty ?? '(absent)';
+      tally[grade] = (tally[grade] ?? 0) + 1;
+    }
+    // The values the contract's comment now states.
+    expect(Object.keys(tally).sort()).toEqual(['measured', 'none']);
+    // And `sourced` is a sibling-facet value, never a difficulty one.
+    expect(tally.sourced).toBeUndefined();
+  });
+});
+
+/**
+ * The `id` field is mostly null, on purpose, and the contract says so with a
+ * figure. This pins the RELATIONSHIP rather than the figure, so it stays true
+ * as the catalogue grows: whatever `meta.counts.withNumericId` says must be
+ * exactly the number of published records carrying an id.
+ */
+describe('why currentGear cannot be keyed on the catalogue id', () => {
+  it('publishes the id count it claims, and it is a small minority', () => {
+    const meta = JSON.parse(readFileSync('public/data/meta.json', 'utf8')) as {
+      counts?: { withNumericId?: number };
+    };
+    const records = (JSON.parse(readFileSync('public/bis/bis-catalog.json', 'utf8')) as {
+      records: { id?: string | number | null }[];
+    }).records;
+
+    const withId = records.filter((r) => r.id != null).length;
+    expect(withId).toBe(meta.counts?.withNumericId);
+    // The premise of the contract's warning: most records have no id at all.
+    expect(withId).toBeLessThan(records.length / 2);
+  });
+});
