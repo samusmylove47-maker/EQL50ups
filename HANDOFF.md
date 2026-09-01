@@ -6859,3 +6859,51 @@ was not a mid-deploy artefact.
 
 **Gate:** tsc clean · vitest **1,108** / 71 files · playwright **151 / 0** · `build.mjs` 0 ·
 `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+### `F19` CLOSED — and the real defect was in the shipped payload, not the front page
+
+The finding said the product shot's stats had drifted. **They had not: every stat, the weapon block
+and the class list match the shipped record exactly.** The drift was in the sourcing, which is worse,
+because provenance is what this tool is judged on.
+
+- `ex: 'live-export'` where the record holds **`'measured-drop'`** — so the eyebrow read *"Tier M ·
+  held in a live inventory"* against the record's *"Tier M · seen dropping in game"*. The front page
+  was **understating evidence the payload holds**: an `ms` block recording Master Yael, 4 sightings
+  over 4 sessions, 10–11 Aug 2026. A reader hovering Earthshaker anywhere else saw a different
+  provenance line for the same item.
+- `fx` missing, so the Effects group — proc Earthquake — was absent from a window described as
+  reproducing the client's.
+
+**And chasing it found something worse in the published payload.** `pipeline/build.mjs:485` shipped
+this as Earthshaker's Tier M citation:
+
+```
+  … Base Dmg 74, Delay 70, Ratio 1.057, Strength 16, Stamina 16, SV Void 10.
+    Nine of nine predictions exact.
+```
+
+**Six fields enumerated, nine claimed, against a table holding seven MATCH rows.** Three numbers for
+one result, in the payload, on the flagship item. `Dmg Bon 50` was the field left out. Corrected to
+seven of seven with the full list, and the payload regenerated.
+
+**A near-miss worth recording: I nearly concluded my own morning fix was wrong.** §1 of the record
+holds TWO tables — Whitened Treant Fists (4 MATCH) and Earthshaker (7) — so **11 MATCH verdicts**,
+while its heading says *"9 of 9"*. Before touching anything I read §1 in full and found the Landing
+sentence is about the Earthshaker window specifically and enumerates exactly its seven fields, so
+this morning's *"seven of seven"* was right. Counting one table and stopping would have had me
+reverting a correct fix.
+
+**Open, and not mine to edit:** the record's own §1 heading reconciles with neither of its tables —
+9 against 11. It is the source other sessions cite, so it is reported rather than changed.
+
+**A second test caught pinning the stale count.** `source-standing.test.ts` asserted the citation
+contained *"Nine of nine predictions exact"* — so it passed for exactly as long as the payload was
+wrong, and failed the moment it was corrected. That is the **second** test here found pinning this
+same figure. Both now derive it from the record's table.
+
+Guard demonstrated: reverting `ex` to `live-export` fails **two** tests — the new one and
+`source-standing.test.ts`, which I had not written and which independently confirms the direction.
+Restored byte-identical.
+
+**Gate:** tsc clean · vitest **1,113** / 72 files · playwright **151 / 0** · `build.mjs` 0 ·
+`verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.

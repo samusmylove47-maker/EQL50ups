@@ -84,6 +84,7 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F31` — items-index.json ships no required-level field, so the level gate and  | **HOLDS**, measured | `VERIFIED-OPEN-FINDINGS.md` |
 | `F05` — a stale withheld entry withheld a position now holding a real item | **closed** on both surfaces | guarded in `upgrades-avenrae.test.ts` + `screens.test.tsx` |
 | `F22` — the picker's EP column and its "vs worn" chip contradicted each other | **closed** | guarded in `picker-rerank.test.tsx` |
+| `F19` — the front page understated its own provenance, and the payload's citation counted three ways | **closed** | guarded in `landing-sample.test.ts` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched

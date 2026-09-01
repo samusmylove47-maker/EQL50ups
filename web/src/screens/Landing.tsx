@@ -70,12 +70,29 @@ const SAMPLE: Item = {
   st: { STR: 6, STA: 6, DEX: -5 },
   sv: {},
   wp: { dmg: 37, dly: 70, skill: '2H Slashing' },
-  fl: ['MAGIC', 'LORE'],
+  fl: ['LORE', 'MAGIC'],
   wt: 16,
   sz: 'GIANT',
   era: 'Classic',
   av: true,
-  ex: 'live-export',
+  /*
+   * `measured-drop`, not `live-export` — the stronger of the two, and the one
+   * the payload actually holds.
+   *
+   * This shot is described on the page as a copy of the shipped record, and it
+   * had drifted: every STAT in it matches exactly, but the existence eyebrow
+   * rendered "Tier M · held in a live inventory" where the record renders
+   * "Tier M · seen dropping in game". The payload carries `ex: 'measured-drop'`
+   * with an `ms` block recording Master Yael, seen 4 times over 4 sessions,
+   * 10–11 Aug 2026 — so the front page was UNDERSTATING evidence we hold, on
+   * the one claim this project is judged by, and a reader who hovered
+   * Earthshaker anywhere else in the app saw a different provenance line for
+   * the same item. `landing-sample.test.ts` now derives this from the record.
+   */
+  ex: 'measured-drop',
+  // `lv` is in the shipped record's JSON and absent from `ItemEffect`, so the
+  // app never renders it; the shot carries what the type models.
+  fx: [{ k: 'proc', n: 'Earthquake', d: 'Combat, Casting Time: Instant' }],
   sd: 'tier-M',
   vf: ['DLY', 'DMG', 'STA', 'STR'],
   sdc:
@@ -83,6 +100,9 @@ const SAMPLE: Item = {
     'Ratio 1.057, Dmg Bon 50, Strength 16, Stamina 16, SV Void 10. Seven of seven predictions ' +
     'exact.',
 };
+
+/** Exported for `landing-sample.test.ts`, which holds it against the shipped record. */
+export const SAMPLE_FOR_TEST: Item = SAMPLE;
 
 export function Landing() {
   const characters = useApp((s) => s.characters);

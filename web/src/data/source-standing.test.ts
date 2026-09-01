@@ -225,8 +225,20 @@ describe.skipIf(!published)('the two items the inverted mark was measured on', (
   });
 
   /*
-   * Earthshaker: nine of nine predictions exact against a live client window,
-   * and until now the app said nothing about it at all.
+   * Earthshaker: every prediction exact against a live client window, and until
+   * now the app said nothing about it at all.
+   *
+   * **This comment and the assertion below both said "nine of nine", and both
+   * were wrong.** The record's Earthshaker table holds SEVEN MATCH rows; the
+   * shipped citation enumerated SIX fields and claimed NINE. Three numbers for
+   * one result, and this test pinned the worst of them — so it passed for as
+   * long as the payload stayed wrong and would have failed the moment it was
+   * corrected. That is the second test in this repository found pinning a
+   * stale count in a citation; the first was `sources.test.tsx` on the same
+   * figure.
+   *
+   * The count is DERIVED from the record's own table now, so correcting the
+   * payload cannot break it and drifting the payload cannot hide.
    */
   it('Earthshaker carries the mark its evidence earned', () => {
     const earthshaker = get('Earthshaker');
@@ -239,7 +251,16 @@ describe.skipIf(!published)('the two items the inverted mark was measured on', (
     expect(sourceStanding(earthshaker).label).toBe('Tier M · stats read off the client');
     expect(sourceStanding(earthshaker).band).toBe('trusted');
     expect(existenceMark(earthshaker)?.label).toBe('Tier M · seen dropping in game');
-    expect(sourceStanding(earthshaker).citation).toContain('Nine of nine predictions exact');
+    const record = readFileSync('../research/validation/TIER0-VALIDATION.md', 'utf8');
+    const table = record.slice(record.indexOf('### Earthshaker'));
+    const matches = table.slice(0, table.indexOf('\n\n')).split('\n')
+      .filter((l) => l.startsWith('|') && !l.startsWith('| Field') && !l.startsWith('|---'))
+      .filter((l) => l.includes('MATCH')).length;
+    expect(matches, 'the record must still hold that table').toBeGreaterThan(0);
+    const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+    const word = WORDS[matches] as string;
+    expect(sourceStanding(earthshaker).citation)
+      .toContain(`${word.charAt(0).toUpperCase()}${word.slice(1)} of ${word} predictions exact`);
   });
 });
 

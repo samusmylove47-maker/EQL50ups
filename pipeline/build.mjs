@@ -480,9 +480,25 @@ const TIER0_STATS_VERIFIED = [
     n: 'Earthshaker',
     wp: { dmg: 37, dly: 70 },
     st: { STR: 6, STA: 6 },
+    /*
+     * The count and the list must both match the record's Earthshaker table.
+     *
+     * This shipped as "Base Dmg 74, Delay 70, Ratio 1.057, Strength 16,
+     * Stamina 16, SV Void 10. Nine of nine predictions exact." — SIX fields
+     * enumerated, NINE claimed, against a table holding SEVEN MATCH rows. Three
+     * different numbers for one result, in `sd`'s citation on the flagship
+     * Tier M item, in the published payload.
+     *
+     * `Dmg Bon 50` was the field left out. The record's §1 heading says "9 of 9"
+     * and its two tables — Whitened Treant Fists 4, Earthshaker 7 — hold 11
+     * MATCH verdicts between them, so that heading reconciles with neither; it
+     * is flagged in HANDOFF.md rather than edited here, because it is the
+     * source other sessions cite.
+     */
     cite:
       'TIER0-VALIDATION.md §1: observed in a live client window at +10 — Base Dmg 74, Delay 70, ' +
-      'Ratio 1.057, Strength 16, Stamina 16, SV Void 10. Nine of nine predictions exact.',
+      'Ratio 1.057, Dmg Bon 50, Strength 16, Stamina 16, SV Void 10. ' +
+      'Seven of seven predictions exact.',
   },
   {
     n: 'Whitened Treant Fists',
