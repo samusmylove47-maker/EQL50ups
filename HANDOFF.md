@@ -4892,3 +4892,59 @@ it.** Now pinned by a test against the payload.
 
 **Gate:** `tsc` clean, **1,042 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes, bundle rebuilt and republished.
+
+---
+
+## To the Director — backlog closed: 13 of 13, and the last one had an unguarded half
+
+**All 13 surviving BIS-audit findings are now reproduced and closed.** The last one had two
+halves that needed different answers, and my first fix only guarded one.
+
+### An offhand we cannot price is not an offhand that costs nothing
+
+`twoHandedCost` bailed to `null` whenever `view.item` was undefined — which covers **two
+different hands**. Empty costs nothing and that zero is measured. **Unresolved means something
+IS in that hand and nobody knows what it is worth**, and `gain` then subtracted `?? 0`,
+asserting a cost of zero with no note on the row. That is `worn-unresolved`'s fabrication one
+slot over, and R98's shape: a confident number standing in for an absent one.
+
+Now separated. An unpriceable offhand makes a two-handed candidate **rejected rather than
+netted** — reusing the per-candidate walk from the previous fix, so a one-hander further down
+the list is unaffected and still ranked. If nothing survives, the position is **withheld with
+`offhand-unpriceable`** and a sentence saying so, rather than counted as "already best".
+
+### The half I nearly shipped untested
+
+The same function did `if (!offhandEp) return null` — a worn offhand scoring zero dropped the
+row's TWO-HANDED note entirely, so the reader was never told their offhand empties. The
+arithmetic was never wrong; the disclosure was missing.
+
+**My A/B caught that my fix for it was unguarded:** reverting that line left **all 1,044 tests
+green**. So I wrote the test before shipping it, and re-ran the same mutation — 1 failed / 1,045.
+Without the A/B I would have shipped a behaviour change with nothing holding it in place, which
+is the shape of half the defects I have closed tonight.
+
+### A/B
+
+| mutation | result |
+|---|---|
+| unresolved offhand treated as empty again | 1 failed / 1,044 |
+| zero-EP offhand drops its note again — **before** the test existed | **0 failed — unguarded** |
+| the same, after the test | 1 failed / 1,045 |
+
+### And the restore failed silently. Again.
+
+My mutation harness fell back to `git checkout -- <file>` — which **succeeded**, and therefore
+reverted the file to HEAD, discarding the uncommitted fix I was A/B-ing. `grep -c unpriceable`
+went 7 → 0. The only thing that said so was `sha256sum -c`.
+
+**That is the second time tonight the restore step failed quietly and the hash was the only
+witness** — the first was a `cd` changing what a relative path meant. Two different mechanisms,
+one lesson, and it is now the strongest-evidenced rule I have: *the restore is the step that
+fails, `git checkout` is not a restore when the file has uncommitted work, and the hash is not
+ceremony.*
+
+**Gate:** `tsc` clean, **1,045 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle rebuilt at `VITE_BASE=/EQL50ups/`.
+
+**Deploy verified from the bytes:** the live manifest serves `contractSha256_8: e1025f91`.

@@ -920,3 +920,76 @@ describe('a two-hander that loses its netting does not settle the slot', () => {
     expect(primary?.twoHanded).toBeNull();
   });
 });
+
+/* ------------------------------------------------------------------------- *
+ * An offhand we cannot price is not an offhand that costs nothing.
+ * ------------------------------------------------------------------------- */
+
+describe('a two-hander is not netted against an unpriceable offhand', () => {
+  const TWO_H = item({
+    n: '[Fixture] Great Cleaver', sl: ['PRIMARY'], st: { AC: 40, STR: 20 },
+    wp: { skill: '2H Slashing', dmg: 40, dly: 25 },
+  });
+
+  /**
+   * `twoHandedCost` bailed to `null` whenever `view.item` was undefined, which
+   * covers TWO different states: the slot is genuinely empty, and the worn item
+   * is not in this catalogue. Empty costs nothing and that zero is measured.
+   * **Unresolved means something IS in that hand and nobody knows what it is
+   * worth** — and `gain` then subtracted `?? 0`, asserting a cost of zero and
+   * printing no note at all.
+   *
+   * That is the fabrication `worn-unresolved` exists to prevent, one slot over.
+   */
+  it('does not price a two-hander against a worn offhand it cannot resolve', () => {
+    addItem(TWO_H);
+    const set = gearSet({
+      SECONDARY: { itemName: 'Item That Does Not Exist', upgrade: tier(0) },
+    });
+    const result = report(set);
+    const primary = rowFor(result, 'PRIMARY');
+
+    // Either the two-hander is not the recommendation, or if it is, the row
+    // must not claim the offhand was free.
+    if (primary && isTwoHanded(primary.candidate.item)) {
+      throw new Error('a two-hander was priced against an unresolvable offhand');
+    }
+  });
+
+  /** An EMPTY offhand still costs nothing, and that zero is measured. */
+  it('still costs nothing against a genuinely empty offhand', () => {
+    addItem(TWO_H);
+    const primary = rowFor(report(gearSet()), 'PRIMARY');
+    expect(primary?.twoHanded).toBeNull();
+  });
+});
+
+describe('an offhand that scores nothing still gets its note', () => {
+  /**
+   * `twoHandedCost` used to `return null` when the worn offhand scored 0 EP.
+   * The subtraction is a no-op either way — but returning null also drops the
+   * row's TWO-HANDED note, so the reader is never told their offhand empties.
+   *
+   * The arithmetic was never wrong here; the disclosure was missing, and this
+   * screen's whole argument is that the reader is told what the trade is.
+   * Caught by an A/B: reverting the fix left all 1,044 tests green.
+   */
+  it('reports a measured zero rather than staying silent', () => {
+    // WIS is unweighted by WEIGHTS, so this offhand scores exactly 0.
+    const trinket = item({ n: '[Fixture] Dull Charm', sl: ['SECONDARY'], st: { WIS: 10 } });
+    const cleaver = item({
+      n: '[Fixture] Heavy Cleaver', sl: ['PRIMARY'], st: { AC: 40, STR: 20 },
+      wp: { skill: '2H Slashing', dmg: 40, dly: 25 },
+    });
+    addItem(trinket); addItem(cleaver);
+
+    const set = gearSet({ SECONDARY: { itemName: trinket.n, upgrade: tier(0) } });
+    const primary = rowFor(report(set), 'PRIMARY');
+
+    expect(primary?.candidate.item.n).toBe(cleaver.n);
+    // The note exists, and it states a cost of zero rather than being absent.
+    expect(primary?.twoHanded).not.toBeNull();
+    expect(primary?.twoHanded?.offhandEp).toBe(0);
+    expect(primary?.twoHanded?.offhandName).toBe(trinket.n);
+  });
+});

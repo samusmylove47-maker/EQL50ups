@@ -133,7 +133,8 @@ export interface UpgradeRow {
 
 /** Why a position was left out of the ranking rather than ranked at zero. */
 export type WithheldReason =
-  | 'worn-unstatted' | 'worn-unresolved' | 'profile-blind-to-weapons' | 'offhand-occupied';
+  | 'worn-unstatted' | 'worn-unresolved' | 'profile-blind-to-weapons' | 'offhand-occupied'
+  | 'offhand-unpriceable';
 
 /**
  * The reasons that hold a slot back **even when nothing is worn in it**.
@@ -152,6 +153,7 @@ export type WithheldReason =
 const WITHHELD_WITHOUT_WORN: ReadonlySet<WithheldReason> = new Set<WithheldReason>([
   'profile-blind-to-weapons',
   'offhand-occupied',
+  'offhand-unpriceable',
 ]);
 
 export interface WithheldRow {
@@ -361,18 +363,40 @@ function twoHandedCost(
   best: UpgradeCandidate,
   byPosition: Map<string, { view: SlotView; wornUpgrade: UpgradeState; wornName: string | undefined }>,
   weights: WeightProfile,
-): UpgradeRow['twoHanded'] {
+): UpgradeRow['twoHanded'] | 'unpriceable' {
   if (entry.position.id !== 'PRIMARY' || !isTwoHanded(best.item)) return null;
   const offhand = byPosition.get('SECONDARY');
-  const wornOffhand = offhand?.view.item;
-  if (!offhand || !wornOffhand) return null;
+  if (!offhand) return null;
+
+  /*
+   * EMPTY and UNRESOLVED are different hands, and one `!view.item` covered both.
+   *
+   * An empty offhand costs nothing and that zero is measured — there is nothing
+   * to give up. An unresolved one means something IS in that hand and this
+   * catalogue cannot say what it is worth. The old bail returned `null` for
+   * both, and `gain` then subtracted `?? 0`: a cost of zero asserted for an item
+   * nobody has priced, with no note on the row to say so.
+   *
+   * That is exactly the fabrication `worn-unresolved` exists to prevent, one
+   * slot over, and it is R98's shape — a confident number standing in for an
+   * absent one.
+   */
+  if (offhand.view.unresolved || (!offhand.view.item && offhand.wornName)) return 'unpriceable';
+
+  const wornOffhand = offhand.view.item;
+  if (!wornOffhand) return null; // genuinely empty: nothing is given up
 
   // Scored the same way the Secondary row scores it, so the number a reader
   // subtracts here is the number that row would have shown.
   const offhandEp = scoreItem(wornOffhand, offhand.wornUpgrade, weights, {
     weaponCounts: true,
   }).total;
-  if (!offhandEp) return null;
+  /*
+   * A ZERO IS STILL REPORTED. This used to `return null` when the offhand
+   * scored nothing, which is arithmetically harmless and silently drops the
+   * note — the reader is not told their offhand empties at all. The subtraction
+   * is a no-op; the disclosure is not.
+   */
 
   return {
     offhandName: offhand.wornName ?? wornOffhand.n,
@@ -573,9 +597,17 @@ export function* upgradeSteps(
     let twoHanded: UpgradeRow['twoHanded'] = null;
     let gain = 0;
     let consideredAny = false;
+    /** A two-hander was rejected because its offhand could not be priced. */
+    let blockedOnOffhand = false;
     const best = take(entry, (candidate) => {
       consideredAny = true;
       const netting = twoHandedCost(entry, candidate, byPosition, weights);
+      if (netting === 'unpriceable') {
+        // Reject rather than net against a zero nobody measured. A one-handed
+        // candidate further down the list pays no offhand cost and is unaffected.
+        blockedOnOffhand = true;
+        return false;
+      }
       const netGain = candidate.ep - entry.wornEp - (netting?.offhandEp ?? 0);
       if (netGain < MIN_GAIN) return false;
       twoHanded = netting;
@@ -601,7 +633,18 @@ export function* upgradeSteps(
        * was searched and nothing in it beats what you wear; `nothing` says the
        * pool held no usable candidate at all.
        */
-      if (consideredAny) settled += 1;
+      if (blockedOnOffhand) {
+        // Not "already best": every candidate we could price lost, and the ones
+        // we could not price were two-handers blocked by an unreadable offhand.
+        withheld.push({
+          position: entry.position,
+          reason: 'offhand-unpriceable',
+          wornName: entry.wornName ?? null,
+          wornUpgrade: entry.wornUpgrade,
+          candidate: null,
+          evidence: entry.view.item?.evidence,
+        });
+      } else if (consideredAny) settled += 1;
       else nothing.push(entry.position);
       continue;
     }
@@ -1359,6 +1402,8 @@ const WITHHELD_TEXT: Record<WithheldReason, string> = {
     'This item is not in the catalog this build shipped, so there is nothing to compare it with. It may be spelled differently on the wiki, or absent from it.',
   'profile-blind-to-weapons':
     'This profile weights no weapon term, so damage and delay would score nothing here and the slot would be ranked on its stat line alone — which puts a 1-damage baton above a 40-damage greatsword. Rather than invent a weapon weight nobody has measured, the slot is left unranked. Switch to Melee DPS or Balanced, which do weight weapon ratio.',
+  'offhand-unpriceable':
+    'A two-handed weapon here would empty your offhand, and the item in that offhand is not in the catalog this build shipped — so what you would be giving up cannot be measured. Rather than net against a zero nobody recorded, the two-handed options are left out. One-handed upgrades for this slot are unaffected and are still ranked.',
   'offhand-occupied':
     'The weapon in your Primary takes both hands, so there is no offhand to fill. Ranking one here would be advice you cannot act on. That a weapon is two-handed is read from its skill string, a wiki field — the payload records nothing about a weapon occupying both hands. Swap to a one-handed Primary and this slot ranks normally.',
 };
