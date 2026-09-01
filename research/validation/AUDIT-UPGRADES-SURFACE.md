@@ -85,6 +85,7 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F05` — a stale withheld entry withheld a position now holding a real item | **closed** on both surfaces | guarded in `upgrades-avenrae.test.ts` + `screens.test.tsx` |
 | `F22` — the picker's EP column and its "vs worn" chip contradicted each other | **closed** | guarded in `picker-rerank.test.tsx` |
 | `F19` — the front page understated its own provenance, and the payload's citation counted three ways | **closed** | guarded in `landing-sample.test.ts` |
+| `F27` — a good link, opened with no catalog, was blamed on the sender | **closed** | guarded in `shared-set-offline.test.tsx` + `codec.test.ts` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched
@@ -1492,6 +1493,49 @@ Corroborated at the codec level in src/share/audit-corrupt.test.ts:
 **Player impact.** The reader is told, in the app's own confident voice, that the sender's link is stale and to ask for a new one. The sender makes a new link and it fails identically, because the problem is on the reader's side and is transient. The one thing that would have helped — "the item catalog did not load; reload the page" — is never offered, and the app already knows it (`catalog.status === 'error'` is in scope three lines above the message).
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
+
+**CLOSED.** Fixed at the decoder, not at the screen, and the choice of layer is the whole point.
+
+*Why not read `catalog.status`.* The finding's own suggestion — the screen already has
+`catalog.status === 'error'` three lines above the message — would have been wrong in the other
+direction. `loadFixture()` leaves `status: 'ready'` with a dictionary of fixture names, which is a
+genuine different-build mismatch and must keep saying so; and `status` says nothing about whether
+the link interned any names at all. The decoder is the only place that knows both, so it now
+carries the reason forward: `haveCatalog` is false when no dictionary reached `decodeV2`, or when
+the one that did is empty (`web/src/share/codec.ts`, `decodeV2`), and `unresolved > 0` reports
+`catalog-unavailable` rather than `catalog-mismatch`. An empty dictionary counts as none because
+`encodePlan` will not intern against one either — `useDict = Boolean(dict && dict.names.length)` —
+so it is evidence of a catalog that has not arrived, not of a build that disagrees.
+
+*What the reader is now told.* A separate screen, not a variant sentence: "The item catalog did not
+load", and the one action that can work — **Try again**, which calls `catalog.load()` (a no-op only
+while `loading`/`ready`, so it really does re-fetch from `error` and `missing`). It also states
+that the link arrived intact, which is **checked rather than reassuring**: `decodePlanDetailed`
+reaches the v3 body decode only after `checksum16(body) === carried`, so nothing that reaches this
+branch has an unverified payload.
+
+*The verifier's added case is covered.* `status: 'missing'` — a 404, or a payload not yet published
+— takes the identical path through `decodeV2`, and the guard asserts both states, not just the
+failed fetch the finding named.
+
+Guards, and proof they fire. `web/src/screens/shared-set-offline.test.tsx` (5 tests) and one added
+case in `web/src/share/codec.test.ts`. Damaged twice with asserted anchors, each run against the
+**whole** suite:
+
+    $ node scratchpad/mutate-f27.mjs damage      # codec + screen together
+    $ cd web && npx vitest run
+      Test Files  2 failed | 71 passed (73)
+           Tests  3 failed | 1117 passed (1120)
+
+    $ # screen label alone, to prove that guard is not riding on the codec's
+    $ cd web && npx vitest run
+      Test Files  1 failed | 72 passed (73)
+           Tests  2 failed | 1118 passed (1120)
+
+Restored and verified byte-identical by `sha256sum -c` on both files after each pass. Three control
+cases were green before the fix and stayed green: a loaded catalog that disagrees still says
+"different build … ask for a fresh link", a still-loading catalog still waits without accusing
+anyone, and a literal link still opens with no catalog at all.
 
 ### F28. Race unset skips the race gate entirely, so "Usable by this loadout" prints over items the character's race cannot wear
 

@@ -300,7 +300,13 @@ export type DecodeFailure =
    */
   | 'unverifiable'
   /** The link interned its item names against a catalog build we do not have. */
-  | 'catalog-mismatch';
+  | 'catalog-mismatch'
+  /**
+   * The link interned its item names and **no** catalog is in hand to look them
+   * up in. Distinct from `catalog-mismatch`, which says a catalog is loaded and
+   * disagrees: this one says nothing about the link, only about this browser.
+   */
+  | 'catalog-unavailable';
 
 export interface DecodeResult {
   plan: SharedPlan | null;
@@ -341,10 +347,30 @@ function decodeV2(bytes: Uint8Array, dict: ShareDictionary | undefined): DecodeR
   const flags = r.u8();
   const usesDict = (flags & FLAG_DICTIONARY) !== 0;
 
+  /*
+   * Why the *reason* the dictionary is unusable is carried forward.
+   *
+   * Both of these end with names that cannot be resolved, and both used to
+   * report `catalog-mismatch` — an accusation against the link:
+   *
+   *   - a catalog is loaded and its fingerprint differs. The link really was
+   *     written against another build; a fresh one from the sender fixes it.
+   *   - no catalog is loaded at all. The link may be perfect. The reader is
+   *     offline, or the payload 404s, or it has not been published yet. A fresh
+   *     link would be interned against the same catalog this reader cannot
+   *     fetch and would fail identically, so sending them back to the sender is
+   *     advice that cannot work.
+   *
+   * An empty dictionary is counted as none: `encodePlan` will not intern
+   * against one either (`useDict` requires `names.length`), so it is evidence
+   * of a catalog that has not arrived, not of a build that disagrees.
+   */
   let available = dict;
+  let haveCatalog = true;
   if (usesDict) {
     const key = (r.u8() << 16) | (r.u8() << 8) | r.u8();
-    if (!dict || dict.key !== key) available = undefined;
+    haveCatalog = Boolean(dict && dict.names.length);
+    if (!haveCatalog || !dict || dict.key !== key) available = undefined;
   }
 
   const name = r.str();
@@ -414,8 +440,11 @@ function decodeV2(bytes: Uint8Array, dict: ShareDictionary | undefined): DecodeR
 
   // Item names that the link interned but this build cannot look up would come
   // back as holes. Refusing beats handing someone a set with items missing and
-  // no sign that anything was lost.
-  if (unresolved > 0) return { plan: null, failure: 'catalog-mismatch' };
+  // no sign that anything was lost — but the refusal has to name the right
+  // cause, because the two causes call for opposite actions from the reader.
+  if (unresolved > 0) {
+    return { plan: null, failure: haveCatalog ? 'catalog-mismatch' : 'catalog-unavailable' };
+  }
 
   const plan: SharedPlan = {
     character: {

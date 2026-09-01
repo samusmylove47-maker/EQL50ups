@@ -587,6 +587,8 @@ Tree left clean: `rm web/src/components/f22probe.test.tsx` then `git status --po
 
 **Smallest fix.** In web/src/screens/SharedSet.tsx only: when `result.failure === 'catalog-mismatch'` and `catalog.status` is 'error' or 'missing', say the item catalog could not be loaded and that the link has not been read yet (offer a reload), instead of blaming the link's provenance. That is a branch on state SharedSet already reads at line 47 — one component, prose plus a condition. It touches no ranking behaviour, no share wire format, no persisted state, and nothing in web/public/data/.
 
+> **Closed, but not by this fix.** Branching on `catalog.status` is wrong in the other direction: `loadFixture()` leaves `status: 'ready'` holding fixture names, which is a real different-build mismatch and must keep saying so, and `status` cannot tell whether the link interned any names at all. The decoder is the only place that knows both, so it carries the reason forward instead — a new `catalog-unavailable` failure, distinct from `catalog-mismatch`. See the CLOSED note under F27 in `AUDIT-UPGRADES-SURFACE.md`.
+
 <details><summary>Commands run, and what they returned</summary>
 
 ```

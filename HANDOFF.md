@@ -7042,3 +7042,48 @@ reader-facing falsehoods, neither touching ranking or a persisted shape.
 - **`F08`** `Upgrades.tsx` — *"Nothing outranks what you are wearing"* headlining a ranking where
   nothing is worn and nothing was scored. The verifier corrected the finding's location: `:1781` is
   the "No set to rank" branch, not the headline.
+
+## `F27` CLOSED — a good link, opened with no catalogue, no longer blamed on the sender
+
+The share link is the product's centrepiece, so the one screen that reads a link had to be right
+about *whose* fault a failure is. It was not.
+
+**The mechanism, read rather than assumed.** `shareDictionary` returns `undefined` when
+`catalog.indexNames` is empty. `decodeV2` then dropped `available` and every interned name resolved
+to `null`, so `unresolved > 0` and the decode reported `catalog-mismatch` — an accusation against
+the link. `SharedSet` treats only `idle`/`loading` as not-yet-loaded, so `error` **and** `missing`
+fell through to the one string that branch can print: *"made against a different build of the item
+catalog … Ask for a fresh link."* A fresh link would be interned against the same catalogue the
+reader still cannot fetch, and would fail identically. The `DataBanner` directly above was at that
+moment saying the item data failed to load — so the page contradicted itself.
+
+**I did not take the fix the verifier proposed, and the reason is the interesting part.** Its
+"smallest fix" was to branch on `catalog.status` inside the screen. That is wrong in the other
+direction: `loadFixture()` leaves `status: 'ready'` holding fixture names, which is a genuine
+different-build mismatch and must keep saying so, and `status` cannot tell whether the link interned
+any names at all. Only the decoder knows both. So the decoder carries the reason forward —
+`haveCatalog` is false when no dictionary reached `decodeV2` or the one that did is empty, and the
+refusal is `catalog-unavailable` rather than `catalog-mismatch`. An empty dictionary counts as none
+because `encodePlan` will not intern against one either (`useDict` requires `names.length`).
+
+**What the reader gets instead** is a separate screen — "The item catalog did not load" — and the
+one action that can work, **Try again**, calling `catalog.load()`. It also says the link arrived
+intact, and that is **checked, not reassuring**: `decodePlanDetailed` reaches the v3 body decode only
+after `checksum16(body) === carried`, so nothing reaching this branch has an unverified payload.
+
+**Guards, and proof they fire.** `shared-set-offline.test.tsx` (5 tests) plus one case in
+`codec.test.ts`. Damaged twice with asserted anchors, each against the **whole** suite: both together
+gave `3 failed | 1117 passed (1120)`; the screen label alone gave `2 failed | 1118 passed (1120)`,
+which is what shows the screen guard is not merely riding on the codec's. Restored and verified
+byte-identical by `sha256sum -c` after each pass. Three control cases were green before the fix and
+stayed green: a loaded catalogue that disagrees still says "ask for a fresh link", a loading
+catalogue still waits without accusing anyone, and a literal link still opens with no catalogue at
+all. The verifier's added case — `status: 'missing'` — is asserted alongside `error`, not assumed
+equivalent.
+
+Gate: `tsc` clean · vitest **1,120 passed / 73 files** · playwright **151 passed** · `build.mjs` 0 ·
+`verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED. Payload regenerated and committed;
+its only diff is the two build timestamps and `sourceLines 34239 -> 34307`, which moved because I
+added source lines.
+
+**Next: `F08`**, as declared.

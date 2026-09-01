@@ -53,6 +53,45 @@ export function SharedSet({ payload }: { payload: string }) {
         </div>
       );
     }
+
+    /*
+     * The catalog is what is broken here, not the link — so this is a separate
+     * screen, not a variant sentence under "That link could not be read".
+     *
+     * Short links intern item names against the shipped catalog to keep a
+     * 23-slot set inside a pasteable URL, so a reader whose catalog did not
+     * load cannot resolve them. Every failure on this path has *already* had
+     * its checksum verified — `decodePlanDetailed` only reaches the v3 body
+     * decode after `checksum16(body) === carried` — so "the link arrived
+     * intact" is a checked fact and not a reassurance.
+     *
+     * What that rules out is the advice this screen used to give: a fresh link
+     * from the sender would be interned against the very catalog this reader
+     * still cannot fetch, and would fail in exactly the same way. The action
+     * that can work is retrying the load, so that is the action offered.
+     */
+    if (result.failure === 'catalog-unavailable') {
+      return (
+        <div className="empty-state">
+          <h2>The item catalog did not load</h2>
+          <p>
+            The link arrived intact — its checksum matches. But a short link stores its items as
+            positions in the item catalog, and this browser has not been able to fetch that
+            catalog, so there is nothing to look them up in. Nothing is wrong with the link, and a
+            new one from whoever sent it would run into exactly the same thing.
+          </p>
+          <div className="empty-actions">
+            <button type="button" className="btn btn-primary" onClick={() => void catalog.load()}>
+              Try again
+            </button>
+            <a className="btn" href={href.landing}>
+              Go to the planner
+            </a>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="empty-state">
         <h2>That link could not be read</h2>

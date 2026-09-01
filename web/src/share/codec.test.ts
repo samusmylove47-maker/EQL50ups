@@ -259,6 +259,40 @@ describe('share codec compression', () => {
     expect(decodePlan(payload)).toBeNull();
   });
 
+  /*
+   * Two different things are being distinguished here, and conflating them put
+   * the blame on the wrong party.
+   *
+   * `catalog-mismatch` is a statement about the *link*: a dictionary is in
+   * hand, and it is not the one the link was written against. Asking the sender
+   * for a fresh link is then the right advice.
+   *
+   * No dictionary in hand at all is a statement about *this browser*: the
+   * catalog did not load — offline, a 404, a payload not yet published. The
+   * link may be perfectly good, and a fresh one would be interned against the
+   * same catalog this reader still cannot fetch, so it would fail identically.
+   * The reader must not be sent back to the sender for that.
+   *
+   * An empty dictionary counts as none: `encodePlan` already refuses to intern
+   * against one (`useDict = Boolean(dict && dict.names.length)`), so it is not
+   * evidence of a build, only of a catalog that has not arrived.
+   */
+  it('separates a catalog it never loaded from a catalog that disagrees', () => {
+    const payload = encodePlan(fullPlan(), dict);
+    expect(decodePlanDetailed(payload).failure).toBe('catalog-unavailable');
+    expect(decodePlanDetailed(payload, buildDictionary([])).failure).toBe('catalog-unavailable');
+    expect(decodePlanDetailed(payload, buildDictionary(['Earthshaker'])).failure).toBe(
+      'catalog-mismatch',
+    );
+  });
+
+  it('does not blame the catalog for a literal link, which needs none', () => {
+    // A link that interned nothing resolves with no dictionary at all, so an
+    // unreachable catalog must not turn it into a failure of any kind.
+    const literal = fullPlan();
+    expect(decodePlanDetailed(encodePlan(literal)).plan).toEqual(literal);
+  });
+
   it('decodes a literal link with no dictionary in hand at all', () => {
     const full = fullPlan();
     expect(decodePlan(encodePlan(full))).toEqual(full);
