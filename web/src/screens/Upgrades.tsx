@@ -167,7 +167,35 @@ export interface WithheldRow {
    * naming an empty hand would be inventing an item.
    */
   wornName: string | null;
-  wornUpgrade: UpgradeState;
+  /**
+   * The tier that item is worn at, or `null` when this build does not know it.
+   *
+   * **Nullable because it was being invented.** Two of the three ways a
+   * position reaches this list carry no tier at all, and both used to render as
+   * `+0`:
+   *
+   *  - An **imported** withheld position has no `view.equipped` — the importer
+   *    refuses to equip an item the catalog cannot score — so the tier fell
+   *    through to `BASE_STATE`. The app *parsed* the real one and threw it
+   *    away: `withheldMap` writes `out[positionId] = entry.exportName` while
+   *    `UnstattedEntry` carries a `tier` field beside it, and `toSlotMap` on
+   *    the equippable path keeps it via `clampTier(entry.tier)`. Measured on
+   *    the repository's own export, `tier0-inventory-Avenrae.txt`:
+   *    `unstatted HEAD "Shadow Rage Helm" tier=5`, `withheldMap -> {"HEAD":
+   *    "Shadow Rage Helm"}`, and the card then said `+0` about a `+5` helm.
+   *  - A position withheld with **nothing worn in it** — `offhand-occupied` on
+   *    a Secondary emptied by a two-hander — printed `+0` as the tier of an
+   *    item that is not there.
+   *
+   * A tier of zero is a measurement, not a default, and this file's own rule
+   * for `statsUnknown` is that an absent value is unknown rather than zero. The
+   * directly-equipped path still knows the tier and still states it.
+   *
+   * Recovering the imported tier means widening `GearSet.withheld` from
+   * `Record<string, string>` to carry it — a persisted-shape change, so it is
+   * the Director's and not done here.
+   */
+  wornUpgrade: UpgradeState | null;
   /** The best candidate the slot has, offered with no gain claimed against it. */
   candidate: UpgradeCandidate | null;
   /** What the catalog knows about why a statless item is real, if anything. */
@@ -644,7 +672,9 @@ export function* upgradeSteps(
         position: entry.position,
         reason: entry.reason,
         wornName: entry.wornName ?? null,
-        wornUpgrade: entry.wornUpgrade,
+        // Known only from a real `view.equipped`; an imported withheld name or
+        // an empty hand carries no tier, and BASE_STATE would invent one.
+        wornUpgrade: entry.view.equipped ? entry.wornUpgrade : null,
         candidate: best,
         evidence: entry.view.item?.evidence,
       });
@@ -664,7 +694,7 @@ export function* upgradeSteps(
           position: entry.position,
           reason: 'offhand-unpriceable',
           wornName: entry.wornName ?? null,
-          wornUpgrade: entry.wornUpgrade,
+          wornUpgrade: entry.view.equipped ? entry.wornUpgrade : null,
           candidate: null,
           evidence: entry.view.item?.evidence,
         });
@@ -1980,7 +2010,12 @@ export function Upgrades({ id }: { id: string }) {
                     <span className="upg-slot">{entry.position.label}</span>
                     <span className="upg-item">
                       <span className="upg-worn">{entry.wornName ?? 'nothing equipped'}</span>
-                      <TierChip value={entry.wornUpgrade} />
+                      {/*
+                        No chip where the tier is unknown. It used to print
+                        "+0" for an imported helm the app had parsed as +5, and
+                        for a Secondary with nothing in it at all.
+                      */}
+                      {entry.wornUpgrade ? <TierChip value={entry.wornUpgrade} /> : null}
                     </span>
                     <span className="upg-heldmark">{WITHHELD_MARK[entry.reason]}</span>
                   </div>

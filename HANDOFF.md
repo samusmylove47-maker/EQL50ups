@@ -6279,3 +6279,45 @@ Verification first, against the shipped catalog and Avenrae's own `/outputfile i
 harness that settled `F15`. If it holds, the fix is whatever makes the printed tier match the
 export; if the tier genuinely is not knowable at that point, the number must not be printed as `+0`.
 Neither touches ranking order.
+
+### 14:39Z item CLOSED — `F23` holds, and there were two invented tiers, not one
+
+Reproduced on the repository's own export:
+
+```
+unstatted HEAD "Shadow Rage Helm" tier=5      <- the importer parsed it
+withheldMap -> {"HEAD":"Shadow Rage Helm"}    <- and dropped it
+withheld row HEAD  shownTier=+0               <- and the card stated +0
+```
+
+`UnstattedEntry` carries a `tier`; `withheldMap` writes `out[positionId] = entry.exportName` and
+nothing else, while `toSlotMap` on the equippable path keeps it through `clampTier(entry.tier)`. So
+the two import paths disagree, and the withheld one states a tier the app had measured and thrown
+away — understating what is already worn, which is the direction that flatters the recommendation.
+
+**The probe found a second one the finding did not mention.** A Secondary emptied by a two-handed
+Primary renders `worn="null"` and still printed `+0` — a tier chip on a position with nothing in it.
+
+`WithheldRow.wornUpgrade` is now `UpgradeState | null`, set only from a real `view.equipped`, and
+the card renders no chip when it is null. A tier of zero is a measurement, not a default; this
+file's own rule for `statsUnknown` is that an absent value is unknown rather than zero. The
+directly-equipped path is unchanged and still states its tier — which is exactly why the existing
+suite never caught this: **every test covering a withheld slot equips the item directly**
+(`upgrades.test.ts:206`, `upgrades-avenrae.test.ts`), the one path that always knew the tier. Those
+two assertions now read `wornUpgrade?.full`, so they assert the tier is both known and 5.
+
+**A third false claim, found on the way past.** `upgrades.test.ts` had a test titled *"offers a Lore
+item once, in the position where it gains the most"* — the claim I refuted an hour ago — whose body
+only checks that it is offered once and the loser falls through. Both fingers are empty in that
+fixture, so either winner gains the same and the title could never have failed. Renamed to what it
+checks.
+
+Guards demonstrated by reinstating `BASE_STATE`: **2 failed / 1,095 passed**, one per invented tier,
+each naming its own case. Restored, sha256 `527fe896…` byte-identical.
+
+**Left for the Director:** recovering the real tier needs `GearSet.withheld` widened from
+`Record<string, string>` to carry it. That is a persisted-shape change with a `sanitizeSet`
+migration behind it, so it is not mine. The app is honest about not knowing meanwhile.
+
+**Gate:** tsc clean · vitest **1,097** / 71 files (from `web/`) · playwright **150 / 0** ·
+`build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.

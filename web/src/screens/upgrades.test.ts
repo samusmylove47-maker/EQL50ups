@@ -143,9 +143,17 @@ describe('what the ranking offers', () => {
     expect(result.withheld.map((w) => w.position.id)).not.toContain('ANY_1');
   });
 
-  it('offers a Lore item once, in the position where it gains the most', () => {
+  it('offers a Lore item once, and the loser falls through to its next best', () => {
     // Both fingers want it and the game allows one. `Band of Small Favours` is
     // the fixture's other ring, so the loser has somewhere to fall to.
+    //
+    // Renamed: this was titled "…in the position where it gains the most", a
+    // claim it never checked — both fingers are empty here, so either choice
+    // gains the same and the assertion below would pass whichever won. The
+    // hand-out is greedy and does NOT guarantee the best position; measured
+    // against the shipped catalog it puts the Cloak of Scales at Any Slot 1 for
+    // +31.5 where Back gains +34.5. `upgrades-avenrae.test.ts` holds that, and
+    // the screen no longer claims otherwise.
     addItem(item({ n: 'Lorebound Signet', sl: ['FINGERS'], st: { AC: 25 }, fl: ['LORE'] }));
     const result = report(gearSet());
 
@@ -211,7 +219,10 @@ describe('items nobody has measured', () => {
     const held = result.withheld.find((entry) => entry.position.id === 'HEAD');
     expect(held?.reason).toBe('worn-unstatted');
     expect(held?.wornName).toBe(PHANTOM.n);
-    expect(held?.wornUpgrade.full).toBe(5);
+    // Directly equipped, so the tier IS known — `?.` here asserts both that
+    // it is known and that it is 5. A null would fail this line, which is
+    // what separates this path from the imported one.
+    expect(held?.wornUpgrade?.full).toBe(5);
     expect(held?.evidence).toContain('no catalog carries its numbers');
     // It still says what the slot's best scoring item is — with no subtraction.
     expect(held?.candidate?.item.n).toBe('[Fixture] Iron Helm');

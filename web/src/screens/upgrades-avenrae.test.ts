@@ -219,6 +219,46 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
 
 
   /**
+   * A withheld position may not state a tier this build does not know.
+   *
+   * The importer refuses to equip an item the catalog cannot score, so an
+   * imported withheld position has no `view.equipped` and its tier fell through
+   * to `BASE_STATE` — printed as `+0`. The app had the real number and dropped
+   * it: measured on this very fixture, `withheldMap` receives
+   * `HEAD "Shadow Rage Helm" tier=5` and writes `{"HEAD": "Shadow Rage Helm"}`,
+   * because `GearSet.withheld` is `Record<string, string>` and carries no tier.
+   *
+   * A tier of zero is a measurement, not a default. So the row now reports the
+   * tier as unknown rather than as zero, and the card prints no chip.
+   *
+   * The existing coverage all equips the item DIRECTLY (`upgrades.test.ts:206`,
+   * and the sibling test below), which is the path that always knew the tier —
+   * which is exactly why this shipped.
+   */
+  it('does not invent a tier for a position the importer withheld', () => {
+    const fromImport = imported.unstatted.find((e) => e.kind === 'item');
+    expect(fromImport, 'the fixture must exercise an import-withheld position').toBeTruthy();
+    // The app parsed a real tier and it is not zero — otherwise this test could
+    // pass while proving nothing.
+    expect(fromImport?.tier, 'the parsed tier is the whole point').toBeGreaterThan(0);
+    expect(withheldMap(imported)[fromImport?.positionId ?? '']).toBe(fromImport?.exportName);
+
+    const row = report.withheld.find((r) => r.position.id === fromImport?.positionId);
+    expect(row?.wornName).toBe(fromImport?.exportName);
+    expect(row?.wornUpgrade, 'an unknown tier is null, never +0').toBeNull();
+  });
+
+  it('states no tier for a withheld position with nothing worn in it', () => {
+    // A Secondary emptied by a two-handed Primary printed "+0" as the tier of
+    // an item that is not there.
+    for (const row of report.withheld) {
+      if (row.wornName === null) {
+        expect(row.wornUpgrade, `${row.position.label} has no item to have a tier`).toBeNull();
+      }
+    }
+  });
+
+  /**
    * The Lore row may not claim an optimality the hand-out does not deliver.
    *
    * The row rendered "One only, so it is offered in the single position where
@@ -339,7 +379,7 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
     const held = result.withheld.find((entry) => entry.position.id === 'HEAD');
     expect(held?.reason).toBe('worn-unstatted');
     expect(held?.wornName).toBe('Shadow Rage Helm');
-    expect(held?.wornUpgrade.full).toBe(5);
+    expect(held?.wornUpgrade?.full).toBe(5);
     // It still names the best scoring alternative — with no subtraction claimed.
     expect(held?.candidate?.item.n).toBeTruthy();
   });
