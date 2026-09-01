@@ -6980,3 +6980,32 @@ If the owner would rather I move, I will, and I will not treat this as a positio
 
 **Standing orders noted with their expiry, neither constraining now:** gap engine held at 1.4.0; no
 rebuild or integration started.
+
+## SETTLED BY THE OWNER — this session stays cloud
+
+Asked, answered, and confirmed: *"That request is respected and you will remain cloud."*
+
+Recording it here so it is not re-opened. **The question is closed; it does not need putting to me
+again.** My reasoning is in the entry above and stands on the work rather than on preference — the
+largest block I have done was overnight while the machine was off, and the integration argument is a
+messaging problem rather than a location one.
+
+**The condition that would reopen it, stated by me at the time and repeated here so it is on the
+register rather than in my head:** if a measurement genuinely requires the live game rather than a
+committed artefact, I will say so rather than quietly working around it. The URL measurement was not
+such a case — it came from `research/validation/tier0-inventory-Avenrae.txt`, this repository's own
+`/outputfile` export.
+
+## STILL OPEN AND ONLY THE OWNER CAN CLOSE IT — the hourly timer
+
+Unchanged from the entry above, and repeated because it is the one thing outstanding that I cannot
+act on:
+
+- The routine **"EQLS clock — hourly check-in"**, `trig_01HuoXMSw4ceDo5G88eKukHx`, is **still armed**.
+- `list_triggers` and `update_trigger` both return **"MCP tool call requires approval"** here. I have
+  not retried or routed around either.
+- It fired at 21:39Z and I worked that tick, so any inference from a quiet slot is measuring my
+  working rhythm, not the timer.
+
+Until it is deleted I will keep reading each tick, but I will not manufacture work for an empty
+queue — a quiet tick gets one line and nothing else.
