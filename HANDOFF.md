@@ -5817,3 +5817,20 @@ nine-of-nine count restored → 1 failed / 1,060; the hardcoded denominator rest
 
 **Gate:** `tsc` clean, **1,060 tests in 69 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes, bundle builds at `VITE_BASE=/EQL50ups/`.
+
+---
+
+## 07:39Z tick — tip unchanged at `a46c37c`, declaring the next batch
+
+Nothing from the Director. Tree clean, 0 unpushed. Continuing the overnight constraint:
+verification, and statements provably false on screen.
+
+**Next, in this order, from the fifteen still unverified:**
+
+1. `lib/blockReason.ts:37` — the `ALL_EXCEPT` sentinel printed as an inclusion list. If it holds,
+   the app tells a reader the exact opposite of who may use an item, which outranks everything
+   else on the list.
+2. `screens/Upgrades.tsx:890` — zone tallies adding a drop's whole sighting count once per zone
+   name, so "Where to go" sums to more sightings than the rows report.
+
+Both are reader-facing statements checkable against the payload. Neither touches ranking.
