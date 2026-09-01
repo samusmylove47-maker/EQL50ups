@@ -12,12 +12,12 @@
   },
   "catalogue": {
     "file": "bis-catalog.json",
-    "sha256_8": "b938763b",
+    "sha256_8": "615fca4b",
     "bytes": 1440016,
     "records": 3663,
     "withStats": 1713,
     "withObtainability": 3456
   },
-  "builtAt": "2026-09-01T05:12:02.461Z",
+  "builtAt": "2026-09-01T07:03:15.249Z",
   "caveat": "Stat values are overwhelmingly wiki-derived. Every record carries `sd`; only 5 of 3663 are tier-M."
 }

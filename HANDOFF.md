@@ -5692,3 +5692,60 @@ relay (R196) I have explicitly written up as needing owner confirmation before a
 and twelve unverified mechanisms from the pass. Every one of those is work that must be *finished
 and checked* to be worth anything, and I cannot promise a next hour. A clean tree and an accurate
 list is the better handover.
+
+---
+
+## Overnight — the owner is asleep, so verification and provably-false statements only
+
+The owner said to keep working and that the next turn is morning. Every push here goes live with
+no staging, so I have constrained **what** I change rather than whether I push: verification, and
+corrections to things that are false on screen. Nothing touching ranking behaviour or the seam.
+
+### First correction: I under-reported the pass
+
+I told the Director **15 mechanisms confirmed**. The completed run says **22**. The 15 was a
+mid-run journal count read while agents were still returning, reported as if final. Four are
+already fixed — the badge accounts for three of them and the reload-dropped `withheld` for the
+fourth — so **eighteen remain**.
+
+### VERIFIED and FIXED: the three EP figures on a row did not subtract
+
+The row prints, side by side, the worn item's EP, the candidate's EP, and the gain. All three
+were rounded to one decimal **independently** from unrounded floats, so when the operands rounded
+in opposite directions the printed numbers did not reconcile. A reader saw:
+
+```
+0.8 EP  →  31.0 EP        +30.3 EP
+```
+
+Measured on my own instrument over the shipped payload, 4 trios × 5 presets with a real worn
+loadout: **10 of 403 ranked rows (2.5%), every one off by exactly 0.1.**
+
+`displayedGain()` now derives the printed gain from the printed operands. **Ordering, `MIN_GAIN`
+and every threshold still use the unrounded `row.gain`** — this is a display quantity and nothing
+decides on it. The two-handed offhand cost is subtracted too, because the row states it.
+
+The wiring test then found a third site: the **screen-reader announcement** spoke `row.gain` while
+the row showed the reconciled figure. A sighted reader and a screen-reader user were being given
+different numbers for the same row. Both now say the same thing.
+
+### Three instrument failures of my own in one investigation, all caught
+
+1. **My first probe returned 0 of 436 rows.** It used *empty* gear sets, so `wornEp` is 0 on every
+   row and there are never two nonzero operands to round independently. The fixture could not
+   exhibit the defect — the same sanitised-harness class as the CRLF fixtures.
+2. **My second probe reported 15 of 403, two examples off by 13.4.** That is the two-handed
+   offhand netting, which is correct and stated on the row. My check conflated a legitimate third
+   term with a rounding error. Corrected: 10 of 403, all ±0.1.
+3. **My first two A/B mutations were both green at 1,055.** One changed the render site my test
+   never read; the other changed `displayedGain`, whose offhand branch no row in my sweep
+   exercised. **R126 in my own new test** — the assertion called the function under test, and the
+   sweep could not reach the branch. Both closed: a forced two-handed case, and a wiring
+   assertion. Re-run: 1 failed / 1,057 each.
+
+Three wrong readings before one right one, on a defect worth 0.1 EP. The reason to record that is
+that the *method* is what caught them, not care — and the method is the only reason the number
+above is trustworthy.
+
+**Gate:** `tsc` clean, **1,057 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle builds at `VITE_BASE=/EQL50ups/`.

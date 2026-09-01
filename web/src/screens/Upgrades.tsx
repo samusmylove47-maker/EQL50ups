@@ -956,6 +956,33 @@ export function acquisitionLines(item: Item): AcquisitionLine[] {
  * added `ep()` to stop. EP is one decimal everywhere in this app, sign or no
  * sign.
  */
+/**
+ * The gain a reader can check by subtracting the two numbers printed beside it.
+ *
+ * The row prints worn EP, candidate EP and gain, and all three were rounded to
+ * one decimal INDEPENDENTLY from unrounded floats. Whenever the two operands
+ * rounded in opposite directions the printed numbers did not subtract: measured
+ * over the shipped payload with a real worn loadout, **10 of 403 ranked rows
+ * (2.5%), every one off by exactly 0.1.** A reader saw `0.8 EP → 31.0 EP` with
+ * `+30.3 EP` beside it.
+ *
+ * For a tool whose proposition is that its numbers are checkable, a figure the
+ * reader can disprove with mental arithmetic costs more than the 0.1 it is
+ * wrong by. So the DISPLAYED gain is derived from the DISPLAYED operands.
+ *
+ * **Ordering, `MIN_GAIN` and every threshold still use the unrounded
+ * `row.gain`.** This is a display quantity and nothing decides on it.
+ *
+ * The two-handed offhand cost is subtracted here because the row states it —
+ * it is part of the arithmetic the reader is being shown.
+ */
+export function displayedGain(row: UpgradeRow): number {
+  const worn = Number(epText(row.wornEp));
+  const candidate = Number(epText(row.candidate.ep));
+  const offhand = row.twoHanded ? Number(epText(row.twoHanded.offhandEp)) : 0;
+  return Math.round((candidate - worn - offhand) * 10) / 10;
+}
+
 function signedEp(value: number): string {
   return `${value < 0 ? '-' : '+'}${epText(Math.abs(value))}`;
 }
@@ -1279,7 +1306,7 @@ function Row({
         </div>
 
         <div className="upg-gain">
-          <strong className="upg-gainvalue">{signedEp(row.gain)}</strong>
+          <strong className="upg-gainvalue">{signedEp(displayedGain(row))}</strong>
           <span className="upg-gainunit">EP</span>
           <span className="upg-bar" aria-hidden="true">
             <span style={{ width: `${width}%` }} />
@@ -1590,11 +1617,12 @@ export function Upgrades({ id }: { id: string }) {
       ? `, replacing ${row.wornName} at +${num(row.wornUpgrade.full)}`
       : ' into an empty slot';
     setNotice(
-      `${row.candidate.item.n} equipped in ${row.position.label} at +${num(row.candidate.upgrade.full)}${replaced} — ${signedEp(row.gain)} EP. The list is being re-ranked against the set as it now stands.`,
+      `${row.candidate.item.n} equipped in ${row.position.label} at +${num(row.candidate.upgrade.full)}${replaced} — ${signedEp(displayedGain(row))} EP. The list is being re-ranked against the set as it now stands.`,
     );
   };
 
-  const best = rows[0]?.gain ?? 0;
+  // The same figure the top row prints, so the KPI cannot disagree with it.
+  const best = rows[0] ? displayedGain(rows[0]) : 0;
   const applied = describeActiveFilters(filters);
   const basisText =
     basis.kind === 'worn'

@@ -9,6 +9,7 @@
  */
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { ep } from '../lib/format';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { canUse, makeContext } from '../engine/character';
 import { scoreItem, type WeightProfile } from '../engine/ep';
@@ -21,6 +22,7 @@ import { DEFAULT_SET_FILTERS, type SetFilters } from '../lib/setFilters';
 import {
   acquisitionLines, computeUpgrades, dateSpan, hasAnyWeight, isLore, isTwoHanded, measuredDrops,
   WITHHELD_MARK, WITHHELD_TEXT, type WithheldReason,
+  displayedGain,
   totalSightings, unweightedLosses, weightedDeltas, zoneTallies,
   type CompareBasis, type UpgradeReport,
 } from './Upgrades';
@@ -1101,5 +1103,97 @@ describe('every withheld reason has its own badge', () => {
     expect(occurrences, 'the phrase should live only in WITHHELD_MARK').toBe(1);
     // And the render site reads the table by key.
     expect(source).toContain('WITHHELD_MARK[entry.reason]');
+  });
+});
+
+/* ------------------------------------------------------------------------- *
+ * A reader can check the row's arithmetic by subtracting the numbers on it.
+ * ------------------------------------------------------------------------- */
+
+describe('the three EP figures on a row reconcile', () => {
+  /**
+   * The row prints, left to right: the worn item's EP, the candidate's EP, and
+   * the gain. All three were rounded to one decimal INDEPENDENTLY from
+   * unrounded floats, so whenever the two operands rounded in opposite
+   * directions the printed numbers did not subtract.
+   *
+   * Measured over the shipped payload — 4 trios x 5 presets, a real worn
+   * loadout in every slot — **10 of 403 ranked rows (2.5%), every one off by
+   * exactly 0.1.** A reader saw `0.8 EP → 31.0 EP` and `+30.3 EP` beside it.
+   *
+   * For a tool whose whole proposition is that its numbers are checkable, a
+   * number the reader can disprove with mental arithmetic is worse than the
+   * 0.1 it is wrong by. `displayedGain` derives the printed gain FROM the
+   * printed operands, so the row is internally consistent; ordering and every
+   * threshold still use the unrounded `row.gain`.
+   *
+   * The two-handed offhand cost is a legitimate third term and is subtracted
+   * here too — it is stated on the row, so it is part of the arithmetic a
+   * reader can follow.
+   */
+  it('subtracts, on a real worn loadout across every preset', () => {
+    const cat = catalog();
+    const slots: GearSet['slots'] = {};
+    for (const [slot, list] of cat.bySlot) {
+      const statted = (list ?? []).filter((i) => Object.keys(i.st ?? {}).length);
+      const pick = statted[Math.floor(statted.length / 2)];
+      if (pick) slots[slot] = { itemName: pick.n, upgrade: tier(0) };
+    }
+    expect(Object.keys(slots).length, 'a real worn loadout, not an empty set').toBeGreaterThan(5);
+
+    let rows = 0;
+    const broken: string[] = [];
+    for (const weights of [WEIGHTS, { AC: 3, HP: 0.5 }, { INT: 5, MANA: 2 }]) {
+      const result = report(gearSet(slots, weights));
+      for (const row of result.rows) {
+        rows += 1;
+        const worn = Number(ep(row.wornEp));
+        const cand = Number(ep(row.candidate.ep));
+        const offhand = row.twoHanded ? Number(ep(row.twoHanded.offhandEp)) : 0;
+        const shown = Number(ep(Math.abs(displayedGain(row)))) * (displayedGain(row) < 0 ? -1 : 1);
+        const expectedDiff = Math.round((cand - worn - offhand) * 10) / 10;
+        if (Math.abs(expectedDiff - shown) > 1e-9) {
+          broken.push(`${row.position.label}: ${cand} - ${worn}${offhand ? ` - ${offhand}` : ''} = ${expectedDiff}, row shows ${shown}`);
+        }
+      }
+    }
+    expect(rows, 'the sweep must actually rank something').toBeGreaterThan(50);
+    expect(broken.slice(0, 5)).toEqual([]);
+  });
+
+  /**
+   * The sweep above never produces a two-handed row, so it cannot see the
+   * offhand term at all — measured: dropping that term from `displayedGain`
+   * left all 1,055 tests green. This forces the case.
+   */
+  it('subtracts the offhand a two-hander empties, because the row states it', () => {
+    const shield = item({ n: '[Fixture] Recon Shield', sl: ['SECONDARY'], st: { AC: 20 } });
+    const great = item({
+      n: '[Fixture] Recon Greatsword', sl: ['PRIMARY'], st: { AC: 60, STR: 30 },
+      wp: { skill: '2H Slashing', dmg: 40, dly: 20 },
+    });
+    addItem(shield); addItem(great);
+
+    const row = rowFor(report(gearSet({ SECONDARY: { itemName: shield.n, upgrade: tier(0) } })), 'PRIMARY');
+    expect(row?.candidate.item.n).toBe(great.n);
+    expect(row?.twoHanded, 'the netting must actually be priced').not.toBeNull();
+
+    const worn = Number(ep(row?.wornEp ?? 0));
+    const cand = Number(ep(row?.candidate.ep ?? 0));
+    const offhand = Number(ep(row?.twoHanded?.offhandEp ?? 0));
+    expect(offhand, 'a zero offhand would prove nothing').toBeGreaterThan(0);
+    expect(displayedGain(row!)).toBeCloseTo(Math.round((cand - worn - offhand) * 10) / 10, 10);
+  });
+
+  /**
+   * And the ROW must render from it. The two assertions above both call
+   * `displayedGain` directly, so neither notices if the render site goes back
+   * to printing the unrounded `row.gain` — measured: it did not, 1,055 green.
+   * R126's shape, in my own new test.
+   */
+  it('renders the gain from displayedGain, not from the raw float', () => {
+    const source = readFileSync('src/screens/Upgrades.tsx', 'utf8');
+    expect(source).toContain('signedEp(displayedGain(row))');
+    expect(source, 'the raw float must not reach the row').not.toContain('signedEp(row.gain)');
   });
 });
