@@ -20,6 +20,7 @@ import { rankSlotItems, scoreContextFrom, slotViews, statDeltas, totalsFor } fro
 import { DEFAULT_SET_FILTERS, type SetFilters } from '../lib/setFilters';
 import {
   acquisitionLines, computeUpgrades, dateSpan, hasAnyWeight, isLore, isTwoHanded, measuredDrops,
+  WITHHELD_MARK, WITHHELD_TEXT, type WithheldReason,
   totalSightings, unweightedLosses, weightedDeltas, zoneTallies,
   type CompareBasis, type UpgradeReport,
 } from './Upgrades';
@@ -1052,5 +1053,53 @@ describe('every position lands in exactly one bucket', () => {
       expect(new Set(labels).size, `${label}: a position appears in two buckets`)
         .toBe(labels.length);
     }
+  });
+});
+
+describe('every withheld reason has its own badge', () => {
+  /**
+   * The badge was a three-branch ternary over a five-member union, so three
+   * reasons rendered "Not in catalog" — a claim about missing data — including
+   * the two added on 2026-09-01 for an occupied and an unpriceable offhand.
+   *
+   * `WITHHELD_TEXT` beside it is a `Record<WithheldReason, string>` and was
+   * never wrong, because the compiler will not let it be. This asserts the same
+   * property for the badge, and that the false label is gone from the reasons it
+   * was false about.
+   */
+  it('says something true, and something different, for each reason', () => {
+    const reasons: WithheldReason[] = [
+      'worn-unstatted', 'worn-unresolved', 'profile-blind-to-weapons',
+      'offhand-occupied', 'offhand-unpriceable',
+    ];
+    for (const reason of reasons) {
+      expect(WITHHELD_MARK[reason], `no badge for ${reason}`).toBeTruthy();
+      expect(WITHHELD_TEXT[reason], `no body text for ${reason}`).toBeTruthy();
+    }
+    // "Not in catalog" belongs to exactly one reason — the one where it is true.
+    const notInCatalog = reasons.filter((r) => WITHHELD_MARK[r] === 'Not in catalog');
+    expect(notInCatalog).toEqual(['worn-unresolved']);
+    // And no two reasons share a badge, or the badge is not telling them apart.
+    expect(new Set(reasons.map((r) => WITHHELD_MARK[r])).size).toBe(reasons.length);
+  });
+
+  /**
+   * The table being complete is not the same as the screen USING it.
+   *
+   * Measured: restoring the old inline ternary left all 1,053 tests green,
+   * because everything above asserts on the Record and the ternary bypasses it.
+   * `tsc` catches a missing KEY (TS2741) but has nothing to say about a branch
+   * that never reads the table.
+   *
+   * So this asserts the wiring at the only level that distinguishes them: the
+   * phrase belongs to `WITHHELD_MARK` and must appear in this file exactly
+   * once. A second occurrence is an inline branch deciding the badge again.
+   */
+  it('renders the badge FROM the table, not from a second inline branch', () => {
+    const source = readFileSync('src/screens/Upgrades.tsx', 'utf8');
+    const occurrences = source.split("'Not in catalog'").length - 1;
+    expect(occurrences, 'the phrase should live only in WITHHELD_MARK').toBe(1);
+    // And the render site reads the table by key.
+    expect(source).toContain('WITHHELD_MARK[entry.reason]');
   });
 });

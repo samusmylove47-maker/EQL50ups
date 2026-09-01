@@ -5490,8 +5490,9 @@ A fan-out over the player-facing surface finished after I ran out of time to ver
 **31 findings raised, 16 verdicts returned, 15 mechanisms CONFIRMED by a refuter, 1 refuted.**
 Severity: 12 agree, 3 too-high, 1 too-low.
 
-**I am not reporting those 15 as findings.** Two of them I reproduced myself and fixed — the
-`src.c` Crafted flag and the `withheld` map below. The rest are unverified, and tonight produced
+**I am not reporting those 15 as findings.** THREE of them I reproduced myself and fixed — the
+`src.c` Crafted flag, the `withheld` map below, and the withheld BADGE (see the section after
+this handover, which was written before the pass finished reporting). The rest are unverified, and tonight produced
 hard evidence in both directions: four findings that skeptics killed turned out real, and two of
 my own confident starting points turned out to be my instrument. The raw journal is at
 `subagents/workflows/wf_d2d73ce2-770/journal.jsonl`.
@@ -5542,3 +5543,53 @@ Each cost a false claim or came within one sentence of it.
 `tsc` clean · **1,052 tests in 68 files** · `verify.mjs` 67 checks, Tier 0 100.0% ·
 `catalogue-audit.mjs` passes · bundle builds at `VITE_BASE=/EQL50ups/` · payload and BIS
 artifacts regenerated and committed.
+
+---
+
+## Post-handover — the pass reported, and its top finding was mine
+
+The fan-out completed after I wrote the handover above. Its best-evidenced finding is a defect
+**I introduced tonight**, and it is worth the last commit of the session.
+
+### The badge said "Not in catalog" about an offhand that is in the catalog
+
+`Upgrades.tsx` rendered the withheld badge from a **three-branch ternary over a five-member
+union**. It named `worn-unstatted` and `profile-blind-to-weapons`; the other three fell through
+to the literal *"Not in catalog"*. So a player wielding a two-hander saw:
+
+```
+  Secondary   [ Not in catalog ]
+  The weapon in your Primary takes both hands, so there is no offhand to fill.
+```
+
+**Two contradictory statements about one slot, ten lines apart in the same card.** And
+*"Not in catalog"* is not an arbitrary phrase — `SlotCard.tsx` and `SetCompare.tsx` both gate it
+strictly on `unresolved`. Upgrades was the one place printing it when that was not what happened.
+
+**I added `offhand-occupied` and `offhand-unpriceable` tonight.** `WITHHELD_TEXT` is a
+`Record<WithheldReason, string>`, so the compiler forced me to write body text for both — which
+is why the paragraph is right. The badge was a ternary, which TypeScript cannot check for
+exhaustiveness, so it said nothing and I did not look. **Two devices for the same job, ten lines
+apart; only the checked one survived a new union member.**
+
+### Fixed with the device that already worked, and both halves guarded
+
+`WITHHELD_MARK: Record<WithheldReason, string>`. A/B:
+
+| mutation | caught by |
+|---|---|
+| a reason removed from the table | **`tsc`** — `TS2741: Property '"offhand-occupied"' is missing` |
+| the old ternary restored — **before** the wiring test | **nothing: 1,053 green** |
+| the same, after | 1 failed / 1,054 |
+
+That middle row is the one worth keeping. My first test asserted the *table's* completeness, and
+the ternary bypasses the table entirely — so a complete table and a screen that ignores it look
+identical. The second test asserts the wiring: the phrase lives in `WITHHELD_MARK` exactly once,
+and the render site reads it by key.
+
+**It is the eighth method rule of the night and the sharpest:** *an exhaustive table is not an
+exhaustive render.* The compiler proves the data is complete and has nothing to say about whether
+anything reads it — which is R106's "a document pretending to be a check", one level down.
+
+**Final gate:** `tsc` clean, **1,054 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes, bundle builds at `VITE_BASE=/EQL50ups/`.

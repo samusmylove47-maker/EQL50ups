@@ -1395,7 +1395,36 @@ function Row({
   );
 }
 
-const WITHHELD_TEXT: Record<WithheldReason, string> = {
+/**
+ * The short badge on a withheld card. A Record, and that is the entire point.
+ *
+ * This was a three-branch ternary over a FIVE-member union. It named
+ * `worn-unstatted` and `profile-blind-to-weapons`; the other three fell through
+ * to the not-in-catalog literal — **a sentence about missing data, printed
+ * directly above the paragraph correctly explaining that the offhand is
+ * occupied.** Two contradictory claims about one slot, ten lines apart.
+ *
+ * I introduced two of those three reasons tonight. `WITHHELD_TEXT` below is a
+ * `Record<WithheldReason, string>`, so the compiler made me write body text for
+ * both; the badge was a ternary, which TypeScript cannot check for
+ * exhaustiveness, so it said nothing and I did not notice. **Two devices for
+ * the same job, ten lines apart, and only the checked one survived contact with
+ * a new union member.**
+ *
+ * `Not in catalog` also has an established meaning everywhere else in this app —
+ * `SlotCard.tsx` and `SetCompare.tsx` both gate it strictly on `unresolved`.
+ * Upgrades was the one place printing it when that was not what happened.
+ */
+export const WITHHELD_MARK: Record<WithheldReason, string> = {
+  'worn-unstatted': 'Unsourced · stats withheld',
+  // Truthful here: this reason IS "the worn item is not in the catalog".
+  'worn-unresolved': 'Not in catalog',
+  'profile-blind-to-weapons': 'Profile scores no weapon term',
+  'offhand-occupied': 'Both hands in use',
+  'offhand-unpriceable': 'Offhand cannot be priced',
+};
+
+export const WITHHELD_TEXT: Record<WithheldReason, string> = {
   'worn-unstatted':
     'No catalog carries this item’s stats, so nothing can be measured against it. A gain here would be arithmetic against a zero nobody recorded.',
   'worn-unresolved':
@@ -1806,11 +1835,7 @@ export function Upgrades({ id }: { id: string }) {
                       <span className="upg-worn">{entry.wornName ?? 'nothing equipped'}</span>
                       <TierChip value={entry.wornUpgrade} />
                     </span>
-                    <span className="upg-heldmark">
-                      {entry.reason === 'worn-unstatted' ? 'Unsourced · stats withheld'
-                        : entry.reason === 'profile-blind-to-weapons' ? 'Profile scores no weapon term'
-                          : 'Not in catalog'}
-                    </span>
+                    <span className="upg-heldmark">{WITHHELD_MARK[entry.reason]}</span>
                   </div>
                   <p className="upg-heldtext">{WITHHELD_TEXT[entry.reason]}</p>
                   {entry.evidence ? <p className="upg-heldtext dim">{entry.evidence}</p> : null}
