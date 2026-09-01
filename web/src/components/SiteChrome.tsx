@@ -110,6 +110,35 @@ const TOOL_NAV: ReadonlyArray<{ href: string; label: string; match: string[] }> 
 export const TOOL_NAME = '=Upgrades';
 
 /**
+ * What a screen reader should say for a name carrying the `=` sigil.
+ *
+ * The owner's own account: `=` is a stylistic rendering of E-Q-L-S, which reads
+ * "equals" — so `=Upgrades` and "EQLS Upgrades" are one name, not two. Visually
+ * the sigil carries the brand; to assistive technology it is a bare `=`, and
+ * what gets announced then depends on the reader's punctuation verbosity —
+ * "equals Upgrades" at one setting, plain "Upgrades" at another. The second
+ * deletes the brand for exactly the people who cannot see the mark.
+ *
+ * Measured before this existed, with Playwright over the real accessibility
+ * tree: every one of these carried `aria-label=null`, so the accessible name
+ * was the raw string.
+ *
+ *   .crumb a                          text="=UPGRADES"  aria-label=null
+ *   .site-foot a[aria-current="true"]  text="=Upgrades"  aria-label=null
+ *
+ * Derived from the rule rather than typed per tool, so a name added to
+ * `SITE_TOOLS` is announced correctly without anyone remembering to do it. A
+ * label with no sigil is returned unchanged.
+ *
+ * This applies R248 — "do not hide the sigil, expand it" — which was ruled for
+ * `=Auras` on the site. It changes nothing a sighted reader sees.
+ */
+export function spokenName(label: string): string {
+  return label.startsWith('=') ? `EQLS ${label.slice(1)}` : label;
+}
+
+
+/**
  * The site's tool set — the footer's `Tools` column, and a hand-copy of the
  * `Tools` column in the footer `https://eqlsource.com/tools/` serves. Label,
  * URL and order are that column's, read 2026-08-18; `site-foot-drift.test.ts`
@@ -314,10 +343,14 @@ function ToolBar({ route }: { route: Route }) {
               becomes a step you can walk back to, so it becomes a link \u2014 to
               this app's own landing, not to the site's page about it. */}
           {screen === null ? (
-            <span className="crumb-here">{TOOL_NAME}</span>
+            <span className="crumb-here" aria-label={spokenName(TOOL_NAME)}>
+              {TOOL_NAME}
+            </span>
           ) : (
             <>
-              <a href={href.landing}>{TOOL_NAME}</a>
+              <a href={href.landing} aria-label={spokenName(TOOL_NAME)}>
+                {TOOL_NAME}
+              </a>
               <span aria-hidden="true">{CRUMB_SEP}</span>
               <span className="crumb-here">{screen}</span>
             </>
@@ -478,7 +511,13 @@ export function SiteFooter() {
                     {/* `true`, not `page`: this marks the current item of a
                         set, and the href's target is a different document
                         from the one being read. See `SITE_TOOLS`. */}
-                    <a href={link.href} aria-current={link.here ? 'true' : undefined}>
+                    <a
+                      href={link.href}
+                      aria-current={link.here ? 'true' : undefined}
+                      aria-label={
+                        spokenName(link.label) === link.label ? undefined : spokenName(link.label)
+                      }
+                    >
                       {link.label}
                     </a>
                   </li>

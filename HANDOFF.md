@@ -6631,3 +6631,42 @@ Not deleting the file while its author may still be running: 4 agents started, 2
 Cleanup and the accessibility measurement both wait for the run to finish. **This tick's commit adds
 only `HANDOFF.md` and `.director-tip` by path — a bare `git add -A` here would have committed
 another session's stray probe into my history.**
+
+### Correction to the entry above, and `R248` applied
+
+**My contamination note overstated it and I am correcting it before it stands.** I wrote that the
+`F07` agent wrote `zz-probe-f07.test.ts` into the repository and left it there. **It cleaned up
+after itself when it finished** — the file was transient, not permanent. Then `__f08probe.test.tsx`
+appeared from the next agent and did the same, so the pattern recurs but each file is temporary.
+
+What survives the correction, unchanged: **a read-only instruction is an assumption, not a
+guarantee**, and while such a file exists `tsc -b` fails, which fails `vite build`, which stops
+Playwright's `webServer`. It cost me one blocked measurement. What is now wrong in my earlier
+wording is the implication of permanent damage. Next fan-out over this repository still runs in
+worktrees.
+
+**`R248` applied, measured first.** Before touching anything, Playwright over the real accessibility
+tree:
+
+```
+  .crumb a                          text="=UPGRADES"  aria-label=null
+  .site-foot a[aria-current="true"]  text="=Upgrades"  aria-label=null
+  accessible name of the tool link = "=Upgrades"
+```
+
+No expansion anywhere, so what a screen reader announces was left to its punctuation verbosity —
+"equals Upgrades" at one setting, bare "Upgrades" at another, and the second deletes the brand for
+the readers who cannot see the mark. `spokenName()` now derives the spoken form from the owner's own
+rule — `=` renders E-Q-L-S — rather than typing a name per tool, so an entry added to `SITE_TOOLS`
+is announced correctly with nobody remembering to do it. A label with no sigil is returned
+unchanged. **Nothing a sighted reader sees changes.**
+
+Guard demonstrated by making `spokenName` the identity: **2 failed / 8 passed**, one for the pure
+function and one for the rendered footer. Restored, `SiteChrome.tsx` sha256 `6cac89fe…`
+byte-identical.
+
+**Gate:** tsc clean · vitest **1,105** / 71 files · playwright **151 / 0** · `build.mjs` 0 ·
+`verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+The ten-way verification fan-out is still running — 2 verdicts of 10 in (`F04` PARTIAL, `F05` HOLDS,
+both `measured`). Reporting when it lands.

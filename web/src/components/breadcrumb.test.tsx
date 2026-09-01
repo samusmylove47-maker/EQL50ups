@@ -22,7 +22,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../App';
-import { screenName, TOOL_NAME } from './SiteChrome';
+import { screenName, spokenName, TOOL_NAME } from './SiteChrome';
 import { useCatalog } from '../data/catalog';
 import { emptyState } from '../state/persistence';
 import { useApp } from '../state/store';
@@ -167,5 +167,43 @@ describe('the page title uses the name the project uses', () => {
     const head = /<head>([\s\S]*?)<\/head>/.exec(rendered)?.[1] ?? '';
     expect(head, 'the head must be found').not.toBe('');
     expect(head, 'a name the project does not use').not.toMatch(/50 Upgrades/);
+  });
+});
+
+/**
+ * The sigil must reach a screen reader as a name, not as punctuation.
+ *
+ * `=` is a stylistic rendering of E-Q-L-S — the owner's own account — so
+ * `=Upgrades` and "EQLS Upgrades" are one name. Visually the mark carries the
+ * brand; to assistive technology it was a bare `=`, and what a reader announces
+ * then depends on its punctuation verbosity. Measured over the real
+ * accessibility tree before this existed, every occurrence had
+ * `aria-label=null` and an accessible name of the raw `"=Upgrades"`.
+ *
+ * R248, ruled for `=Auras`, applies unchanged: do not hide the sigil, expand
+ * it. Nothing a sighted reader sees changes.
+ */
+describe('the = sigil announces as a name', () => {
+  it('expands only a sigil-carrying label, and leaves others alone', () => {
+    expect(spokenName('=Upgrades')).toBe('EQLS Upgrades');
+    expect(spokenName('=Auras')).toBe('EQLS Auras');
+    expect(spokenName('Sky Ledger')).toBe('Sky Ledger');
+    expect(spokenName('')).toBe('');
+  });
+
+  it('gives the breadcrumb tool step an accessible name a reader can hear', () => {
+    const el = render('#/items');
+    const tool = [...el.querySelectorAll('.crumb a')]
+      .find((a) => a.textContent === TOOL_NAME);
+    expect(tool, 'the breadcrumb names the tool').toBeTruthy();
+    expect(tool?.getAttribute('aria-label')).toBe(spokenName(TOOL_NAME));
+  });
+
+  it('gives the footer entry for this tool the same accessible name', () => {
+    const el = render('#/items');
+    const foot = el.querySelector('.site-foot a[aria-current="true"]');
+    expect(foot, 'the footer marks this tool').toBeTruthy();
+    expect(foot?.textContent).toBe(TOOL_NAME);
+    expect(foot?.getAttribute('aria-label')).toBe(spokenName(TOOL_NAME));
   });
 });
