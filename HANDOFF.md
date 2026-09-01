@@ -6787,3 +6787,31 @@ site today, and it is not mine to fix.
 
 **Gate:** tsc clean · vitest **1,107** / 71 files · playwright **151 / 0** · `build.mjs` 0 ·
 `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+## 20:39Z tick — tip unchanged at `533c3e5`, declaring `F22` then `F19`
+
+No orders. Tree clean, 0 unpushed. R209 routine: one branch, `main` absent.
+
+**`F22` first — the picker contradicts itself on screen.** Verified HOLDS and **understated**:
+`wornScore` is computed without the `weaponCounts` restriction that `rankSlotItems` applies to
+candidates, so in slots where no candidate may score weapon damage the worn item is paid for it
+anyway. Measured on the shipped payload: worn Bow of the Underfoot prints **7.2 EP**, the top
+candidate prints **12.3 EP**, and the chip beside them reads **"-16.9 vs worn"** in the `bad` class.
+The picker's own two numbers disagree with its own third one, on the surface where the swap decision
+is actually made. Reaches anyone wearing a bow, a thrown weapon, ammo, or a weapon in an Any Slot on
+a melee-dps or balanced profile. Nothing is mis-ranked and nothing wrong is persisted.
+
+**`F19` second — a false provenance claim on the front page.** Verified PARTIAL, and **the drift is
+not where the finding said**: every stat in the Earthshaker product shot matches the shipped record
+exactly. What is wrong is the sourcing: the existence eyebrow prints *"Tier M · held in a live
+inventory"* where the shipped record renders *"Tier M · seen dropping in game"* — understating
+evidence the payload actually holds (`ex: measured-drop`, with Master Yael seen 4 times over 4
+sessions, 10–11 Aug 2026) — plus a missing Effects group and wrong flags. A reader who hovers
+Earthshaker anywhere else in the app sees a different provenance line for the same item.
+
+That one matters beyond its size: **provenance discipline is the thing this tool is held up for**,
+and the front page is where it is claimed loudest. `SAMPLE` is a module-local constant read by one
+JSX element — never by the engine, the pipeline or the payload — so the fix is display-only.
+
+Neither touches ranking, persisted shape, or the published wire format. Verifying each myself before
+fixing: the verdicts are a fan-out's, and nine of ten of those corrected the finding they checked.
