@@ -517,9 +517,30 @@ export function* upgradeSteps(
     // Cap headroom comes from what the character actually wears; an item this
     // loadout cannot equip contributes none of it.
     const existing = scoreContextFrom(totalsFor(views, position.id, context));
-    // The export filled this position with something we cannot score, so the
-    // slot is occupied even though `view.equipped` is empty.
-    const withheldName = options.withheldSlots?.[position.id];
+    /*
+     * The export filled this position with something we cannot score, so the
+     * slot is occupied even though `view.equipped` is empty.
+     *
+     * **`view.equipped` is the condition, and it used to be only the comment.**
+     * `GearSet.withheld` is written by the importer and cleared by `applySlots`
+     * — but `applySlots` is the whole-set writer. `equip`, unequip-then-
+     * re-equip and **Auto-fill** all leave the entry, and it survives a reload.
+     * So a player who imports and then fills that slot, by hand or by pressing
+     * Auto-fill once, kept a name for an item that is no longer there.
+     *
+     * Read unconditionally, that name reached `withheldName ? 'worn-unstatted'`
+     * in the chain below — which is evaluated only AFTER the real worn item has
+     * been checked and found perfectly scoreable. The position was withheld on
+     * the strength of the ghost, the card printed "No catalog carries this
+     * item's stats" about an item whose stats the payload does carry, and the
+     * upgrade was dropped from the ranking. Measured on Avenrae's own import: a
+     * genuine +17.00 EP row disappeared and the headline total read 293.01 where
+     * it should have read 310.01.
+     *
+     * Nothing is written back. A stale key may remain in storage and is now
+     * inert, because every reader of the map checks the slot first.
+     */
+    const withheldName = view.equipped ? undefined : options.withheldSlots?.[position.id];
 
     const ranked = narrow(
       rankSlotItems(catalog, { slot, context, weights, upgrade: candidateUpgrade, existing }),

@@ -110,12 +110,26 @@ export function SetEditor({ id, tab }: { id: string; tab: SetTab }) {
   /*
    * The item names in positions the link cannot carry.
    *
-   * Read off `gearSet.withheld` rather than recomputed: it is the same map the
-   * importer wrote and the doll reads, so the dialog cannot disagree with the
-   * page behind it about which positions these are.
+   * Read off `gearSet.withheld` rather than recomputed, so the dialog cannot
+   * disagree with the page behind it about which positions these are — but
+   * narrowed to positions that are still empty, for the reason below.
    */
   const withheldNames = useMemo(
-    () => Object.values(gearSet?.withheld ?? {}).filter((name) => Boolean(name)),
+    () => Object.entries(gearSet?.withheld ?? {})
+      /*
+       * Only where the position is still EMPTY.
+       *
+       * `applySlots` clears an entry when the slot is filled, but it is the
+       * whole-set writer; `equip`, unequip-then-re-equip and Auto-fill all leave
+       * it, and it survives a reload. Read without this check, the dialog warned
+       * that a garment the player replaced hours ago "will not travel" — naming
+       * an item that is not in the set at all. Same stale-entry defect as the one
+       * that was withholding the position from the ranking, on the other surface
+       * that reads the map.
+       */
+      .filter(([positionId]) => !gearSet?.slots[positionId])
+      .map(([, name]) => name)
+      .filter((name) => Boolean(name)),
     [gearSet],
   );
 

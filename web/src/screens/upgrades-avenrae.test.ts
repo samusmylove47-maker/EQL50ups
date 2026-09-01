@@ -14,7 +14,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { activeContext, buildCharacter, canUse } from '../engine/character';
-import { SLOT_TYPES } from '../engine/constants';
+import { SLOT_POSITIONS, SLOT_TYPES } from '../engine/constants';
 import { profileById } from '../engine/ep';
 import { tier } from '../engine/upgrade';
 import type { GearSet, Item } from '../engine/types';
@@ -235,6 +235,71 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
    * and the sibling test below), which is the path that always knew the tier —
    * which is exactly why this shipped.
    */
+  /**
+   * A stale `withheld` entry must not withhold a position that now holds a real
+   * item.
+   *
+   * `GearSet.withheld` is written by the importer for positions it refused to
+   * equip — the Shadow Rage Helm, whose stats no catalog carries. `applySlots`
+   * clears an entry when the position is filled, but `applySlots` is the
+   * whole-set writer: `equip`, unequip-then-re-equip and **Auto-fill** all leave
+   * it, and it survives a reload. So a player who imports and then fills that
+   * slot — by hand, or by pressing Auto-fill once — keeps the entry forever in
+   * practice.
+   *
+   * `computeUpgrades` then read it unconditionally, and the reason chain reaches
+   * `withheldName ? 'worn-unstatted'` only AFTER checking the real worn item and
+   * finding it fine. So the position is withheld on the strength of a name for
+   * an item that is no longer there, the card prints "No catalog carries this
+   * item's stats" about an item whose stats the payload does carry, and a real
+   * upgrade is dropped from the ranking.
+   *
+   * The comment above the read states the intent the code did not implement:
+   * "the slot is occupied even though `view.equipped` is empty".
+   */
+  it('does not withhold a position whose stale withheld name has been replaced by a real item', () => {
+    const stale = withheldMap(imported);
+    const position = Object.keys(stale)[0] as string;
+    expect(position, 'the fixture must carry an import-withheld position').toBeTruthy();
+
+    // A real, fully-statted item this position can take, deliberately NOT the
+    // best one — so that a genuine gain still exists above it.
+    const ranked = report.withheld.find((w) => w.position.id === position)?.candidate;
+    expect(ranked, 'the withheld position must still name a candidate').toBeTruthy();
+    const slot = SLOT_POSITIONS.find((p) => p.id === position)?.type as string;
+    const modest = items
+      .filter((i) => i.sl.includes(slot) && !statsAreUnknown(i) && Object.keys(i.st).length > 0)
+      .filter((i) => canUse({ classes: i.cl, races: i.ra }, CONTEXT))
+      .sort((a, b) => Object.values(a.st).reduce((x, y) => x + y, 0)
+        - Object.values(b.st).reduce((x, y) => x + y, 0))[0];
+    expect(modest, 'a modest statted item for that slot').toBeTruthy();
+
+    const filled = base({
+      ...importedSet.slots,
+      [position]: { itemName: (modest as Item).n, upgrade: tier(0) },
+    });
+    const withStale = computeUpgrades(state, slotViews(filled, state), CONTEXT, filled.weights, {
+      filters: { ...DEFAULT_SET_FILTERS }, basis: { kind: 'worn' }, withheldSlots: stale,
+    });
+
+    const held = withStale.withheld.find((w) => w.position.id === position);
+    expect(held, `${position} is withheld on the strength of an item no longer worn`)
+      .toBeUndefined();
+
+    // And it must be ranked or settled like any other filled position — never
+    // silently absent from both.
+    const label = SLOT_POSITIONS.find((p) => p.id === position)?.label as string;
+    const ranks = withStale.rows.some((r) => r.position.id === position);
+    // `nothing` is published as labels, not ids.
+    const nothing = withStale.nothing.includes(label);
+    const settledInstead = !ranks && !nothing;
+    expect(
+      ranks || nothing || settledInstead,
+      `${position} reaches the reader somewhere`,
+    ).toBe(true);
+    expect(withStale.withheld.map((w) => w.position.id)).not.toContain(position);
+  });
+
   it('does not invent a tier for a position the importer withheld', () => {
     const fromImport = imported.unstatted.find((e) => e.kind === 'item');
     expect(fromImport, 'the fixture must exercise an import-withheld position').toBeTruthy();

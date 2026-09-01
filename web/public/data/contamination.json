@@ -1,8 +1,8 @@
 {
   "v": 1,
   "generator": "pipeline/contamination.mjs",
-  "scannedAt": "2026-09-01T18:45:38.761Z",
-  "builtAt": "2026-09-01T18:45:38.418Z",
+  "scannedAt": "2026-09-01T19:59:59.371Z",
+  "builtAt": "2026-09-01T19:59:58.512Z",
   "principle": {
     "hit": "A hit is a question, not a verdict.",
     "hitBody": "EverQuest Legends kept a great deal of classic EverQuest intact, and most of these patterns are probably current. What a hit means is: this figure carries a convention from a game whose numbers we know changed, and nobody has checked this one.",
@@ -46,7 +46,7 @@
     ],
     "unscannedNote": "These files ship in web/public/data and every browser can fetch them, but no signature opens them, so this report says nothing about their contents either way. focus-effects.json is the live case: 66 scraped prose records, 16 of which carry a percent figure beside the word \"haste\" — the shape signature 01 exists to find. Whether those are contamination or ordinary spell-haste prose is UNMEASURED, and unmeasured is what this line reports.",
     "sourceFiles": 88,
-    "sourceLines": 34150,
+    "sourceLines": 34191,
     "excluded": "Test files are excluded from the source corpus: a test is not a surface, and counting its fixtures would pad this report with hits nobody can see. pipeline/quarantine.json is excluded too — the 7,599 items it holds are the ones we refused to ship, and scanning them would measure the wiki rather than us."
   },
   "headline": {

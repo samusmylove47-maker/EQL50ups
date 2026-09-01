@@ -59,10 +59,13 @@ export const SITE_NAV: ReadonlyArray<{ href: string; label: string; here?: boole
   { href: `${SITE}/dungeons/`, label: 'Dungeons' },
   { href: `${SITE}/raids/`, label: 'Raids' },
   { href: SITE_TOOLS_INDEX, label: 'Tools', here: true },
-  { href: `${SITE}/tools/index-search`, label: '=Index' },
+  // Renamed by the site on 1 Sep 2026: it was `=Index`, and the live masthead
+  // now reads "Items & mobs" at the same URL. Copied, not chosen —
+  // `site-nav-drift.test.ts` fetches the real nav and is what caught it.
+  { href: `${SITE}/tools/index-search`, label: 'Items & mobs' },
   { href: `${SITE}/learn/`, label: 'Learn' },
   { href: `${SITE}/sources`, label: 'Accuracy' },
-  { href: `${SITE}/search`, label: 'Search', find: true },
+  { href: `${SITE}/search`, label: 'Site search', find: true },
 ];
 
 /**
@@ -177,6 +180,14 @@ export function spokenName(label: string): string {
  * that.
  */
 export const SITE_TOOLS: ReadonlyArray<{ href: string; label: string; here?: boolean }> = [
+  /*
+   * `=Index` here and "Items & mobs" in the masthead, and that is not a slip on
+   * this side: on 1 Sep 2026 the site renamed this entry in its MASTHEAD only.
+   * Its own footer still serves `=Index` at the same URL. Both are copied from
+   * where they appear, and `site-foot-drift.test.ts` and `site-nav-drift.test.ts`
+   * check each against its own source — which is how a global edit that
+   * "corrected" this one to match the other was caught immediately.
+   */
   { href: `${SITE}/tools/index-search`, label: '=Index' },
   { href: `${SITE}/tools/sky-ledger`, label: '=Sky' },
   { href: `${SITE}/tools/50-upgrades`, label: TOOL_NAME, here: true },

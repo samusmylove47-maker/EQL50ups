@@ -6739,3 +6739,51 @@ engineering effort — and today that is 257 names.
 
 Had I not applied R259 to myself I would have kept reporting "8.4% have ids" as though the remaining
 91.6% were a backlog. They are not a backlog; they are a data-collection problem.
+
+### `F05` CLOSED, on both surfaces — and fixing it surfaced a live nav drift and an error of my own
+
+**The defect.** `GearSet.withheld` is written by the importer for positions it refused to equip.
+`applySlots` clears an entry when the slot is filled, but it is the whole-set writer: **`equip`,
+unequip-then-re-equip and Auto-fill all leave it**, and it survives a reload. `computeUpgrades` read
+the map unconditionally, and the reason chain reaches `withheldName ? 'worn-unstatted'` only AFTER
+the real worn item has been checked and found perfectly scoreable — so the position was withheld on
+the strength of a ghost, and the card printed *"No catalog carries this item's stats"* about an item
+whose stats the payload does carry.
+
+**The fix is the comment that was already there.** The line above the read says *"the slot is
+occupied even though `view.equipped` is empty"* — the intent was stated and never implemented. It is
+now `view.equipped ? undefined : options.withheldSlots?.[position.id]`. Nothing is written back: a
+stale key may remain in storage and is inert, because every reader now checks the slot first.
+
+**The second surface, which the verifier flagged as a code read and did not measure — I measured it
+and it held.** The share dialog's *"N positions will not travel"* warning read the same map without
+the same check, so after filling the slot it named a garment the player replaced hours ago. Same
+narrowing applied.
+
+Both guards demonstrated together by restoring both defects: **3 failed / 1,104 passed.** Restored,
+both files byte-identical by SHA-256.
+
+### Two things fixing it turned up that had nothing to do with `F05`
+
+**1. The site renamed a nav entry today and my live drift check caught it.** `eqlsource.com`'s
+masthead now reads **"Items & mobs"** where it read `=Index`, and **"Site search"** where it read
+"Search". `SITE_NAV` follows the site by design, so both are copied.
+
+**And the check itself would have driven a defect into my own page.** Its extraction never decoded
+HTML entities, so the live nav read `Items &amp; mobs` — the only way to make it pass would have
+been to put `&amp;` into `SITE_NAV`, which React escapes again and renders as the literal text
+`Items &amp; mobs` in the masthead. The instrument now decodes before comparing.
+
+**2. A global replace of mine changed the footer too, and the footer was right.** The site renamed
+this entry **in its masthead only** — its own footer still serves `=Index` at the same URL. My
+`str.replace` hit both constants; `site-foot-drift.test.ts` failed immediately against both its
+transcript and the live footer. Reverted, and the reason the two now differ is written down beside
+them so it does not read as a slip.
+
+**Worth the Director's attention on the naming question:** the site is currently serving **two
+different labels for one tool** — `=Index` in the footer, "Items & mobs" in the masthead — and the
+masthead one has dropped the `=` sigil entirely. That is the same failure shape as R234, live on the
+site today, and it is not mine to fix.
+
+**Gate:** tsc clean · vitest **1,107** / 71 files · playwright **151 / 0** · `build.mjs` 0 ·
+`verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.

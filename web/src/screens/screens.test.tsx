@@ -224,6 +224,28 @@ describe('the share dialog names the positions a link cannot carry', () => {
     expect(html).toMatch(/empty/);
   });
 
+  it('does not warn about a withheld position the player has since filled', () => {
+    /*
+     * The same stale-entry defect as the ranking one, on the share dialog.
+     * `withheldNames` read `gearSet.withheld` without asking whether the
+     * position is still empty, so after importing and then filling the slot the
+     * dialog warned that a garment which is no longer worn "will not travel".
+     *
+     * `applySlots` clears the entry, so the reproduction has to fill the slot
+     * the way a player does — `equip`, which does not.
+     */
+    const { setId } = seed();
+    useApp.getState().applySlots(setId, {}, false, { CHEST: 'Shadow Rage Helm' });
+    expect(openShare(setId)).toContain('Shadow Rage Helm');
+
+    useApp.getState().equip(setId, 'CHEST', '[Fixture] Iron Helm');
+    const html = openShare(setId);
+    expect(html, 'the ghost must not be named once the slot is filled')
+      .not.toContain('Shadow Rage Helm');
+    expect(html, 'and no warning at all, since nothing is withheld now')
+      .not.toContain('will not travel');
+  });
+
   it('counts and lists more than one', () => {
     const { setId } = seed();
     useApp.getState().applySlots(setId, {}, false, {

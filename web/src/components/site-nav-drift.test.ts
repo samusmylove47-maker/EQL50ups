@@ -60,10 +60,10 @@ const EXPECTED = [
   ['Dungeons', 'https://eqlsource.com/dungeons/'],
   ['Raids', 'https://eqlsource.com/raids/'],
   ['Tools', 'https://eqlsource.com/tools/'],
-  ['=Index', 'https://eqlsource.com/tools/index-search'],
+  ['Items & mobs', 'https://eqlsource.com/tools/index-search'],
   ['Learn', 'https://eqlsource.com/learn/'],
   ['Accuracy', 'https://eqlsource.com/sources'],
-  ['Search', 'https://eqlsource.com/search'],
+  ['Site search', 'https://eqlsource.com/search'],
 ] as const;
 
 /** `../dungeons/index.html` as the site writes it -> what we must link. */
@@ -110,8 +110,22 @@ describe('the masthead nav', () => {
     expect(nav, 'no .site-nav block in the served page — the chrome may have been restructured')
       .not.toBeNull();
 
+    /*
+     * Entities are decoded before comparing, and that is not tidiness.
+     *
+     * The site's nav now contains "Items &amp; mobs". Compared raw, the only way
+     * to make this test pass is to put `&amp;` into `SITE_NAV` — which React
+     * escapes again and renders as the literal text "Items &amp; mobs" in our
+     * own masthead. The instrument would have driven a visible defect into the
+     * page it exists to protect.
+     */
+    const decode = (text: string): string => text
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, '\u00a0')
+      .trim();
     const live = [...(nav?.[1] ?? '').matchAll(/<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map(
-      (m) => [(m[2] ?? '').replace(/<[^>]+>/g, '').trim(), canonical(m[1] ?? '')],
+      (m) => [decode(m[2] ?? ''), canonical(m[1] ?? '')],
     );
 
     expect(
