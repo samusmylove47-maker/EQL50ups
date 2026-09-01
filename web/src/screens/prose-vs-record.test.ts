@@ -221,3 +221,79 @@ describe('the handover on what the fan-out actually returned', () => {
       .toContain('under the session\ndirectory');
   });
 });
+
+describe('the extracted audit record is citable', () => {
+  /**
+   * The first version of this record numbered the same 31 findings three ways —
+   * the verdict table 1–23, the never-judged table 1–8, and the body 1–31 — so
+   * a number carried from a table into the body landed on a different finding.
+   * "Finding 8" was the `src.c` Crafted flag in one place and "Nothing outranks
+   * what you are wearing" in another, and every cross-reference written against
+   * it, including the ones in HANDOFF.md, resolved wrongly.
+   *
+   * It was found by trying to USE the file, an hour after committing it. A
+   * record whose identifiers do not resolve is not a record, so the property is
+   * pinned rather than left to the next generator run.
+   */
+  const RECORD = '../research/validation/AUDIT-UPGRADES-SURFACE.md';
+
+  function parse() {
+    const s = read(RECORD);
+    const body = new Map(
+      [...s.matchAll(/^### (F\d\d)\. (.+)$/gm)].map((m) => [m[1] as string, m[2] as string]),
+    );
+    // To the NEXT heading, not to the first blank line: the status section
+    // opens with prose and its table would otherwise be invisible to this check
+    // — which is exactly how the first run of it reported an empty table.
+    const section = (heading: string): string => {
+      const m = new RegExp(`\\n## ${heading}\\n([\\s\\S]*?)(?=\\n## |$)`).exec(s);
+      expect(m, `the "${heading}" section`).toBeTruthy();
+      return m?.[1] ?? '';
+    };
+    const idsIn = (t: string) => [...t.matchAll(/^\| `(F\d\d)`/gm)].map((m) => m[1] as string);
+    return { s, body, section, idsIn };
+  }
+
+  it('gives every finding exactly one id, used by both tables and the body', () => {
+    const { body, section, idsIn } = parse();
+    expect(body.size, 'the body lists all 31 findings').toBe(31);
+
+    const judged = idsIn(section('Findings with a verdict'));
+    const unjudged = idsIn(section('Findings that were raised and never judged'));
+    expect(judged).toHaveLength(23);
+    expect(unjudged).toHaveLength(8);
+
+    const all = [...judged, ...unjudged];
+    expect(new Set(all).size, 'no id appears in both tables').toBe(all.length);
+    expect(all.slice().sort()).toEqual([...body.keys()].sort());
+  });
+
+  it('gives the same title under an id wherever that id appears', () => {
+    const { body, section } = parse();
+    const check = (heading: string, column: number) => {
+      for (const line of section(heading).split('\n')) {
+        const m = /^\| `(F\d\d)` \|/.exec(line);
+        if (!m) continue;
+        const cells = line.replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+        expect(cells[column]?.replace(/\\\|/g, '|'), `${m[1]} in "${heading}"`)
+          .toBe(body.get(m[1] as string));
+      }
+    };
+    check('Findings with a verdict', 5);
+    check('Findings that were raised and never judged', 3);
+  });
+
+  it('cites only ids that exist, from the status table and from the handover', () => {
+    const { body, section } = parse();
+    const status = [...section('What has since been done about them')
+      .matchAll(/^\| `(F\d\d)`/gm)].map((m) => m[1] as string);
+    expect(status.length, 'the status table is not empty').toBeGreaterThan(0);
+    for (const id of status) expect(body.has(id), `status cites ${id}`).toBe(true);
+
+    // HANDOFF.md points into this record by id; a dangling one is the defect
+    // this whole describe exists for.
+    for (const m of read('../HANDOFF.md').matchAll(/`(F\d\d)`/g)) {
+      expect(body.has(m[1] as string), `HANDOFF cites ${m[1]}`).toBe(true);
+    }
+  });
+});

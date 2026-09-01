@@ -1,19 +1,27 @@
 # Fan-out audit of the player-facing =Upgrades surface
 
-**This file exists because the record of it was not durable and its summary was wrong.**
+**Every finding has one id, `F01`–`F31`, in the order the run produced them.** It is the same id
+in both tables and in the full text below. The first version of this file numbered the verdict
+table 1–23, the never-judged table 1–8 and the body 1–31, so a number carried from a table into
+the body landed on a different finding; that is fixed here and the status table below now
+resolves its ids by matching finding TITLES rather than by counting rows.
 
-`HANDOFF.md` cited the raw journal as `subagents/workflows/wf_d2d73ce2-770/journal.jsonl`.
-No such path exists from the repository root. The journal is real but lives under the
-session directory — `/root/.claude/projects/…/subagents/workflows/wf_d2d73ce2-770/` —
-which does not survive the container. Everything below is extracted from it and from the
-per-agent transcripts beside it, so that it survives in the repository instead.
+**This file exists because the record of the run was not durable and its summary was wrong.**
+`HANDOFF.md` cited the raw journal as `subagents/workflows/wf_d2d73ce2-770/journal.jsonl`. No
+such path exists from the repository root. The journal is real but lives under the session
+directory — `/root/.claude/projects/<session>/subagents/workflows/wf_d2d73ce2-770/` — which does
+not survive the container, and so do the 31 per-agent transcripts beside it. Everything below is
+extracted from them.
+
+Verdicts are paired to findings exactly rather than by position: the verify prompt embeds the
+finding's TITLE, so titles were recovered from the agent transcripts and all 23 matched a
+finding string-for-string.
 
 ## The numbers, recomputed from the journal
 
-`HANDOFF.md` reported *"31 findings raised, 16 verdicts returned, 15 mechanisms CONFIRMED
-by a refuter, 1 refuted. Severity: 12 agree, 3 too-high, 1 too-low."* Every figure in that
-sentence except the last is wrong — it was written while the run was still reporting and
-never re-derived. Counted over the journal:
+`HANDOFF.md` reported *"31 findings raised, 16 verdicts returned, 15 mechanisms CONFIRMED by a
+refuter, 1 refuted. Severity: 12 agree, 3 too-high, 1 too-low."* Five of those six figures are
+wrong — typed while the run was still reporting and never re-derived. Counted over the journal:
 
 ```
   finder agents                 8
@@ -25,94 +33,97 @@ never re-derived. Counted over the journal:
     severity  TOO-HIGH        5
     severity  TOO-LOW         3
     scope     AGREE           7
-    scope     NARROWER        6
     scope     WIDER           10
+    scope     NARROWER        6
   findings NEVER judged        8
 ```
 
-**The eight unjudged findings were not dismissed — they were never looked at.** The
-workflow script verifies `(found?.findings ?? []).slice(0, 3)` per lens, so any lens that
-raised more than three had the remainder silently dropped before the verify stage. That cap
-appears nowhere in the run's own reporting.
+**The unjudged findings were not dismissed — they were never looked at.** The workflow script
+verifies `(found?.findings ?? []).slice(0, 3)` per lens, so any lens that raised more than three
+had the remainder dropped before the verify stage. That cap appears nowhere in the run's own
+reporting.
 
 ## What has since been done about them
 
 **Mapped from commit subjects and bodies on `claude/eql-gear-optimizer-tfzvh6`, not re-verified
 by this extraction.** A commit that names a mechanism is evidence it was worked, not proof the
-finding is gone; anything not listed here is untouched as far as this file can tell.
+finding is gone; anything absent from this table is untouched as far as this file can tell.
 
 | Finding | Status | Commit |
 |---|---|---|
-| 1, 5, 9 — "Not in catalog" badge on an offhand blocked by a two-hander | closed | `eb88e2b` |
-| 2 — zone tallies attribute a drop's full count to every zone name | closed | `d93384e` |
-| 3 — the three EP figures on a row do not reconcile | closed | `c79bc10` |
-| 8 — `src.c` written as `1`, read as `=== true` (verdict was REFUTED) | closed anyway | `c4cfb1c` |
-| 12 — Landing says the client "corrected" the SV Void rule | closed | `7340dc0` |
-| 14 — Sources says two client windows, prints five | closed | `7340dc0` |
-| 15 — picker's "vs worn" compares candidate@preview to worn@own tier | **REFUTED by B** | `f108ef0` |
-| 18, 20 — share links drop `withheld` and `defaultFilters` | disclosed, wire unchanged | `e9ede66` |
-| 19 — `sanitizeSet` drops `withheld` on every reload | closed | `52c7e0e` |
-| 22 — `blockReason` prints `ALL_EXCEPT` as an inclusion list | closed | `c682786` |
-| 23 — item window prints the raw `ALL_EXCEPT` token | closed | `c682786` |
+| `F01` — "Not compared" card labels a two-handed-occupied offhand as "Not in catalog", contradict | closed | `eb88e2b` |
+| `F06` — The "Not compared" card marks an offhand blocked by a two-handed Primary as "Not in cata | closed | `eb88e2b` |
+| `F10` — An empty offhand under a two-handed Primary is marked "Not in catalog" | closed | `eb88e2b` |
+| `F02` — Zone tallies attribute a drop's full sighting count to every zone name it carries, so "W | closed | `d93384e` |
+| `F03` — The three EP figures on a row do not reconcile: printed candidate EP minus printed worn  | closed | `c79bc10` |
+| `F09` — `src.c` is written as the number 1 and read as `=== true`, so the Crafted source filter  | closed anyway — its verdict was REFUTED | `c4cfb1c` |
+| `F14` — Landing page says the client "corrected" the SV Void rule; the cited record and the same | closed | `7340dc0` |
+| `F16` — Sources page says a client window has been read for two items; the same page prints the  | closed | `7340dc0` |
+| `F21` — Item picker's "vs worn" delta compares candidate@preview against worn@its-own-tier, cont | **REFUTED by B** | `f108ef0` |
+| `F24` — Share links drop GearSet.withheld, so a position the author's screen called "not compara | disclosed on screen; wire unchanged | `e9ede66` |
+| `F26` — Share links drop GearSet.defaultFilters, so the reader's ranking is computed over a diff | disclosed on screen; wire unchanged | `e9ede66` |
+| `F25` — GearSet.withheld is also dropped on every page reload, because sanitizeSet does not copy | closed | `52c7e0e` |
+| `F29` — blockReason prints the ALL_EXCEPT sentinel as an inclusion list, producing a sentence th | closed | `c682786` |
+| `F30` — The item window's Class and Race requirement rows print the raw ALL_EXCEPT token, so an  | closed | `c682786` |
 
-**Finding 8 is the one to read twice.** A refuter marked its mechanism REFUTED; it was real, and
-it was fixed — 956 items had never been labelled Crafted and one of five source filters matched
-nothing. It is the standing evidence in this repository that a REFUTED verdict is a claim like any
-other, and that the killed pile is worth re-reading.
+**`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
+was fixed — 956 items had never been labelled Crafted and one of five source filters matched
+nothing. It is the standing evidence in this repository that a REFUTED verdict is a claim like
+any other, and that the killed pile is worth re-reading.
 
-**Finding 16 is NOT finding 15.** They sit one line apart in the same file and both concern the
-picker's "vs worn" baseline, but 16 is a different claim — that the baseline counts weapon
-ratio/damage in slots where no candidate may score them. Refuting 15 says nothing about 16, which
-remains open and unexamined.
+**`F22` is NOT `F21`.** They sit one line apart in the same file and both concern the picker's
+"vs worn" baseline, but `F22` is a different claim — that the baseline counts weapon ratio and
+damage in slots where no candidate may score them. Refuting `F21` says nothing about it, and
+`F22` remains open and unexamined.
 
 ## Findings with a verdict
 
-| # | Mech | Sev | Scope | File:line | Title |
+| id | Mech | Sev | Scope | File:line | Title |
 |---|---|---|---|---|---|
-| 1 | CONFIRMED | TOO-HIGH | AGREE | `web/src/screens/Upgrades.tsx:1810` | "Not compared" card labels a two-handed-occupied offhand as "Not in catalog", contradicting its own body text |
-| 2 | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:890` | Zone tallies attribute a drop's full sighting count to every zone name it carries, so "Where to go" sums to more sightings than the rows report |
-| 3 | CONFIRMED | AGREE | AGREE | `web/src/screens/Upgrades.tsx:1282` | The three EP figures on a row do not reconcile: printed candidate EP minus printed worn EP disagrees with the printed gain on 3% of rows |
-| 4 | CONFIRMED | AGREE | NARROWER | `web/src/screens/Upgrades.tsx:517` | A stale importer `withheld` entry locks a position out of the ranking forever and prints "no catalog carries this item's stats" about the fully-statted item now worn there |
-| 5 | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:1809` | The "Not compared" card marks an offhand blocked by a two-handed Primary as "Not in catalog" |
-| 6 | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:648` | The `nothing` bucket reports "nothing scored" for positions whose only positive candidate was skipped as Lore-claimed or worn elsewhere |
-| 7 | CONFIRMED | TOO-HIGH | NARROWER | `web/src/screens/Upgrades.tsx:1781` | An empty ranking headlines "Nothing outranks what you are wearing" when nothing is worn and nothing was scored |
-| 8 | REFUTED | AGREE | AGREE | `web/src/data/normalize.ts:175` | `src.c` is written as the number 1 and read as `=== true`, so the Crafted source filter matches zero items and 665 items are told "no acquisition data is recorded" |
-| 9 | CONFIRMED | TOO-LOW | WIDER | `web/src/screens/Upgrades.tsx:1810` | An empty offhand under a two-handed Primary is marked "Not in catalog" |
-| 10 | CONFIRMED | AGREE | NARROWER | `web/src/screens/Upgrades.tsx:572` | Primary row shows the first two-hander that clears the 0.05 EP floor, not the biggest net gain — a one-hander further down the same list can be worth more |
-| 11 | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:536` | The Lore hand-out is ordered by a key computed from an item the position can never be offered, and the row then prints 'offered in the single position where it gains the most' — false on the repo's own Avenrae fixture |
-| 12 | CONFIRMED | TOO-HIGH | AGREE | `web/src/screens/Landing.tsx:256` | Landing page says the client "corrected" the SV Void rule; the cited record and the same page say it predicted it exactly |
-| 13 | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:1146` | Upgrades tells the reader a Lore item is placed where it gains the most; the allocation is greedy and is not, in 2 of 8 Lore rows on the shipped Avenrae import |
-| 14 | CONFIRMED | AGREE | WIDER | `web/src/screens/Sources.tsx:680` | Sources page says a client window has been read for two items; the same page prints the list of five |
-| 15 | CONFIRMED | AGREE | WIDER | `web/src/components/ItemPicker.tsx:240` | Item picker's "vs worn" delta compares candidate@preview against worn@its-own-tier, contradicting the worn item's own EP one row away |
-| 16 | CONFIRMED | AGREE | NARROWER | `web/src/components/ItemPicker.tsx:241` | Picker's "vs worn" baseline counts weapon ratio/damage in slots where no candidate is allowed to score them |
-| 17 | CONFIRMED | TOO-LOW | NARROWER | `web/src/screens/Upgrades.tsx:464` | Import-withheld slot prints "+0" for gear the export said was +5 — the parsed tier is discarded |
-| 18 | CONFIRMED | AGREE | WIDER | `web/src/share/codec.ts:63` | Share links drop GearSet.withheld, so a position the author's screen called "not comparable" is ranked as an upgrade for the reader |
-| 19 | CONFIRMED | AGREE | AGREE | `web/src/state/persistence.ts:249` | GearSet.withheld is also dropped on every page reload, because sanitizeSet does not copy it |
-| 20 | CONFIRMED | AGREE | AGREE | `web/src/share/codec.ts:654` | Share links drop GearSet.defaultFilters, so the reader's ranking is computed over a different candidate pool than the author's |
-| 21 | CONFIRMED | TOO-HIGH | AGREE | `web/src/engine/character.ts:234` | Race unset skips the race gate entirely, so "Usable by this loadout" prints over items the character's race cannot wear |
-| 22 | CONFIRMED | TOO-HIGH | NARROWER | `web/src/lib/blockReason.ts:37` | blockReason prints the ALL_EXCEPT sentinel as an inclusion list, producing a sentence that states the opposite of the truth |
-| 23 | CONFIRMED | TOO-LOW | WIDER | `web/src/components/ItemWindow.tsx:276` | The item window's Class and Race requirement rows print the raw ALL_EXCEPT token, so an exclusion list reads as an inclusion list |
+| `F01` | CONFIRMED | TOO-HIGH | AGREE | `web/src/screens/Upgrades.tsx:1810` | "Not compared" card labels a two-handed-occupied offhand as "Not in catalog", contradicting its own body text |
+| `F02` | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:890` | Zone tallies attribute a drop's full sighting count to every zone name it carries, so "Where to go" sums to more sightings than the rows report |
+| `F03` | CONFIRMED | AGREE | AGREE | `web/src/screens/Upgrades.tsx:1282` | The three EP figures on a row do not reconcile: printed candidate EP minus printed worn EP disagrees with the printed gain on 3% of rows |
+| `F05` | CONFIRMED | AGREE | NARROWER | `web/src/screens/Upgrades.tsx:517` | A stale importer `withheld` entry locks a position out of the ranking forever and prints "no catalog carries this item's stats" about the fully-statted item now worn there |
+| `F06` | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:1809` | The "Not compared" card marks an offhand blocked by a two-handed Primary as "Not in catalog" |
+| `F07` | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:648` | The `nothing` bucket reports "nothing scored" for positions whose only positive candidate was skipped as Lore-claimed or worn elsewhere |
+| `F08` | CONFIRMED | TOO-HIGH | NARROWER | `web/src/screens/Upgrades.tsx:1781` | An empty ranking headlines "Nothing outranks what you are wearing" when nothing is worn and nothing was scored |
+| `F09` | REFUTED | AGREE | AGREE | `web/src/data/normalize.ts:175` | `src.c` is written as the number 1 and read as `=== true`, so the Crafted source filter matches zero items and 665 items are told "no acquisition data is recorded" |
+| `F10` | CONFIRMED | TOO-LOW | WIDER | `web/src/screens/Upgrades.tsx:1810` | An empty offhand under a two-handed Primary is marked "Not in catalog" |
+| `F12` | CONFIRMED | AGREE | NARROWER | `web/src/screens/Upgrades.tsx:572` | Primary row shows the first two-hander that clears the 0.05 EP floor, not the biggest net gain — a one-hander further down the same list can be worth more |
+| `F13` | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:536` | The Lore hand-out is ordered by a key computed from an item the position can never be offered, and the row then prints 'offered in the single position where it gains the most' — false on the repo's own Avenrae fixture |
+| `F14` | CONFIRMED | TOO-HIGH | AGREE | `web/src/screens/Landing.tsx:256` | Landing page says the client "corrected" the SV Void rule; the cited record and the same page say it predicted it exactly |
+| `F15` | CONFIRMED | AGREE | WIDER | `web/src/screens/Upgrades.tsx:1146` | Upgrades tells the reader a Lore item is placed where it gains the most; the allocation is greedy and is not, in 2 of 8 Lore rows on the shipped Avenrae import |
+| `F16` | CONFIRMED | AGREE | WIDER | `web/src/screens/Sources.tsx:680` | Sources page says a client window has been read for two items; the same page prints the list of five |
+| `F21` | CONFIRMED | AGREE | WIDER | `web/src/components/ItemPicker.tsx:240` | Item picker's "vs worn" delta compares candidate@preview against worn@its-own-tier, contradicting the worn item's own EP one row away |
+| `F22` | CONFIRMED | AGREE | NARROWER | `web/src/components/ItemPicker.tsx:241` | Picker's "vs worn" baseline counts weapon ratio/damage in slots where no candidate is allowed to score them |
+| `F23` | CONFIRMED | TOO-LOW | NARROWER | `web/src/screens/Upgrades.tsx:464` | Import-withheld slot prints "+0" for gear the export said was +5 — the parsed tier is discarded |
+| `F24` | CONFIRMED | AGREE | WIDER | `web/src/share/codec.ts:63` | Share links drop GearSet.withheld, so a position the author's screen called "not comparable" is ranked as an upgrade for the reader |
+| `F25` | CONFIRMED | AGREE | AGREE | `web/src/state/persistence.ts:249` | GearSet.withheld is also dropped on every page reload, because sanitizeSet does not copy it |
+| `F26` | CONFIRMED | AGREE | AGREE | `web/src/share/codec.ts:654` | Share links drop GearSet.defaultFilters, so the reader's ranking is computed over a different candidate pool than the author's |
+| `F28` | CONFIRMED | TOO-HIGH | AGREE | `web/src/engine/character.ts:234` | Race unset skips the race gate entirely, so "Usable by this loadout" prints over items the character's race cannot wear |
+| `F29` | CONFIRMED | TOO-HIGH | NARROWER | `web/src/lib/blockReason.ts:37` | blockReason prints the ALL_EXCEPT sentinel as an inclusion list, producing a sentence that states the opposite of the truth |
+| `F30` | CONFIRMED | TOO-LOW | WIDER | `web/src/components/ItemWindow.tsx:276` | The item window's Class and Race requirement rows print the raw ALL_EXCEPT token, so an exclusion list reads as an inclusion list |
 
 ## Findings that were raised and never judged
 
-| # | Sev claimed | File:line | Title |
+| id | Sev claimed | File:line | Title |
 |---|---|---|---|
-| 1 | minor | `web/src/screens/Upgrades.tsx:1015` | Measured-drops header counts the same mob twice when the payload spells it with different capitalisation |
-| 2 | minor | `web/src/screens/Upgrades.tsx:1461` | The screen ranks as soon as the index loads, so every row claims "nobody has measured it dropping" until the shards land |
-| 3 | minor | `web/src/screens/Sources.tsx:397` | Sources card is titled "The largest reason is not an expansion" directly under a table whose largest reason is era:Velious |
-| 4 | minor | `web/src/screens/PlanarGear.tsx:990` | Planar gear page says "a hundred and six rows" where its own header counts 105 pieces |
-| 5 | minor | `web/src/screens/Landing.tsx:64` | The front page's Earthshaker product shot has drifted from the shipped Earthshaker record it is described as copying |
-| 6 | minor | `web/src/screens/NewCharacter.tsx:16` | NewCharacter's justification comment measures the shipped payload at 7,341 race-restricted items; it holds 248 |
-| 7 | minor | `web/src/screens/SharedSet.tsx:71` | A good share link opened while the item catalog failed to load says the link was made against a different catalog build and to ask for a fresh one |
-| 8 | minor | `pipeline/build.mjs:2148` | items-index.json ships no required-level field, so the level gate and the Level requirement row are absent until the slot shard loads |
+| `F04` | minor | `web/src/screens/Upgrades.tsx:1015` | Measured-drops header counts the same mob twice when the payload spells it with different capitalisation |
+| `F11` | minor | `web/src/screens/Upgrades.tsx:1461` | The screen ranks as soon as the index loads, so every row claims "nobody has measured it dropping" until the shards land |
+| `F17` | minor | `web/src/screens/Sources.tsx:397` | Sources card is titled "The largest reason is not an expansion" directly under a table whose largest reason is era:Velious |
+| `F18` | minor | `web/src/screens/PlanarGear.tsx:990` | Planar gear page says "a hundred and six rows" where its own header counts 105 pieces |
+| `F19` | minor | `web/src/screens/Landing.tsx:64` | The front page's Earthshaker product shot has drifted from the shipped Earthshaker record it is described as copying |
+| `F20` | minor | `web/src/screens/NewCharacter.tsx:16` | NewCharacter's justification comment measures the shipped payload at 7,341 race-restricted items; it holds 248 |
+| `F27` | minor | `web/src/screens/SharedSet.tsx:71` | A good share link opened while the item catalog failed to load says the link was made against a different catalog build and to ask for a fresh one |
+| `F31` | minor | `pipeline/build.mjs:2148` | items-index.json ships no required-level field, so the level gate and the Level requirement row are absent until the slot shard loads |
 
 ## Full text
 
-Every finding below carries the mechanism its author claimed, the evidence they said they
-ran, and — where one exists — the refuter's verdict and corrected scope. Nothing here is
-re-verified by this extraction; it is a faithful copy of what the run produced.
+Each entry carries the mechanism its author claimed, the evidence they said they ran, and —
+where one exists — the refuter's verdict and corrected scope. Nothing here is re-verified by
+this extraction; it is a faithful copy of what the run produced.
 
-### 1. "Not compared" card labels a two-handed-occupied offhand as "Not in catalog", contradicting its own body text
+### F01. "Not compared" card labels a two-handed-occupied offhand as "Not in catalog", contradicting its own body text
 
 `web/src/screens/Upgrades.tsx:1810` — severity claimed **serious**, scope claimed **Measured over the shipped payload and the repo's own validation character. web/src/screens/audit-2h.test.ts ran the Avenrae import (research/validation/tier0-inventory-Avenrae.txt, which wears Earthshaker — a two-hander) across all 5 presets x 3 comparison bases = 15 runs: `heldOffhandOccupied: 15`, i.e. every single run produces a SECONDARY withheld row with reason `offhand-occupied`, and therefore this badge. It is not an edge case for any player wielding a two-handed weapon.**
 
@@ -163,7 +174,7 @@ That combination is a real copy defect worth fixing (two more branches in the te
 
 SCOPE — AGREE with the lens, and I measured it wider; see corrected_scope. The lens's 15/15 is exactly reproduced, and the underlying rate is 100% of 2H-primary loadouts (73/73 distinct items), not merely one character's runs.
 
-### 2. Zone tallies attribute a drop's full sighting count to every zone name it carries, so "Where to go" sums to more sightings than the rows report
+### F02. Zone tallies attribute a drop's full sighting count to every zone name it carries, so "Where to go" sums to more sightings than the rows report
 
 `web/src/screens/Upgrades.tsx:890` — severity claimed **serious**, scope claimed **7 of 60 rankings measured (4 trios x 5 presets x 3 bases, Avenrae's imported set, shipped payload). Worst observed inflation: 12 true sightings rendered as 18 across the column (+50%). 25 of 677 drop rows in the payload carry >1 zone.**
 
@@ -212,7 +223,7 @@ SEVERITY — AGREE, at the low end of "serious". Arguments for: it is a self-con
 
 SCOPE — WIDER, with one of their figures confirmed and two corrected. See corrected_scope.
 
-### 3. The three EP figures on a row do not reconcile: printed candidate EP minus printed worn EP disagrees with the printed gain on 3% of rows
+### F03. The three EP figures on a row do not reconcile: printed candidate EP minus printed worn EP disagrees with the printed gain on 3% of rows
 
 `web/src/screens/Upgrades.tsx:1282` — severity claimed **minor**, scope claimed **24 of 810 ranked rows = 2.96%, measured over 60 rankings (4 trios x 5 EP presets x 3 comparison bases) against the shipped catalogue with Avenrae's imported gear. Always off by exactly 0.1.**
 
@@ -253,7 +264,7 @@ SCOPE — agrees with theirs for the mechanism they named (3.02% vs 2.96%, diffe
 
 WHAT I DID NOT TEST — I did not check whether any reader has ever noticed, and I did not measure the imported-Avenrae sample they used (I deliberately built a different one). Both instrument files are left in the worktree at /home/user/EQL50ups/.claude/worktrees/wf_d2d73ce2-770-11/web/src/screens/.
 
-### 4. Measured-drops header counts the same mob twice when the payload spells it with different capitalisation
+### F04. Measured-drops header counts the same mob twice when the payload spells it with different capitalisation
 
 `web/src/screens/Upgrades.tsx:1015` — severity claimed **minor**, scope claimed **6 of 810 ranked rows across the 60-ranking sweep (0.74%); 17 items and 22 duplicate pairs in the shipped payload of 3,663 items.**
 
@@ -268,7 +279,7 @@ Payload-wide (node one-liner over web/public/data/items/*.json): 17 items carry 
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
 
-### 5. A stale importer `withheld` entry locks a position out of the ranking forever and prints "no catalog carries this item's stats" about the fully-statted item now worn there
+### F05. A stale importer `withheld` entry locks a position out of the ranking forever and prints "no catalog carries this item's stats" about the fully-statted item now worn there
 
 `web/src/screens/Upgrades.tsx:517` — severity claimed **serious**, scope claimed **Measured, not asserted. Triggered by any set built through the inventory importer that had at least one worn item with no published stats — on the project's own shipped Tier-0 capture that is exactly 1 of 23 positions (HEAD / Shadow Rage Helm), i.e. the very case Upgrades.tsx's own header comment cites as the reason `withheld` exists. Every equip path in the app goes through `store.equip` and therefore leaves the entry stuck: the Upgrades screen's own Equip button (Upgrades.tsx:1559), its ItemDetail equip (Upgrades.tsx:1850), the slot picker (SetEditor.tsx:443), Auto-fill (SetEditor.tsx:167) and the item browser (ItemBrowser.tsx:727). `grep -rn "\.equip(\\|applySlots(" --include=*.tsx --include=*.ts web/src \| grep -v '\.test\.' \| grep -v state/store.ts` returns those five `equip` call sites plus three `applySlots` sites; only `applySlots` (a re-import) clears the map. Nothing else in the app reads `GearSet.withheld` — same grep over web/src shows Upgrades.tsx:1479 as the only reader — so there is no other surface where the player can see or clear it.**
 
@@ -348,7 +359,7 @@ SEVERITY — AGREE with "serious". The house rule this repository is built aroun
 
 SCOPE — NARROWER; see corrected_scope. The one figure the lens actually measured (1 of 23 on tier0-inventory-Avenrae.txt) I reproduce exactly. What is unmeasured is the population that can trigger it, and measuring it shrinks the finding to six catalog items, all BER-only Shadow Rage armour, reachable only through the inventory importer — while simultaneously showing the per-set worst case is six locked positions, not one.
 
-### 6. The "Not compared" card marks an offhand blocked by a two-handed Primary as "Not in catalog"
+### F06. The "Not compared" card marks an offhand blocked by a two-handed Primary as "Not in catalog"
 
 `web/src/screens/Upgrades.tsx:1809` — severity claimed **minor**, scope claimed **Fires on every render in which the Primary holds a two-handed weapon. On the shipped Tier-0 capture that is 1 of 23 positions, on every paint. Across a 864-case adversarial sweep against the shipped payload (`npx vitest run src/screens/audit-adv.test.ts`), `offhand-occupied` was reached 864 times and `profile-blind-to-weapons` 576 times; the withheld-reason distribution was {"worn-unresolved":1728,"worn-unstatted":3456,"offhand-occupied":864,"profile-blind-to-weapons":576}. `offhand-unpriceable` was not reached in that sweep, so its mark is unverified in a render.**
 
@@ -391,7 +402,7 @@ SEVERITY — AGREE, minor, at the upper end of minor. Arguments for keeping it m
 
 SCOPE — WIDER than stated. Their per-render count is right (1 of 23 positions, every paint), but the framing of how many players hit it is understated. Measured numbers are in corrected_scope; the headline is that a two-hander is the highest-EP Primary in the shipped catalog for 46 of 75 class x preset-profile combinations, so the tool's own advice steers users into this state rather than it being a fringe configuration.
 
-### 7. The `nothing` bucket reports "nothing scored" for positions whose only positive candidate was skipped as Lore-claimed or worn elsewhere
+### F07. The `nothing` bucket reports "nothing scored" for positions whose only positive candidate was skipped as Lore-claimed or worn elsewhere
 
 `web/src/screens/Upgrades.tsx:648` — severity claimed **minor**, scope claimed **Measured per weight profile in the same run: {melee-dps:[0 false,0 true], tank:[0,0], caster:[0,0], healer:[0,0], balanced:[0,0], ENDUR-only:[9,47], CHA-only:[0,16], SV_DISEASE-only:[0,8]}. Zero false verdicts across 920 position-verdicts under all five shipped presets — the bucket never fires at all there — so this needs a hand-set single-stat weight profile that narrows a doubled slot's scoring pool to one item. Separately, the four buckets themselves are sound: across 984 generated sets against the shipped payload (22,632 position verdicts: 120 random sets over 5 presets × 4 trios, plus an 864-case adversarial sweep over unresolved names, importer-withheld slots, statsUnknown items, two-handed primaries, negative and single-stat weights, four filter sets and both comparison bases) `rows + withheld + settled + nothing` was 23 in every case and no position appeared in two buckets.**
 
@@ -433,7 +444,7 @@ FILE SET SEARCHED, so the zeros mean something: the shipped payload at web/publi
 
 SEVERITY — AGREE with "minor", and I want the reasons on record rather than assumed. Downward: it cannot occur under any of the five shipped presets under any of the 40 era/source/no-drop filter combinations (0/9,200 position-verdicts); even under a narrow custom profile only 3.4% of `nothing` entries (56/1,660) are false; and the footer at Upgrades.tsx:1830-1834 already states "Items already worn elsewhere in this set are not offered again, a Lore item is offered for one position only" in the sentence immediately before the "Nothing scored for ..." list, so the explanation is on screen even though it is not attached to the named slot. Upward: the KPI subtitle "N with nothing to offer" carries no such qualifier at all, and the defect is a false statement of fact on a player-facing surface in a project whose stated constitution is "compute it, check it, or don't print it" — a 25.0 EP candidate exists and the screen says nothing does. Those roughly cancel; the mis-stated fact sits on a footer sentence and a KPI subtitle rather than on any ranked row's number, so "minor" is the right call. I would not raise it and I would not drop it.
 
-### 8. An empty ranking headlines "Nothing outranks what you are wearing" when nothing is worn and nothing was scored
+### F08. An empty ranking headlines "Nothing outranks what you are wearing" when nothing is worn and nothing was scored
 
 `web/src/screens/Upgrades.tsx:1781` — severity claimed **serious**, scope claimed **Measured over the shipped payload (3,663 normalized items from web/public/data/items/*.json) with a WAR/BRD/BER-50 context and an empty set, running `computeUpgrades` across all 40 era x source combinations the set-config dialog offers: 18 of 40 produce rows=0, settled=0, nothing=23 — i.e. render this headline. They include plain single-axis choices, not just exotic pairs: `era=Paineel, source=any` (22 Paineel items in the payload, none eligible for this trio) and every one of the 5 `source=crafted` rows. Command: cd web && npx vitest run src/screens/__probe3.test.ts --silent=false --reporter=verbose.**
 
@@ -493,7 +504,7 @@ SCOPE — narrower, and two of the supporting examples do not hold. See correcte
 
 Probe files left in the worktree: web/src/screens/__audit_render.test.tsx, __audit_scope.test.ts, __audit_scope2.test.ts, __audit_scope3.test.ts, __audit_scope4.test.ts.
 
-### 9. `src.c` is written as the number 1 and read as `=== true`, so the Crafted source filter matches zero items and 665 items are told "no acquisition data is recorded"
+### F09. `src.c` is written as the number 1 and read as `=== true`, so the Crafted source filter matches zero items and 665 items are told "no acquisition data is recorded"
 
 `web/src/data/normalize.ts:175` — severity claimed **serious**, scope claimed **901 of 3,663 distinct shipped items lose their crafted flag; 665 of them have no other source datum and therefore render the "no acquisition data" paragraph. The `crafted` option is a live dropdown entry in two places — `SOURCE_FILTERS` rendered by web/src/components/SetConfigDialog.tsx:366 (which feeds Upgrades via `filtersFor`) and the hard-coded `<option value="crafted">Crafted</option>` at web/src/components/ItemPicker.tsx:484 — so selecting it anywhere in the app yields an empty result set, for every slot, always.**
 
@@ -555,7 +566,7 @@ SCOPE — agree, and unusually precisely. Every figure the previous lens gave re
 
 The one thing worth flagging to whoever routes these: the previous lens appears to have been run against a stale checkout. Its evidence is sound and its arithmetic is right; it is describing c4cfb1c^. Nothing to fix here.
 
-### 10. An empty offhand under a two-handed Primary is marked "Not in catalog"
+### F10. An empty offhand under a two-handed Primary is marked "Not in catalog"
 
 `web/src/screens/Upgrades.tsx:1810` — severity claimed **minor**, scope claimed **Fires whenever the loadout's Primary is two-handed — 124 two-handed rows / 123 distinct items in the shipped catalogue, per the measurement recorded at Upgrades.tsx:348 — and also for `offhand-unpriceable`. Exactly one withheld card per affected set, and the correct explanation sits directly beneath the wrong label.**
 
@@ -634,7 +645,7 @@ FILE SET for the zero-results claim. `grep -rn "Not in catalog\|upg-heldmark"` o
 
 Not verified: what a real player's set actually holds. Nothing here can measure that; the 17/30 figure is the app's own recommendation, which is the nearest measurable proxy and is labelled as such.
 
-### 11. The screen ranks as soon as the index loads, so every row claims "nobody has measured it dropping" until the shards land
+### F11. The screen ranks as soon as the index loads, so every row claims "nobody has measured it dropping" until the shards land
 
 `web/src/screens/Upgrades.tsx:1461` — severity claimed **minor**, scope claimed **Every cold load of the Upgrades screen crosses this state; the ranking is not gated on shard arrival by construction. The window's wall-clock duration is NOT measured — per CLAUDE.md §5 no headless browser here reaches a host, so I could not time the real fetches. What is measurable is that the two loads race: items-index.json is 693,096 bytes in one request against 1,605,260 bytes across 19 shard requests (du -b), so the index normally resolves first. The state self-corrects when `commitShards` bumps `revision` and the effect re-runs.**
 
@@ -659,7 +670,7 @@ So 21 of 23 rows and the 9/23 measured KPI are wrong during the window, and corr
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
 
-### 12. Primary row shows the first two-hander that clears the 0.05 EP floor, not the biggest net gain — a one-hander further down the same list can be worth more
+### F12. Primary row shows the first two-hander that clears the 0.05 EP floor, not the biggest net gain — a one-hander further down the same list can be worth more
 
 `web/src/screens/Upgrades.tsx:572` — severity claimed **serious**, scope claimed **Measured by web/src/screens/probe-order7.test.ts (`vitest run src/screens/probe-order7.test.ts --testTimeout=600000`), which enumerates all 16 classes x the 2 presets that score weapons (melee-dps, balanced — the other 3 withhold hand slots per `scoresWeapons`, ep.ts:398) x all 383 statted SECONDARY items as the worn offhand: `combos 12256 rows with a 2H recommendation beaten by a listed 1H: 1444 mean shortfall 6.25 max 28.88`. That is 11.8% of scanned loadouts. Preconditions: a weapon-scoring weight profile, something worn in Secondary, and a two-hander topping the Primary ranking. Avenrae's shipped fixture does not hit it (empty Secondary, so `twoHandedCost` returns null).**
 
@@ -721,7 +732,7 @@ SEVERITY — "serious" is right, at the lower end of it. In favour: this is the 
 
 SCOPE — see corrected_scope. Their arithmetic reproduces (1,443 vs 1,444), but the denominator counts class/offhand pairs the character cannot equip; the reachable rate is 6.05%, and the rate given the finding's own preconditions is 11.16%.
 
-### 13. The Lore hand-out is ordered by a key computed from an item the position can never be offered, and the row then prints 'offered in the single position where it gains the most' — false on the repo's own Avenrae fixture
+### F13. The Lore hand-out is ordered by a key computed from an item the position can never be offered, and the row then prints 'offered in the single position where it gains the most' — false on the repo's own Avenrae fixture
 
 `web/src/screens/Upgrades.tsx:536` — severity claimed **serious**, scope claimed **Provisional inflation: 4 of 23 positions in the Avenrae fixture. Lore mis-award under the strict test: 1 of 301 sets — 0 of 300 seeded random sets, 1 of 1 real imported inventories (the repo's own `research/validation/tier0-inventory-Avenrae.txt`, its strongest fixture). Total listed gain is NOT worse: reordering the queue by true-best-available gives 292.510 vs the shipped 293.010 (probe-order3.test.ts), so this is a wrong-slot/false-claim defect, not a lost-EP one — greedy is not optimal under either key.**
 
@@ -776,7 +787,7 @@ SCOPE — WIDER, specifically because the finding treats the false sentence as a
 
 Instrument caveats I owe you: (a) my rival-gain figure is `score - wornEp` and does not apply MIN_GAIN or two-handed offhand netting, so for PRIMARY/SECONDARY rivals it can overstate slightly — the Avenrae per-row table above is armour and jewellery, where no netting applies; (b) my sweep's detector is proven to fire, not merely to return zero: I ran the Avenrae fixture through the identical detector code path as set -1 in the same sweep and it produced the one known hit, so the 0/400 on generated sets is a measured zero rather than a silent one; (c) file set searched for the sentence: `grep -rn "single position where it gains" --include=*.ts --include=*.tsx --include=*.md .` excluding node_modules — one occurrence in source (Upgrades.tsx:1146), one in a critique doc, none in any test, so no shipped test asserts it. The shipped Avenrae suite is 13 tests, all passing on this set; its only Lore assertion (`upgrades-avenrae.test.ts:220-228`) checks uniqueness of the awarded names, which the finding states correctly.
 
-### 14. Landing page says the client "corrected" the SV Void rule; the cited record and the same page say it predicted it exactly
+### F14. Landing page says the client "corrected" the SV Void rule; the cited record and the same page say it predicted it exactly
 
 `web/src/screens/Landing.tsx:256` — severity claimed **serious**, scope claimed **One sentence, always rendered (the feature card is unconditional) on the app's front page, in the card whose job is to establish that the upgrade math is trustworthy. Measured by rendering Landing with no character state: both sentences appear in container.textContent.**
 
@@ -852,7 +863,7 @@ Against that, the case for keeping it non-trivial is real and I do not want to a
 
 SCOPE — AGREE on the substance; I measured it and it holds, with the "65 characters" figure corrected to 650 (the lens's own quoted offsets, 1248 and 1898, already implied 650, so its prose contradicted its evidence — the same class of unchecked number the finding is about). I also ran down a candidate third statement (`Landing.tsx:83`) and found it hover-gated and absent from the rendered page, so scope is not wider than claimed.
 
-### 15. Upgrades tells the reader a Lore item is placed where it gains the most; the allocation is greedy and is not, in 2 of 8 Lore rows on the shipped Avenrae import
+### F15. Upgrades tells the reader a Lore item is placed where it gains the most; the allocation is greedy and is not, in 2 of 8 Lore rows on the shipped Avenrae import
 
 `web/src/screens/Upgrades.tsx:1146` — severity claimed **serious**, scope claimed **2 of the 8 Lore rows (25%) in the one real-data scenario the repo ships a fixture for — the Avenrae /outputfile inventory import at the Balanced preset. The sentence itself renders on 100% of Lore rows: it is inside .upg-detail, which Upgrades.css:315 lays out as a plain flex row with no collapse.**
 
@@ -917,7 +928,7 @@ Not higher than serious: the row's own gain number is correct — my probe confi
 
 SCOPE — WIDER; see corrected_scope.
 
-### 16. Sources page says a client window has been read for two items; the same page prints the list of five
+### F16. Sources page says a client window has been read for two items; the same page prints the list of five
 
 `web/src/screens/Sources.tsx:680` — severity claimed **minor**, scope claimed **One sentence, rendered whenever meta.dataReliability.flags.clientVerifiedContradictions is non-empty — i.e. on every build of this payload. The contradicting figure is ~2,350 characters earlier in the same page's text content.**
 
@@ -960,7 +971,7 @@ SEVERITY — AGREE, minor. No number a player acts on moves: no ranking, stat, t
 
 SCOPE — WIDER. See corrected_scope. The finding scoped this to one sentence in one TSX file; measurement found three rendered claims sharing the stale denominator, two of which are string literals in pipeline/build.mjs and therefore reach the browser through the payload. Fixing only Sources.tsx:680 would leave the same overstatement on the same card, one paragraph up.
 
-### 17. Sources card is titled "The largest reason is not an expansion" directly under a table whose largest reason is era:Velious
+### F17. Sources card is titled "The largest reason is not an expansion" directly under a table whose largest reason is era:Velious
 
 `web/src/screens/Sources.tsx:397` — severity claimed **minor**, scope claimed **One card heading on the Sources page, rendered on every build that publishes a purge block (this one does).**
 
@@ -975,7 +986,7 @@ Rendered text of <Sources/> against the real meta.json, contiguous:
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
 
-### 18. Planar gear page says "a hundred and six rows" where its own header counts 105 pieces
+### F18. Planar gear page says "a hundred and six rows" where its own header counts 105 pieces
 
 `web/src/screens/PlanarGear.tsx:990` — severity claimed **minor**, scope claimed **One lede on the Planar gear screen, always rendered; off by one against the figure printed in that screen's own header. (Every other claim I checked on this screen holds: 18 sets, 6 Shadow Rage pieces all statsUnknown, 8 of 23 covered positions, rings + earrings + 11 others uncovered, Tier 5 (79) outnumbering Tier 2 (20).)**
 
@@ -993,7 +1004,7 @@ grep -rn "106\|hundred and six" web/src/screens/*.tsx research/*.md -> only this
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
 
-### 19. The front page's Earthshaker product shot has drifted from the shipped Earthshaker record it is described as copying
+### F19. The front page's Earthshaker product shot has drifted from the shipped Earthshaker record it is described as copying
 
 `web/src/screens/Landing.tsx:64` — severity claimed **minor**, scope claimed **One item window, always rendered, in the front page's "Every item, in the window you already know" showcase. Both divergences confirmed by rendering the two records through the same component in one vitest run.**
 
@@ -1010,7 +1021,7 @@ Rendering <Landing/> (same probe run as finding 1):
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
 
-### 20. NewCharacter's justification comment measures the shipped payload at 7,341 race-restricted items; it holds 248
+### F20. NewCharacter's justification comment measures the shipped payload at 7,341 race-restricted items; it holds 248
 
 `web/src/screens/NewCharacter.tsx:16` — severity claimed **minor**, scope claimed **One comment in one screen file; no rendered text depends on it. Reported because it is a numeric claim in web/src/screens that no longer survives a check against the payload it names.**
 
@@ -1024,7 +1035,7 @@ grep -n "export const RACES" -A 4 web/src/engine/constants.ts -> 15 codes; NewCh
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
 
-### 21. Item picker's "vs worn" delta compares candidate@preview against worn@its-own-tier, contradicting the worn item's own EP one row away
+### F21. Item picker's "vs worn" delta compares candidate@preview against worn@its-own-tier, contradicting the worn item's own EP one row away
 
 `web/src/components/ItemPicker.tsx:240` — severity claimed **serious**, scope claimed **Measured over the real imported Avenrae set (shipped payload, balanced preset, `research/validation/tier0-inventory-Avenrae.txt`) by computing, for every occupied position, the worn item's score at its own tier versus at preview +10 — the distortion the "vs worn" column carries at that preview: ``` EAR_1 Black Sapphire Electrum Earring +4: baseline=22.80 sameTier=36.00 distortion=13.20 EP FACE Darkbrood Mask +4: baseline=44.80 sameTier=70.00 distortion=25.20 EP CHEST Indicolite Breastplate +6: baseline=92.00 sameTier=115.00 distortion=23.00 EP WAIST Bone-Clasped Girdle +4: baseline=66.50 sameTier=99.50 distortion=33.00 EP … slots distorted at preview +10: 18 of 21 occupied ``` Range 1.20–33.00 EP. Zero distortion while the preview sits at its initial value (`useState(currentUpgrade)`), and on an empty slot. Nothing in `picker-rerank.test.tsx` or `picker-filters.test.tsx` asserts the baseline tier.**
 
@@ -1083,7 +1094,7 @@ Test coverage claim, with the file set named: grep for "vs worn|wornScore" over 
 
 Probe files left in the worktree for reproduction, all marked AUDIT PROBE: web/src/components/audit-worn.test.tsx (DOM), audit-scope.test.ts (Avenrae + full-payload scope), audit-signflip.test.ts, audit-rank.test.ts. Note the worktree's web/ had no node_modules; I symlinked /home/user/EQL50ups/web/node_modules (gitignored, git status shows only the four probe files).
 
-### 22. Picker's "vs worn" baseline counts weapon ratio/damage in slots where no candidate is allowed to score them
+### F22. Picker's "vs worn" baseline counts weapon ratio/damage in slots where no candidate is allowed to score them
 
 `web/src/components/ItemPicker.tsx:241` — severity claimed **serious**, scope claimed **Requires an item with a weapon block worn in a non-hand position. Counted over the shipped payload (`web/public/data/items-index.json` merged with all 19 slot shards, 3,663 items, via a node one-liner): 560 items carry a `wp` block, and because `itemsForSlot` returns every wearable item for 'ANY' (data/catalog.ts:461-464) all 560 are eligible for the two Any Slots; 94 of them list RANGE/AMMO among their slots, 86 of which the Avenrae trio can equip. The distortion equals weight(RATIO)×ratio + weight(DMG)×damage, so it is zero for the tank/caster/healer presets, which weight no weapon term (`scoresWeapons`, ep.ts). The real Avenrae export happens to wear no weapon outside a hand — its only `wp` item is Earthshaker in PRIMARY, where the two rules agree (skew 0.00) — so this is reproduced on constructed loadouts, not on that fixture.**
 
@@ -1149,7 +1160,7 @@ For: the "vs worn" figure is the number the picker exists to print, and when a w
 
 SCOPE — measured; the reported numbers are mostly right but the headline eligibility figure is an overcount, and one affected slot was missed. See corrected_scope.
 
-### 23. Import-withheld slot prints "+0" for gear the export said was +5 — the parsed tier is discarded
+### F23. Import-withheld slot prints "+0" for gear the export said was +5 — the parsed tier is discarded
 
 `web/src/screens/Upgrades.tsx:464` — severity claimed **minor**, scope claimed **Measured on the one real export the repo ships (`tier0-inventory-Avenrae.txt`): 1 of 23 positions is withheld by the importer, and its parsed tier is 5, so 1 of 1 withheld-by-import rows shows a wrong tier. Generalises to every worn item an import cannot score at a tier above 0. No computed number depends on it — the slot is deliberately not scored, and `wornEp` is 0 by construction — so the defect is confined to the displayed tier on the "Not compared" card. The directly-equipped withheld path is the one the existing suite covers (upgrades-screen.test.tsx:272 equips UNSTATTED at tier 5), which is why this is not caught.**
 
@@ -1233,7 +1244,7 @@ Severity still sits inside "minor" in the sense that nothing in `report.rows` �
 
 COVERAGE — the finding's citation is off by a file. The test that equips UNSTATTED at tier 5 and asserts `held?.wornUpgrade.full === 5` is web/src/screens/upgrades-avenrae.test.ts:272 ('withholds the Shadow Rage Helm slot rather than scoring a zero'), not upgrades-screen.test.tsx:272 (which asserts only card text). The diagnosis is right, though, and sharper than stated: the SAME FILE has an import-path test at :148-158 that asserts `wornName` and `reason` on the imported HEAD row and pointedly does not assert `wornUpgrade`. The two paths are tested side by side and only the hand-built one has the tier assertion.
 
-### 24. Share links drop GearSet.withheld, so a position the author's screen called "not comparable" is ranked as an upgrade for the reader
+### F24. Share links drop GearSet.withheld, so a position the author's screen called "not comparable" is ranked as an upgrade for the reader
 
 `web/src/share/codec.ts:63` — severity claimed **serious**, scope claimed **Every share link made from a set the inventory importer produced where at least one worn position held an item this build cannot score. Measured on the repository's only real export (tier0-inventory-Avenrae.txt): 1 of 23 positions (HEAD / Shadow Rage Helm). `withheldMap` (lib/inventoryImport.ts:855) populates it from `result.unstatted` where `kind === 'item'`; the shipped catalogue carries 16 `statsUnknown` records (asserted at src/data/source-standing.test.ts:194), and any export item absent from the catalogue entirely also lands there. The `withheld` field has exactly two writers (SetEditor.tsx:191, CharacterDetail.tsx:190) and one reader (Upgrades.tsx:1479), so nothing outside the importer path is affected.**
 
@@ -1297,7 +1308,7 @@ SEVERITY — AGREE, "serious". The output is not a missing warning; it is a spec
 
 SCOPE — WIDER, see corrected_scope. The finding's claim that catalogue-absent items also populate `withheld` is wrong (narrower there), but its claim that "nothing outside the importer path is affected" misses `sanitizeSet`, which strips the field on every page load, so the same fabricated ranking reaches the author's own screen without any share link at all.
 
-### 25. GearSet.withheld is also dropped on every page reload, because sanitizeSet does not copy it
+### F25. GearSet.withheld is also dropped on every page reload, because sanitizeSet does not copy it
 
 `web/src/state/persistence.ts:249` — severity claimed **serious**, scope claimed **Same population as the finding above — sets built by the inventory importer that contain an unscoreable item — but triggered by any page reload rather than only by sharing, and it hits the author's own screen rather than only the reader's. The JSON export/import path (lib/setExport.ts) loses it too, for the same reason: it round-trips through `sanitizeSet`.**
 
@@ -1356,7 +1367,7 @@ SCOPE — AGREE with the population as described; the numbers are in corrected_s
 
 CAVEATS ON MY OWN INSTRUMENT — the worktree had no web/node_modules, so I symlinked /home/user/EQL50ups/web/node_modules (read-only use; no install run, main tree untouched). Both my test files skip when the payload is absent; they ran (not skipped), 6 tests passed. The catalog loader and CatalogState stub are copied from the repo's own src/screens/upgrades-avenrae.test.ts so the ranking runs against the same merged index+shard catalog the screen uses.
 
-### 26. Share links drop GearSet.defaultFilters, so the reader's ranking is computed over a different candidate pool than the author's
+### F26. Share links drop GearSet.defaultFilters, so the reader's ranking is computed over a different candidate pool than the author's
 
 `web/src/share/codec.ts:654` — severity claimed **serious**, scope claimed **Any share link whose set carries a non-default filter choice. `store.ts:316` stores the field only when the choice is non-default, so untouched sets are unaffected. Measured on one configured set: 6 of 6 of the author's ranked positions get a different top recommendation for the reader, and the reader gets 11 ranked positions where the author had 6. The same field survives the JSON export/import path (see the persistence measurement above), so the two sharing routes disagree about what a set is.**
 
@@ -1439,7 +1450,7 @@ That is a real correctness fault on the app's headline surface with an affirmati
 
 SCOPE — AGREE, with the measurement sharpened; see corrected_scope. The qualitative claim ("any share link whose set carries a non-default filter choice") is right and I confirmed the `isDefaultFilters` gate at store.ts:316/335 that makes untouched sets safe. What I could not measure, and neither could the prior lens: how many real players actually set filters. Sets live only in the reader's browser (CLAUDE.md §1: no account, no server) and there is no telemetry in this repo, so the population frequency is not knowable from here. What is measurable is that when it happens, it diverges every time — 79 of 79 reachable choices.
 
-### 27. A good share link opened while the item catalog failed to load says the link was made against a different catalog build and to ask for a fresh one
+### F27. A good share link opened while the item catalog failed to load says the link was made against a different catalog build and to ask for a fresh one
 
 `web/src/screens/SharedSet.tsx:71` — severity claimed **minor**, scope claimed **Every share link opened on a page load where `items-index.json` fetch throws (`status: 'error'`, catalog.ts:363-369) or returns an empty list (`status: 'missing'`, catalog.ts:327-336). Applies to all dictionary-interned links, which is every link the app writes when the catalog is available — the 23-item Avenrae link measured 251-300 characters interned. Links made with literal names are unaffected. I could not measure how often that fetch fails in the wild from here; the condition is a failed static-asset fetch, not something the app can be driven into by input.**
 
@@ -1462,7 +1473,7 @@ Corroborated at the codec level in src/share/audit-corrupt.test.ts:
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
 
-### 28. Race unset skips the race gate entirely, so "Usable by this loadout" prints over items the character's race cannot wear
+### F28. Race unset skips the race gate entirely, so "Usable by this loadout" prints over items the character's race cannot wear
 
 `web/src/engine/character.ts:234` — severity claimed **serious**, scope claimed **Measured with `npx vitest run src/lib/AUDIT-scope.test.ts --disable-console-intercept` over all 3,663 shipped records in web/public/data/items-index.json. 164 items carry a race restriction that is not `NONE`. Count of items whose race gate is skipped purely because race is unset, by the race that would have failed it: `HUM: 105 \| BAR: 19 \| ERU: 105 \| ELF: 110 \| HIE: 105 \| DEF: 105 \| HEF: 105 \| DWF: 105 \| TRL: 18 \| OGR: 19 \| HFL: 105 \| GNM: 105 \| IKS: 121 \| KER: 105 \| FRG: 105` Worst trio/race sampled across five trios x 15 races: `{"combo":"WAR/CLR/SHM","race":"IKS","n":111}` — 111 items read 'usable' with race unset and 'blocked' the moment IKS is set. Separately measured: of the 85 positive-race-list items a WAR/BRD/BER trio is told it can wear with race unset, 85 of 85 flip to blocked at race=HUM.**
 
@@ -1549,7 +1560,7 @@ Reasons it is not merely "minor": it IS the default state; the verdict is a posi
 
 SCOPE — AGREE. Every number in the report reproduced exactly through the compiled-engine instrument (see corrected_scope for the additions and the two prose corrections).
 
-### 29. blockReason prints the ALL_EXCEPT sentinel as an inclusion list, producing a sentence that states the opposite of the truth
+### F29. blockReason prints the ALL_EXCEPT sentinel as an inclusion list, producing a sentence that states the opposite of the truth
 
 `web/src/lib/blockReason.ts:37` — severity claimed **serious**, scope claimed **Over the 3,663 shipped records: 255 items carry `ALL_EXCEPT` in `cl` and 59 in `ra` (union 313). Measured for one loadout (WIZ / Iksar): 211 of the 255 class-excluded items and 58 of the 59 race-excluded items are blocked and therefore produce a wrong sentence. Class-list shapes carrying it, top three: `ALL_EXCEPT ENC MAG NEC WIZ` 184, `ALL_EXCEPT CLR DRU MNK PAL SHM` 22, `ALL_EXCEPT ENC MAG MNK NEC WIZ` 12.**
 
@@ -1592,7 +1603,7 @@ Against: nothing computed is wrong. The gating itself is correct — canUseClass
 
 SCOPE — NARROWER, with corrections in both directions; see corrected_scope. The one outright wrong figure is 58 race items, which is 54.
 
-### 30. The item window's Class and Race requirement rows print the raw ALL_EXCEPT token, so an exclusion list reads as an inclusion list
+### F30. The item window's Class and Race requirement rows print the raw ALL_EXCEPT token, so an exclusion list reads as an inclusion list
 
 `web/src/components/ItemWindow.tsx:276` — severity claimed **minor**, scope claimed **255 of 3,663 items render an `ALL_EXCEPT` token in the Class row, 59 in the Race row, 313 distinct items in total (counted over web/public/data/items-index.json via web/src/lib/AUDIT-scope.test.ts). It appears in all three surfaces that print the list: the wide dialog panel, the 330px hover card, and the browser's Classes column.**
 
@@ -1650,7 +1661,7 @@ The finding's impact figure "44 usable-for-this-trio cases" does not reproduce u
 Files: /home/user/EQL50ups/web/src/components/ItemWindow.tsx:274-283, /home/user/EQL50ups/web/src/screens/ItemBrowser.tsx:701, /home/user/EQL50ups/web/src/lib/blockReason.ts:35-39, /home/user/EQL50ups/web/src/components/ItemDetail.tsx:90,120, /home/user/EQL50ups/web/src/components/SlotCard.tsx:98, /home/user/EQL50ups/web/src/engine/constants.ts:17, /home/user/EQL50ups/web/src/engine/character.ts:213.
 Instruments I wrote (in the worktree): /home/user/EQL50ups/.claude/worktrees/wf_d2d73ce2-770-31/web/src/components/VERIFY-allexcept.test.tsx, .../web/src/lib/VERIFY-scope.test.ts, .../web/src/screens/VERIFY-browser-column.test.tsx. The worktree had no node_modules; I symlinked the main checkout's `web/node_modules` into it to run vitest, which is the only reason those commands work there.
 
-### 31. items-index.json ships no required-level field, so the level gate and the Level requirement row are absent until the slot shard loads
+### F31. items-index.json ships no required-level field, so the level gate and the Level requirement row are absent until the slot shard loads
 
 `pipeline/build.mjs:2148` — severity claimed **minor**, scope claimed **3 of 3,663 items carry `rl` at all (counted across all 19 files in web/public/data/items/), and 0 of 3,663 carry it in items-index.json. The divergence is therefore live on exactly 3 items today, on the SHOULDERS, PRIMARY and WRIST slots, and only for a loadout whose qualifying class is below 49/15/46. It becomes catalog-wide the moment upstream populates `required_level` (build.mjs:1564 already reads it).**
 

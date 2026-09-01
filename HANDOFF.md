@@ -6120,12 +6120,12 @@ appears nowhere in the run's own output. The eight are listed in the record.
 
 Two things in there worth a future session's attention:
 
-- **Finding 8 was marked REFUTED by a refuter and was real.** It is the `src.c` Crafted flag: 956
+- **`F09` was marked REFUTED by a refuter and was real.** It is the `src.c` Crafted flag: 956
   items never labelled, one of five source filters matching nothing, fixed in `c4cfb1c`. Standing
   evidence that a REFUTED verdict is a claim like any other.
-- **Finding 16 is not finding 15.** One line apart, both on the picker's "vs worn" baseline, but 16
+- **`F22` is not `F21`.** One line apart, both on the picker's "vs worn" baseline, but `F22`
   claims the baseline counts weapon ratio/damage in slots where no candidate may score them.
-  Refuting 15 tonight says nothing about 16, which is open and unexamined.
+  Refuting `F21` says nothing about `F22`, which is open and unexamined.
 
 Guarded: `prose-vs-record.test.ts` now asserts the handover's six figures agree with the record's
 tally block, and that the record is internally consistent (confirmed + refuted = verdicts; the
@@ -6158,3 +6158,44 @@ whose entire purpose is to be the durable, citable record of the pass is not cit
 **Taking that, ahead of any finding.** One stable id across the whole document, both tables and the
 body, and the status table rebuilt by matching on TITLE rather than on position so it cannot drift
 again. Correcting my own published error; nothing here touches the app.
+
+### 12:42Z item CLOSED — the record is citable, and the working-directory trap is now a method rule
+
+`AUDIT-UPGRADES-SURFACE.md` numbered the same 31 findings three ways: verdict table 1–23,
+never-judged table 1–8, body 1–31. So `F09`'s entry was reachable as "8" from one table and "9"
+from the body, and every cross-reference I wrote an hour earlier — in that file's own status
+section, in `efb9663`, in `HANDOFF.md`, and in what I reported — resolved to the wrong finding.
+
+**Found by trying to use the file**, not by re-reading it. I followed a number from a table into
+the body while picking the next open finding and landed somewhere else.
+
+Every finding now carries one id, `F01`–`F31`, in run order, identical in both tables and the
+body. The status table resolves its ids by matching finding TITLES rather than by counting rows,
+so it cannot drift again; all 14 rows resolved, each to exactly one title. `HANDOFF.md`'s two
+pointers were rewritten the same way, by lookup rather than by hand — the `src.c` finding is `F09`,
+and the two picker findings are `F21` (the delta, refuted) and `F22` (the baseline, still open).
+
+Verified: 31 body entries, 23 + 8 table ids, union equal to the body, no id in both tables, and
+zero title mismatches between table and body.
+
+Guarded by three checks, and the guard's own first run reported an empty status table — my
+`section()` helper stopped at the first blank line, and the status section opens with prose. Fixed
+before it could pass for the wrong reason. Demonstrated by renumbering one body entry while the
+tables kept citing the old id: **3 failed / 1,091 passed**, restored, sha256 `0bbf61f0…`
+byte-identical.
+
+**Method rule, paid for three times tonight.** Every one of these ran clean and reported something
+false or nothing at all, because of the directory it ran in:
+
+```
+  npx playwright test --config web/playwright.config.ts   (from web/)  -> web/web/… not found
+  npx vitest run --root .../web                           (from root)  -> "2 files, 9 tests"
+  node pipeline/build.mjs                                 (from web/)  -> exit 1, bare stack
+```
+
+The suites live in `web/`; the pipeline lives at the root. **Run vitest and playwright from `web/`,
+run `pipeline/*.mjs` from the repository root, and read the summary line rather than the exit
+code.** The vitest one is the dangerous member: exit 0, plausible number, nine tests out of 1,094.
+
+**Gate:** tsc clean · vitest **1,094** / 71 files (from `web/`) · playwright **150 / 0** ·
+`build.mjs` 0 (from root) · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
