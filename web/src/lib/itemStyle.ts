@@ -15,12 +15,31 @@
  * (the item browser with no class filter, a share link's read-only view) the
  * name is simply plain. `--item-caution` maps to an unexplained third client
  * state and stays deliberately unused.
+ *
+ * Plain covers one more case than "no character": a character with **no race
+ * set** against an item that restricts on race. The gate lets it through on
+ * purpose — see `raceUnjudged` — but the tint means "checked, and you can wear
+ * it", and that check did not run. Measured over the shipped 3,663 records for
+ * a WAR/CLR/SHM 50 with race unset: 2,773 usable, 740 blocked, 150 withheld
+ * this way. How many of those 150 the tint would have been *wrong* about
+ * depends on the race the player has not told us — 11 for a Barbarian, 111 for
+ * an Iksar.
  */
 
-import { canUse, type LoadoutContext } from '../engine/character';
+import { canUse, raceUnjudged, type LoadoutContext } from '../engine/character';
 import type { ExistenceEvidence, Item, SourceStanding } from '../engine/types';
 
-export type Usability = 'usable' | 'blocked' | 'unjudged';
+/**
+ * `race-unknown` is a verdict withheld, not a verdict given.
+ *
+ * Class and level were checked and passed; the race gate was skipped, because
+ * this character has no race set and the item's `ra` list turns on one. The
+ * item is **still eligible** — `canUse` says yes and nothing about ranking,
+ * equipping or totals changes — but the app is no longer entitled to say
+ * "Usable by this loadout" about it, which it did by default for every new
+ * character over all 164 race-restricted records.
+ */
+export type Usability = 'usable' | 'blocked' | 'unjudged' | 'race-unknown';
 
 /** Restriction shape `canUse` wants, built from a catalog item. */
 function restrictionsOf(item: Item) {
@@ -29,7 +48,8 @@ function restrictionsOf(item: Item) {
 
 export function usabilityOf(item: Item, context: LoadoutContext | undefined): Usability {
   if (!context || !context.classes.length) return 'unjudged';
-  return canUse(restrictionsOf(item), context) ? 'usable' : 'blocked';
+  if (!canUse(restrictionsOf(item), context)) return 'blocked';
+  return raceUnjudged({ races: item.ra }, context) ? 'race-unknown' : 'usable';
 }
 
 /** The colour an item name takes on every surface. */
@@ -37,17 +57,24 @@ export function itemNameColor(item: Item, context: LoadoutContext | undefined): 
   const state = usabilityOf(item, context);
   if (state === 'usable') return 'var(--item-usable)';
   if (state === 'blocked') return 'var(--item-blocked)';
+  // Neutral, the same as having no character at all: the green in this app
+  // means "checked, and you can wear it". An unchecked gate does not earn it.
   return 'var(--item-neutral)';
 }
 
 /**
  * Why an item is tinted the way it is, for a tooltip or an assistive label.
- * Silent when there is no character to judge against.
+ * Silent when there is no character to judge against — but never silent when
+ * there is one and a gate went unchecked, because silence there reads as
+ * approval.
  */
 export function usabilityNote(item: Item, context: LoadoutContext | undefined): string | null {
   const state = usabilityOf(item, context);
   if (state === 'unjudged') return null;
   if (state === 'usable') return 'Usable by this loadout';
+  if (state === 'race-unknown') {
+    return 'This character has no race set, so its race requirement was not checked';
+  }
   return 'This loadout cannot equip it';
 }
 

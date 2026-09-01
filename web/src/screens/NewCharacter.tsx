@@ -128,7 +128,9 @@ export function NewCharacter() {
           <p className="hint">
             Race is optional and only used to filter race-restricted items; all fifteen playable
             races are offered, whether or not this catalog happens to carry an item restricted to
-            one. Leaving it unset does not narrow anything. Race base attributes are
+            one. Leaving it unset does not narrow anything — race-restricted gear stays in your
+            lists — but the planner will then say it has not checked the requirement rather than
+            telling you that you meet it. Race base attributes are
             deliberately not modelled — the only available source self-reports as unverified, so the
             planner shows gear totals rather than inventing a starting point.
           </p>

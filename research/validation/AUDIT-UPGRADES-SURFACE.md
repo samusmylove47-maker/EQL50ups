@@ -87,6 +87,7 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F19` — the front page understated its own provenance, and the payload's citation counted three ways | **closed** | guarded in `landing-sample.test.ts` |
 | `F27` — a good link, opened with no catalog, was blamed on the sender | **closed** | guarded in `shared-set-offline.test.tsx` + `codec.test.ts` |
 | `F08` — an unsearched ranking claimed you were already wearing the best | **closed** | guarded in `emptyRanking.test.ts` + `upgrades-screen.test.tsx` |
+| `F28` — "Usable by this loadout" over a race gate that never ran | **closed** | guarded in `race-unjudged.test.ts` + `itemwindow.test.tsx` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched
@@ -1621,6 +1622,59 @@ The race span's className is empty — `iwin-bad` is not applied.
 *Corrected scope.* Payload-level counts reproduced exactly (all via `node web/audit/scope.cjs`, using the app's own `normalizeCatalog`, over all 3,663 records of web/public/data/items-index.json):
 
 {"total":3663,"all":3415,"empty":0,"none":84,"restrictedNotNone":164,"positive":105,"allExcept":59}
+
+**CLOSED.** The gate is unchanged; the *claim* is what was wrong.
+
+*What was not done, and why.* Making `canUseRace` refuse a race-restricted item when race is unset
+would have been the obvious reading of "the race gate is passed, not deferred" — and it would have
+removed roughly 150 items from the pickers and the ranking of every player who declined to fill in
+an optional field, on 12 of 15 races for no reason at all. The creation screen promises unset does
+not narrow, and it still does not. `canUse` returns exactly what it returned before, so ranking,
+Auto-fill, equipping and `totalsFor` are untouched.
+
+*What was done.* `raceUnjudged` in `web/src/engine/character.ts`, beside `canUseRace` and reading
+the same `readRestriction` ladder, answers the opposite question: was the gate **skipped** rather
+than passed? `usabilityOf` gains a fourth state, `race-unknown`, which every existing
+`=== 'blocked'` consumer ignores (correctly — the item is not blocked) and which the two surfaces
+that make a *claim* now honour: `itemNameColor` returns `--item-neutral` instead of the green that
+means "checked, and you can wear it", and `usabilityNote` says "This character has no race set, so
+its race requirement was not checked" instead of "Usable by this loadout". `ItemBrowser`'s
+"Wearable" badge, which tests `=== 'usable'`, stops appearing on them for the same reason.
+`NONE` is excluded from the hedge because `canUseRace` already refuses it whatever the race, and an
+`ALL_EXCEPT` naming nothing bars nothing; neither turns on a race we do not know.
+
+*Blast radius, measured rather than carried over.* Over the shipped 3,663 records with a WAR/CLR/SHM
+50 and race unset, through the app's own `normalizeCatalog` and `usabilityOf`:
+
+    usable 2,773 | blocked 740 | race-unknown 150
+
+150, not the 164 this record counts as race-restricted: 14 of those are already blocked on class or
+level for this trio, so they never reached the race gate. Of the 150, the number the old green would
+have been outright **wrong** about, by race: BAR 11, TRL 12, OGR 12, HUM/ERU/HIE/DEF/HEF/DWF/HFL/GNM/
+KER/FRG 104, ELF 108, IKS 111. The hedge is deliberately conservative in the other direction — an
+Ogre who leaves race unset now sees 138 of those 150 hedged when they could in fact wear them. That
+is the honest cost, and the note tells them the one action that resolves it.
+
+*The creation screen's own sentence was half of the defect* and is corrected too: "Leaving it unset
+does not narrow anything" was true and is kept, with the rest of the truth added — the planner will
+then say it has not checked the requirement rather than telling you that you meet it.
+
+*Guards, and proof they fire.* `web/src/lib/race-unjudged.test.ts` (9) and three cases in
+`web/src/components/itemwindow.test.tsx`, which render the panel rather than only calling the
+helper, because the defect was that two halves of one panel contradicted each other. Damaged twice
+with asserted anchors, each against the **whole** suite:
+
+    $ node scratchpad/mutate-f28.mjs damage A   # the predicate stops distinguishing
+      Test Files  2 failed | 73 passed (75)
+           Tests  5 failed | 1135 passed (1140)
+
+    $ node scratchpad/mutate-f28.mjs damage B   # predicate right, the sentence still vouches
+      Test Files  2 failed | 73 passed (75)
+           Tests  3 failed | 1137 passed (1140)
+
+The two failure sets differ — the tint case and the `ALL_EXCEPT` case fall to A only — so the prose
+guards and the predicate guards are not standing in for each other. Restored and verified
+byte-identical by `sha256sum -c` after each pass.
 
 Per-race count of items whose race gate `canUseRace` skips purely because race is unset — identical to the reported figures, digit for digit:
 HUM 105 | BAR 19 | ERU 105 | ELF 110 | HIE 105 | DEF 105 | HEF 105 | DWF 105 | TRL 18 | OGR 19 | HFL 105 | GNM 105 | IKS 121 | KER 105 | FRG 105

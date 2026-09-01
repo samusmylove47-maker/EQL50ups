@@ -643,6 +643,8 @@ git status --porcelain -> (no output; tree clean, probes removed)
 
 **Smallest fix.** Do not touch character.ts:268. Making unset refuse race-narrowed items would flip 124 items to blocked for every raceless character — a ranking-behaviour change that contradicts the shipped test "does not narrow on race when the character has not set one" and the Director's standing rule in HANDOFF.md. The narrow fix is presentational and touches no ranking behaviour and no persisted or published shape: carry PlanarGear.tsx:550's existing sentence ("race unset, so race does not narrow anything") onto the surfaces that print the verdict for a raceless context — ItemWindow's verdict line (ItemWindow.tsx:313) and/or the SetWorkspace header (SetWorkspace.tsx:124, which today shows race only when set).
 
+> **Closed.** Eligibility is untouched — narrowing on a field the player declined to fill in would have hidden ~150 items from 12 of 15 races for nothing. `raceUnjudged` (beside `canUseRace`, same `readRestriction` ladder) answers the opposite question, and `usabilityOf` gained a `race-unknown` state that only the claim-making surfaces honour: neutral tint, and a note naming the check that did not run. This record's "one undisclosed surface … the set/upgrades side" is covered by that, since the tint and the item window reach it. See the CLOSED note under F28 in `AUDIT-UPGRADES-SURFACE.md`.
+
 <details><summary>Commands run, and what they returned</summary>
 
 ```

@@ -7142,3 +7142,56 @@ ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PA
 rather than deferring it, so "Usable by this loadout" prints over items the character's race cannot
 wear. It is the only one of the five that puts a wrong recommendation in front of a player rather
 than a wrong sentence.
+
+## `F28` CLOSED — the app no longer vouches for a race gate it never ran
+
+`canUseRace` returns `true` when the character's race is unset. That is the right answer for a
+**gate** — race is optional, the creation screen promises unset narrows nothing, and hiding
+race-restricted gear from a player who declined to fill in a field would be worse than useless. It
+was the wrong answer for a **claim**: `usabilityOf` collapsed skipped-and-passed into `'usable'`, so
+a new character — race unset is the default — got a green name, a "Wearable" badge and the verdict
+"Usable by this loadout" printed directly under a Requirements block reading "Race BAR TRL OGR".
+
+**The temptation here was to fix the gate, and that would have been a real regression.** The
+verifier saw it and said so in advance. Making unset refuse race-narrowed items would strip ~150
+items from the pickers and the ranking of every raceless player, on 12 of 15 races for no reason,
+and break the shipped guard `does not narrow on race when the character has not set one`. `canUse`
+returns exactly what it returned before. Ranking, Auto-fill, equipping and `totalsFor` are untouched.
+
+What changed is one predicate and two sentences. `raceUnjudged` sits beside `canUseRace` and reads
+the same `readRestriction` ladder, because a gate and a claim about that gate drifting apart is the
+whole defect. `usabilityOf` gained a fourth state, `race-unknown`; every `=== 'blocked'` consumer
+ignores it, and the two surfaces that assert something honour it — neutral tint instead of the green
+that means "checked, and you can wear it", and a note naming the check that did not run.
+
+**Blast radius, measured through the app's own `normalizeCatalog` and `usabilityOf` over the shipped
+3,663 records, WAR/CLR/SHM 50, race unset:**
+
+    usable 2,773 | blocked 740 | race-unknown 150
+
+150, not the 164 the record counts as race-restricted — 14 are already blocked on class or level, so
+they never reached the race gate. Of the 150, how many the old green was outright **wrong** about
+depends on the race the player has not told us: BAR 11, TRL 12, OGR 12, ten races 104, ELF 108,
+IKS 111. And the hedge is conservative the other way: an Ogre who leaves race unset now sees 138 of
+those 150 hedged when they could in fact wear them. **That is the honest cost and I am not going to
+present it as free** — the note tells them the one action that resolves it, and the alternative is
+an app that guesses in the player's favour and is wrong 111 times for an Iksar.
+
+The creation screen's own sentence was half the defect. "Leaving it unset does not narrow anything"
+was true, is kept, and now carries the rest of it.
+
+**Guards, and proof they fire.** `race-unjudged.test.ts` (9) and three cases in
+`itemwindow.test.tsx` that render the panel rather than calling the helper, because the defect was
+two halves of one panel contradicting each other. Damaged twice with asserted anchors against the
+**whole** suite: the predicate gave `5 failed | 1135 passed (1140)`, the sentence alone gave
+`3 failed | 1137 passed (1140)`. The two failure sets differ — the tint case and the `ALL_EXCEPT`
+case fall to the predicate only — so neither set of guards is standing in for the other. Restored
+and verified byte-identical by `sha256sum -c` after each pass.
+
+Gate: `tsc` clean · vitest **1,140 passed / 75 files** · playwright **151 passed** · `npm run build`
+ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+**Remaining from my own list: F04, F07, F12, F31.** F31 next — `items-index.json` ships no `rl`
+field, so the level gate is inert during the pre-shard window. It is the only one of the four that
+changes the published payload, so it is the only one where CI shipping a stale `web/public/data/`
+would matter.

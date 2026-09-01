@@ -4,6 +4,8 @@ import { act } from 'react';
 import { ItemWindow } from './ItemWindow';
 import { tier } from '../engine/upgrade';
 import type { Item } from '../engine/types';
+import { makeContext } from '../engine/character';
+import type { ClassCode } from '../engine/constants';
 
 /** Earthshaker as the catalog carries it, with the client's own base weight. */
 const EARTHSHAKER: Item = {
@@ -37,6 +39,70 @@ function render(node: React.ReactElement): string {
 afterEach(() => {
   host?.remove();
   host = null;
+});
+
+/*
+ * The verdict line, over a race gate that was never checked.
+ *
+ * This panel used to print "Usable by this loadout" in green directly beneath
+ * a Requirements block reading "Race BAR TRL OGR", for any character with no
+ * race set — which is the default for a new one. Nothing had gone wrong with
+ * the gate: race is optional and deliberately does not narrow. What had gone
+ * wrong was the sentence, which reported a skipped check as a passed one.
+ *
+ * Rendered here rather than asserted through `usabilityNote` alone, because the
+ * defect was that two parts of one panel contradicted each other, and only the
+ * panel can show that they no longer do.
+ */
+const CRUSHBONE_BELT: Item = {
+  id: null,
+  n: 'Crushbone Belt',
+  sl: ['WAIST'],
+  cl: ['WAR', 'ROG', 'SHD', 'SHM'],
+  ra: ['BAR', 'TRL', 'OGR'],
+  st: { AC: 4 },
+  sv: {},
+  fl: [],
+  av: true,
+};
+
+const TRIO: ClassCode[] = ['WAR', 'ROG', 'SHM'];
+const LEVELS = { WAR: 50, ROG: 50, SHM: 50 };
+
+describe('the item window does not vouch for a race it never checked', () => {
+  it('withholds the verdict when the character has no race set', () => {
+    const text = render(
+      <ItemWindow item={CRUSHBONE_BELT} upgrade={tier(0)} context={makeContext(TRIO, null, LEVELS)} />,
+    );
+    // The requirement is on screen, as it always was.
+    expect(text).toContain('BAR TRL OGR');
+    // The claim about it is not.
+    expect(text).not.toContain('Usable by this loadout');
+    expect(text).toContain('no race set');
+    // And it is not the opposite claim either: the item is still eligible.
+    expect(text).not.toContain('This loadout cannot equip it');
+  });
+
+  it('gives a real verdict the moment a race is set, either way', () => {
+    const ok = render(
+      <ItemWindow item={CRUSHBONE_BELT} upgrade={tier(0)} context={makeContext(TRIO, 'BAR', LEVELS)} />,
+    );
+    expect(ok).toContain('Usable by this loadout');
+    expect(ok).not.toContain('no race set');
+    host?.remove();
+
+    const no = render(
+      <ItemWindow item={CRUSHBONE_BELT} upgrade={tier(0)} context={makeContext(TRIO, 'HUM', LEVELS)} />,
+    );
+    expect(no).toContain('This loadout cannot equip it');
+  });
+
+  it('still vouches for an unrestricted item with no race set', () => {
+    const text = render(
+      <ItemWindow item={EARTHSHAKER} upgrade={tier(0)} context={makeContext(['WAR'], null, { WAR: 50 })} />,
+    );
+    expect(text).toContain('Usable by this loadout');
+  });
 });
 
 describe('item window weight tracks the upgrade level', () => {

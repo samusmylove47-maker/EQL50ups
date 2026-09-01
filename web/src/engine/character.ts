@@ -269,6 +269,35 @@ export function canUseRace(item: Pick<ItemRestrictions, 'races'>, ctx: LoadoutCo
   return matchesList(item.races, [ctx.race]);
 }
 
+/**
+ * Was the race gate **skipped** rather than passed?
+ *
+ * `canUseRace` answers `true` for an unset race, and that is the right answer
+ * for a gate: race is optional, the creation screen says leaving it unset
+ * narrows nothing, and hiding 164 race-restricted records from a player who
+ * declined to fill in a field would remove gear they can very likely wear.
+ *
+ * It is the wrong answer for a *claim*. `usabilityOf` collapsed the two and
+ * printed "Usable by this loadout" over a Requirements block reading
+ * "Race BAR TRL OGR" — a verdict on a check that never ran, in the default
+ * state of every new character. This is the distinction, and it lives here
+ * beside the gate so the two cannot drift apart: same list, same
+ * `readRestriction` ladder, opposite questions.
+ *
+ * `none` is excluded because `canUseRace` already refuses it whatever the race,
+ * and an `ALL_EXCEPT` naming nothing bars nothing — neither turns on a race we
+ * do not know.
+ */
+export function raceUnjudged(
+  item: Pick<ItemRestrictions, 'races'>,
+  ctx: LoadoutContext,
+): boolean {
+  if (ctx.race) return false;
+  const reading = readRestriction(item.races);
+  if (reading.kind === 'only') return true;
+  return reading.kind === 'except' && reading.codes.length > 0;
+}
+
 /** Which of the loadout's classes make a given item usable. */
 export function qualifyingClasses(
   item: Pick<ItemRestrictions, 'classes'>,
