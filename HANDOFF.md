@@ -6525,3 +6525,27 @@ not a patch day.
 
 **R209 routine, run this tick:** one branch, `main` absent, live bundle `assets/index-C8sRW4_T.js`,
 HEAD builds the same. Live deploy is HEAD.
+
+## 17:39Z tick — tip unchanged at `4920aef`, declaring the reader-facing prose sweep
+
+No orders. Tree clean, 0 unpushed. R209 routine: one branch, `main` absent.
+
+**Taking `F17`, `F18` and `F20` as one item** — three numeric claims in `web/src/screens` that no
+longer survive a check against the payload they name. All three were raised by the fan-out and
+**dropped by its `.slice(0, 3)` cap before any verifier saw them**, so none is confirmed and each
+must be verified before it is fixed.
+
+- **`F17`** `Sources.tsx:397` — a card titled *"The largest reason is not an expansion"* sitting
+  directly above a table whose largest row is `era:Velious`, an expansion. The card's own body says
+  "second largest". Title and body of one card disagreeing, with the number on screen above both.
+- **`F18`** `PlanarGear.tsx:990` — a hardcoded lede saying *"a hundred and six rows"* against the
+  same screen's computed header. `planar.test.ts` pins only `> 100`, so drift is invisible.
+- **`F20`** `NewCharacter.tsx:16` — a comment claiming 7,341 race-restricted items in a payload of
+  3,663 total.
+
+The first two are on screen and are exactly what a stranger catches on announcement day, which is
+the bar for Tuesday. The third is a comment, included because it is a measurement that cannot be
+true and this repository's rule is compute-it-or-do-not-print-it.
+
+Verification first for each, against the shipped payload with a command; then correction; then a
+guard that derives rather than transcribes, so none of the three can drift again.
