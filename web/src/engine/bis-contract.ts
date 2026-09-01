@@ -240,9 +240,6 @@ export interface BisCandidate {
    * rather than falsy, and B is not the party that can resolve it.
    */
   actionability: Actionability;
-  eligible: boolean;
-  /** Why not, when `eligible` is false. Empty string when it is true. */
-  eligibilityReason: string;
   /**
    * The stat standing of the CANDIDATE's numbers — `tier-M`, `tier-2`,
    * `tier-5` or `unattributed`. E should treat this as a confidence input:
@@ -250,6 +247,30 @@ export interface BisCandidate {
    */
   standing: string;
 }
+
+/**
+ * ## There is no `eligible` field, and its absence IS the guarantee
+ *
+ * This type carried `eligible: boolean` and `eligibilityReason: string` until
+ * 2026-09-01. Measured over 2,066 real candidates, `eligible` had **one**
+ * distinct value (`true`) and `eligibilityReason` had **one** (`""`).
+ *
+ * They were not merely unused — they were **worse than unused**. A consumer
+ * writing `candidates.filter(c => c.eligible)` would believe it was doing work,
+ * and would reasonably infer the field could be `false` if something were
+ * wrong. It could not: `candidates()` skips an ineligible item entirely, so the
+ * state those fields described was unrepresentable.
+ *
+ * That is the `_nr` shape — a field that looks like it does something, on an
+ * object whose consumer never asks — and it has now been found in three
+ * repositories. Removing it is the structural fix rather than documenting it:
+ * **an ineligible item cannot appear in this array at all.** A guarantee the
+ * shape enforces beats a flag a reader has to trust, and a flag that can only
+ * ever hold one value is a control that cannot fire.
+ *
+ * If a caller needs to know WHY something was excluded, that is a different
+ * function returning a different type, not a constant on this one.
+ */
 
 /** The function 50 Upgrades exposes. Unordered — see the module note. */
 export type CandidatesFn = (input: BisInput) => BisCandidate[];

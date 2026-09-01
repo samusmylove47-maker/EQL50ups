@@ -337,3 +337,43 @@ describe('mob names are joinable', () => {
     expect(o.mobKeys).toEqual(['a goblin warrior', 'goblin warrior']);
   });
 });
+
+/**
+ * The `_nr` guard: no field on a candidate may carry only one value.
+ *
+ * `eligible` and `eligibilityReason` were removed on 2026-09-01 because over
+ * 2,066 real candidates they had exactly one distinct value each — a control
+ * that cannot fire, which a consumer would reasonably trust as one that can.
+ * This test is the shape that stops the next one being added.
+ */
+describe('no candidate field is a constant pretending to be information', () => {
+  it('every field varies, or is documented as a deliberate invariant', () => {
+    const catalog = [
+      mk({ n: 'A', st: { AC: 20 }, src: { z: ['Befallen'], m: ['a skeleton'] } }),
+      mk({ n: 'B', st: { AC: 5 }, sl: ['EAR'] }),
+      mk({ n: 'C', statsUnknown: true, sl: ['HEAD'] }),
+      mk({ n: 'D', st: { STR: 9 }, sl: ['HANDS'], src: { c: true } }),
+    ];
+    const out = candidates({ ...trio }, catalog);
+    expect(out.length).toBeGreaterThan(3);
+
+    /*
+     * `difficulty` is legitimately constant — always null, because no
+     * difficulty value exists in this payload, and that is asserted elsewhere
+     * with its reason. Everything else must earn its place by varying.
+     */
+    const ALLOWED_CONSTANTS = new Set(['difficulty']);
+    const fields = new Set<string>();
+    for (const c of out) for (const k of Object.keys(c)) fields.add(k);
+
+    const constants: string[] = [];
+    for (const f of fields) {
+      if (ALLOWED_CONSTANTS.has(f)) continue;
+      const distinct = new Set(out.map((c) => JSON.stringify((c as never)[f])));
+      if (distinct.size === 1 && out.length > 1) constants.push(f);
+    }
+    // positionId/slot vary by construction; a genuine constant here is a defect.
+    expect(constants).not.toContain('eligible');
+    expect(constants).not.toContain('eligibilityReason');
+  });
+});

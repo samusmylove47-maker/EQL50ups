@@ -5,3 +5,11 @@ dist
 
 # Screenshot scratch from verification runs
 .artifacts/
+
+# Build output of `npm run build:bis` (vite lib mode).
+# Vite copies `public/` verbatim into outDir, so this directory is a full
+# duplicate of the payload, the fonts, quarantine.json AND the vendored engine.
+# 39 files, 4.1 MB, all reproducible. It was tracked until 2026-09-01 and the
+# tracked bundle had already gone a hash stale behind the published one, which
+# is the dead-pointer-that-looks-live hazard this project has paid for before.
+web/dist-bis/

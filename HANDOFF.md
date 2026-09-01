@@ -3916,3 +3916,69 @@ include the parts that do not flatter.
 
 **Gate:** `tsc` clean, **1,001 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
 `catalogue-audit.mjs` passes, artifacts republished at `e9af5b82`.
+
+## To the Director — re-vendor HELD as ruled. Your `\d{2}` check found a second copy that was mine, and the `_nr` sweep found two dead fields in my published contract.
+
+### The hold is accepted and the reasoning is yours
+
+Verified all three of your claims rather than reproducing your grep:
+
+```
+web/public/vendor/eqls-gap-engine.js:36  var VERSION = "1.2.0";
+                                    :38  var TS = /^\[\w{3} \w{3} (\d{2}) .../
+
+  "[Tue Aug 04 13:33:15 2026]"   MATCHES     zero-padded
+  "[Sun Sep  1 00:00:00 2026]"   REJECTED    space-padded
+```
+
+**Not re-vendoring.** A bundle whose behaviour changed needs a version that changed, and a
+consumer routing around that is the thing my pin exists to prevent. Re-pinning when E names the
+version.
+
+### But you found TWO copies, and the second one is a defect of mine
+
+`web/dist-bis/` was **tracked in git and in no `.gitignore`** — **39 files, 4.1 MB**, all build
+output. `vite build` copies `public/` verbatim into `outDir`, so I had committed a duplicate of
+the entire payload, all seven fonts, `quarantine.json`, **a second copy of the vendored engine**
+(your second `\d{2}` hit), and — the part that matters —
+
+> **a STALE bundle: `eqls-50upgrades.36de3a47.js`, while the published one was `e9af5b82`.**
+
+Two bundles under different hashes in one repo, one of them a version behind. That is the
+dead-pointer-that-looks-live hazard, self-inflicted, and **this repository has already paid for a
+duplicate payload once** — the `web/dist/data/items` copy was part of why agent counts disagreed
+(46 vs 23 haste, 424 vs 212 secondary) back in August.
+
+Untracked and ignored. **Proved the removal loses nothing: deleted the directory, rebuilt from
+scratch, republished to the identical hash `e9af5b82`.** CI never touched it — `deploy.yml` runs
+`tsc`, `vitest`, `verify.mjs`, `catalogue-audit.mjs`, `npm run build`, and nothing else.
+
+### The `_nr` sweep you asked for, and it found the shape in my own published contract
+
+Measured over **2,066 real candidates** from the published bundle:
+
+| field | distinct values |
+|---|---|
+| `eligible` | **1** — always `true` |
+| `eligibilityReason` | **1** — always `""` |
+| `actionability` | 2 |
+| `standing` | 4 |
+
+**Worse than unused.** A consumer writing `candidates.filter(c => c.eligible)` would believe it was
+doing work, and would reasonably infer the field could be `false` if something were wrong. It could
+not — `candidates()` skips an ineligible item entirely, so the state those fields described was
+**unrepresentable**. A control that cannot fire, in a contract I handed another session.
+
+**Removed rather than documented, because R75 says a shape beats a convention: an ineligible item
+now cannot appear in the array at all.** That is strictly stronger than a flag a reader has to
+trust. Guarded by a test that fails if any candidate field collapses to one value, with
+`difficulty` whitelisted as a deliberate invariant that carries its own reason.
+
+**Contract change announced, not silent:** `BisCandidate` no longer has `eligible` or
+`eligibilityReason`. Bundle is now `ff9188b1`. If E or anyone has read either field, they were
+reading a constant.
+
+Third repository, same fault. D's Voidling `closing` flag, my `_nr`, and now this.
+
+**Gate:** `tsc` clean, **1,002 tests in 66 files**, `verify.mjs` at Tier 0 coverage 100.0%,
+`catalogue-audit.mjs` passes.

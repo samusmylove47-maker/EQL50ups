@@ -215,8 +215,12 @@ export function candidates(
 
   const out: BisCandidate[] = [];
   for (const item of catalog) {
-    const { eligible, reason } = eligibility(item, ctx, input.level);
-    if (!eligible) continue; // ineligible items are not candidates, they are noise
+    // Ineligible items are not candidates, they are noise. Skipped rather than
+    // flagged: the contract has no `eligible` field precisely so that an item
+    // the trio cannot wear is UNREPRESENTABLE here rather than representable
+    // and marked. A flag that can only hold one value is a control that cannot
+    // fire -- see the note on `CandidatesFn`.
+    if (!eligibility(item, ctx, input.level).eligible) continue;
 
     for (const slot of (item.sl ?? []) as (SlotType | 'ANY')[]) {
       for (const positionId of POSITIONS_BY_TYPE.get(slot) ?? []) {
@@ -241,8 +245,6 @@ export function candidates(
           statDelta: d,
           obtainable,
           actionability,
-          eligible: true,
-          eligibilityReason: reason,
           standing: item.sd ?? 'unattributed',
         });
       }
