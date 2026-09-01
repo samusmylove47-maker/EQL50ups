@@ -4738,3 +4738,83 @@ current contract already mandates. **C is a contract change and it is yours to r
 
 **Gate:** `tsc` clean, **1,036 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
 `catalogue-audit.mjs` passes, bundle `98005988`.
+
+---
+
+## To the Director — R120 applied to my own killed pile, and it found two vacuous guards
+
+You wrote that a finding is not one proposition and that the commissioning session must read the
+REFUTED pile. I had done that for the R73 sweep — it is where the four false refutations came
+from — but for the BIS audit I had read only the 13 survivors. **Reading its 9 killed entries
+under R120 found two confirmed mechanisms killed on severity, and both are vacuous guards in my
+own test suite.**
+
+### 1. The guard named for race never checked race
+
+`bis.test.ts` — `it('offers nothing the trio cannot equip')`. It passes `race: 'HUM'`, and then
+filters on `cl` and `rl`. **Never `ra`.** The refuter killed the finding "as a defect" while
+writing, in its own reasoning, *"the observation at the core is accurate… the auditor's
+`(item.ra ?? []).length < 2` weakening leaves the suite fully green, 1005/1005."* Mechanism
+confirmed, severity refuted, finding deleted by a boolean.
+
+That is not hypothetical. **Hours earlier I fixed the defect this guard is named for** — a Human
+cleric's top-ranked FEET upgrade was `Rune Etched Boots`, `ra: ["BAR","TRL","OGR"]`. The test
+whose name promises exactly this could not see it.
+
+Fixed, with the rule restated in the test rather than imported from `character.ts` — a guard
+that calls the function under test agrees with it by construction.
+
+**A/B, whole suite:**
+
+| mutation | before | after |
+|---|---|---|
+| `canUseRace` always true (blunt) | — | 9 failed / 1,036 — *this guard now among them* |
+| **the refuter's narrow one**: `bis.ts` skips the race check for short lists, `canUseRace` untouched | **1005 / 1005 green** | **2 failed / 1,036 — this guard is one of the two** |
+
+The second row is the one that counts: it leaves every `canUseRace` unit test passing, which is
+why it slipped through, and the shipped-catalogue guard now catches it.
+
+### 2. My vendored-bundle test measured nothing at all
+
+`gapEngine.test.ts` fed the pinned bundle four log lines. Measured:
+
+```
+engagements 0   engaged_seconds 0   damage_dealt 0
+```
+
+Its assertions — available, right version, `months_seen` is a number — are **all true of a
+measurement of nothing.** The fixture proved the engine loaded and not one thing more. The
+month-boundary behaviour the provenance file describes, and that I reported to you as verified,
+was never exercised by the suite.
+
+I had actually seen this: I noted at the time that "an earlier 4-line probe showing 0
+engagements was my input being too short — my instrument". I fixed my probe and left the test.
+
+Now a 41-line fixture, generated rather than typed, asserting the provenance's own numbers:
+**one engagement, 78 seconds, 400 damage.**
+
+**A/B — the defect reintroduced in the bundle itself** (`dayIdx * 86400` → the day-of-month
+number, which is what running the index off the calendar day does across a month boundary):
+
+```
+expected 58 to be 78     <- the fight splits; the new test catches it
+expected 26621 to be 26610  <- and the provenance hash guard caught the byte change too
+```
+
+The old fixture would have passed both.
+
+### A near-miss in my own method, recorded because it nearly cost the pin
+
+The A/B above mutated the **vendored bundle**. My restore ran `cp` with a repo-relative path
+after a `cd web` earlier in the same command, so it resolved to `web/web/public/...` and
+**failed**. The mutated 26,621-byte bundle sat in the tree, and the only thing that said so was
+`sha256sum -c`. Restored, and verified twice — SHA-256 `OK`, and `git status --porcelain
+web/public/vendor/` clean.
+
+This is R103's shape with a new layer: authoring succeeded, the mutation succeeded, and the
+*working directory* between the mutation and the restore changed what "restore" meant. **Use
+absolute paths in a mutation harness, and never trust a restore you have not hashed** — the
+restore is the step that fails quietly, which is exactly why the rule is to verify it.
+
+**Gate:** `tsc` clean, **1,037 tests in 68 files**, `verify.mjs` 67 checks, Tier 0 100.0%,
+`catalogue-audit.mjs` passes.

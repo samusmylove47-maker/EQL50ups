@@ -267,6 +267,39 @@ describe('against the shipped catalogue', () => {
       return typeof rl === 'number' && rl > LEVEL;
     });
     expect(overLevel.map((c) => c.candidateName).slice(0, 5)).toEqual([]);
+
+    /*
+     * RACE, which this guard did not check for the whole of its life.
+     *
+     * It passes `race: 'HUM'`, it is named "offers nothing the trio cannot
+     * equip", and it filtered on `cl` and `rl` only — never `ra`. Measured by
+     * an adversarial pass on 2026-09-01: weakening race eligibility left the
+     * whole suite green, 1005 of 1005.
+     *
+     * That is not a hypothetical gap. Hours before this line was written, a
+     * Human cleric's top-ranked FEET upgrade on the real payload was
+     * `Rune Etched Boots`, `ra: ["BAR","TRL","OGR"]`. The test whose name
+     * promises exactly this could not see it.
+     *
+     * The rule is restated here rather than imported from `character.ts`,
+     * deliberately: a guard that calls the function under test agrees with it
+     * by construction.
+     */
+    const raceLegalForHuman = (ra: string[] | undefined): boolean => {
+      const list = ra ?? [];
+      if (!list.length || list.includes('ALL')) return true;
+      if (list.includes('NONE')) return false;
+      if (list.includes('ALL_EXCEPT')) return !list.includes('HUM');
+      return list.includes('HUM');
+    };
+    const wrongRace = out.filter(
+      (c) => !raceLegalForHuman(byName.get(c.candidateName.toLowerCase())?.ra),
+    );
+    expect(wrongRace.map((c) => c.candidateName).slice(0, 5)).toEqual([]);
+
+    // And the check is not vacuous: the payload really does restrict on race.
+    const raceRestricted = catalog.filter((i) => !raceLegalForHuman(i.ra));
+    expect(raceRestricted.length).toBeGreaterThan(0);
   });
 
   it.skipIf(!catalog.length)('never emits a difficulty, because the payload holds no difficulty value', () => {

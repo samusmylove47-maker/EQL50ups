@@ -258,6 +258,22 @@ describe('the published contract fixture', () => {
 
 const VENDORED = 'public/vendor/eqls-gap-engine.js';
 
+/**
+ * One continuous fight across the 31 Aug / 1 Sep boundary, dense enough to
+ * register as an engagement rather than as scattered hits.
+ *
+ * Generated rather than typed: forty lines written by hand is forty chances to
+ * fat-finger a timestamp, and the engagement window is exactly what is under
+ * test.
+ */
+const MONTH_BOUNDARY_FIGHT: string[] = [
+  ...Array.from({ length: 10 }, (_, i) =>
+    `[Mon Aug 31 23:59:${String(40 + i * 2).padStart(2, '0')} 2026] You crush a rat for 10 points of damage.`),
+  ...Array.from({ length: 30 }, (_, i) =>
+    `[Tue Sep 01 00:00:${String(i * 2).padStart(2, '0')} 2026] You crush a rat for 10 points of damage.`),
+  '[Tue Sep 01 00:00:58 2026] You have slain a rat!',
+];
+
 describe('the vendored bundle', () => {
   const present = existsSync(VENDORED);
 
@@ -267,18 +283,48 @@ describe('the vendored bundle', () => {
     vm.runInContext(readFileSync(VENDORED, 'utf8'), sandbox);
     const global = sandbox.EQLSGapEngine as never;
 
-    const r = gapAvailability(global, [
-      '[Mon Aug 31 23:59:40 2026] You crush a rat for 10 points of damage.',
-      '[Mon Aug 31 23:59:48 2026] You crush a rat for 10 points of damage.',
-      '[Tue Sep 01 00:00:20 2026] You crush a rat for 10 points of damage.',
-      '[Tue Sep 01 00:00:58 2026] You have slain a rat!',
-    ], CTX);
+    const r = gapAvailability(global, MONTH_BOUNDARY_FIGHT, CTX);
 
     expect(r.available).toBe(true);
     if (!r.available) throw new Error('unreachable');
     expect(r.version).toBe(REQUIRED_ENGINE_VERSION);
     // The int, not the list. Guards the contract-fixture defect at the seam.
     expect(typeof r.measured.months_seen).toBe('number');
+    expect(r.measured.months_seen).toBe(2);
+  });
+
+  /**
+   * The behaviour the pin exists for, actually exercised.
+   *
+   * **This test used to feed four log lines and assert nothing they could
+   * move.** Measured 2026-09-01, those four lines through the pinned bundle:
+   * `engagements 0, engaged_seconds 0, damage_dealt 0`. The assertions above —
+   * available, right version, `months_seen` is a number — are all true of a
+   * measurement of nothing, so the fixture proved the engine loaded and
+   * nothing else. The month-boundary defect the provenance file describes could
+   * have been reintroduced and this suite would not have moved.
+   *
+   * The fixture is now dense enough to BE an engagement, and the numbers below
+   * are the ones `eqls-gap-engine.provenance.json` claims: one continuous fight
+   * spanning 31 Aug 23:59 into 1 Sep 00:00 as **one** engagement of **78
+   * seconds**. A build whose day index runs backwards across a month boundary
+   * splits it and both figures move.
+   */
+  it.skipIf(!present)('measures the month-boundary fight as ONE engagement of 78 seconds', () => {
+    const sandbox: Record<string, unknown> = {};
+    vm.createContext(sandbox);
+    vm.runInContext(readFileSync(VENDORED, 'utf8'), sandbox);
+    const global = sandbox.EQLSGapEngine as never;
+
+    const r = gapAvailability(global, MONTH_BOUNDARY_FIGHT, CTX);
+    expect(r.available).toBe(true);
+    if (!r.available) throw new Error('unreachable');
+
+    expect(r.measured.engaged_seconds).toBe(78);
+    expect(r.measured.damage_dealt).toBe(400);
+    // Not a measurement of nothing — the failure mode this fixture replaced.
+    expect(r.measured.engaged_seconds).toBeGreaterThan(0);
+    expect(r.measured.damage_dealt).toBeGreaterThan(0);
   });
 
   /**
