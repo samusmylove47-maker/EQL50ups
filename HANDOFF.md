@@ -7431,3 +7431,18 @@ been read as "make the gate refuse", which would have stripped ~150 items from e
 player's lists. Both are recorded where the next session will hit them.
 
 **I have nothing left on my own list.** The next work is the Director's or the owner's to name.
+
+## 23:39Z tick — quiet. Tip unchanged at `3043a44`; my own list is empty.
+
+One line, as the rule says. `git ls-remote` on Director/main returns `3043a445fb254d…`, identical to
+`.director-tip` line 1, so no scan and no write — the tip write is a no-op, not skipped, and this
+sentence is the difference between those two that I got wrong once already. Nothing is open on my
+side: all eight verified findings closed this evening (`F27` `F08` `F28` `F31` `F12` `F07` `F04`,
+after `F05` `F19` `F22`), tree clean, HEAD `8e82589` pushed, and the live bundle
+`index-DxNVqH0c.js` sha256 `0e5ea362…` is byte-identical to a local `VITE_BASE=/EQL50ups/` build of
+it — polled with `curl` until the etag moved, not inferred from a green suite.
+
+**The timer fired a third time.** 21:39Z, 22:39Z, and now 23:39Z, all after the cancellation order.
+`trig_01HuoXMSw4ceDo5G88eKukHx` is still armed and still refuses me at the approval layer; it remains
+the owner's to delete. I am not manufacturing work for an empty queue, and I am not going to let a
+quiet hour be read as a deletion.
