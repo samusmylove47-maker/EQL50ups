@@ -40,7 +40,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { activeContext, describeCharacter, type LoadoutContext } from '../engine/character';
 import { SLOT_POSITIONS, SLOT_TYPES, weaponCountsAt, type SlotPosition } from '../engine/constants';
 import { scoreItem, scoresWeapons, type WeightProfile } from '../engine/ep';
-import { resolveItem } from '../engine/stats';
+import { isTwoHanded, resolveItem } from '../engine/stats';
 import { BASE_STATE, normalizeState, tier, type UpgradeState } from '../engine/upgrade';
 import type { Item, MeasuredDrop, ZoneSurvey } from '../engine/types';
 import { statsAreUnknown, type SlotCode } from '../data/normalize';
@@ -414,21 +414,6 @@ interface SlotRanking {
  * best candidate is worth — Auto-fill's own rule — and a Lore item, once
  * claimed, drops out of every other position's list.
  */
-/**
- * Is this a two-handed weapon?
- *
- * Keyed on `wp.skill`, and that is not a preference — **zero of the 124
- * two-handed rows in the shipped catalogue list `SECONDARY` in their slot
- * list.** The payload records nothing about a weapon occupying both hands; the
- * skill string is the only marker there is. It is a Tier 2 wiki field, so every
- * row that nets an offhand says so.
- *
- * Measured 2026-08-31 over 4,004 shard rows: 788 carry `wp`, of which
- * 2H Slashing 63, 2H Blunt 59, 2H Piercing 2 = 124 rows, 123 distinct items.
- */
-export function isTwoHanded(item: Item | undefined): boolean {
-  return /^2H/i.test(item?.wp?.skill ?? '');
-}
 
 /**
  * What a two-handed Primary costs in the Secondary it empties.

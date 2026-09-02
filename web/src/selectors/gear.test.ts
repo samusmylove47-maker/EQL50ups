@@ -525,7 +525,10 @@ describe('items with no stat data', () => {
 });
 
 describe('describeAutoFill', () => {
-  const base = { assigned: [], skipped: [], excludedByFilters: [], filters: DEFAULT_SET_FILTERS };
+  const base = {
+    assigned: [], skipped: [], excludedByFilters: [], handsFull: [],
+    filters: DEFAULT_SET_FILTERS,
+  };
 
   it('names the filters it applied and the slots they emptied', () => {
     const text = describeAutoFill({
@@ -555,6 +558,21 @@ describe('describeAutoFill', () => {
     });
     expect(text).toContain('(Sky era, Quest only)');
     expect(text).toContain("excluded by this set's filters");
+  });
+
+  /*
+   * The offhand had a match. Reporting it under "had no match" would be the
+   * same false explanation the Upgrades footer used to give for a position
+   * whose candidate went elsewhere — a true rule stated, then contradicted.
+   */
+  it('says the hand is taken rather than that nothing matched', () => {
+    const text = describeAutoFill({
+      ...base,
+      assigned: [{ position: 'PRIMARY', itemName: 'Baton of the Sky' }],
+      handsFull: ['Secondary'],
+    });
+    expect(text).toContain('a two-handed weapon takes both hands');
+    expect(text).not.toContain('had no match');
   });
 
   it('blames the weights when the filters are not the reason', () => {

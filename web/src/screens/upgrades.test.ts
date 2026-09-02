@@ -13,6 +13,7 @@ import { ep } from '../lib/format';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { canUse, makeContext } from '../engine/character';
 import { scoreItem, type WeightProfile } from '../engine/ep';
+import { isTwoHanded } from '../engine/stats';
 import { tier, type UpgradeState } from '../engine/upgrade';
 import type { GearSet, Item } from '../engine/types';
 import { useCatalog, type CatalogState } from '../data/catalog';
@@ -20,7 +21,7 @@ import { normalizeCatalog } from '../data/normalize';
 import { rankSlotItems, scoreContextFrom, slotViews, statDeltas, totalsFor } from '../selectors/gear';
 import { DEFAULT_SET_FILTERS, type SetFilters } from '../lib/setFilters';
 import {
-  acquisitionLines, computeUpgrades, dateSpan, hasAnyWeight, isLore, isTwoHanded, measuredDrops,
+  acquisitionLines, computeUpgrades, dateSpan, hasAnyWeight, isLore, measuredDrops,
   WITHHELD_MARK, WITHHELD_TEXT, type WithheldReason,
   displayedGain,
   totalSightings, unweightedLosses, weightedDeltas, zoneTallies,

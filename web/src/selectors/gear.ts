@@ -13,7 +13,7 @@ import {
 } from '../engine/constants';
 import { canUse, type LoadoutContext } from '../engine/character';
 import { usabilityOf } from '../lib/itemStyle';
-import { computeTotals, resolveItem, type StatTotals } from '../engine/stats';
+import { computeTotals, isTwoHanded, resolveItem, type StatTotals } from '../engine/stats';
 import { rankScorer, type ScoreContext, type WeightProfile } from '../engine/ep';
 import { BASE_STATE, normalizeState, type UpgradeState } from '../engine/upgrade';
 import type { EquippedItem, GearSet, Item } from '../engine/types';
@@ -244,6 +244,32 @@ export function unusableEntries(
 }
 
 /**
+ * The Secondary a two-handed Primary blocks.
+ *
+ * A two-handed weapon takes both hands, so nothing is worn beside it — see
+ * `isTwoHanded` in `engine/stats` for the rule and where it came from. This
+ * returns the offhand entry that cannot really be worn, so the same answer
+ * serves the totals and the note that explains them.
+ *
+ * **Why this exists as an exclusion rather than only as a block on equipping.**
+ * A set carrying the impossible pair can already be sitting in someone's
+ * browser or arriving down a share link — Auto-fill built exactly that for the
+ * player who reported it, on 12 of 20 sampled trio-and-profile combinations —
+ * and refusing to *create* it from now on would leave those sets quietly
+ * summing an item the game would not let them hold. The doll says so out loud
+ * rather than dropping the stats in silence.
+ *
+ * Returns an empty list when Primary is empty, holds a one-hander, or holds
+ * something the catalogue cannot resolve: an unknown item is not evidence of
+ * two-handedness, and guessing would take a real offhand away.
+ */
+export function offhandBlockedEntries(views: readonly SlotView[]): ResolvedEntry[] {
+  const primary = views.find((view) => view.position.id === 'PRIMARY');
+  if (!isTwoHanded(primary?.item)) return [];
+  return resolvedEntries(views).filter((entry) => entry.position === 'SECONDARY');
+}
+
+/**
  * The set's totals.
  *
  * When a `context` is supplied, items that loadout cannot equip are left out.
@@ -262,9 +288,16 @@ export function totalsFor(
   excludePosition?: string,
   context?: LoadoutContext,
 ): StatTotals {
-  const unusable = new Set(unusableEntries(views, context).map((entry) => entry.position));
+  const dropped = new Set([
+    ...unusableEntries(views, context).map((entry) => entry.position),
+    // A two-handed Primary leaves no hand for an offhand, so its stats are not
+    // real for this set either. Same reasoning as the line above it, different
+    // rule — and unlike that one it does not need a `context`, because it turns
+    // on what is worn rather than on who is wearing it.
+    ...offhandBlockedEntries(views).map((entry) => entry.position),
+  ]);
   const entries = resolvedEntries(views).filter(
-    (entry) => entry.position !== excludePosition && !unusable.has(entry.position),
+    (entry) => entry.position !== excludePosition && !dropped.has(entry.position),
   );
   return computeTotals(entries);
 }
@@ -494,6 +527,12 @@ export interface AutoFillResult {
    * replaces.
    */
   excludedByFilters: string[];
+  /**
+   * Positions left empty because a two-handed weapon holds both hands, by
+   * label. Kept out of `skipped` on purpose: "had no match" would be false
+   * here — there was a match, and there is nowhere to put it.
+   */
+  handsFull: string[];
   /** What was applied, so the caller can say so rather than guess. */
   filters: SetFilters;
 }
@@ -517,6 +556,11 @@ export function describeAutoFill(result: AutoFillResult): string {
   }
 
   const parts = [`Auto-fill placed ${count} item${count === 1 ? '' : 's'}${scope}`];
+  // Named before the "no match" clause and separately from it, because the
+  // offhand did have a match and saying otherwise is the falsehood this avoids.
+  if (result.handsFull.length) {
+    parts.push('Secondary left empty — a two-handed weapon takes both hands');
+  }
   if (result.skipped.length) {
     const missed = result.skipped.length;
     parts.push(`${missed} slot${missed === 1 ? '' : 's'} had no match: ${result.skipped.join(', ')}`);
@@ -627,28 +671,110 @@ export function* autoFillSteps(
 
     // Slots whose best candidate is worth most get first refusal on it.
     ranked.sort((a, b) => (b.list[0]?.score ?? 0) - (a.list[0]?.score ?? 0));
+
+    /*
+     * ---- the hands are ONE decision, and were being made twice ----
+     *
+     * Primary and Secondary were ranked and filled independently, so a
+     * two-handed winner in Primary was placed and an offhand was placed beside
+     * it — a loadout the game cannot hold. A player reported exactly that:
+     * `Baton of the Sky` (2H Blunt) with `Bladestopper` in the offhand, built
+     * by this function. Measured before the fix over 4 trios x 5 profiles
+     * against the shipped payload, **12 of 20 produced the impossible pair.**
+     *
+     * Dropping the offhand is not automatically right, which is the other half
+     * of what the reporter said: two-handers carry the better stat lines, so
+     * under a stat-led profile the two-hander wins Primary on its own merits,
+     * and the shield it would displace may be worth more than the gap to the
+     * best one-hander. The two arrangements are therefore compared in the
+     * currency this function already sorts by, and the better one kept. On the
+     * shipped payload the pair wins 10 of those 12.
+     *
+     * It is decided when the FIRST of the two hands comes up in the order, not
+     * afterwards, and that is load-bearing. A first attempt resolved the hands
+     * after the whole assignment loop had run: freeing the offhand then came
+     * too late for any other slot to take it, and the shield ended up in no
+     * slot at all — worse than either arrangement it was choosing between.
+     *
+     * A pinned hand constrains the other rather than being overruled. If the
+     * player kept a shield, Primary takes the best ONE-hander; if they kept a
+     * two-hander, the offhand is left empty. Auto-fill may decline to add to
+     * what they chose; removing from it is not its decision.
+     */
+    const listFor = (id: string) => ranked.find((r) => r.view.position.id === id)?.list ?? [];
+    const keptPrimary = kept.get('PRIMARY')?.item;
+    const keptSecondary = kept.get('SECONDARY')?.item;
+    let hands: { PRIMARY?: Item; SECONDARY?: Item } | null = null;
+
+    const decideHands = (): { PRIMARY?: Item; SECONDARY?: Item } => {
+      if (hands) return hands;
+      const free = (entry: ScoredItem) => entry.score > 0 && !used.has(entry.item.n.toLowerCase());
+      const offhandBesides = (weapon: Item | undefined) =>
+        listFor('SECONDARY').find((e) => free(e) && e.item.n !== weapon?.n);
+
+      if (keptPrimary) {
+        // Their weapon decides it: a two-hander leaves no hand to fill.
+        hands = isTwoHanded(keptPrimary) ? {} : { SECONDARY: offhandBesides(undefined)?.item };
+        return hands;
+      }
+      if (keptSecondary) {
+        const oneHander = listFor('PRIMARY').find((e) => free(e) && !isTwoHanded(e.item));
+        hands = { PRIMARY: oneHander?.item };
+        return hands;
+      }
+
+      const best = listFor('PRIMARY').find(free);
+      if (!best || !isTwoHanded(best.item)) {
+        hands = { PRIMARY: best?.item, SECONDARY: offhandBesides(best?.item)?.item };
+        return hands;
+      }
+      const oneHander = listFor('PRIMARY').find((e) => free(e) && !isTwoHanded(e.item));
+      const offhand = offhandBesides(oneHander?.item);
+      const paired = (oneHander?.score ?? 0) + (offhand?.score ?? 0);
+      hands = oneHander && paired > best.score
+        ? { PRIMARY: oneHander.item, SECONDARY: offhand?.item }
+        : { PRIMARY: best.item };
+      return hands;
+    };
+
     for (const { view, list } of ranked) {
+      const id = view.position.id;
+      if (id === 'PRIMARY' || id === 'SECONDARY') {
+        const item = decideHands()[id];
+        if (!item) continue;
+        used.add(item.n.toLowerCase());
+        next.set(id, { item, upgrade: upgradeFor(view) });
+        continue;
+      }
       const pick = list.find((entry) => entry.score > 0 && !used.has(entry.item.n.toLowerCase()));
       if (!pick) continue;
       used.add(pick.item.n.toLowerCase());
-      next.set(view.position.id, { item: pick.item, upgrade: upgradeFor(view) });
+      next.set(id, { item: pick.item, upgrade: upgradeFor(view) });
     }
+
     chosen = next;
   }
 
   const assigned: AutoFillResult['assigned'] = [];
   const skipped: string[] = [];
   const excludedByFilters: string[] = [];
+  const handsFull: string[] = [];
+  const twoHandedPrimary = isTwoHanded(chosen.get('PRIMARY')?.item);
   for (const view of pending) {
     const pick = chosen.get(view.position.id);
     if (pick) {
       assigned.push({ position: view.position.id, itemName: pick.item.n });
       continue;
     }
+    // Empty because the hand is taken, not because nothing scored for it.
+    if (view.position.id === 'SECONDARY' && twoHandedPrimary) {
+      handsFull.push(view.position.label);
+      continue;
+    }
     skipped.push(view.position.label);
     if (emptiedByFilters.has(view.position.id)) excludedByFilters.push(view.position.label);
   }
-  return { assigned, skipped, excludedByFilters, filters: options.filters };
+  return { assigned, skipped, excludedByFilters, handsFull, filters: options.filters };
 }
 
 /** `autoFillSteps` run to completion in one go. */

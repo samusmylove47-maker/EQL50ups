@@ -7446,3 +7446,74 @@ it — polled with `curl` until the etag moved, not inferred from a green suite.
 `trig_01HuoXMSw4ceDo5G88eKukHx` is still armed and still refuses me at the approval layer; it remains
 the owner's to delete. I am not manufacturing work for an empty queue, and I am not going to let a
 quiet hour be read as a deletion.
+
+## A PLAYER REPORTED A BUG, and it was a real one — the two-handed offhand lockout
+
+The owner relayed a player's report against a set **this planner's own Auto-fill built**:
+`Baton of the Sky` (`2H Blunt`) in Primary with `Bladestopper` in the offhand. *"If a weapon lists
+'primary' and '2 hand' then the secondary slot is always blocked out, as it requires your primary
+and secondary hand to satisfy the '2 handed' requirement."*
+
+**The rule was never missing. It was enforced in exactly one place and contradicted everywhere
+else.** `Upgrades.tsx`'s `twoHandedCost` has subtracted the worn offhand's EP from a two-handed
+candidate's gain since the ruling of 31 Aug — precisely because taking the two-hander empties that
+hand. So the ranking screen priced the loadout as impossible while the doll, the stat totals and
+Auto-fill all asserted the player was holding both. That is the same self-contradiction I spent the
+evening removing from `F08`, `F07` and `F04`, and it reached a player first.
+
+**Reproduced before touching anything**, over 4 trios x 5 profiles against the shipped payload:
+
+    12 of 20 configurations produced the impossible pair
+    CLR/BRD/SHM balanced — the reporter's own trio — Baton of the Sky + Bladestopper
+    totals AC 307, where 282 is what the character could actually wear
+
+The inflated total is the serious half. The list was untidy; the number was wrong.
+
+**The reporter's second point is the reason this is a comparison and not a deletion.** Two-handers
+carry the better stat lines, so under a stat-led profile the two-hander wins Primary on its own
+merits — and the shield it displaces may be worth more than the gap to the best one-hander. Auto-fill
+now weighs both arrangements in the currency it already sorts by. Measured: **the pair wins 10 of
+those 12**, and the two-hander genuinely wins the other 2 (PAL/SHD/RNG under caster and healer), where
+the offhand is now correctly left empty. Simply dropping the shield would have handed 10 of 12
+players a worse set.
+
+**One rule, four surfaces.** `isTwoHanded` moved out of the screen and into `engine/stats`, with its
+provenance; `offhandBlockedEntries` names the blocked offhand; `totalsFor` stops summing it, beside
+the `unusableEntries` exclusion it exactly parallels; the doll says so out loud; Auto-fill never
+builds the pair. A kept hand constrains the other rather than being overruled — Auto-fill may decline
+to add to what the player pinned, but removing from it is not its decision.
+
+**Two things I got wrong on the way, both caught by measuring rather than reasoning.**
+
+1. My first Auto-fill fix resolved the hands *after* the assignment loop. Freeing the offhand then
+   came too late for any other slot to take it, and the shield ended up in **no slot at all** —
+   worse than either arrangement it was choosing between. The hands are one decision and are now
+   made when the first of them comes up in the order. I found this by printing what Auto-fill placed,
+   not by reading the diff.
+2. My first fixture asserted the pair should win when the arithmetic said otherwise — greatsword 220
+   against longsword 100 plus a 40 AC shield at 80. The test was wrong, not the code. Corrected the
+   numbers rather than the assertion.
+
+**Guards.** `two-handed.test.tsx`: the rule, the totals, Auto-fill in both directions, the pinned-hand
+case, and the doll's sentence rendered. A/B, whole suite, each restored byte-identical by
+`sha256sum -c`:
+
+    the rule disabled          : 17 failed | 1158 passed (1175)
+    totals count it again      :  1 failed | 1174 passed
+    hands filled independently :  3 failed | 1172 passed
+    the doll's sentence gone   :  1 failed | 1174 passed
+
+**The doll's sentence failing on its own is deliberate.** Twice tonight — `F07` and `F04` — a guard on
+the data passed while the number or sentence on the card was still wrong. I am not going to keep
+learning that one.
+
+Sweep after the fix, 6 trios x 5 profiles: **0 impossible pairs**, 2 runs legitimately choose a
+two-handed Primary, 22.93 of 23 slots filled on average — nothing is being silently lost.
+
+Gate: `tsc` clean · vitest **1,175 passed / 78 files** · playwright **151 passed** · `npm run build`
+ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+**Not done, and named rather than left implicit:** equipping still *allows* the impossible pair by
+hand — the doll now reports it instead of refusing it. That is deliberate for this change (a refusal
+is a bigger behavioural decision than a disclosure, and a set already carrying the pair must still
+open), but it is the obvious next step if the owner wants the hard lockout in the editor too.

@@ -172,6 +172,46 @@ export interface WeaponSummary {
   bonus?: number;
 }
 
+/**
+ * A two-handed weapon occupies both hands, so nothing can go in Secondary
+ * beside it.
+ *
+ * **Reported by a player, through the owner**, against a set the planner's own
+ * Auto-fill had built: `Baton of the Sky` (`2H Blunt`) in Primary with
+ * `Bladestopper` in Secondary — a loadout the game cannot hold. *"If a weapon
+ * lists 'primary' and '2 hand' then the secondary slot is always blocked out,
+ * as it requires your primary and secondary hand to satisfy the '2 handed'
+ * requirement."*
+ *
+ * **This app already believed the rule and applied it in exactly one place.**
+ * `Upgrades.tsx`'s `twoHandedCost` subtracts the worn offhand's EP from a
+ * two-handed candidate's gain, and has done since the ruling of 31 Aug,
+ * precisely because taking the two-hander empties that hand. So the defect was
+ * never a missing rule — it was a rule enforced on the ranking screen and
+ * nowhere else, which left the doll and the stat totals asserting a loadout the
+ * same app's ranking had already priced as impossible.
+ *
+ * **Why this is a gate where `DUAL_WIELD_STANDING` is only a mark.** That one
+ * is deliberately not enforced: the class-based dual-wield table is inherited
+ * from classic, unmeasured on Legends, and a hard gate built on it would refuse
+ * equipment the game may allow. The two-handed rule is the opposite case on
+ * both counts — it is stated by the owner, it is what this codebase already
+ * computes against, and *not* enforcing it does not merely show an extra option:
+ * it adds a second item's stats to the headline totals. There is no reading on
+ * which both hands are held.
+ *
+ * Keyed on `wp.skill` rather than on the slot list, because **zero of the
+ * shipped two-handed rows list SECONDARY** — the payload records nothing about
+ * a weapon occupying both hands, so the skill string is the only signal there
+ * is. That is a Tier 2 wiki field, and the rows that depend on it say so.
+ *
+ * Measured 2026-08-31 over 4,004 shard rows: 788 carry `wp`, of which
+ * 2H Slashing 63, 2H Blunt 59, 2H Piercing 2 = 124 rows, 123 distinct items.
+ */
+export function isTwoHanded(item: Item | undefined): boolean {
+  return /^2H/i.test(item?.wp?.skill ?? '');
+}
+
 function emptyTotals(): StatTotals {
   const attributes = Object.fromEntries(ATTRIBUTES.map((a) => [a, 0])) as Record<Attribute, number>;
   const saves = Object.fromEntries(SAVES.map((s) => [s, 0])) as Record<Save, number>;

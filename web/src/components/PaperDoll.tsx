@@ -19,7 +19,9 @@ import type { LoadoutContext } from '../engine/character';
 import { scoreItem, type WeightProfile } from '../engine/ep';
 import type { StatTotals } from '../engine/stats';
 import type { UpgradeState } from '../engine/upgrade';
-import { resolvedEntries, unusableEntries, type SlotView } from '../selectors/gear';
+import {
+  offhandBlockedEntries, resolvedEntries, unusableEntries, type SlotView,
+} from '../selectors/gear';
 import { CharacterFigure } from './CharacterFigure';
 import { SlotCard } from './SlotCard';
 import { StatPanel } from './StatPanel';
@@ -90,6 +92,7 @@ export function PaperDoll({
   );
 
   const unusable = unusableEntries(views, context);
+  const twoHandedBlocked = offhandBlockedEntries(views);
 
   return (
     <>
@@ -123,6 +126,25 @@ export function PaperDoll({
           ))}
         </div>
       </div>
+
+      {/*
+        A two-handed weapon holds both hands, so the offhand beside it is not
+        worn and its stats are not in the totals below. Said out loud for the
+        same reason the note under it is: a set that already carries this pair —
+        Auto-fill built them — would otherwise just quietly lose an item's
+        stats, and a number that changes with no stated reason is the fault this
+        planner exists to avoid.
+      */}
+      {twoHandedBlocked.length ? (
+        <p className="doll-unusable" role="note">
+          <span className="doll-unusable-head">Not counted</span>
+          {' '}
+          {twoHandedBlocked.map((entry) => entry.item.n).join(', ')} is in the offhand, but a
+          two-handed weapon takes both hands — so it is not worn and its stats are left out of the
+          totals below. Clear the Primary, or the Secondary, to make the set one the game would
+          allow.
+        </p>
+      ) : null}
 
       {unusable.length ? (
         <p className="doll-unusable" role="note">
