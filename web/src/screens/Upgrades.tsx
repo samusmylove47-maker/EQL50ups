@@ -961,11 +961,111 @@ function line(key: string, label: string, values: readonly string[], limit: numb
  * Sorted defensively rather than trusting the payload's order, so a re-vendored
  * file cannot silently reorder what a reader is told to farm.
  */
-export function measuredDrops(item: Item): MeasuredDrop[] {
+export interface FoldedDrop extends MeasuredDrop {
+  /**
+   * Two spellings of this mob were folded together, so `sessions` is the larger
+   * of them and a **floor**, not a total. See `measuredDrops`.
+   */
+  sessionsAtLeast?: boolean;
+}
+
+/**
+ * ...and one mob written two ways is one mob.
+ *
+ * The combat log capitalises a mob's name differently in different lines, so
+ * the payload carries "A fetid fiend" and "a fetid fiend" as two rows of one
+ * item's `ms`. Nothing de-duplicated them: the header printed
+ * `pluralize(rows.length, 'mob')` and the list showed both, so a reader was
+ * told an item drops from seven mobs when it drops from five, and shown what
+ * looked like two different fiends. Measured over the shipped payload: 309
+ * items carry measured drops, **17 repeat a mob case-insensitively, 0 repeat
+ * one with identical spelling**, and 14 mobs are spelled two ways.
+ *
+ * **`seen` sums exactly.** Each sighting is one drop attributed to one mob,
+ * which is the same reasoning `totalSightings` already relies on; the item's
+ * sighting total does not move.
+ *
+ * **`sessions` cannot be summed, and is not.** One evening can produce log
+ * lines with both capitalisations, so the two rows may share a session; the
+ * true count lies between the larger of the two and their sum. Nothing
+ * available says which — the shipped field is a bare count, and upstream the
+ * session objects carry only `{date, zone, difficulty}`, which cannot tell two
+ * evenings from one recorded twice. So a folded row reports the larger and
+ * flags it, and the screen says "or more". Every fold on the shipped payload is
+ * an *n* to *n+1* range.
+ *
+ * **Rows naming different zones are deliberately NOT folded.** Each is a true
+ * statement about where those sightings happened, and unioning the zones would
+ * push the count out of `zoneTallies`' "placed" bucket and into
+ * "unattributed" — trading a real attribution for a vaguer one. Three groups on
+ * the shipped payload are of that kind; they are shown under one spelling and
+ * otherwise left alone.
+ */
+export function measuredDrops(item: Item): FoldedDrop[] {
   const rows = item.ms;
   if (!Array.isArray(rows) || !rows.length) return [];
-  return [...rows]
-    .filter((row) => row && typeof row.mob === 'string' && row.mob.length > 0)
+  const valid = rows.filter((row) => row && typeof row.mob === 'string' && row.mob.length > 0);
+
+  /*
+   * The spelling to show is whichever the log wrote for the most sightings —
+   * evidence, rather than a rule about capitalisation. A rule would have to be
+   * wrong somewhere: "a fetid fiend" is the game's form for an ordinary mob,
+   * but "Phoboplasm" is a name, and both appear in the payload both ways. Ties
+   * break lexicographically so the answer does not depend on payload order.
+   */
+  const tallies = new Map<string, Map<string, number>>();
+  for (const row of valid) {
+    const key = row.mob.toLowerCase();
+    const tally = tallies.get(key) ?? new Map<string, number>();
+    tally.set(row.mob, (tally.get(row.mob) ?? 0) + Math.max(0, row.seen));
+    tallies.set(key, tally);
+  }
+  const spelling = new Map<string, string>();
+  for (const [key, tally] of tallies) {
+    let best = '';
+    let bestSeen = -1;
+    for (const [name, seen] of tally) {
+      if (seen > bestSeen || (seen === bestSeen && name < best)) {
+        best = name;
+        bestSeen = seen;
+      }
+    }
+    spelling.set(key, best);
+  }
+
+  const folded = new Map<string, FoldedDrop>();
+  for (const row of valid) {
+    const mob = spelling.get(row.mob.toLowerCase()) ?? row.mob;
+    // Separators no zone name can contain, so a mob "X" in zone "Y Z" cannot
+    // collide with a mob "X Y" in zone "Z".
+    const key = `${row.mob.toLowerCase()}\u0000${[...(row.zones ?? [])].sort().join('\u0001')}`;
+    const prior = folded.get(key);
+    if (!prior) {
+      folded.set(key, { ...row, mob });
+      continue;
+    }
+    const next: FoldedDrop = {
+      ...prior,
+      seen: prior.seen + row.seen,
+      sessions: Math.max(prior.sessions, row.sessions),
+      sessionsAtLeast: true,
+    };
+    if (prior.offRoster || row.offRoster) next.offRoster = true;
+    if (!next.zs && row.zs) next.zs = row.zs;
+    // A span the parser cannot read is withheld rather than half-printed —
+    // keeping only this side's dates would silently drop the other's.
+    const span = dateSpan([prior, row]);
+    if (span) {
+      next.first = span.first;
+      next.last = span.last;
+    } else {
+      delete next.first;
+      delete next.last;
+    }
+    folded.set(key, next);
+  }
+
+  return [...folded.values()]
     .sort((a, b) => b.seen - a.seen || b.sessions - a.sessions || a.mob.localeCompare(b.mob));
 }
 
@@ -1253,7 +1353,7 @@ const MEASURED_SHOWN = 4;
  * Every figure here is a count. There is no rate on this card, no percentage,
  * and no division anywhere in the code that builds it.
  */
-function MeasuredDrops({ rows }: { rows: readonly MeasuredDrop[] }) {
+function MeasuredDrops({ rows }: { rows: readonly FoldedDrop[] }) {
   const shown = rows.slice(0, MEASURED_SHOWN);
   const sightings = totalSightings(rows);
   const span = dateSpan(rows);
@@ -1263,7 +1363,15 @@ function MeasuredDrops({ rows }: { rows: readonly MeasuredDrop[] }) {
       <header className="upg-measuredhead">
         <span className="tier tM">Tier M · seen dropping in game</span>
         <span className="upg-measuredsum">
-          {pluralize(sightings, 'sighting')} across {pluralize(rows.length, 'mob')}
+          {/*
+            Distinct mobs, not rows. `rows.length` counted (mob, zone) records,
+            so an item whose log capitalised one mob two ways was reported as
+            dropping from two — up to "across 13 mobs" for 10 on Drop of
+            Mercury. `measuredDrops` has already folded the spellings, so plain
+            equality is enough here.
+          */}
+          {pluralize(sightings, 'sighting')} across{' '}
+          {pluralize(new Set(rows.map((row) => row.mob)).size, 'mob')}
           {span ? ` · ${dateText(span.first, span.last)}` : ''}
         </span>
       </header>
@@ -1289,7 +1397,11 @@ function MeasuredDrops({ rows }: { rows: readonly MeasuredDrop[] }) {
               <b>{count(drop.seen)}</b> seen
             </span>
             <span className="upg-dropmeta">
+              {/* "or more" where two spellings were folded: they may share an
+                  evening and nothing in the data says whether they do, so the
+                  number is a floor. See `measuredDrops`. */}
               over {pluralize(drop.sessions, 'session')}
+              {drop.sessionsAtLeast ? ' or more' : ''}
               {drop.first ? ` · ${dateText(drop.first, drop.last)}` : ''}
             </span>
             {(drop.zs ?? []).map((survey) => (

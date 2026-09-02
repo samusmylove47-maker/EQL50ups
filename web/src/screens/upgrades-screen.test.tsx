@@ -659,6 +659,78 @@ describe('every ranked row says where its EP came from', () => {
     expect(nothingSentence).not.toMatch(/Ear|Any Slot/);
   });
 
+  /*
+   * "11 sightings across 7 mobs" for an item measured on five.
+   *
+   * The header printed `pluralize(rows.length, 'mob')` — the raw length of the
+   * item's `ms` array. The combat log capitalises a mob's name differently in
+   * different lines, so the payload carries "A fetid fiend" and "a fetid fiend"
+   * as two rows of one item, and the card counted them as two mobs and listed
+   * them as two rows. Measured over the shipped payload: 17 of the 309 items
+   * with measured drops repeat a mob case-insensitively, worst is Drop of
+   * Mercury at "across 13 mobs" for 10.
+   *
+   * Rendered, not asserted on `measuredDrops`, and that is the point: with the
+   * fold correct and the header left counting rows, the whole suite passed. The
+   * number on the card is the claim.
+   */
+  const TWO_SPELLINGS: Item = {
+    id: null,
+    n: '[Fixture] Fiend Wristbands',
+    sl: ['WRIST'],
+    cl: ['ALL'],
+    ra: ['ALL'],
+    st: { AC: 45, STA: 15 },
+    sv: {},
+    fl: ['FIXTURE'],
+    av: true,
+    era: 'Classic',
+    sd: 'tier-2',
+    ex: 'measured-drop',
+    ms: [
+      {
+        mob: 'A fetid fiend', seen: 4, sessions: 4,
+        zones: ['The Plane of Fear'], first: '12 Aug 2026', last: '13 Aug 2026',
+      },
+      {
+        mob: 'a fetid fiend', seen: 1, sessions: 1,
+        zones: ['The Plane of Fear'], first: '13 Aug 2026', last: '13 Aug 2026',
+      },
+      // The same mob in a second zone. This row is deliberately NOT folded into
+      // the pair above — its zone attribution is real and `zoneTallies` would
+      // lose it — so the card keeps two rows for one mob, which is exactly the
+      // state where counting rows and counting mobs give different answers.
+      {
+        mob: 'a fetid fiend', seen: 2, sessions: 1,
+        zones: ['The Plane of Hate'], first: '14 Aug 2026', last: '14 Aug 2026',
+      },
+    ],
+  };
+
+  it('counts one mob once, however the log capitalised it', async () => {
+    seedCatalog([TWO_SPELLINGS]);
+    const setId = build();
+    await render(`#/set/${setId}/upgrades`);
+
+    const card = rows().find((r) => (r.textContent ?? '').includes(TWO_SPELLINGS.n));
+    expect(card, 'the wristbands are recommended, so their drop card renders').toBeTruthy();
+    const drops = (card?.querySelector('.upg-measured')?.textContent ?? '').replace(/\s+/g, ' ');
+
+    // One mob, and the sighting total — which was always right — is unmoved.
+    expect(drops).toContain('7 sightings across 1 mob');
+    expect(drops).not.toContain('2 mobs');
+    expect(drops).not.toContain('3 mobs');
+    // Two rows, because the second zone is a real attribution worth keeping —
+    // and both name the same mob, so they no longer read as two fiends.
+    expect(card?.querySelectorAll('.upg-drop')).toHaveLength(2);
+    const named = [...(card?.querySelectorAll('.upg-dropmob') ?? [])]
+      .map((el) => (el.textContent ?? '').trim());
+    expect(new Set(named).size, `one spelling, got ${named.join(' / ')}`).toBe(1);
+    // And the session count says it is a floor, because the two spellings may
+    // share an evening and nothing in the data says whether they do.
+    expect(drops).toContain('over 4 sessions or more');
+  });
+
   it('leaves the existence mark alone — the two facts stay separate', async () => {
     const setId = build();
     await render(`#/set/${setId}/upgrades`);

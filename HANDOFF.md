@@ -7365,3 +7365,69 @@ inferred from a green suite.
 **Remaining from my own list: F04 alone** — the Measured-drops header counting one mob twice across
 two payload spellings. It is the last of the eight I verified, and the only one where the fix may
 have to go upstream into the pipeline rather than the screen.
+
+## `F04` CLOSED — one mob written two ways is now one mob. **That is the last of the eight.**
+
+The header printed `pluralize(rows.length, 'mob')` — the raw length of the item's `ms` array. The
+combat log capitalises a mob's name differently in different lines, so the payload carries "A fetid
+fiend" and "a fetid fiend" as two rows of one item, and the card counted them as two mobs *and*
+listed them as two rows that read like two different fiends. Reproduced exactly: 309 items carry
+measured drops, **17 repeat a mob case-insensitively, 0 repeat one with identical spelling**, 14
+mobs are spelled two ways, worst is Drop of Mercury at "across 13 mobs" for 10.
+
+**I fixed it in the screen and not in the pipeline, which is where the verifier leaned, because the
+pipeline cannot do it either.** `seen` sums exactly. `sessions` does not: one evening can produce log
+lines with both capitalisations, so the rows may share a session and the true count lies between the
+larger and the sum. I went upstream to see whether the raw data settles it — and it does not. A
+session there is `{date, zone, difficulty}`, which cannot tell two evenings from one recorded twice;
+and the field's meaning is not even consistent between rows — over the 614 upstream sighting rows,
+`sessions.length === seen` for 381 (one entry per drop) and differs for 233 (one entry per evening;
+Throwing Boulder's Fire Giant Warrior is 73 seen across 5). Folding upstream would mean writing a
+number nobody measured into a published shape. At read time the uncertainty can be **stated** rather
+than resolved: the folded row reports the larger and the card says "over 4 sessions or more".
+
+Two more decisions worth naming:
+
+- **The spelling is chosen by evidence, not by a rule about English.** "Prefer lowercase" is right
+  for `a fetid fiend` and wrong for `Phoboplasm`, and the payload has both both ways. It takes
+  whichever spelling the log wrote for the most sightings, ties broken lexicographically so the
+  answer never depends on payload order.
+- **Rows naming one mob in different zones are deliberately NOT folded.** Each is a true statement
+  about where those sightings happened, and unioning the zones would make `zones.length > 1`, which
+  pushes the count out of `zoneTallies`' *placed* bucket into *unattributed* — trading a real
+  attribution for a vaguer one to fix a display defect. Three groups are of that kind; they get one
+  spelling and are otherwise untouched.
+
+Measured after the change: the same 17 items corrected — Drop of Mercury 13 → 10, Midnight Clad
+Wristbands 7 → 5 — with 19 rows flagged as a session floor. **No sighting total, zone tally, EP,
+ordering or ranking figure moves**, asserted over every shipped item rather than argued.
+
+**The guard had to be written twice, and this is the second time tonight.** A/B, whole suite: fold
+disabled `7 failed | 1155 passed (1162)`; the floor printed as a flat total `1 failed | 1161 passed`;
+**and the header counting rows again passed clean the first time.** My rendered fixture folded to a
+single row, so `rows.length` already equalled the mob count and the two expressions could not
+disagree — counting rows and counting mobs differ *only* when a mob appears in two zones, the case
+the fold deliberately preserves. Once the fixture carried that shape, the damage failed 1. F07 taught
+the same lesson four hours earlier: a guard on the data can pass while the number on the card is
+wrong. I will keep damaging the rendered string separately from the function behind it.
+
+Gate: `tsc` clean · vitest **1,162 passed / 77 files** · playwright **151 passed** · `npm run build`
+ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+---
+
+### All eight verified findings are closed
+
+`F27` `F08` `F28` `F31` `F12` `F07` `F04` — plus `F05`, `F19` and `F22` earlier. Every one was
+reproduced before it was touched, guarded by a test proved to fail against the defect, and recorded
+with the command that produced each number. Three of the eight did not reproduce the verifier's
+figures and I have said so in each case rather than reprinting them: F12's 264-of-620 (I measure 10
+of 220 on my own sweep), F07's 28-of-400 (8 of 35), and F28's blast radius (150 items, not the 164
+the record counts as race-restricted, because 14 are already blocked on class or level).
+
+Two of the eight also corrected the verifier's proposed fix rather than following it: F27's would
+have branched on `catalog.status`, which is wrong for a loaded fixture catalogue; F28's would have
+been read as "make the gate refuse", which would have stripped ~150 items from every raceless
+player's lists. Both are recorded where the next session will hit them.
+
+**I have nothing left on my own list.** The next work is the Director's or the owner's to name.

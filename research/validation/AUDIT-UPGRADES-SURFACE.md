@@ -91,6 +91,7 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F31` — the level gate had nothing to read until the shards landed | **closed** | guarded in `verify.mjs` + `index-gate-parity.test.ts` |
 | `F12` — the Primary row took the first two-hander that cleared the floor, not the best | **closed** | guarded in `upgrades.test.ts` |
 | `F07` — "Nothing scored for X" about positions where something scored | **closed** | guarded in `upgrades-avenrae.test.ts` + `upgrades-screen.test.tsx` |
+| `F04` — one mob written two ways was counted as two | **closed** | guarded in `measured-drops-fold.test.ts` + `upgrades-screen.test.tsx` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched
@@ -302,6 +303,68 @@ WHAT I DID NOT TEST — I did not check whether any reader has ever noticed, and
 Payload-wide (node one-liner over web/public/data/items/*.json): 17 items carry 22 such case-duplicate mob pairs.
 
 **Player impact.** A player reading "6 sightings across 3 mobs" and the list beneath it sees "A scareling" and "a scareling" as two separate creatures to hunt, and a mob count one higher than the number of mobs actually observed dropping the item.
+
+
+**CLOSED**, in the screen rather than the pipeline, and the choice of layer took the most thought of
+the eight.
+
+*Reproduced exactly.* 309 items carry measured drops; **17 repeat a mob case-insensitively, 0 repeat
+one with identical spelling**, and 14 mobs are spelled two ways payload-wide. Worst is Drop of
+Mercury, "across 13 mobs" for 10. Every one of the 14 differs only in the case of the first letter —
+the signature of sentence-initial capitalisation in a log line.
+
+*Why not the pipeline, which is where this record leans.* Because the merge is not derivable there
+either. `seen` sums exactly, but `sessions` cannot: one evening can produce log lines with both
+capitalisations, so the two rows may share a session, and the true count lies between the larger of
+the two and their sum. I went upstream to check whether the raw data settles it — `sightings.v1.json`
+carries session objects rather than counts — and it does not: a session is `{date, zone,
+difficulty}`, which cannot tell two evenings apart from one recorded twice. Worse, the field's
+meaning is not even consistent across rows: over the 614 upstream sighting rows, `sessions.length ===
+seen` for 381 of them (one entry per drop) and differs for 233 (one entry per evening — Throwing
+Boulder's Fire Giant Warrior is 73 seen across 5). Folding in the pipeline would therefore have to
+write a number nobody measured into a published shape. So the fold happens at read time, where the
+uncertainty can be *stated* instead of resolved.
+
+*What the fold does.* `measuredDrops` — the single funnel every drop surface already goes through,
+including `zoneTallies` — now (1) picks one spelling per mob, whichever the log wrote for the most
+sightings, ties broken lexicographically so the answer never depends on payload order; and (2) folds
+rows that agree on the mob **and the zones**. `seen` sums. `sessions` takes the larger and sets
+`sessionsAtLeast`, which the row renders as "over 4 sessions or more". Dates span via the existing
+`dateSpan`, which withholds the whole span rather than half-print an unparseable one. The header
+counts distinct mobs instead of rows.
+
+*A rule chosen by evidence rather than by linguistics.* "Prefer lowercase" would be right for
+`a fetid fiend` and wrong for `Phoboplasm`; both appear in the payload both ways. The dominant
+spelling is a count, not a guess about English.
+
+*What is deliberately NOT folded, and why it matters.* Rows naming the same mob in **different
+zones** stay separate. Each is a true statement about where those sightings happened, and unioning
+their zones would make `zones.length > 1`, which pushes the count out of `zoneTallies`' *placed*
+bucket and into *unattributed* — trading a real attribution for a vaguer one to fix a display defect.
+Three groups on the shipped payload are of that kind. They still get one spelling, so the card reads
+as one mob seen in two places, which is what happened.
+
+*Result on the shipped payload, measured after the change:* exactly the same 17 items corrected,
+including Drop of Mercury 13 -> 10 and Midnight Clad Wristbands 7 -> 5 (the two this record names),
+with 19 rows flagged as a session floor. Note Drop of Mercury's rows go 13 -> 12 while its mob count
+goes 13 -> 10: the different-zone groups stay as rows, exactly as intended. **No sighting total, zone
+tally, EP, ordering or ranking figure moves** — asserted over every shipped item, not argued.
+
+*Guards, and the one that had to be added twice.* `measured-drops-fold.test.ts` holds nine fixture
+cases plus five that run over **every shipped item** — no two spellings of one mob survive, every
+item's sighting total is unchanged, no row's `sessions` exceeds the largest part it folded, and no
+row gains or loses a zone. A/B, whole suite:
+
+    A  fold disabled                      : 7 failed | 1155 passed (1162)
+    B  header counts rows again           : 1 failed | 1161 passed (1162)
+    C  the floor printed as a flat total  : 1 failed | 1161 passed (1162)
+
+**B passed on the first attempt at a guard**, and that is the finding within the finding. The
+rendered fixture folded to a single row, so `rows.length` already equalled the mob count and the two
+expressions could not disagree. Counting rows and counting mobs differ *only* when a mob appears in
+two zones — the case the fold deliberately preserves — so the fixture had to carry that shape before
+the header assertion meant anything. This is the second time in this sitting (see F07) that a guard
+on the data passed while the number on the card was wrong.
 
 **No verdict.** Dropped by the script's `.slice(0, 3)` cap before the verify stage.
 
