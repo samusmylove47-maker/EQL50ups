@@ -157,22 +157,33 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     expect(missing).toEqual([]);
   });
 
-  it('ships the wiki-less Shadow Rage Helm without inventing a single number', () => {
+  it('ships the wiki-less Shadow Rage Helm on numbers derived from a capture', () => {
     const helm = resolve(worn.find((w) => w.name === 'Shadow Rage Helm') as WornEntry);
     expect(helm).toBeDefined();
     expect(helm?.id).toBe(55601);
     expect(helm?.sl).toEqual(['HEAD']);
     expect(helm?.cl).toEqual(['BER']);
     // No era: the player placed the set in two planes, not one, so naming an
-    // era for any single piece would be an inference dressed as data.
+    // era for any single piece would be an inference dressed as data. This is
+    // unchanged by the capture — a stat block is not an era.
     expect(helm?.era).toBeUndefined();
     expect(helm?.eraUnknown).toBe(true);
-    // The whole point: existence is asserted, stats are not.
-    expect(helm?.statsUnknown).toBe(true);
-    expect(helm?.st).toEqual({});
-    expect(helm?.sv).toEqual({});
+    /*
+     * Until 2026-09-02 this item had no numbers at all, because no wiki carries
+     * it and nothing had observed it. It still has no wiki page. What it has now
+     * is a client item window captured at +5, inverted through the documented +N
+     * model to the unique +0 that produces it.
+     *
+     * The numbers are asserted here rather than merely their presence: this is
+     * the only stat block in the catalog that was computed rather than read, and
+     * if it is ever quietly re-typed this should fail.
+     */
+    expect(helm?.statsUnknown).toBeFalsy();
+    expect(helm?.st).toEqual({ AC: 14, STR: 7, AGI: 5 });
+    expect(helm?.sv).toEqual({ DISEASE: 12 });
     expect(helm?.wp).toBeUndefined();
     expect(helm?.evidence ?? '').toContain('tier0-inventory-Avenrae.txt');
+    expect(helm?.evidence ?? '').toContain('DERIVED');
   });
 
   it('files every worn item under the slot the client put it in', () => {
@@ -222,13 +233,21 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
         absent.push(`${item.n} missing from ${entry.slot}`);
       }
     }
-    // One exception, and it is the deliberate one: an item with no stats has
-    // nothing to rank. It is not hidden — `unstattedForSlot` hands it to the
-    // picker to name underneath the list.
-    expect(absent).toEqual(['Shadow Rage Helm missing from HEAD']);
-    expect(unstattedForSlot(state, 'HEAD', AVENRAE_CTX).map((i) => i.n)).toEqual([
-      'Shadow Rage Helm',
-    ]);
+    /*
+     * No exceptions any more, and the one there used to be is worth recording.
+     *
+     * `Shadow Rage Helm` was unrankable because nothing described it — the only
+     * worn item in this character's own inventory the planner could not score.
+     * Its +0 block was recovered from a client capture on 2026-09-02, so every
+     * position this export fills is now rankable.
+     *
+     * The withhold path is not gone and is still asserted, on the other side:
+     * `unstattedForSlot` must now be empty for HEAD, because leaving a stale
+     * name under the list would tell the reader their helm was unscorable while
+     * the ranking above it scored the helm.
+     */
+    expect(absent).toEqual([]);
+    expect(unstattedForSlot(state, 'HEAD', AVENRAE_CTX).map((i) => i.n)).toEqual([]);
   });
 
   it('never lets an unstatted item into a ranking, in any slot', () => {

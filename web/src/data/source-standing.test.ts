@@ -45,16 +45,23 @@ const get = (name: string): Item => {
  * how much of the catalog can state its provenance is exactly the regression
  * this file exists to catch.
  *
- * They last moved on 2 September 2026, when the live-wiki supplement added 220
- * records: `tier-2` 2,045 -> 2,109 and `unattributed` 1,487 -> 1,643. `tier-M`
- * and `tier-5` did not move, and neither should have — no new record was read
- * off a client window, and none shipped era-less carrying wiki numbers.
+ * They moved twice on 2 September 2026.
+ *
+ * First the live-wiki supplement added 220 records: `tier-2` 2,045 -> 2,109 and
+ * `unattributed` 1,487 -> 1,643, with `tier-M` and `tier-5` untouched, because
+ * no new record was read off a client window.
+ *
+ * Then the owner supplied four client item windows for the Shadow Rage set, and
+ * `tier-M` went **5 -> 9** — the first time it has moved since the mark was
+ * introduced. Four pieces whose numbers were being withheld became four pieces
+ * whose numbers a client confirms, so `unattributed` fell 1,643 -> 1,638 and
+ * `tier-5` rose 126 -> 127 as the Tunic took its wiki block without a capture.
  */
 const EXPECTED_STANDING = {
-  'tier-M': 5,
+  'tier-M': 9,
   'tier-2': 2109,
-  'tier-5': 126,
-  unattributed: 1643,
+  'tier-5': 127,
+  unattributed: 1638,
 } as const;
 /*
  * 3,883 — ten more than the 3,873 the purge ships, and the ten are the point.
@@ -125,12 +132,12 @@ describe.skipIf(!published)('every shipped item states where its numbers came fr
     for (const item of items) if (item.ex) tally[item.ex] = (tally[item.ex] ?? 0) + 1;
     expect(tally).toEqual(EXPECTED_EXISTENCE);
 
-    // 569 items are known to exist; 5 have client-verified numbers. If those
+    // 569 items are known to exist; 9 have client-verified numbers. If those
     // two ever coincide, one fact has swallowed the other again.
     const exists = items.filter((i) => i.ex).length;
     const verified = items.filter((i) => i.sd === 'tier-M').length;
     expect(exists).toBe(569);
-    expect(verified).toBe(5);
+    expect(verified).toBe(9);
     expect(exists).not.toBe(verified);
   });
 
@@ -149,6 +156,11 @@ describe.skipIf(!published)('the standing follows from evidence, never from a gu
     const verified = items.filter((i) => i.sd === 'tier-M');
     expect(verified.map((i) => i.n).sort()).toEqual([
       'Bladestopper', 'Bone-Clasped Girdle', 'Cloak of Flames', 'Earthshaker',
+      // The Shadow Rage captures of 2026-09-02. The Helm is here on a block
+      // DERIVED from its capture rather than compared against one — see its
+      // citation, which says so — because no wiki carries the item to compare.
+      'Shadow Rage Helm', 'Shadow Rage Leggings', 'Shadow Rage Sleeves',
+      'Shadow Rage Wristguard',
       'Whitened Treant Fists',
     ]);
     for (const item of verified) {
@@ -179,7 +191,7 @@ describe.skipIf(!published)('the standing follows from evidence, never from a gu
   it('marks era-unplaced stat blocks tier-5, and only those', () => {
     const IN_ERA = new Set(['Classic', 'Fear', 'Hate', 'Paineel', 'Temple', 'Sky']);
     const tier5 = items.filter((i) => i.sd === 'tier-5');
-    expect(tier5.length).toBe(126);
+    expect(tier5.length).toBe(127);
     for (const item of tier5) {
       // Either no era anywhere, or an era past this game's content.
       expect(IN_ERA.has(item.era ?? ''), `${item.n} era ${item.era}`).toBe(false);
@@ -212,7 +224,7 @@ describe.skipIf(!published)('the standing follows from evidence, never from a gu
    */
   it('never tiers a row whose stats are withheld', () => {
     const withheld = items.filter((i) => i.statsUnknown);
-    expect(withheld.length).toBe(17);
+    expect(withheld.length).toBe(12);
     for (const item of withheld) {
       expect(item.sd, `${item.n}`).toBe('unattributed');
       expect(sourceStanding(item).label).toBe('Unattributed · stats withheld');
@@ -220,10 +232,19 @@ describe.skipIf(!published)('the standing follows from evidence, never from a gu
       // separately, and neither is left to be inferred from the other.
       expect(item.evidence ?? '', `${item.n} evidence`).not.toBe('');
     }
-    // The Tier M mark is carried by every withheld row that has earned one, and
-    // by no row that has not. Named exactly, so a second row losing its `ex`
-    // shows up here as a failure rather than as a widened rule.
-    expect(withheld.filter((i) => !i.ex).map((i) => i.n)).toEqual(['Shadow Rage Tunic']);
+    /*
+     * Every remaining withheld row carries an existence mark.
+     *
+     * `Shadow Rage Tunic` was the one exception for a few hours on 2 September:
+     * it shipped era-less and stat-less on an argument, with no observation
+     * behind it. The owner then released its stat block, so it is no longer a
+     * withheld row at all and the exception is gone rather than granted.
+     *
+     * Asserted as empty rather than deleted. An empty list is the claim that
+     * nothing ships stat-less without something proving it exists, and that is
+     * worth failing on if it ever stops being true.
+     */
+    expect(withheld.filter((i) => !i.ex).map((i) => i.n)).toEqual([]);
   });
 });
 
@@ -320,9 +341,25 @@ describe.skipIf(!published)('the era-purge rescue list is a rescue list, not an 
     const rescuedAndVerified = items.filter(
       (i) => i.sd === 'tier-M' && TIER0_ERA_RESCUE_ITEMS.has(i.n.toLowerCase()),
     );
-    // None of the client-verified stat blocks is on that list at all, which is
-    // exactly why reading it as evidence about stats produced a blank window.
-    expect(rescuedAndVerified.map((i) => i.n)).toEqual([]);
+    /*
+     * This asserted an EMPTY overlap until 2026-09-02, and the empty was
+     * incidental rather than principled: no rescued item happened to have been
+     * photographed yet. Four now have, so the overlap is real and correct.
+     *
+     * The invariant that actually matters is unchanged and is the one checked
+     * here: being on the rescue list is a statement about EXISTENCE and confers
+     * nothing about stats. So every member of the overlap must have earned
+     * tier-M the hard way, with a citation of its own — which is what stops the
+     * list from becoming a back door to the strongest mark in the vocabulary.
+     */
+    expect(rescuedAndVerified.map((i) => i.n).sort()).toEqual([
+      'Shadow Rage Helm', 'Shadow Rage Leggings', 'Shadow Rage Sleeves',
+      'Shadow Rage Wristguard',
+    ]);
+    for (const item of rescuedAndVerified) {
+      expect(item.sdc ?? '', `${item.n} citation`).toMatch(/TIER0-VALIDATION\.md/);
+      expect(item.vf?.length ?? 0, `${item.n} verified fields`).toBeGreaterThan(0);
+    }
   });
 });
 

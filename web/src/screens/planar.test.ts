@@ -118,23 +118,37 @@ describe.skipIf(!published)('an unmeasured piece is never ranked', () => {
   const pieces = resolvePlanarPieces(loadPlanarCatalog());
   const berserker = makeContext(['BER', 'WAR', 'BRD'], null, { BER: 50, WAR: 50, BRD: 50 });
 
-  it('lists Shadow Rage by name and gives it no score', () => {
+  it('ranks the Shadow Rage pieces that have numbers and names the ones that do not', () => {
     const shadowRage = pieces.filter((piece) => piece.set.name === 'Shadow Rage');
     expect(shadowRage.length).toBeGreaterThan(0);
-    // Every Shadow Rage piece this catalog holds is an existence-only record:
-    // the owner reported the set and the live export holds four of them, and no
-    // source anywhere publishes their stats.
-    for (const piece of shadowRage) expect(piece.item.statsUnknown).toBe(true);
+
+    /*
+     * This set used to be entirely unmeasured, and was the fixture that proved
+     * the unmeasured path worked at all. On 2026-09-02 the owner supplied client
+     * item windows for four pieces and read back a fifth, so it is now split —
+     * which makes it a better fixture, not a worse one: the same set exercises
+     * both paths, and a piece cannot drift from one to the other unnoticed.
+     */
+    const withStats = shadowRage.filter((p) => !p.item.statsUnknown);
+    const without = shadowRage.filter((p) => p.item.statsUnknown);
+    expect(withStats.length).toBeGreaterThan(0);
+    expect(without.map((p) => p.item.n).sort())
+      .toEqual(['Shadow Rage Boots', 'Shadow Rage Gloves']);
 
     const seen: string[] = [];
     for (const slot of PLANAR_SLOTS) {
       const result = rankPlanarSlot(pieces, slot, berserker, TANK);
+      // The invariant that has not changed and is the point of the screen: a row
+      // with no numbers never appears in a ranking built out of numbers.
       for (const entry of result.ranked) {
         expect(entry.piece.item.statsUnknown).not.toBe(true);
       }
       for (const piece of result.unmeasured) seen.push(piece.item.n);
     }
-    expect(seen.sort()).toEqual(shadowRage.map((p) => p.item.n).sort());
+    // Named, not dropped — the unmeasured list is how the screen admits a gap.
+    for (const piece of without) expect(seen).toContain(piece.item.n);
+    // And nothing that now has numbers is still being called unmeasured.
+    for (const piece of withStats) expect(seen).not.toContain(piece.item.n);
   });
 
   it('scores nothing at zero that merely lacks a record', () => {

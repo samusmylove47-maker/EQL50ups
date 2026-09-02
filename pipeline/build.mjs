@@ -284,17 +284,85 @@ const EQL_CONFIRMED_NAMES = [
 const EQL_SET_PIECE_NAMES = ['Shadow Rage Tunic'];
 
 /**
- * The stat blocks the wiki carries for three Shadow Rage pieces.
+ * The Shadow Rage stat blocks were withheld from 17 August to 2 September 2026.
+ * They are not withheld any more, and this note records what changed.
  *
- * Parked, not deleted, and deliberately unused. They came from the same scrape
- * that supplied ~7,700 items from expansions this game does not have, so there
- * is no way to show they describe the Legends item rather than an original-EQ
- * one of the same name. The player's instruction is explicit: do not include an
- * out-of-era stat block until verified numbers are supplied.
+ * The instruction was: *"If the stat block that you have for it is from out of
+ * Era, do not include it until I tell you and supply you with correct stats for
+ * every item."* On 2 September the owner supplied four client item windows —
+ * Wristguard +4, Sleeves +5, Helm +5, Leggings +4.
  *
- * To restore: confirm against the client, then set `SHADOW_RAGE_STATS_VERIFIED`.
+ * Three of those items had a wiki `+0` block that this file was suppressing. So
+ * the captures were used to TEST those blocks rather than to replace them: push
+ * the wiki's +0 through `web/src/engine/upgrade.ts`, which was derived from a
+ * documented rule set and never fitted to these items, and compare with the
+ * client. **23 of 23 printed fields reproduce exactly**, weights included —
+ * base 2.0 -> 1.3, base 4.5 -> 2.9, base 3.9 -> 2.2, on a log2 curve where a
+ * 0.1 error in the base is visible. `shadow-rage-capture.test.ts` is the check
+ * and it runs in CI; `research/validation/TIER0-VALIDATION.md` §9 is the record.
+ *
+ * The blocks were right all along. Withholding them was still correct: nothing
+ * available on 17 August could show they were right, and the difference between
+ * a number that is correct and a number that is *known* to be correct is the
+ * whole subject of the sourcing standard.
+ *
+ * What has NOT changed is the era. The player places the set in the Planes of
+ * Fear and Hate without saying which piece came from which, so every piece still
+ * ships `eraUnknown`. Verified stats do not retroactively verify an era.
  */
-const SHADOW_RAGE_STATS_VERIFIED = false;
+const SHADOW_RAGE_STATS_VERIFIED = true;
+
+/**
+ * Per-item field corrections applied to records the sources DID produce.
+ *
+ * `set` overwrites, `clear` deletes. Anything not named is left exactly as the
+ * sources had it.
+ */
+/**
+ * The Shadow Rage pieces that have a wiki stat block, and the standing each one
+ * ships under.
+ *
+ * `capture` names the client window that confirms the block, where one exists.
+ * The three at +4/+5 were checked field by field against the wiki's +0 through
+ * `upgrade.ts`; the Tunic was confirmed by the owner reading its +0 block back.
+ */
+const SHADOW_RAGE_STATTED = [
+  { n: 'Shadow Rage Leggings', capture: 'Leggings +4, 2026-09-02' },
+  { n: 'Shadow Rage Sleeves', capture: 'Sleeves +5, 2026-09-02' },
+  { n: 'Shadow Rage Wristguard', capture: 'Wristguard +4, 2026-09-02' },
+  /*
+   * The Tunic has no capture, and so does not get the captures' evidence. What
+   * released its block is the owner reading it back on 2026-09-02 — a player
+   * report, which is Tier M for existence but is not a field-by-field check of
+   * a stat block, and it was phrased as a likeness rather than a confirmation.
+   * It therefore ships `tier-5` where its three captured siblings ship `tier-M`,
+   * and the two are not blurred by giving them the same sentence.
+   */
+  {
+    n: 'Shadow Rage Tunic',
+    capture: null,
+    evidence:
+      'Believed to be the chest piece of the player-confirmed Shadow Rage set: its wiki page '
+      + 'restricts the item to BER and names the Planes of Fear and Hate, both of which agree '
+      + 'with the player report for the set. Its stat block was withheld until 2026-09-02, when '
+      + 'the owner read it back and said it "sounds like the correct stats for Shadow Rage Tunic '
+      + '+0". That is the owner\'s own report and it released the block, but it is not a client '
+      + 'window checked field by field, so this row is marked tier-5 rather than tier-M. No '
+      + 'capture of this piece exists.',
+  },
+];
+
+const SHADOW_RAGE_VERIFIED_EVIDENCE =
+  'Confirmed to exist by player report. Its wiki stat block was withheld until 2026-09-02 '
+  + 'and is now shipped: the owner supplied client item windows for four pieces of this set, '
+  + 'and pushing the wiki +0 blocks through the documented +N scaling model reproduces all 23 '
+  + 'printed fields of the three captured items exactly, weights included. See '
+  + 'research/validation/TIER0-VALIDATION.md §9. The era remains unstated — the set is placed '
+  + 'in two planes without a piece-by-piece mapping, and verified stats do not verify an era.';
+
+const SHADOW_RAGE_WITHHELD_EVIDENCE =
+  'Confirmed to exist by player report; the wiki stat block for it is of unverified '
+  + 'provenance and is withheld rather than shown. ' + PLAYER_REPORT_2026_08_17_ERA;
 
 /**
  * Per-item field corrections applied to records the sources DID produce.
@@ -303,50 +371,37 @@ const SHADOW_RAGE_STATS_VERIFIED = false;
  * sources had it.
  */
 const TIER0_CORRECTIONS = [
-  // Three Shadow Rage pieces have wiki pages, and all three carry stats of
-  // unverifiable provenance. They keep shipping — the set is confirmed to exist —
-  // but with the numbers withheld rather than scored, which is what
-  // `statsUnknown` is for. `st`/`sv`/`wp`/`fx` are cleared so nothing downstream
-  // can rank, auto-fill or total them.
-  ...['Shadow Rage Leggings', 'Shadow Rage Sleeves', 'Shadow Rage Wristguard'].map((n) => ({
+  /*
+   * The Shadow Rage pieces that have a wiki page. Every one of them keeps its
+   * era cleared, because the player placed the set in two planes and named no
+   * mapping; what `SHADOW_RAGE_STATS_VERIFIED` controls is only whether the
+   * NUMBERS ship. It was `false` from 17 August to 2 September and is now
+   * `true`, on the client captures recorded above.
+   *
+   * The flag used to be declared and read by nothing, so setting it did exactly
+   * as much as not setting it. It is wired here now, which is the only reason
+   * the note attached to it means anything.
+   */
+  ...SHADOW_RAGE_STATTED.map(({ n, capture, evidence }) => ({
     n,
     set: {
-      statsUnknown: true,
+      ...(SHADOW_RAGE_STATS_VERIFIED ? {} : { statsUnknown: true }),
       eraUnknown: true,
-      evidence:
-        'Confirmed to exist by player report; the wiki stat block for it is of unverified ' +
-        'provenance and is withheld rather than shown. ' + PLAYER_REPORT_2026_08_17_ERA,
+      evidence: SHADOW_RAGE_STATS_VERIFIED
+        ? evidence ?? SHADOW_RAGE_VERIFIED_EVIDENCE + (capture ? ` Capture: ${capture}.` : '')
+        : SHADOW_RAGE_WITHHELD_EVIDENCE,
     },
-    // `era` is cleared, not corrected. The wiki calls Leggings `Classic` and has
-    // nothing for the other two; the player places the whole set in the Planes
-    // of Fear and Hate. Rather than pick one of those or split the difference,
-    // the set ships with its era stated as unknown — which is what it is.
-    clear: ['era', 'st', 'sv', 'wp', 'fx'],
+    /*
+     * `era` is cleared in both modes. The wiki calls Leggings and the Tunic
+     * `Classic`; the player places the whole set in the Planes of Fear and Hate.
+     * Rather than pick one of those or split the difference, the set ships with
+     * its era stated as unknown — which is what it is.
+     */
+    clear: SHADOW_RAGE_STATS_VERIFIED ? ['era'] : ['era', 'st', 'sv', 'wp', 'fx'],
     source: PLAYER_REPORT_2026_08_17 + ' ' + PLAYER_REPORT_2026_08_17_ERA,
-    was: 'wiki stats, shipped as scoreable data',
-  })),
-  // The fourth such page, and the newest. `Shadow Rage Tunic` arrived with the
-  // live-wiki supplement carrying `AC: 23`, three attributes and a `Classic`
-  // era. Held to the same standing as the three above rather than to the era
-  // the wiki states, because the player's instruction covers the set and not
-  // the pieces of it we happened to hold on any given day: no out-of-era stat
-  // block for Shadow Rage until verified numbers are supplied. See
-  // `EQL_SET_PIECE_NAMES` for why this piece is believed to be the EQL item.
-  ...EQL_SET_PIECE_NAMES.map((n) => ({
-    n,
-    set: {
-      statsUnknown: true,
-      eraUnknown: true,
-      evidence:
-        'Believed to be the chest piece of the player-confirmed Shadow Rage set: the wiki page '
-        + 'restricts it to BER and names the Planes of Fear and Hate as its source, both of which '
-        + 'agree with the player report for the set. That is corroboration and not observation, so '
-        + 'the stat block is withheld rather than shown. ' + PLAYER_REPORT_2026_08_17_ERA,
-    },
-    clear: ['era', 'st', 'sv', 'wp', 'fx'],
-    source: 'eqlwiki page 60238, read 2026-09-02; standing set by '
-      + PLAYER_REPORT_2026_08_17_ERA,
-    was: 'wiki stats and a Classic era, shipped as scoreable data',
+    was: SHADOW_RAGE_STATS_VERIFIED
+      ? 'the era the wiki assigns this piece'
+      : 'wiki stats, shipped as scoreable data',
   })),
 ];
 
@@ -370,15 +425,46 @@ const TIER0_CORRECTIONS = [
  * exactly as it does for every other record whose sources carry no race data.
  */
 const TIER0_KNOWN_ITEMS = [
+  /*
+   * The one entry in this table that carries numbers, and the only place in this
+   * pipeline where a stat block is DERIVED rather than read.
+   *
+   * No wiki page for the Helm exists in any of the five sources, so its 2026-09-02
+   * client capture at +5 is the only description of it there is. Inverting that
+   * capture through `upgrade.ts` — searching every base that maps to the observed
+   * value — resolves each field to exactly one candidate and no field is
+   * ambiguous:
+   *
+   *   AC         21 at +5  ->  14        SV Disease  18 at +5  ->  12
+   *   STR        12 at +5  ->   7        Weight     2.3 at +5  ->  4.1
+   *   AGI        10 at +5  ->   5
+   *
+   * `SV Void 5` on the capture is deliberately absent below: it is the synthetic
+   * save `voidBonus` generates from the tier, not part of any base block.
+   *
+   * This is arithmetic on a Tier M observation, through a model that reproduced
+   * 23 of 23 fields on this same set. It is still a derivation, and the evidence
+   * string says so rather than claiming the client was seen printing these.
+   */
   {
     n: 'Shadow Rage Helm',
     id: 55601,
     sl: ['HEAD'],
     cl: ['BER'],
+    ra: ['ALL'],
+    fl: ['LORE_EQUIPPED', 'NO_TRADE', 'QUEST'],
+    sz: 'SMALL',
+    wt: 4.1,
+    st: { AC: 14, STR: 7, AGI: 5 },
+    // `DISEASE`, not `SV_DISEASE` — `SAVE_KEYS` is the vocabulary, and the `SV_`
+    // prefix belongs to the client's display, not to the field name.
+    sv: { DISEASE: 12 },
     evidence:
       'Confirmed to exist: worn in the Head position of the live client inventory export ' +
       '(research/validation/tier0-inventory-Avenrae.txt, item #55601). No wiki catalog has a ' +
-      'page for it, so no stats are known. ' + PLAYER_REPORT_2026_08_17,
+      'page for it. The stat block below is DERIVED, not read: it is the unique +0 that the ' +
+      'documented +N model maps onto the client item window captured at +5 on 2026-09-02. ' +
+      'See research/validation/TIER0-VALIDATION.md §10. ' + PLAYER_REPORT_2026_08_17,
   },
   {
     n: 'Shadow Rage Gloves',
@@ -578,6 +664,66 @@ const TIER0_STATS_VERIFIED = [
     st: { AC: 25, HP: 50, STA: 15 },
     cite:
       'TIER0-VALIDATION.md §5: observed in a live client window at +6 — AC 40, HP 80, STA 24.',
+  },
+  /*
+   * The Shadow Rage captures of 2 September 2026 (TIER0-VALIDATION.md §9).
+   *
+   * These three differ from the five above in one way worth stating: the client
+   * was not read at +0, so the check is not a direct field comparison but a
+   * prediction. The wiki's +0 block is pushed through the +N model and matched
+   * against the capture. That is a stronger test rather than a weaker one — it
+   * has to get the scaling right as well as the base — and every field of all
+   * three reproduces, including the three weights on a log2 curve where 0.1 in
+   * the base is visible.
+   */
+  {
+    n: 'Shadow Rage Wristguard',
+    st: { AC: 6, STR: 4, AGI: 4, DEX: 4 },
+    sv: { FIRE: 5, COLD: 5 },
+    cite:
+      'TIER0-VALIDATION.md §9: observed in a live client window at +4 — AC 10, STR/AGI/DEX 8, '
+      + 'SV Fire 9, SV Cold 9, SV Void 4, Weight 1.3. Eight of eight predictions exact from the '
+      + 'wiki +0 block through the documented +N model.',
+  },
+  {
+    n: 'Shadow Rage Sleeves',
+    st: { AC: 10, ENDUR: 15, STR: 3, STA: 5, DEX: 5 },
+    cite:
+      'TIER0-VALIDATION.md §9: observed in a live client window at +5 — AC 15, End 22, STR 8, '
+      + 'STA/DEX 10, SV Void 5, Weight 2.2. Seven of seven predictions exact. The End reading is '
+      + 'the sample that confirms the percentage branch applies above 10 regardless of field: '
+      + '15 gains 7 at +5 where its neighbours gain 5.',
+  },
+  {
+    n: 'Shadow Rage Leggings',
+    st: { AC: 12, WIS: 6, AGI: 6, ENDUR: 10 },
+    sv: { FIRE: 2, DISEASE: 8 },
+    cite:
+      'TIER0-VALIDATION.md §9: observed in a live client window at +4 — AC 16, WIS/AGI 10, '
+      + 'End 14, SV Fire 6, SV Disease 12, SV Void 4, Weight 2.9. Eight of eight predictions exact.',
+  },
+  /*
+   * The Helm is the one entry whose numbers were DERIVED from the capture rather
+   * than checked against it, because no wiki page for it exists to check. Its
+   * agreement with the client is therefore circular by construction, and the
+   * citation says so outright rather than letting the tier-M mark imply a
+   * comparison that never happened.
+   *
+   * It is still marked tier-M, because the alternative is tier-5, and tier-5
+   * asserts "these numbers came from a wiki page that may describe an
+   * original-EverQuest item of the same name". For this record that is not a
+   * cautious reading, it is a false one: the numbers came from the game.
+   */
+  {
+    n: 'Shadow Rage Helm',
+    st: { AC: 14, STR: 7, AGI: 5 },
+    sv: { DISEASE: 12 },
+    cite:
+      'TIER0-VALIDATION.md §10: DERIVED, not compared. No wiki page for this item exists in any '
+      + 'source, so its +0 block was recovered by inverting a live client window captured at +5 '
+      + '— AC 21, STR 12, AGI 10, SV Disease 18, Weight 2.3 — through the documented +N model. '
+      + 'Every field inverts to exactly one candidate base, so the recovery is unambiguous; it '
+      + 'is arithmetic on an observation rather than a second observation of it.',
   },
 ];
 
@@ -1738,6 +1884,20 @@ for (const spec of TIER0_KNOWN_ITEMS) {
     tier0Missed.push(`known-item "${spec.n}" declares id ${spec.id} but the export says ${id}`);
   }
   const { av, ur } = gateFor(spec.era, {});
+  /*
+   * Almost every row here has no numbers, and `statsUnknown` is the positive
+   * assertion that the record is incomplete on purpose — the stats side of what
+   * `eraUnknown` says about era. A zero is not a measurement, so nothing is
+   * invented to fill the gap.
+   *
+   * One row does carry numbers: `Shadow Rage Helm`, whose block was derived from
+   * a client capture at +5 (see its own note above). This used to hardcode
+   * `statsUnknown: true` and silently drop any `st`/`sv` on the spec, so adding
+   * that block had no effect at all — the stats went in and vanished. The
+   * condition is on the spec rather than on the name, so a second derived or
+   * captured block needs no further change here.
+   */
+  const hasStats = Boolean(spec.st || spec.sv || spec.wp);
   const rec = {
     key,
     // The export is the source of the id; the table's value is a cross-check.
@@ -1745,12 +1905,16 @@ for (const spec of TIER0_KNOWN_ITEMS) {
     n: spec.n,
     sl: spec.sl,
     cl: spec.cl,
+    ...(spec.ra ? { ra: spec.ra } : {}),
+    ...(spec.fl ? { fl: spec.fl } : {}),
+    ...(spec.sz ? { sz: spec.sz } : {}),
+    ...(spec.wt != null ? { wt: spec.wt } : {}),
     ...(spec.era ? { era: spec.era } : { eraUnknown: true }),
     av,
-    // No `st`, `sv` or `wp`: nothing observed them, and a zero is not a
-    // measurement. `statsUnknown` is the positive assertion that this record is
-    // incomplete on purpose — the stats side of what `eraUnknown` says about era.
-    statsUnknown: true,
+    ...(spec.st ? { st: spec.st } : {}),
+    ...(spec.sv ? { sv: spec.sv } : {}),
+    ...(spec.wp ? { wp: spec.wp } : {}),
+    ...(hasStats ? {} : { statsUnknown: true }),
     evidence: spec.evidence,
     an: 1,
     es: 'tier0.player-report',
@@ -1759,7 +1923,11 @@ for (const spec of TIER0_KNOWN_ITEMS) {
   records.push(rec);
   recordByKey.set(key, rec);
   report.eras.add(`${spec.era} (tier0 known item)`);
-  tier0Applied.push(`${spec.n}: added as a known item with no stat data (id ${rec.id ?? 'none'})`);
+  tier0Applied.push(
+    hasStats
+      ? `${spec.n}: added as a known item with a DERIVED stat block (id ${rec.id ?? 'none'})`
+      : `${spec.n}: added as a known item with no stat data (id ${rec.id ?? 'none'})`,
+  );
 }
 
 
@@ -1844,7 +2012,30 @@ const quarantineReasons = new Map();
     const tally = ship ? shipReasons : quarantineReasons;
     tally.set(why, (tally.get(why) ?? 0) + 1);
     if (ship) keep.push(rec);
-    else quarantined.push({ key: rec.key, n: rec.n, era: rec.era ?? null, sl: rec.sl ?? [], why });
+    /*
+     * `cl` and `ra` ride the quarantine record because without them a row
+     * cannot be judged, and this file's whole promise is that "restoring any of
+     * them is a table entry rather than a re-scrape".
+     *
+     * They are load-bearing as of 2 September 2026. The owner's correction that
+     * day: EQ Legends starts from classic and then *adds* things — Beastlord and
+     * Berserker as classes, Froglok, Kerran and Iksar as races, plus items and
+     * gear sets built for them. So an item restricted to a class or race that
+     * exists only in this game is EQL content by construction, whatever era a
+     * wiki assigns it, and that is a fact about the row rather than an inference
+     * about it. Deciding that from the quarantine needs the fields to be there.
+     */
+    else {
+      quarantined.push({
+        key: rec.key,
+        n: rec.n,
+        era: rec.era ?? null,
+        sl: rec.sl ?? [],
+        cl: rec.cl ?? [],
+        ra: rec.ra ?? [],
+        why,
+      });
+    }
   }
   const before = records.length;
   records.splice(0, records.length, ...keep);

@@ -124,7 +124,9 @@ function bodyText(): string {
 
 describe.skipIf(!available)('InventoryImportDialog', () => {
   const text = readFileSync(INVENTORY, 'utf8');
-  const items = narrowedCatalog(JSON.parse(readFileSync(INDEX, 'utf8')), text);
+  // Parsed once and kept: a second test narrows it against a synthetic export.
+  const rawIndex = JSON.parse(readFileSync(INDEX, 'utf8'));
+  const items = narrowedCatalog(rawIndex, text);
   const prepared = { items, index: indexItems(items) };
 
   function open(props: Partial<React.ComponentProps<typeof InventoryImportDialog>> = {}) {
@@ -153,35 +155,69 @@ describe.skipIf(!available)('InventoryImportDialog', () => {
     const { onImport } = open();
     paste(text);
     const rows = [...document.querySelectorAll('.invimport-table tbody tr')];
-    expect(rows).toHaveLength(21);
+    expect(rows).toHaveLength(22);
     const primary = rows.find((r) => r.querySelector('th')?.textContent === 'Primary');
     expect(primary?.textContent).toContain('Earthshaker');
     expect(primary?.textContent).toContain('+10');
     expect(onImport).not.toHaveBeenCalled();
   });
 
-  it('names the item it knows but cannot score, and says which kind of gap it is', () => {
-    open();
-    paste(text);
+  /*
+   * The real export no longer contains an unscorable item.
+   *
+   * `Shadow Rage Helm` was the example for a fortnight — the one worn item in
+   * this character's inventory that no wiki described. Its +0 block was
+   * recovered from a client capture on 2026-09-02, so the export now imports
+   * 22 of 22 and this branch has nothing to render on it.
+   *
+   * The branch itself is very much alive: `Shadow Rage Gloves` and
+   * `Shadow Rage Boots` are still stat-less, they are simply not worn in the
+   * capture we have. So the rendering test moves onto a synthetic export that
+   * wears one, rather than being deleted along with the last row that happened
+   * to trigger it. A UI path that stops being tested because the data improved
+   * is a UI path that breaks silently the next time the data gets worse.
+   */
+  const UNSTATTED_EXPORT = [
+    'Location\tName\tID\tCount\tSlots',
+    'Hands\tShadow Rage Gloves\t55605\t1\t0',
+  ].join('\n');
+
+  it('names an item it knows but cannot score, and says which kind of gap it is', () => {
+    const unstattedItems = narrowedCatalog(rawIndex, UNSTATTED_EXPORT);
+    installCatalog({ items: unstattedItems, index: indexItems(unstattedItems) });
+    mount(
+      <InventoryImportDialog
+        characterName="Avenrae"
+        newSetName="In-game gear"
+        onCancel={vi.fn()}
+        onImport={vi.fn()}
+      />,
+    );
+    paste(UNSTATTED_EXPORT);
+
     const held = document.querySelector('.invimport-list-bad');
-    expect(held?.textContent).toContain('Shadow Rage Helm +5');
-    expect(held?.textContent).toContain('Head');
+    expect(held?.textContent).toContain('Shadow Rage Gloves');
+    expect(held?.textContent).toContain('Hands');
     // The distinction the reader needs: this is our data missing, not their
     // item missing. The heading has to carry it, because the list beneath the
     // other heading says the opposite thing.
     expect(bodyText()).toContain('known items, but no stats in any catalog');
     expect(bodyText()).toContain('this item is real and in the catalog');
-    expect(bodyText()).toContain('id 55601');
-    // And it is nowhere in the "will be equipped" table.
-    expect(document.querySelector('.invimport-table')?.textContent).not.toContain('Shadow Rage');
+    expect(bodyText()).toContain('id 55605');
+    // And it is nowhere in the "will be equipped" table — which, on an export
+    // whose only row is the unscorable one, means there is no table at all.
+    expect(document.querySelector('.invimport-table')).toBeNull();
   });
 
-  it('does not report a known-but-unstatted item as one it has never heard of', () => {
+  it('reports no gap at all on an export it can fully score', () => {
     open();
     paste(text);
-    // Nothing in this export is genuinely unknown any more, so the "no such
-    // item" heading must not be on screen at all.
+    // Nothing in this export is unknown, and since 2026-09-02 nothing in it is
+    // known-but-unstatted either. Both headings must be off screen — a stale
+    // "no stat data: 1" would tell the owner a slot was dropped on an import
+    // that equipped it.
     expect(bodyText()).not.toContain('no such item in this catalog');
+    expect(bodyText()).not.toContain('known items, but no stats in any catalog');
     const counts = Object.fromEntries(
       [...document.querySelectorAll('.invimport-count')].map((tile) => [
         tile.querySelector('.invimport-count-label')?.textContent ?? '',
@@ -189,7 +225,7 @@ describe.skipIf(!available)('InventoryImportDialog', () => {
       ]),
     );
     expect(counts['not matched']).toBe('0');
-    expect(counts['no stat data']).toBe('1');
+    expect(counts['no stat data']).toBe('0');
   });
 
   it('shows the exaltation donors that will be socketed', () => {
@@ -221,7 +257,7 @@ describe.skipIf(!available)('InventoryImportDialog', () => {
   it('commits into a new set by default, and only when the button is pressed', () => {
     const { onImport } = open();
     paste(text);
-    const button = buttonLabelled('Import 21 items');
+    const button = buttonLabelled('Import 22 items');
     expect(button?.disabled).toBe(false);
     click(button);
     expect(onImport).toHaveBeenCalledTimes(1);
@@ -230,7 +266,7 @@ describe.skipIf(!available)('InventoryImportDialog', () => {
       string,
     ];
     expect(target).toBe('new');
-    expect(result.positions).toHaveLength(21);
+    expect(result.positions).toHaveLength(22);
   });
 
   it('offers to replace the set the reader came from, and passes that choice on', () => {
@@ -241,7 +277,7 @@ describe.skipIf(!available)('InventoryImportDialog', () => {
     expect(radios[0]?.checked).toBe(true);
     click(radios[1]);
     expect(document.querySelector('.invimport-foot')?.textContent).toContain('Raid — Tank');
-    click(buttonLabelled('Import 21 items'));
+    click(buttonLabelled('Import 22 items'));
     expect(onImport.mock.calls[0]?.[1]).toBe('current');
   });
 
@@ -255,13 +291,13 @@ describe.skipIf(!available)('InventoryImportDialog', () => {
   it('refuses to import while the catalog cannot answer, and says why', () => {
     open();
     paste(text);
-    expect(buttonLabelled('Import 21 items')?.disabled).toBe(false);
+    expect(buttonLabelled('Import 22 items')?.disabled).toBe(false);
     act(() => {
       useCatalog.setState({ status: 'missing' });
     });
     expect(document.body.textContent).toContain('No item data is published in this build');
     // The label falls back too: there is no count to promise any more.
-    expect(buttonLabelled('Import 21 items')).toBeUndefined();
+    expect(buttonLabelled('Import 22 items')).toBeUndefined();
     expect((document.querySelector('.modal-foot .btn-primary') as HTMLButtonElement).disabled).toBe(
       true,
     );

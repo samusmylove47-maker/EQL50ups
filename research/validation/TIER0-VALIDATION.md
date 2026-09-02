@@ -244,3 +244,75 @@ Two figures on the same capture confirm constants that were previously inferred:
 on Tier M footing, on a character far from the one that supplied the first pair. A third,
 `AC 20/350 | 110`, names a quantity this planner does not model at all — recorded as gap 7
 in `KNOWN-DATA-ISSUES.md` rather than guessed at.
+
+---
+
+# Round 3 — the Shadow Rage set, four item windows (2026-09-02)
+
+The owner supplied client captures of **Wristguard +4, Sleeves +5, Helm +5 and
+Leggings +4**, in answer to the standing condition attached to this set on 17 August:
+*"If the stat block that you have for it is from out of Era, do not include it until I tell
+you and supply you with correct stats for every item."*
+
+They do more than supply the numbers. Three of the four items have a wiki `+0` stat block
+that this project has been **withholding** for that reason, so the captures can be used to
+test those blocks rather than replace them.
+
+## 9. The withheld wiki blocks are CORRECT — 23 of 23 predictions exact
+
+Method: take the wiki's `+0` block, push it through `web/src/engine/upgrade.ts` — derived
+independently from a documented rule set, never fitted to these items — and compare against
+the client. `web/src/engine/shadow-rage-capture.test.ts` is the check; it runs in CI.
+
+| item | at | fields | result |
+|---|---|---|---|
+| Shadow Rage Wristguard | +4 | AC, STR, AGI, DEX, SV Fire, SV Cold, weight, SV Void | 8/8 exact |
+| Shadow Rage Sleeves | +5 | AC, END, STR, STA, DEX, weight, SV Void | 7/7 exact |
+| Shadow Rage Leggings | +4 | AC, WIS, AGI, END, SV Fire, SV Disease, weight, SV Void | 8/8 exact |
+
+Two of those deserve naming.
+
+**The Sleeves' END is the sharpest single result on this page.** The wiki says `END: 15`;
+the client at +5 says `End: 22`. Read off the screenshot that is +7 where every neighbouring
+field gained +5, and it looks like the wiki is wrong. It is not: `scalePrimary` branches on
+the **value**, and 15 is above the `<= 10` threshold, so it takes the percentage branch —
+`15 + floor(15 * 5 / 10)` = 22. A model fitted to this data could not have produced that;
+a model derived from the rules predicts it.
+
+**Weight is the strongest check of the three**, because it is a log2 curve with a
+ceil-to-one-decimal and no round number to hide in. Base 2.0 -> **1.3** at +4, base 4.5 ->
+**2.9** at +4, base 3.9 -> **2.2** at +5, all exact. Perturbing a single base by 0.1 fails
+the test, which was confirmed by doing it.
+
+**Consequence: the stat blocks are no longer withheld.** The condition the owner set has
+been met by the owner, and the numbers now ship.
+
+## 10. Shadow Rage Helm — a +0 block recovered from a +5 capture
+
+The Helm has no wiki page in any of the five sources; it has shipped since 17 August as an
+existence-only record with no stats at all. Its capture is therefore the only description of
+it that exists.
+
+Inverting the +5 capture through the same model — searching every base that maps to the
+observed value — each field resolves to **exactly one** candidate:
+
+| field | client at +5 | base candidates | derived +0 |
+|---|---|---|---|
+| AC | 21 | [14] | **14** |
+| STR | 12 | [7] | **7** |
+| AGI | 10 | [5] | **5** |
+| SV Disease | 18 | [12] | **12** |
+| Weight | 2.3 | [4.1] | **4.1** |
+
+No field is ambiguous, so this is arithmetic on a Tier M observation rather than a guess.
+It is recorded as derived, not as read: the client was never shown displaying these numbers,
+it was shown displaying what they become at +5.
+
+`SV Void 5` on the capture is the synthetic save and is not part of the base block —
+`voidBonus` generates it from the tier, which is why it is absent at +0.
+
+## 11. What the set still does not have
+
+`Shadow Rage Gloves` and `Shadow Rage Boots` have no wiki block and no capture. They remain
+existence-only records, shipping with `statsUnknown` and no numbers. Two more item windows
+would finish the set.

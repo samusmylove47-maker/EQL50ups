@@ -403,17 +403,22 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
     const key = nameKey(it.n);
     if (confirmed.has(key) || observed.has(key) || sighted.has(key) || eqlsIds.has(key)) continue;
     /*
-     * The inferred piece is admitted only for as long as it stays harmless. The
-     * argument for shipping it is entirely that it carries nothing a planner can
-     * score, so the moment it carries something, the argument is gone and this
-     * is contraband like anything else. Checked here rather than assumed,
-     * because an exception nobody re-tests is how a policy erodes.
+     * The inferred piece is admitted, and as of 2026-09-02 it carries numbers.
+     *
+     * For its first hours in the catalog the argument for shipping it was that
+     * it carried nothing a planner could score, and this guard enforced exactly
+     * that. Then the owner read its stat block back and released it, so the
+     * argument changed: what admits it now is the owner's own report, which is
+     * the same authority that admits the six pieces in `confirmed`.
+     *
+     * What is still checked is that it does not quietly promote itself. It may
+     * carry stats; it may NOT claim an era, and it may not claim the tier-M
+     * standing its captured siblings earned, because nobody has read this piece
+     * in a client window.
      */
     if (inferredSetPieces.has(key)) {
-      const scoreable = it.statsUnknown !== true || it.wp != null
-        || Object.keys(it.st ?? {}).length > 0 || Object.keys(it.sv ?? {}).length > 0;
-      if (!scoreable) continue;
-      contraband.push(`${it.n}: admitted on inference, but now ships scoreable data`);
+      if (it.era != null) contraband.push(`${it.n}: admitted era-less, now asserts era ${it.era}`);
+      if (it.sd === 'tier-M') contraband.push(`${it.n}: marked tier-M with no client capture`);
       continue;
     }
     if (it.era == null) { contraband.push(`${it.n}: no era, not in the live export`); continue; }
@@ -839,38 +844,60 @@ if (!existsSync(TIER0)) {
 {
   const byKeyIdx = new Map(items.map((i) => [nameKey(i.n), i]));
   /*
-   * All six pieces ship, all six carry no stats.
+   * Seven pieces ship. Which of them may carry numbers changed on 2026-09-02,
+   * and the `stats` column below is the whole of that change.
    *
-   * Three of them do have wiki pages, and those pages have stat blocks. They are
-   * withheld anyway: they come from the same scrape that supplied ~7,700 items
-   * from expansions this game does not have, so there is no way to show they
-   * describe the Legends item rather than an original-EverQuest one of the same
-   * name. The player's instruction was explicit — no out-of-era stat block ships
-   * until verified numbers are supplied.
+   * From 17 August the answer was "none of them". The wiki pages that existed
+   * came from the same scrape that supplied ~7,700 items from expansions this
+   * game does not have, so nothing could show they described the Legends item
+   * rather than an original-EverQuest one of the same name, and the player's
+   * instruction was explicit: no out-of-era stat block until verified numbers
+   * are supplied.
    *
-   * No era is asserted either. The player placed the set in the Planes of Fear
-   * and Hate, but not piece by piece, so naming an era for any one item would be
-   * an inference dressed as data — which is the mistake this whole correction
-   * exists to undo.
+   * The owner supplied them — four client item windows, Wristguard +4, Sleeves
+   * +5, Helm +5, Leggings +4. Pushing the wiki's +0 blocks through the +N model
+   * reproduces every printed field of the three captured items that had one, so
+   * those blocks are released; the Helm's block, which no wiki carries, was
+   * recovered by inverting its capture. The Tunic was released by the owner
+   * reading its block back, which is weaker, and it is marked accordingly.
+   * Gloves and Boots were never captured and stay silent.
+   *
+   * `stats: false` here means the row must carry NO numbers — it is the
+   * assertion that a piece nobody has looked at is not quietly filled in.
+   *
+   * No era is asserted for any of them. The player placed the set in the Planes
+   * of Fear and Hate, but not piece by piece, so naming an era for any one item
+   * would be an inference dressed as data — which is the mistake this whole
+   * correction exists to undo, and verified stats do not verify an era.
    */
   const expected = [
-    ['Shadow Rage Helm', 'HEAD', 55601],
-    ['Shadow Rage Sleeves', 'ARMS', 55603],
-    ['Shadow Rage Wristguard', 'WRIST', 55604],
-    ['Shadow Rage Gloves', 'HANDS', 55605],
-    ['Shadow Rage Boots', 'FEET', 55607],
-    ['Shadow Rage Leggings', 'LEGS', null],
+    ['Shadow Rage Helm', 'HEAD', 55601, true],
+    ['Shadow Rage Sleeves', 'ARMS', 55603, true],
+    ['Shadow Rage Wristguard', 'WRIST', 55604, true],
+    ['Shadow Rage Gloves', 'HANDS', 55605, false],
+    ['Shadow Rage Boots', 'FEET', 55607, false],
+    ['Shadow Rage Leggings', 'LEGS', null, true],
+    ['Shadow Rage Tunic', 'CHEST', null, true],
   ];
   const bad = [];
-  for (const [name, slot, id] of expected) {
+  for (const [name, slot, id, stats] of expected) {
     const it = byKeyIdx.get(nameKey(name));
     if (!it) { bad.push(`${name}: absent from catalog`); continue; }
     if (it.av !== true) bad.push(`${name}: not shipping (av=${JSON.stringify(it.av)})`);
     if (!(it.cl ?? []).includes('BER')) bad.push(`${name}: classes ${(it.cl ?? []).join(',')} lack BER`);
     if (!(it.sl ?? []).includes(slot)) bad.push(`${name}: slots ${(it.sl ?? []).join(',')} lack ${slot}`);
     if (id != null && it.id !== id) bad.push(`${name}: id ${it.id} != ${id}`);
-    if (it.statsUnknown !== true) bad.push(`${name}: statsUnknown is not set`);
-    if (Object.keys(it.st ?? {}).length > 0) bad.push(`${name}: ships stats of unverified provenance`);
+    const hasStats = Object.keys(it.st ?? {}).length > 0;
+    if (stats) {
+      if (!hasStats) bad.push(`${name}: released for stats but ships none`);
+      if (it.statsUnknown === true) bad.push(`${name}: ships stats and still claims statsUnknown`);
+    } else {
+      if (it.statsUnknown !== true) bad.push(`${name}: statsUnknown is not set`);
+      if (hasStats) bad.push(`${name}: ships stats no client window has confirmed`);
+    }
+    // Every piece states its own era as unknown, released or not.
+    if (it.era != null) bad.push(`${name}: asserts era ${JSON.stringify(it.era)}`);
+    if (it.eraUnknown !== true) bad.push(`${name}: eraUnknown is not set`);
     if (!it.evidence) bad.push(`${name}: no evidence string`);
   }
   /*
@@ -988,6 +1015,21 @@ if (!existsSync(TIER0)) {
       ['Cloak of Flames', { st: { AC: 10, HP: 50, AGI: 9, DEX: 9, HASTE: 36 }, sv: { FIRE: 15 } }, ['AC', 'HP', 'AGI', 'DEX', 'HASTE', 'SV_FIRE']],
       ['Bone-Clasped Girdle', { st: { AC: 4, HP: 75, MANA: 75, STR: 7, STA: 7, DEX: 7 } }, ['AC', 'HP', 'MANA', 'STR', 'STA', 'DEX']],
       ['Bladestopper', { st: { AC: 25, HP: 50, STA: 15 } }, ['AC', 'HP', 'STA']],
+      /*
+       * The Shadow Rage captures of 2026-09-02 (TIER0-VALIDATION.md §9, §10).
+       * Transcribed from the record, like every row above, rather than imported
+       * from build.mjs — a table that agrees with itself proves nothing.
+       *
+       * These four are the first rows here whose client reading was NOT taken at
+       * +0. The base values below are what the wiki states (three of them) or
+       * what inverting the capture yields (the Helm); the check that they match
+       * the capture at +4/+5 lives in shadow-rage-capture.test.ts, because it
+       * needs the scaling model and this file deliberately imports nothing.
+       */
+      ['Shadow Rage Wristguard', { st: { AC: 6, STR: 4, AGI: 4, DEX: 4 }, sv: { FIRE: 5, COLD: 5 } }, ['AC', 'STR', 'AGI', 'DEX', 'SV_FIRE', 'SV_COLD']],
+      ['Shadow Rage Sleeves', { st: { AC: 10, ENDUR: 15, STR: 3, STA: 5, DEX: 5 } }, ['AC', 'ENDUR', 'STR', 'STA', 'DEX']],
+      ['Shadow Rage Leggings', { st: { AC: 12, WIS: 6, AGI: 6, ENDUR: 10 }, sv: { FIRE: 2, DISEASE: 8 } }, ['AC', 'WIS', 'AGI', 'ENDUR', 'SV_FIRE', 'SV_DISEASE']],
+      ['Shadow Rage Helm', { st: { AC: 14, STR: 7, AGI: 5 }, sv: { DISEASE: 12 } }, ['AC', 'STR', 'AGI', 'SV_DISEASE']],
     ];
     const bad = [];
     for (const [name, expect, fields] of verified) {

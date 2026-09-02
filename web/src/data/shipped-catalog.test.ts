@@ -183,8 +183,26 @@ describe.skipIf(!published)('shipped catalog', () => {
      * for this set until they supply verified numbers, and a good argument is
      * not the verified numbers.
      */
-    it('ships no stats for any piece, sourced or otherwise', () => {
-      for (const piece of shadowRage) {
+    it('ships stats only for the pieces a client window covers', () => {
+      /*
+       * Five of seven now carry numbers. On 2026-09-02 the owner supplied client
+       * item windows for four pieces, which released three withheld wiki blocks
+       * and recovered a fourth by inverting the capture; the Tunic's block was
+       * released by the owner reading it back.
+       *
+       * Gloves and Boots were never captured and no wiki carries them, so they
+       * stay silent — and that is what this test is really for. The interesting
+       * assertion was never "nothing has stats", it was "nothing has stats it
+       * has not earned", and only the second one survives new evidence.
+       */
+      const CAPTURED = new Set([
+        'Shadow Rage Helm', 'Shadow Rage Leggings', 'Shadow Rage Sleeves',
+        'Shadow Rage Wristguard', 'Shadow Rage Tunic',
+      ]);
+      expect(shadowRage.filter((p) => !p.statsUnknown).map((p) => p.n).sort())
+        .toEqual([...CAPTURED].sort());
+
+      for (const piece of shadowRage.filter((p) => !CAPTURED.has(p.n))) {
         expect(piece.statsUnknown, piece.n).toBe(true);
         expect(Object.keys(piece.st), piece.n).toEqual([]);
         expect(Object.keys(piece.sv), piece.n).toEqual([]);

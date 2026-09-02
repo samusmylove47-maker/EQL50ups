@@ -579,7 +579,7 @@ describe('readInventory — never throws, whatever it is fed', () => {
     '   ',
     '\n\n\n',
     'not an inventory at all',
-    ' binary�',
+    '\u0000\u0001\u0002binary�',
     'Location\tName\tID\tCount\tSlots',
     'Ear',
     '\t\t\t\t',
@@ -651,35 +651,55 @@ describe.skipIf(!available)('the real Avenrae export', () => {
     expect(result.notes).toEqual([]);
   });
 
-  it('finds 22 filled worn positions and imports the 21 that exist in the catalog', () => {
+  /*
+   * 22 of 22, as of 2 September 2026 — and it was 21 of 22 for a fortnight.
+   *
+   * The gap was `Shadow Rage Helm`, the one worn item in the owner's own
+   * inventory that no wiki carried and that therefore had no stats to score. Its
+   * +0 block was recovered that day by inverting a client capture at +5, so the
+   * whole loadout is now scorable and the "known but unstatted" branch has no
+   * example left in this export.
+   *
+   * That branch is not dead and must not be deleted: `Shadow Rage Gloves` and
+   * `Shadow Rage Boots` are still stat-less, they are simply not worn in this
+   * capture. The unit tests above this block exercise the branch on fixtures,
+   * which is where it belongs — a behaviour that depends on one row of one real
+   * file happening to stay broken is not a tested behaviour.
+   */
+  it('finds 22 filled worn positions and imports all 22', () => {
     expect(result.stats.filledPositions).toBe(22);
-    expect(result.stats.matchedPositions).toBe(21);
-    expect(result.positions).toHaveLength(21);
+    expect(result.stats.matchedPositions).toBe(22);
+    expect(result.positions).toHaveLength(22);
   });
 
   it('has nothing left it cannot name at all', () => {
     expect(result.unmatched).toEqual([]);
   });
 
-  it('holds back Shadow Rage Helm as known-but-unstatted, not as unknown', () => {
-    // The catalog has this item — right id, right slot, right class — and has
-    // no stats for it. Reporting it as "no such item" would be false, and
-    // equipping it would put a zero-contribution item on the head.
-    expect(result.unstatted).toHaveLength(1);
-    expect(result.unstatted[0]).toMatchObject({
-      kind: 'item',
-      positionId: 'HEAD',
-      exportName: 'Shadow Rage Helm',
+  it('no longer holds back Shadow Rage Helm, and equips it on the head', () => {
+    expect(result.unstatted).toEqual([]);
+    expect(result.stats.unstattedRows).toBe(0);
+
+    const head = result.positions.find((p) => p.positionId === 'HEAD');
+    expect(head).toMatchObject({
       itemName: 'Shadow Rage Helm',
-      tier: 5,
+      exportName: 'Shadow Rage Helm',
       exportId: 55601,
       matchedBy: 'id',
+      tier: 5,
     });
-    expect(result.unstatted[0]?.evidence ?? '').toContain('no stats are known');
-    expect(result.stats.unstattedRows).toBe(1);
-    // And it is nowhere near the equipped set.
-    expect(result.positions.some((p) => p.positionId === 'HEAD')).toBe(false);
-    expect(toSlotMap(result).HEAD).toBeUndefined();
+    expect(toSlotMap(result).HEAD).toBeDefined();
+  });
+
+  it('scores the head with the block derived from the +5 capture', () => {
+    // The numbers themselves, so this test fails if the derivation is ever
+    // quietly re-typed. +0 base; the export wears it at +5.
+    const head = items.find((i) => i.n === 'Shadow Rage Helm');
+    expect(head?.st).toMatchObject({ AC: 14, STR: 7, AGI: 5 });
+    expect(head?.sv).toMatchObject({ DISEASE: 12 });
+    expect(head?.statsUnknown).toBeFalsy();
+    expect(head?.sd).toBe('tier-M');
+    expect(head?.sdc ?? '').toContain('DERIVED');
   });
 
   it('carries every exported tier through', () => {
@@ -763,7 +783,7 @@ describe.skipIf(!available)('the real Avenrae export', () => {
 
   it('produces a slot map of 22 filled positions with their donors attached', () => {
     const slots = toSlotMap(result);
-    expect(Object.keys(slots)).toHaveLength(21);
+    expect(Object.keys(slots)).toHaveLength(22);
     expect(slots.PRIMARY).toEqual({ itemName: 'Earthshaker', upgrade: { full: 10, fraction: 0 } });
     expect(slots.ANY_2?.exaltations).toEqual({
       focus: 'Lute of the Gypsy Princess',
@@ -777,13 +797,15 @@ describe.skipIf(!available)('the real Avenrae export', () => {
     expect(order[order.length - 1]).toBe('ANY_2');
   });
 
-  it('summarises honestly, mentioning both the gap and the skipped rows', () => {
+  it('summarises honestly, and no longer reports a gap it does not have', () => {
     const line = summarizeImport(result);
-    expect(line).toContain('21 of 22');
+    expect(line).toContain('22 of 22');
     expect(line).toContain('12 exaltation donors');
-    expect(line).toContain(
-      'Shadow Rage Helm is a known item with no stats in any catalog, so it was left out rather than scored as a zero',
-    );
     expect(line).toContain('412 bag, bank and keyring rows');
+    // The sentence that named the Helm as unscorable must be gone, not merely
+    // unasserted — leaving it would tell the owner their own head slot was
+    // dropped, on an import that equipped it.
+    expect(line).not.toContain('Shadow Rage Helm');
+    expect(line).not.toContain('left out rather than scored as a zero');
   });
 });

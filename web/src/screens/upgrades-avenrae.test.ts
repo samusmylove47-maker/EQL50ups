@@ -105,6 +105,31 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
     updatedAt: 2,
   });
 
+  /*
+   * The same export, plus one worn item the catalog cannot score.
+   *
+   * Until 2026-09-02 the real export supplied its own withheld position — the
+   * Shadow Rage Helm, which no wiki carried. The owner's client capture of that
+   * helm closed the gap, so the real export now scores 22 of 22 and exercises
+   * the withhold path nowhere.
+   *
+   * Two tests below guard genuine regressions in that path: a stale withheld
+   * name outliving the item it described, and a withheld position being given
+   * an invented `+0` tier. Both would have gone untested the moment the data
+   * improved. `Shadow Rage Gloves` is still stat-less in the catalog, so
+   * substituting it into the Hands position rebuilds exactly the condition the
+   * real export used to provide, without pretending the real export still
+   * provides it. Substituted rather than appended: Hands is already occupied in
+   * the capture, and two rows for one position would be a different test.
+   */
+  const withGap = readInventory(
+    readFileSync(INVENTORY, 'utf8').replace(
+      /^Hands\t[^\n]*$/m,
+      'Hands\tShadow Rage Gloves +3\t55605\t1\t0',
+    ),
+    { byName: state.byName, byId: itemIdIndex(items) },
+  );
+
   const importedSet = base(toSlotMap(imported));
   const report = computeUpgrades(
     state,
@@ -115,6 +140,20 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
       filters: { ...DEFAULT_SET_FILTERS },
       basis: { kind: 'worn' },
       withheldSlots: withheldMap(imported),
+    },
+  );
+
+  /** The same ranking, over the export that still has an unscorable position. */
+  const gapSet = base(toSlotMap(withGap));
+  const gapReport = computeUpgrades(
+    state,
+    slotViews(gapSet, state),
+    CONTEXT,
+    gapSet.weights,
+    {
+      filters: { ...DEFAULT_SET_FILTERS },
+      basis: { kind: 'worn' },
+      withheldSlots: withheldMap(withGap),
     },
   );
 
@@ -137,32 +176,40 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
   });
 
   /*
-   * Avenrae is wearing a Shadow Rage Helm +5. No catalog carries its stats, so
-   * the importer will not equip it — correctly, since a slot contributing zero
-   * to every total would show a complete-looking set with a naked head.
+   * Avenrae is wearing a Shadow Rage Helm +5, and for a fortnight no catalog
+   * carried its stats, so the importer would not equip it — correctly, since a
+   * slot contributing zero to every total would show a complete-looking set
+   * with a naked head.
    *
    * The consequence was that Head then read as EMPTY, and the ranking offered a
    * Hammerhead Helm at "+20.0 EP" as though the position were bare. It is not
    * bare, and the gain against an unmeasured item is arithmetic against a zero
-   * nobody observed. Head belongs in the not-comparable list.
+   * nobody observed. Head belonged in the not-comparable list.
+   *
+   * On 2026-09-02 the owner supplied a client capture of that helm at +5, and
+   * its +0 block was recovered by inverting it. So the head is now measurable
+   * and the bug this test was written for cannot arise on this export at all.
+   * The test is kept and inverted rather than deleted: what it now asserts is
+   * that the position is ranked normally and appears in NO withheld list, which
+   * is the failure mode of the fix — a stale withhold would keep telling the
+   * owner their head cannot be compared while the ranking compares it.
    */
-  it('knows the head is occupied by something it cannot measure', () => {
-    expect(withheldMap(imported).HEAD).toBe('Shadow Rage Helm');
+  it('ranks the head now that the helm it holds can be measured', () => {
+    expect(withheldMap(imported).HEAD).toBeUndefined();
 
-    const ranked = report.rows.find((row) => row.position.id === 'HEAD');
-    expect(ranked, 'HEAD must not be ranked as an empty slot').toBeUndefined();
-
-    const held = report.withheld.find((row) => row.position.id === 'HEAD');
-    expect(held?.wornName).toBe('Shadow Rage Helm');
-    expect(held?.reason).toBe('worn-unstatted');
+    // The importer equips it, so the ranking sees an occupied position rather
+    // than a bare one — which was the actual bug: a bare Head was offered a
+    // Hammerhead Helm at "+20.0 EP" against a zero nobody observed.
+    expect(toSlotMap(imported).HEAD?.itemName).toBe('Shadow Rage Helm');
+    expect(report.withheld.find((row) => row.position.id === 'HEAD')).toBeUndefined();
   });
 
   it('reads the export into a set the ranking can work on', () => {
-    // 22 filled worn positions in the export; the Shadow Rage Helm is the one
-    // the importer withholds, because no catalog carries its stats.
+    // 22 filled worn positions in the export, and since the helm capture all 22
+    // are scorable — the importer withholds nothing.
     expect(imported.stats.filledPositions).toBe(22);
-    expect(imported.unstatted.map((entry) => entry.itemName)).toContain('Shadow Rage Helm');
-    expect(Object.keys(importedSet.slots).length).toBe(21);
+    expect(imported.unstatted).toEqual([]);
+    expect(Object.keys(importedSet.slots).length).toBe(22);
   });
 
   it('accounts for all 23 positions exactly once', () => {
@@ -311,13 +358,15 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
    * "the slot is occupied even though `view.equipped` is empty".
    */
   it('does not withhold a position whose stale withheld name has been replaced by a real item', () => {
-    const stale = withheldMap(imported);
+    // `withGap`, not `imported`: the real export has no withheld position since
+    // the helm capture. See the note beside `withGap`.
+    const stale = withheldMap(withGap);
     const position = Object.keys(stale)[0] as string;
     expect(position, 'the fixture must carry an import-withheld position').toBeTruthy();
 
     // A real, fully-statted item this position can take, deliberately NOT the
     // best one — so that a genuine gain still exists above it.
-    const ranked = report.withheld.find((w) => w.position.id === position)?.candidate;
+    const ranked = gapReport.withheld.find((w) => w.position.id === position)?.candidate;
     expect(ranked, 'the withheld position must still name a candidate').toBeTruthy();
     const slot = SLOT_POSITIONS.find((p) => p.id === position)?.type as string;
     const modest = items
@@ -354,14 +403,14 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
   });
 
   it('does not invent a tier for a position the importer withheld', () => {
-    const fromImport = imported.unstatted.find((e) => e.kind === 'item');
+    const fromImport = withGap.unstatted.find((e) => e.kind === 'item');
     expect(fromImport, 'the fixture must exercise an import-withheld position').toBeTruthy();
     // The app parsed a real tier and it is not zero — otherwise this test could
     // pass while proving nothing.
     expect(fromImport?.tier, 'the parsed tier is the whole point').toBeGreaterThan(0);
-    expect(withheldMap(imported)[fromImport?.positionId ?? '']).toBe(fromImport?.exportName);
+    expect(withheldMap(withGap)[fromImport?.positionId ?? '']).toBe(fromImport?.exportName);
 
-    const row = report.withheld.find((r) => r.position.id === fromImport?.positionId);
+    const row = gapReport.withheld.find((r) => r.position.id === fromImport?.positionId);
     expect(row?.wornName).toBe(fromImport?.exportName);
     expect(row?.wornUpgrade, 'an unknown tier is null, never +0').toBeNull();
   });
@@ -478,25 +527,35 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
     }
   });
 
-  it('withholds the Shadow Rage Helm slot rather than scoring a zero', () => {
-    // What a share link or a hand-built set can hold: the helm the player is
+  /*
+   * The subject moved from the Helm to the Gloves on 2026-09-02.
+   *
+   * The Helm was the natural example while it was the piece nobody could
+   * measure; a client capture that day gave it numbers. `Shadow Rage Gloves` is
+   * still stat-less and still worn-able, so the behaviour under test is
+   * unchanged and only the item naming it moved. Asserting `statsAreUnknown`
+   * first keeps that honest: if the Gloves are ever captured too, this fails
+   * loudly rather than quietly testing a statted item.
+   */
+  it('withholds a worn slot whose item cannot be measured, rather than scoring a zero', () => {
+    // What a share link or a hand-built set can hold: a piece the player is
     // genuinely wearing, which the catalog can name and cannot measure.
-    const helm = state.byName.get('shadow rage helm') as Item;
-    expect(statsAreUnknown(helm)).toBe(true);
+    const gloves = state.byName.get('shadow rage gloves') as Item;
+    expect(statsAreUnknown(gloves)).toBe(true);
 
     const worn = base({
       ...importedSet.slots,
-      HEAD: { itemName: helm.n, upgrade: tier(5) },
+      HANDS: { itemName: gloves.n, upgrade: tier(5) },
     });
     const result = computeUpgrades(state, slotViews(worn, state), CONTEXT, worn.weights, {
       filters: { ...DEFAULT_SET_FILTERS },
       basis: { kind: 'worn' },
     });
 
-    expect(result.rows.some((row) => row.position.id === 'HEAD')).toBe(false);
-    const held = result.withheld.find((entry) => entry.position.id === 'HEAD');
+    expect(result.rows.some((row) => row.position.id === 'HANDS')).toBe(false);
+    const held = result.withheld.find((entry) => entry.position.id === 'HANDS');
     expect(held?.reason).toBe('worn-unstatted');
-    expect(held?.wornName).toBe('Shadow Rage Helm');
+    expect(held?.wornName).toBe('Shadow Rage Gloves');
     expect(held?.wornUpgrade?.full).toBe(5);
     // It still names the best scoring alternative — with no subtraction claimed.
     expect(held?.candidate?.item.n).toBeTruthy();

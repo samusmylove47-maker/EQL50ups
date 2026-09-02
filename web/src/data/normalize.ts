@@ -348,9 +348,24 @@ export function normalizeItem(raw: unknown, fallbackName?: string): Item | null 
     item.st = {};
     item.sv = {};
     delete item.wp;
-    if (typeof raw.evidence === 'string' && raw.evidence.trim()) {
-      item.evidence = raw.evidence.trim();
-    }
+  }
+
+  /*
+   * `evidence` is carried whatever else the record says, and used to be read
+   * only inside the `statsUnknown` branch above.
+   *
+   * That was defensible while the only records carrying one were records with
+   * nothing else to show — the string existed to explain an empty stat block.
+   * It stopped being defensible on 2026-09-02, when `Shadow Rage Helm` gained a
+   * stat block DERIVED by inverting a client capture rather than read from any
+   * source. That is the case where a reader most needs the sentence, and it was
+   * exactly the case that dropped it: stats present, so evidence discarded.
+   *
+   * Evidence is provenance. Provenance is not a consolation prize for missing
+   * numbers.
+   */
+  if (typeof raw.evidence === 'string' && raw.evidence.trim()) {
+    item.evidence = raw.evidence.trim();
   }
 
   return item;
