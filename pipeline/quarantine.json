@@ -2,11 +2,11 @@
  "generated": "pipeline/build.mjs",
  "rule": "ships iff pre-Kunark era, or Tier M evidence places it in the game",
  "counts": {
-  "before": 11252,
-  "shipped": 3653,
-  "quarantined": 7599,
+  "before": 11457,
+  "shipped": 3873,
+  "quarantined": 7584,
   "shipReasons": {
-   "era:Classic": 2633,
+   "era:Classic": 2852,
    "era:Sky": 324,
    "in-live-inventory": 284,
    "measured dropping in game": 175,
@@ -15,12 +15,13 @@
    "era:Paineel": 21,
    "era:Fear": 15,
    "player-confirmed": 6,
-   "era:Hate": 2
+   "era:Hate": 2,
+   "piece of a confirmed set": 1
   },
   "quarantineReasons": {
    "era:Velious": 2828,
-   "no era in any source": 2230,
-   "era:Kunark": 1438,
+   "no era in any source": 2213,
+   "era:Kunark": 1440,
    "era:Epic Quests": 867,
    "era:Chardok Revamp": 145,
    "era:FearHateRevamp": 53,
@@ -1307,13 +1308,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "amber",
-   "n": "Amber",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "amcilla's talisman",
    "n": "Amcilla's Talisman",
    "era": "Velious",
@@ -1930,15 +1924,6 @@
    "why": "era:Epic Quests"
   },
   {
-   "key": "apothic sleeves",
-   "n": "Apothic Sleeves",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "apprentice ring",
    "n": "Apprentice Ring",
    "era": "Epic Quests",
@@ -2344,13 +2329,6 @@
   {
    "key": "ashwood bow staff",
    "n": "Ashwood Bow Staff",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "asmag weed",
-   "n": "Asmag Weed",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -3456,6 +3434,13 @@
    "why": "no era in any source"
   },
   {
+   "key": "belan",
+   "n": "Belan",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
    "key": "beldron's vambraces of impiety",
    "n": "Beldron's Vambraces of Impiety",
    "era": "Velious",
@@ -3651,6 +3636,13 @@
    "why": "era:FearHateRevamp"
   },
   {
+   "key": "berterine",
+   "n": "Berterine",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
    "key": "betherium bark",
    "n": "Betherium Bark",
    "era": null,
@@ -3808,6 +3800,15 @@
    "why": "no era in any source"
   },
   {
+   "key": "black chain bridle",
+   "n": "Black Chain Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
    "key": "black cod card",
    "n": "Black Cod Card",
    "era": "Velious",
@@ -3881,6 +3882,15 @@
     "WRIST"
    ],
    "why": "era:Velious"
+  },
+  {
+   "key": "black leather bridle",
+   "n": "Black Leather Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
   },
   {
    "key": "black leather cloak",
@@ -4032,6 +4042,15 @@
    "why": "era:Velious"
   },
   {
+   "key": "black rope bridle",
+   "n": "Black Rope Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
    "key": "black sapphire velium necklace",
    "n": "Black Sapphire Velium Necklace",
    "era": "Velious",
@@ -4046,6 +4065,15 @@
    "era": null,
    "sl": [
     "CHEST"
+   ],
+   "why": "no era in any source"
+  },
+  {
+   "key": "black silken bridle",
+   "n": "Black Silken Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
    ],
    "why": "no era in any source"
   },
@@ -4724,6 +4752,13 @@
    "why": "era:Velious"
   },
   {
+   "key": "blessed arrow heads",
+   "n": "Blessed Arrow Heads",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
    "key": "blessed guardian arrows",
    "n": "Blessed Guardian Arrows",
    "era": null,
@@ -4754,24 +4789,6 @@
    "era": "Luclin",
    "sl": [],
    "why": "era:Luclin"
-  },
-  {
-   "key": "blighted skullcap",
-   "n": "Blighted Skullcap",
-   "era": null,
-   "sl": [
-    "HEAD"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "blighted trousers",
-   "n": "Blighted Trousers",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "blizzent's fang",
@@ -5263,15 +5280,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "blood-drawn runes",
-   "n": "Blood-Drawn Runes",
-   "era": null,
-   "sl": [
-    "CHEST"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "bloodclaw dagger",
    "n": "Bloodclaw Dagger",
    "era": "Velious",
@@ -5696,13 +5704,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "bone barbs",
-   "n": "Bone Barbs",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "bone bracelet of condemnation",
    "n": "Bone Bracelet of Condemnation",
    "era": "Velious",
@@ -5785,6 +5786,13 @@
   {
    "key": "boneset",
    "n": "Boneset",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
+   "key": "boneset leaf",
+   "n": "Boneset Leaf",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -7341,11 +7349,47 @@
    "why": "no era in any source"
   },
   {
+   "key": "brown chain bridle",
+   "n": "Brown Chain Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
+   "key": "brown leather bridle",
+   "n": "Brown Leather Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
    "key": "brown leather gloves",
    "n": "Brown Leather Gloves",
    "era": null,
    "sl": [
     "HANDS"
+   ],
+   "why": "no era in any source"
+  },
+  {
+   "key": "brown rope bridle",
+   "n": "Brown Rope Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
+   "key": "brown silken bridle",
+   "n": "Brown Silken Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
    ],
    "why": "no era in any source"
   },
@@ -7423,6 +7467,13 @@
   {
    "key": "bugbane",
    "n": "Bugbane",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
+   "key": "bulb lotus",
+   "n": "Bulb Lotus",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -8018,24 +8069,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "carmine boots",
-   "n": "Carmine Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "carmine pants",
-   "n": "Carmine Pants",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "carp fillets",
    "n": "Carp Fillets",
    "era": "Velious",
@@ -8209,13 +8242,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "cauldron prawn",
-   "n": "Cauldron Prawn",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "cauldron shell",
    "n": "Cauldron Shell",
    "era": null,
@@ -8314,6 +8340,13 @@
    "era": "Luclin",
    "sl": [],
    "why": "era:Luclin"
+  },
+  {
+   "key": "cententialspore",
+   "n": "Cententialspore",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
   },
   {
    "key": "centurion relgle's head",
@@ -9183,6 +9216,13 @@
    "era": "Chardok Revamp",
    "sl": [],
    "why": "era:Chardok Revamp"
+  },
+  {
+   "key": "cicino",
+   "n": "Cicino",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
   },
   {
    "key": "cinched stomach pouch",
@@ -11013,13 +11053,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "cracked giant scarab carapace",
-   "n": "Cracked Giant Scarab Carapace",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "cracked mirror of self-loathing",
    "n": "Cracked Mirror of Self-Loathing",
    "era": "Chardok Revamp",
@@ -12610,6 +12643,13 @@
    "why": "no era in any source"
   },
   {
+   "key": "curuloth",
+   "n": "Curuloth",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
    "key": "curved blade mold",
    "n": "Curved Blade Mold",
    "era": null,
@@ -13195,15 +13235,6 @@
     "PRIMARY"
    ],
    "why": "era:FearHateRevamp"
-  },
-  {
-   "key": "darkmetal holy water sprinkler",
-   "n": "Darkmetal Holy Water Sprinkler",
-   "era": null,
-   "sl": [
-    "PRIMARY"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "darksight dagger",
@@ -13808,12 +13839,10 @@
    "why": "era:Velious"
   },
   {
-   "key": "diaphonous waistband",
-   "n": "Diaphonous Waistband",
+   "key": "dinfuin",
+   "n": "Dinfuin",
    "era": null,
-   "sl": [
-    "WAIST"
-   ],
+   "sl": [],
    "why": "no era in any source"
   },
   {
@@ -14880,13 +14909,6 @@
     "PRIMARY"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "dull bone chips",
-   "n": "Dull Bone Chips",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "dull cutting disk",
@@ -16463,6 +16485,15 @@
    "why": "era:Kunark"
   },
   {
+   "key": "empyran jerkin",
+   "n": "Empyran Jerkin",
+   "era": null,
+   "sl": [
+    "CHEST"
+   ],
+   "why": "no era in any source"
+  },
+  {
    "key": "encased velium etched rune",
    "n": "Encased Velium Etched Rune",
    "era": "Velious",
@@ -17551,16 +17582,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "encyclopedia necrotheurgia",
-   "n": "Encyclopedia Necrotheurgia",
-   "era": null,
-   "sl": [
-    "PRIMARY",
-    "SECONDARY"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "engraved bone pauldrons",
    "n": "Engraved Bone Pauldrons",
    "era": "Velious",
@@ -17804,6 +17825,15 @@
    "why": "era:Kunark"
   },
   {
+   "key": "essence of earth",
+   "n": "Essence of Earth",
+   "era": null,
+   "sl": [
+    "NECK"
+   ],
+   "why": "no era in any source"
+  },
+  {
    "key": "essence of gukta",
    "n": "Essence of Gukta",
    "era": null,
@@ -18043,15 +18073,6 @@
     "PRIMARY"
    ],
    "why": "era:Chardok Revamp"
-  },
-  {
-   "key": "ethereal mist boots",
-   "n": "Ethereal Mist Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "ethereal suspension",
@@ -19796,6 +19817,13 @@
     "SECONDARY"
    ],
    "why": "era:Velious"
+  },
+  {
+   "key": "flamewort",
+   "n": "Flamewort",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
   },
   {
    "key": "flaming clurg",
@@ -22017,13 +22045,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "ghoul carrion",
-   "n": "Ghoul Carrion",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "ghumim's classical dishes",
    "n": "Ghumim's Classical Dishes",
    "era": null,
@@ -22698,13 +22719,6 @@
     "SECONDARY"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "globe of mist",
-   "n": "Globe of Mist",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "globe of the everburning flame",
@@ -24019,13 +24033,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "grave mold",
-   "n": "Grave Mold",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "grave sandals",
    "n": "Grave Sandals",
    "era": "Kunark",
@@ -24530,15 +24537,6 @@
    "n": "Griffon Eggs",
    "era": null,
    "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "griffon-hide armguards",
-   "n": "Griffon-Hide Armguards",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
    "why": "no era in any source"
   },
   {
@@ -25930,6 +25928,13 @@
    "why": "no era in any source"
   },
   {
+   "key": "hemlock powder",
+   "n": "Hemlock Powder",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
    "key": "hemp twine",
    "n": "Hemp Twine",
    "era": null,
@@ -26945,13 +26950,6 @@
     "WRIST"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "icon of sacrament",
-   "n": "Icon of Sacrament",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "icon of the devout",
@@ -31268,13 +31266,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "ipsor's enlightenment iv",
-   "n": "Ipsor's Enlightenment IV",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "iron bound tome",
    "n": "Iron Bound Tome",
    "era": "Kunark",
@@ -31406,13 +31397,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "ivory",
-   "n": "Ivory",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "ivory handled cleaver",
    "n": "Ivory Handled Cleaver",
    "era": "Kunark",
@@ -31501,13 +31485,6 @@
     "SECONDARY"
    ],
    "why": "era:Kunark"
-  },
-  {
-   "key": "jack-o-lantern fungus",
-   "n": "Jack-O-Lantern Fungus",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "jade chokidai prod (nerfed)",
@@ -35231,13 +35208,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "mammoth calf hide",
-   "n": "Mammoth Calf Hide",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "mammoth rib bone",
    "n": "Mammoth Rib Bone",
    "era": null,
@@ -36652,6 +36622,13 @@
    "why": "era:Velious"
   },
   {
+   "key": "mithril bundled arrow shafts",
+   "n": "Mithril Bundled Arrow Shafts",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
    "key": "mithril chain jointing",
    "n": "Mithril Chain Jointing",
    "era": null,
@@ -36675,6 +36652,13 @@
     "EAR"
    ],
    "why": "era:Kunark"
+  },
+  {
+   "key": "mithril fletchings",
+   "n": "Mithril Fletchings",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
   },
   {
    "key": "mithril gauntlets",
@@ -36934,6 +36918,13 @@
    "why": "no era in any source"
   },
   {
+   "key": "mithril working knife",
+   "n": "Mithril Working Knife",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
    "key": "mixing bowl",
    "n": "Mixing Bowl",
    "era": null,
@@ -36960,15 +36951,6 @@
    "era": "Velious",
    "sl": [],
    "why": "era:Velious"
-  },
-  {
-   "key": "molten coil",
-   "n": "Molten Coil",
-   "era": null,
-   "sl": [
-    "FINGERS"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "molten ring",
@@ -41391,6 +41373,13 @@
    "why": "no era in any source"
   },
   {
+   "key": "potion of prince's root",
+   "n": "Potion of Prince's Root",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
    "key": "potion of purity",
    "n": "Potion of Purity",
    "era": null,
@@ -41619,13 +41608,6 @@
    "era": "Kunark",
    "sl": [],
    "why": "era:Kunark"
-  },
-  {
-   "key": "preserved hops",
-   "n": "Preserved Hops",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "preserved kromrif heads",
@@ -41966,13 +41948,6 @@
   {
    "key": "pristine skunk claws",
    "n": "Pristine Skunk Claws",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "pristine spider silk",
-   "n": "Pristine Spider Silk",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -42489,15 +42464,6 @@
     "CHEST"
    ],
    "why": "era:FearHateRevamp"
-  },
-  {
-   "key": "rain caller",
-   "n": "Rain Caller",
-   "era": null,
-   "sl": [
-    "RANGE"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "rain of karana",
@@ -43204,13 +43170,6 @@
    "era": "Chardok Revamp",
    "sl": [],
    "why": "era:Chardok Revamp"
-  },
-  {
-   "key": "resin",
-   "n": "Resin",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "resonant boots",
@@ -45637,15 +45596,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "runewood shield",
-   "n": "Runewood Shield",
-   "era": null,
-   "sl": [
-    "SECONDARY"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "runic carver",
    "n": "Runic Carver",
    "era": "Kunark",
@@ -46237,13 +46187,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "sarcoscypha fungus",
-   "n": "Sarcoscypha Fungus",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "sarnak arcane fetish",
    "n": "Sarnak Arcane Fetish",
    "era": "Kunark",
@@ -46626,15 +46569,6 @@
     "FACE"
    ],
    "why": "era:Kunark"
-  },
-  {
-   "key": "sash of ferocity",
-   "n": "Sash of Ferocity",
-   "era": null,
-   "sl": [
-    "WAIST"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "sash of infinite blows",
@@ -47306,13 +47240,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "scuffed silver key",
-   "n": "Scuffed Silver Key",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "sculpting tools",
    "n": "Sculpting Tools",
    "era": null,
@@ -47583,6 +47510,13 @@
   {
    "key": "sealed vial sketch",
    "n": "Sealed Vial Sketch",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
+   "key": "seathorn",
+   "n": "Seathorn",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -48110,9 +48044,9 @@
   {
    "key": "sewer catfish",
    "n": "Sewer Catfish",
-   "era": null,
+   "era": "Kunark",
    "sl": [],
-   "why": "no era in any source"
+   "why": "era:Kunark"
   },
   {
    "key": "sewing contraption parts",
@@ -48228,9 +48162,9 @@
   {
    "key": "shadewood bowstave",
    "n": "Shadewood Bowstave",
-   "era": null,
+   "era": "Kunark",
    "sl": [],
-   "why": "no era in any source"
+   "why": "era:Kunark"
   },
   {
    "key": "shadow boots",
@@ -48387,13 +48321,6 @@
     "PRIMARY"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "shadowed code book",
-   "n": "Shadowed Code Book",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
   },
   {
    "key": "shai'din revenant bauble",
@@ -49422,15 +49349,6 @@
     "CHEST"
    ],
    "why": "era:Velious"
-  },
-  {
-   "key": "shroud of the sky",
-   "n": "Shroud of the Sky",
-   "era": null,
-   "sl": [
-    "SHOULDERS"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "shroud of veeshan",
@@ -50687,15 +50605,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "skycleaver",
-   "n": "Skycleaver",
-   "era": null,
-   "sl": [
-    "PRIMARY"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "skydarkener",
    "n": "Skydarkener",
    "era": "Velious",
@@ -50852,6 +50761,15 @@
   {
    "key": "slime blood of cazic thule",
    "n": "Slime Blood of Cazic Thule",
+   "era": null,
+   "sl": [
+    "HANDS"
+   ],
+   "why": "no era in any source"
+  },
+  {
+   "key": "slime blood of cazic-thule",
+   "n": "Slime Blood of Cazic-Thule",
    "era": null,
    "sl": [
     "HANDS"
@@ -51915,13 +51833,6 @@
   {
    "key": "snake egg oil",
    "n": "Snake Egg Oil",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "snake fang",
-   "n": "Snake Fang",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -53184,15 +53095,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "spiroc beak earcuff",
-   "n": "Spiroc Beak Earcuff",
-   "era": null,
-   "sl": [
-    "EAR"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "spiroc bone dust",
    "n": "Spiroc Bone Dust",
    "era": null,
@@ -53249,6 +53151,13 @@
   {
    "key": "spores of forgetfulness",
    "n": "Spores of Forgetfulness",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
+   "key": "sprig of boneset",
+   "n": "Sprig of Boneset",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -54557,6 +54466,13 @@
    "why": "no era in any source"
   },
   {
+   "key": "suranie",
+   "n": "Suranie",
+   "era": null,
+   "sl": [],
+   "why": "no era in any source"
+  },
+  {
    "key": "surgical cleaver",
    "n": "Surgical Cleaver",
    "era": "Kunark",
@@ -54962,6 +54878,42 @@
    "era": "Kunark",
    "sl": [],
    "why": "era:Kunark"
+  },
+  {
+   "key": "tan chain bridle",
+   "n": "Tan Chain Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
+   "key": "tan leather bridle",
+   "n": "Tan Leather Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
+   "key": "tan rope bridle",
+   "n": "Tan Rope Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
+   "key": "tan silken bridle",
+   "n": "Tan Silken Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
   },
   {
    "key": "tanglewood shield",
@@ -56157,15 +56109,6 @@
    "why": "era:Kunark"
   },
   {
-   "key": "theologian claymore",
-   "n": "Theologian Claymore",
-   "era": null,
-   "sl": [
-    "PRIMARY"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "thermal cloak",
    "n": "Thermal Cloak",
    "era": "Epic Quests",
@@ -56262,15 +56205,6 @@
    "n": "Thorny Ergot",
    "era": null,
    "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "thorny vine greaves",
-   "n": "Thorny Vine Greaves",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
    "why": "no era in any source"
   },
   {
@@ -56985,13 +56919,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "topaz",
-   "n": "Topaz",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "topaz velium necklace",
    "n": "Topaz Velium Necklace",
    "era": "Velious",
@@ -57110,13 +57037,6 @@
   {
    "key": "torn page of magi'kot pg. 1",
    "n": "Torn Page of Magi`kot pg. 1",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
-   "key": "torn page of magi'kot pg. 2",
-   "n": "Torn Page of Magi`kot pg. 2",
    "era": null,
    "sl": [],
    "why": "no era in any source"
@@ -57741,15 +57661,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "trueshot longbow",
-   "n": "Trueshot Longbow",
-   "era": null,
-   "sl": [
-    "RANGE"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "truesight helmet",
    "n": "Truesight Helmet",
    "era": "Velious",
@@ -58330,33 +58241,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "umbral platemail gauntlets",
-   "n": "Umbral Platemail Gauntlets",
-   "era": null,
-   "sl": [
-    "HANDS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "umbral platemail greaves",
-   "n": "Umbral Platemail Greaves",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "umbral platemail vambraces",
-   "n": "Umbral Platemail Vambraces",
-   "era": null,
-   "sl": [
-    "ARMS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "unadorned breastplate",
    "n": "Unadorned Breastplate",
    "era": "Velious",
@@ -58729,13 +58613,6 @@
    "why": "no era in any source"
   },
   {
-   "key": "unfired small bowl",
-   "n": "Unfired Small Bowl",
-   "era": null,
-   "sl": [],
-   "why": "no era in any source"
-  },
-  {
    "key": "unfired smoker",
    "n": "Unfired Smoker",
    "era": null,
@@ -59080,33 +58957,6 @@
     "SECONDARY"
    ],
    "why": "era:Kunark"
-  },
-  {
-   "key": "valorium boots",
-   "n": "Valorium Boots",
-   "era": null,
-   "sl": [
-    "FEET"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "valorium bracers",
-   "n": "Valorium Bracers",
-   "era": null,
-   "sl": [
-    "WRIST"
-   ],
-   "why": "no era in any source"
-  },
-  {
-   "key": "valorium greaves",
-   "n": "Valorium Greaves",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
-   "why": "no era in any source"
   },
   {
    "key": "valtron's necklace of wonder",
@@ -60168,15 +60018,6 @@
    "why": "era:Velious"
   },
   {
-   "key": "vermiculated leggings",
-   "n": "Vermiculated Leggings",
-   "era": null,
-   "sl": [
-    "LEGS"
-   ],
-   "why": "no era in any source"
-  },
-  {
    "key": "vermilion orb of torrefaction",
    "n": "Vermilion Orb of Torrefaction",
    "era": "Velious",
@@ -61078,6 +60919,15 @@
    "why": "era:Velious"
   },
   {
+   "key": "white chain bridle",
+   "n": "White Chain Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
    "key": "white chocolate",
    "n": "White Chocolate",
    "era": null,
@@ -61197,6 +61047,15 @@
    "why": "no era in any source"
   },
   {
+   "key": "white leather bridle",
+   "n": "White Leather Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
    "key": "white lotus arm wraps",
    "n": "White Lotus Arm Wraps",
    "era": "Velious",
@@ -61267,6 +61126,15 @@
    "why": "era:Velious"
   },
   {
+   "key": "white rope bridle",
+   "n": "White Rope Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
+  },
+  {
    "key": "white scaled leggings",
    "n": "White Scaled Leggings",
    "era": "Velious",
@@ -61283,6 +61151,15 @@
     "CHEST"
    ],
    "why": "era:Velious"
+  },
+  {
+   "key": "white silken bridle",
+   "n": "White Silken Bridle",
+   "era": null,
+   "sl": [
+    "AMMO"
+   ],
+   "why": "no era in any source"
   },
   {
    "key": "white spider fur",

@@ -810,14 +810,18 @@ const signatures = [];
       'rather than stored on the item.',
     legends:
       'The live client shows a Dmg Bon line — 13 on Whitened Treant Fists, 50 on Earthshaker — so the ' +
-      'concept exists. No source in this project carries it per item; one third-party dataset has it on ' +
-      'a single item.',
+      'concept exists. Two sources print one in their stats-block text: four pages of the jmoyers ' +
+      'dataset and four of the 2 September live-wiki supplement. Neither carries it as a field of ' +
+      'its own, and the vendored August wiki scrape prints it nowhere.',
     settle:
       'Two client tooltips for the same weapon at different character levels would show whether it is ' +
       'stored or derived. Until then it cannot be computed, so it is not printed.',
     findings: [
       `${t.unmarked + t.marked} items carry a damage bonus. The field is emitted only where a source ` +
         'actually printed one.',
+      'Fewer items carry one than sources print one, and that is the merge policy rather than a loss: ' +
+        'a weapon block is taken whole from the first source supplying damage or delay, so a bonus ' +
+        'printed by a later source for an item an earlier one already described is not grafted on.',
       'A dry streak is a ceiling, not a zero. This is the same rule: an absent bonus is shown as absent, ' +
         'never as 0, and never reconstructed from a classic formula that may not be this game\'s formula.',
     ],

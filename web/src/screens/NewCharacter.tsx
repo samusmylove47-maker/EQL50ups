@@ -18,12 +18,12 @@ export function NewCharacter() {
    * and unset does not narrow — so they were shown Ogre-only gear as an upgrade.
    *
    * **The figure this comment used to cite was impossible.** It said "7,341
-   * items carry a restriction" against a payload holding 3,663 items in total.
-   * Re-measured over `web/public/data/items-index.json`, and the two readings
-   * are given separately because they answer different questions:
+   * items carry a restriction" against a payload that held 3,663 items in total
+   * at the time. Re-measured over `web/public/data/items-index.json`, and the
+   * two readings are given separately because they answer different questions:
    *
    *   items naming an actual race code      164
-   *   items whose `ra` is not simply ALL    248   (164 + 59 ALL_EXCEPT + NONE)
+   *   items whose `ra` is not simply ALL    255   (164 naming a code + 91 NONE)
    *   distinct race codes named               5   BAR ELF IKS OGR TRL
    *
    * The narrow figure is the one this argument rests on: the dropdown was built

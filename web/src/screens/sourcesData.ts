@@ -249,6 +249,18 @@ export interface PurgeCounts {
   before: number;
   shipped: number;
   quarantined: number;
+  /**
+   * Records admitted after the purge on Tier M evidence alone, having never
+   * been in the wiki scrape and so never been candidates for it.
+   *
+   * `shipped` counts survivors of the purge; the catalog is `shipped` plus
+   * this. The pipeline has published the figure since the purge block existed —
+   * `pipeline/build.mjs` says it is emitted "so the two numbers reconcile on the
+   * page rather than looking like a discrepancy" — and this interface simply
+   * never carried it, so the page could not reconcile them and told every
+   * reader the payload disagreed with itself. It did not.
+   */
+  admittedOutsideScrape: number;
   shipReasons: PurgeReason[];
   quarantineReasons: PurgeReason[];
 }
@@ -264,6 +276,11 @@ export function readPurge(meta: unknown): PurgeCounts | null {
     before: p.before,
     shipped: p.shipped,
     quarantined: p.quarantined ?? p.before - p.shipped,
+    // Defaults to 0 rather than to a guess: a build that published no such
+    // figure asserted no admissions, and the page should say the numbers
+    // disagree if they then do.
+    admittedOutsideScrape:
+      typeof p.admittedOutsideScrape === 'number' ? p.admittedOutsideScrape : 0,
     shipReasons: Array.isArray(p.shipReasons) ? p.shipReasons : [],
     quarantineReasons: Array.isArray(p.quarantineReasons) ? p.quarantineReasons : [],
   };

@@ -358,6 +358,27 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
     'Shadow Rage Gloves', 'Shadow Rage Boots', 'Shadow Rage Leggings'].map(nameKey));
 
   /*
+   * The one exception that rests on inference rather than observation, and it is
+   * spelled out by name so it can never widen quietly.
+   *
+   * `Shadow Rage Tunic` is a seventh piece of that set which the player did not
+   * name. It ships era-less, which the rule above otherwise forbids. What
+   * justifies it is corroboration, not evidence: the wiki page restricts the
+   * item to BER, drops it in the Planes of Fear and Hate, and is on the wiki's
+   * own verified list. What makes it *safe* is that it ships with no era, no
+   * stats and no score — findable, never rankable — so the cost of being wrong
+   * about it is a name in a search result rather than a number in a total.
+   *
+   * Deliberately a separate set from `confirmed` rather than an addition to it.
+   * Merging the two would erase the distinction between an item a person who
+   * plays this game named and one this pipeline reasoned its way to, which is
+   * the distinction the whole sourcing standard is built on. If this list ever
+   * grows past the single entry it was created for, that is the moment to ask
+   * whether the rule is still a rule.
+   */
+  const inferredSetPieces = new Set(['Shadow Rage Tunic'].map(nameKey));
+
+  /*
    * EQL Source's published Tier M data releases the era gate too, and re-derived
    * here from the vendored files rather than trusted from the build.
    *
@@ -381,6 +402,20 @@ assert('meta records the era config', meta.era?.current === CURRENT_ERA &&
   for (const it of items) {
     const key = nameKey(it.n);
     if (confirmed.has(key) || observed.has(key) || sighted.has(key) || eqlsIds.has(key)) continue;
+    /*
+     * The inferred piece is admitted only for as long as it stays harmless. The
+     * argument for shipping it is entirely that it carries nothing a planner can
+     * score, so the moment it carries something, the argument is gone and this
+     * is contraband like anything else. Checked here rather than assumed,
+     * because an exception nobody re-tests is how a policy erodes.
+     */
+    if (inferredSetPieces.has(key)) {
+      const scoreable = it.statsUnknown !== true || it.wp != null
+        || Object.keys(it.st ?? {}).length > 0 || Object.keys(it.sv ?? {}).length > 0;
+      if (!scoreable) continue;
+      contraband.push(`${it.n}: admitted on inference, but now ships scoreable data`);
+      continue;
+    }
     if (it.era == null) { contraband.push(`${it.n}: no era, not in the live export`); continue; }
     if (ERA_RANK.get(it.era) > cur) contraband.push(`${it.n}: era ${it.era} is past ${CURRENT_ERA}`);
   }

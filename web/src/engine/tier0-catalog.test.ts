@@ -258,11 +258,23 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     }
   });
 
+  /*
+   * "Usable" here means usable *and scoreable*. An item whose stats are withheld
+   * is deliberately absent from every ranking — three other tests in this file
+   * and in `selectors/gear.test.ts` assert that — because a row with no numbers
+   * cannot be placed in an order built out of numbers.
+   *
+   * That exclusion used to be invisible to this test, since no unstatted item
+   * happened to sit in PRIMARY, CHEST or WAIST. `Shadow Rage Tunic` arrived in
+   * CHEST on 2 September 2026 and the assumption became load-bearing, so it is
+   * now written down. The item is still reachable — it is in the slot pool this
+   * test reads, in the picker and in the search index. It is only unranked.
+   */
   it('never hides a usable candidate that the slot pool holds', () => {
     for (const slot of ['PRIMARY', 'CHEST', 'WAIST'] as SlotCode[]) {
       const eligible = itemsForSlot(state, slot).filter((item) =>
         canUse({ classes: item.cl, races: item.ra }, AVENRAE_CTX),
-      );
+      ).filter((item) => !item.statsUnknown);
       const ranked = rankSlotItems(state, {
         slot,
         context: AVENRAE_CTX,
@@ -333,18 +345,29 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
   /*
    * And era-less is not classic. ~2,300 records carry no era in any source;
    * shipping them on the assumption they are in-era is the same mistake in a
-   * quieter form, so they are quarantined too. Shadow Rage survives only because
-   * the player named it directly.
+   * quieter form, so they are quarantined too. Shadow Rage survives because the
+   * player named it directly — six pieces of it — plus one the wiki attributes
+   * to that set, which is the single admission in this catalog resting on an
+   * argument rather than an observation.
    */
   it('quarantines era-less items rather than presuming them classic', () => {
-    // ~2,300 records carry no era in any source and were dropped. What survives
+    // ~2,200 records carry no era in any source and were dropped. What survives
     // is only what Tier 0 vouches for: the Shadow Rage set the player named, and
     // era-less items the export shows in their bags.
     const unvouched = items.filter(
       (item) => item.eraUnknown && !item.ex && !ownedNames.has(item.n) && !/^Shadow Rage /.test(item.n),
     );
     expect(unvouched.map((item) => item.n)).toEqual([]);
-    expect(items.filter((item) => /^Shadow Rage /.test(item.n) && item.eraUnknown)).toHaveLength(6);
+    expect(items.filter((item) => /^Shadow Rage /.test(item.n) && item.eraUnknown)).toHaveLength(7);
+    /*
+     * The Tunic is the whole of the exception, and naming it here is the point:
+     * `unvouched` above passes it over via the `Shadow Rage` prefix, so without
+     * this line that prefix would quietly launder any future era-less item
+     * whose name began with those two words.
+     */
+    expect(
+      items.filter((item) => item.eraUnknown && !item.ex && !ownedNames.has(item.n)).map((i) => i.n),
+    ).toEqual(['Shadow Rage Tunic']);
   });
 
   it('scores every candidate in every slot to a finite number', () => {

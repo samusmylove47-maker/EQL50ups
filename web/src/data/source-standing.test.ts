@@ -39,20 +39,25 @@ const get = (name: string): Item => {
 };
 
 /**
- * Counts as measured against the payload built on 2026-08-17 from
+ * Counts as measured against the payload built on 2026-09-02 from
  * `pipeline/build.mjs`. Asserted exactly, not approximately: the point of the
  * exercise is that the numbers are known and stay known, and a silent drift in
  * how much of the catalog can state its provenance is exactly the regression
  * this file exists to catch.
+ *
+ * They last moved on 2 September 2026, when the live-wiki supplement added 220
+ * records: `tier-2` 2,045 -> 2,109 and `unattributed` 1,487 -> 1,643. `tier-M`
+ * and `tier-5` did not move, and neither should have — no new record was read
+ * off a client window, and none shipped era-less carrying wiki numbers.
  */
 const EXPECTED_STANDING = {
   'tier-M': 5,
-  'tier-2': 2045,
+  'tier-2': 2109,
   'tier-5': 126,
-  unattributed: 1487,
+  unattributed: 1643,
 } as const;
 /*
- * 3,663 — ten more than the 3,653 the purge ships, and the ten are the point.
+ * 3,883 — ten more than the 3,873 the purge ships, and the ten are the point.
  *
  * An item can be in the game and in no wiki scrape: EQL Source measured it
  * dropping, or its ID table names it, or this repository's own client export
@@ -66,7 +71,7 @@ const EXPECTED_STANDING = {
  * `unattributed` absorbs all ten, because a record with no stats has nothing to
  * attribute. `tier-2` and `tier-5` are untouched: nothing here prints a number.
  */
-const EXPECTED_TOTAL = 3663;
+const EXPECTED_TOTAL = 3883;
 /**
  * Four marks now, in strength order, and the two new ones come from EQL Source's
  * own published datasets rather than from this repository.
@@ -77,12 +82,19 @@ const EXPECTED_TOTAL = 3663;
  * this repo's single export.
  *
  * `player-report` is absent, and that is the hierarchy working rather than a
- * regression. It only ever covered the Shadow Rage set, and all six pieces now
- * carry harder evidence: three were measured dropping in the Plane of Hate
- * (Sleeves off a forsaken revenant and an ire ghast, Wristguard off an
- * abhorrent, Leggings off Innoruuk's Chosen), and three sit in the client
+ * regression. It only ever covered the Shadow Rage set, and all six pieces the
+ * owner named now carry harder evidence: three were measured dropping in the
+ * Plane of Hate (Sleeves off a forsaken revenant and an ire ghast, Wristguard
+ * off an abhorrent, Leggings off Innoruuk's Chosen), and three sit in the client
  * export. The owner's report was right, and it has been superseded by
  * measurement — which is exactly what Tier M is for.
+ *
+ * The set's seventh piece is the counter-example, and it is meant to be visible
+ * here. `Shadow Rage Tunic` arrived from the live wiki on 2 September and holds
+ * no existence mark at all: nobody has watched it drop, no ID table names it, no
+ * client export prints it. It ships on an argument — see `EQL_SET_PIECE_NAMES`
+ * in `pipeline/build.mjs` — and so it appears in none of the three buckets
+ * below. That absence is the honest record of what is known about it.
  */
 const EXPECTED_EXISTENCE = {
   'measured-drop': 277,
@@ -183,22 +195,35 @@ describe.skipIf(!published)('the standing follows from evidence, never from a gu
   });
 
   /*
-   * Sixteen now, not six. Six are Shadow Rage — real items whose numbers are
+   * Seventeen now, not six. Seven are Shadow Rage — real items whose numbers are
    * withheld — and ten are existence-only: items Tier M evidence proves the
    * game produced, that no source describes at all. Both kinds must be silent
    * about numbers; only the second kind is also silent about slot and class,
    * and that difference is asserted rather than averaged over.
+   *
+   * Sixteen of the seventeen also carry an `ex` code. The seventeenth is
+   * `Shadow Rage Tunic`, and it must not: `ex` is a Tier M vocabulary —
+   * measured dropping, in a client export, in an ID table — and that item has
+   * none of those. It ships on the argument recorded in its `evidence` string.
+   * Minting an `ex` code for it would put an inference into the one field on
+   * the record that means "somebody observed this", so the requirement below is
+   * that every withheld row says what proves it exists *in words*, and that
+   * only rows with real observation behind them carry the code.
    */
   it('never tiers a row whose stats are withheld', () => {
     const withheld = items.filter((i) => i.statsUnknown);
-    expect(withheld.length).toBe(16);
+    expect(withheld.length).toBe(17);
     for (const item of withheld) {
       expect(item.sd, `${item.n}`).toBe('unattributed');
       expect(sourceStanding(item).label).toBe('Unattributed · stats withheld');
-      // Shadow Rage is confirmed to exist and has no sourced numbers. Both
-      // halves are said, separately.
-      expect(item.ex, `${item.n} existence`).toBeDefined();
+      // Confirmed to exist, and with no sourced numbers. Both halves are said,
+      // separately, and neither is left to be inferred from the other.
+      expect(item.evidence ?? '', `${item.n} evidence`).not.toBe('');
     }
+    // The Tier M mark is carried by every withheld row that has earned one, and
+    // by no row that has not. Named exactly, so a second row losing its `ex`
+    // shows up here as a failure rather than as a widened rule.
+    expect(withheld.filter((i) => !i.ex).map((i) => i.n)).toEqual(['Shadow Rage Tunic']);
   });
 });
 

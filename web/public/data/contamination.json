@@ -1,8 +1,8 @@
 {
   "v": 1,
   "generator": "pipeline/contamination.mjs",
-  "scannedAt": "2026-09-02T03:02:02.152Z",
-  "builtAt": "2026-09-02T03:02:01.508Z",
+  "scannedAt": "2026-09-02T09:52:57.216Z",
+  "builtAt": "2026-09-02T09:52:56.560Z",
   "principle": {
     "hit": "A hit is a question, not a verdict.",
     "hitBody": "EverQuest Legends kept a great deal of classic EverQuest intact, and most of these patterns are probably current. What a hit means is: this figure carries a convention from a game whose numbers we know changed, and nobody has checked this one.",
@@ -12,8 +12,8 @@
     "ourselvesBody": "Every EQL reference is part Project 1999 text describing a game that stopped existing in 2001, and this one is no exception. Other projects publish EQL item data and every one of them inherits the same classic text. A scanner that only finds someone else's rot is an attack ad. The only version worth having is the one that runs here first and publishes the result whatever it says."
   },
   "corpus": {
-    "catalogItems": 3663,
-    "indexCount": 3663,
+    "catalogItems": 3883,
+    "indexCount": 3883,
     "catalogFiles": 21,
     "opened": [
       "data/items-index.json",
@@ -46,18 +46,18 @@
     ],
     "unscannedNote": "These files ship in web/public/data and every browser can fetch them, but no signature opens them, so this report says nothing about their contents either way. focus-effects.json is the live case: 66 scraped prose records, 16 of which carry a percent figure beside the word \"haste\" — the shape signature 01 exists to find. Whether those are contamination or ordinary spell-haste prose is UNMEASURED, and unmeasured is what this line reports.",
     "sourceFiles": 89,
-    "sourceLines": 34893,
+    "sourceLines": 34929,
     "excluded": "Test files are excluded from the source corpus: a test is not a surface, and counting its fixtures would pad this report with hits nobody can see. pipeline/quarantine.json is excluded too — the 7,599 items it holds are the ones we refused to ship, and scanning them would measure the wiki rather than us."
   },
   "headline": {
-    "unmarkedOnChangedMechanics": 2334,
+    "unmarkedOnChangedMechanics": 2378,
     "markedOnChangedMechanics": 3,
-    "classicFormats": 1109,
-    "classicFormatsUnmarked": 982,
+    "classicFormats": 1175,
+    "classicFormatsUnmarked": 1048,
     "filesScanned": 110,
-    "statBlocksShipped": 2176,
+    "statBlocksShipped": 2240,
     "statBlocksCheckedAgainstTheGame": 5,
-    "note": "2305 of those 2334 — 99% — are the one signature \"flag-vocab\", which is a single unanswered question multiplied across the catalog rather than 2305 separate problems. The table below is the honest shape of this number."
+    "note": "2347 of those 2378 — 99% — are the one signature \"flag-vocab\", which is a single unanswered question multiplied across the catalog rather than 2347 separate problems. The table below is the honest shape of this number."
   },
   "groups": [
     {
@@ -106,13 +106,13 @@
       "markedFiles": [
         "web/src/components/StatPanel.tsx"
       ],
-      "unmarked": 25,
+      "unmarked": 27,
       "marked": 2,
-      "total": 27,
+      "total": 29,
       "foundIn": [
         {
           "file": "data/items/WAIST.json",
-          "unmarked": 18,
+          "unmarked": 20,
           "marked": 0
         },
         {
@@ -195,23 +195,23 @@
       "group": "changed",
       "title": "Classic flag wording the client disagrees with",
       "corpus": "catalog",
-      "unmarked": 2305,
+      "unmarked": 2347,
       "marked": 0,
-      "total": 2305,
+      "total": 2347,
       "foundIn": [
         {
           "file": "data/items/OTHER.json",
-          "unmarked": 574,
+          "unmarked": 579,
           "marked": 0
         },
         {
           "file": "data/items/PRIMARY.json",
-          "unmarked": 472,
+          "unmarked": 478,
           "marked": 0
         },
         {
           "file": "data/items/NECK.json",
-          "unmarked": 127,
+          "unmarked": 128,
           "marked": 0
         },
         {
@@ -221,12 +221,12 @@
         },
         {
           "file": "data/items/WRIST.json",
-          "unmarked": 96,
+          "unmarked": 99,
           "marked": 0
         },
         {
           "file": "data/items/HEAD.json",
-          "unmarked": 94,
+          "unmarked": 96,
           "marked": 0
         },
         {
@@ -236,7 +236,7 @@
         },
         {
           "file": "data/items/HANDS.json",
-          "unmarked": 86,
+          "unmarked": 88,
           "marked": 0
         },
         {
@@ -256,7 +256,12 @@
         },
         {
           "file": "data/items/FEET.json",
-          "unmarked": 72,
+          "unmarked": 78,
+          "marked": 0
+        },
+        {
+          "file": "data/items/LEGS.json",
+          "unmarked": 76,
           "marked": 0
         },
         {
@@ -265,18 +270,13 @@
           "marked": 0
         },
         {
-          "file": "data/items/LEGS.json",
-          "unmarked": 64,
-          "marked": 0
-        },
-        {
           "file": "data/items/SECONDARY.json",
-          "unmarked": 64,
+          "unmarked": 66,
           "marked": 0
         },
         {
           "file": "data/items/ARMS.json",
-          "unmarked": 56,
+          "unmarked": 58,
           "marked": 0
         },
         {
@@ -291,7 +291,7 @@
         },
         {
           "file": "data/items/RANGE.json",
-          "unmarked": 17,
+          "unmarked": 18,
           "marked": 0
         }
       ],
@@ -310,9 +310,9 @@
       "legends": "The live client renders \"Lore Equipped / No Trade / Placeable\" for Earthshaker, where this catalog holds LORE / MAGIC. Both of the two items ever sampled against a client window came back contradicted. meta.dataReliability.flags rates the whole vocabulary low confidence and sets doNotUseAsAuthoritativeFilter — and MAGIC appears on zero modern-convention wiki pages and in zero client screenshots, so it may be a classic concept Legends no longer surfaces.",
       "settle": "One screenshot of an item tooltip whose wiki page uses the modern convention. The Castle Mistmoore revamp lands new item pages tomorrow: those pages will be authored under the current convention, which is exactly the sample this question has been waiting for.",
       "findings": [
-        "Flag frequencies in the shipped catalog: LORE 1435, MAGIC 1380, NO_DROP 925, QUEST 336, NO_TRADE 120, EXPENDABLE 92, LORE_EQUIPPED 87, TEMPORARY 85, ATTUNEABLE 83, PLACEABLE 18, NO_RENT 6.",
+        "Flag frequencies in the shipped catalog: LORE 1476, MAGIC 1402, NO_DROP 945, QUEST 386, NO_TRADE 138, ATTUNEABLE 105, LORE_EQUIPPED 96, EXPENDABLE 92, TEMPORARY 85, PLACEABLE 40, NO_RENT 6.",
         "NO_DROP and NO_TRADE co-occur on 10 shipped items. meta.dataReliability reports zero co-occurrence across the 7,813 wiki pages carrying a flag line, so either those items were merged from two sources of different vintage, or the two spellings are two restrictions after all. Whichever it is, the merge is ours and the contradiction is ours.",
-        "33 items carry a legacy-only flag and a modern-only flag at once, so the clean partition meta.dataReliability found across wiki pages does not hold across every shipped item."
+        "38 items carry a legacy-only flag and a modern-only flag at once, so the clean partition meta.dataReliability found across wiki pages does not hold across every shipped item."
       ]
     },
     {
@@ -352,38 +352,38 @@
       "group": "format",
       "title": "Resists abbreviated SV MAGIC +N",
       "corpus": "catalog",
-      "unmarked": 733,
+      "unmarked": 777,
       "marked": 1,
-      "total": 734,
+      "total": 778,
       "foundIn": [
         {
           "file": "data/items/PRIMARY.json",
-          "unmarked": 86,
-          "marked": 0
-        },
-        {
-          "file": "data/items/HEAD.json",
-          "unmarked": 63,
-          "marked": 0
-        },
-        {
-          "file": "data/items/NECK.json",
-          "unmarked": 61,
+          "unmarked": 87,
           "marked": 0
         },
         {
           "file": "data/items/CHEST.json",
-          "unmarked": 60,
+          "unmarked": 67,
+          "marked": 0
+        },
+        {
+          "file": "data/items/HEAD.json",
+          "unmarked": 65,
+          "marked": 0
+        },
+        {
+          "file": "data/items/NECK.json",
+          "unmarked": 62,
           "marked": 0
         },
         {
           "file": "data/items/FINGERS.json",
-          "unmarked": 56,
+          "unmarked": 58,
           "marked": 0
         },
         {
           "file": "data/items/WRIST.json",
-          "unmarked": 50,
+          "unmarked": 56,
           "marked": 0
         },
         {
@@ -392,44 +392,44 @@
           "marked": 0
         },
         {
-          "file": "data/items/FACE.json",
-          "unmarked": 42,
+          "file": "data/items/HANDS.json",
+          "unmarked": 44,
           "marked": 0
         },
         {
-          "file": "data/items/HANDS.json",
-          "unmarked": 40,
+          "file": "data/items/FACE.json",
+          "unmarked": 43,
           "marked": 0
         },
         {
           "file": "data/items/FEET.json",
-          "unmarked": 35,
-          "marked": 0
-        },
-        {
-          "file": "data/items/WAIST.json",
-          "unmarked": 32,
-          "marked": 0
-        },
-        {
-          "file": "data/items/SECONDARY.json",
-          "unmarked": 31,
+          "unmarked": 37,
           "marked": 0
         },
         {
           "file": "data/items/ARMS.json",
-          "unmarked": 29,
+          "unmarked": 36,
+          "marked": 0
+        },
+        {
+          "file": "data/items/LEGS.json",
+          "unmarked": 36,
+          "marked": 0
+        },
+        {
+          "file": "data/items/WAIST.json",
+          "unmarked": 33,
+          "marked": 0
+        },
+        {
+          "file": "data/items/SECONDARY.json",
+          "unmarked": 32,
           "marked": 0
         },
         {
           "file": "data/items/BACK.json",
           "unmarked": 27,
           "marked": 1
-        },
-        {
-          "file": "data/items/LEGS.json",
-          "unmarked": 27,
-          "marked": 0
         },
         {
           "file": "data/items/EAR.json",
@@ -450,19 +450,19 @@
       "examples": [
         "Ancient Earthen Vambraces — SV DISEASE +5",
         "Ancient Earthen Vambraces — SV POISON +5",
+        "Apothic Sleeves — SV FIRE +10",
         "Armband of Serrated Teeth — SV DISEASE +2",
         "Blighted Sleeves — SV FIRE +10",
         "Carmine Sleeves — SV FIRE +10",
         "Cryosilk Sleeves — SV FIRE +9",
-        "Ethereal Mist Vambraces — SV MAGIC +7",
-        "Fiery Vambraces — SV FIRE +5"
+        "Ethereal Mist Vambraces — SV MAGIC +7"
       ],
       "markRule": "The resist was read off a live client window: sd \"tier-M\", with the SV_ key named in vf.",
       "classic": "Classic stat blocks abbreviated resists as SV MAGIC +N.",
       "legends": "Partly settled, and in our favour. The live client's own Stats window prints \"SV Void 126/1000\" (research/validation/UI-REFERENCE.md §B1), so the abbreviation is current in Legends and Void is a real sixth resist that classic never had. What is still unchecked is whether item tooltips use the same abbreviation, and whether these particular numbers are Legends numbers — the presence of the convention marks a block transcribed from a classic-era record, which is worth knowing even when every figure in it is right.",
       "settle": "Compare one shipped resist block against the item in game.",
       "findings": [
-        "734 resist figures ship across 470 items.",
+        "778 resist figures ship across 500 items.",
         "Exactly one has ever been checked: Cloak of Flames SV Fire, and it is the sample that corrected this project's exaltation rounding rule from rounding to truncation.",
         "The sixth resist is the evidence that this vocabulary is live rather than inherited: an import from a 2001 game could not have produced a Void column.",
         "The abbreviation is also this app's internal stat-key namespace — SV_MAGIC, SV_FIRE and the rest appear in 3 source files (web/src/data/fixture.ts, web/src/engine/ep.ts, web/src/selectors/gear.ts). Those are not counted above: a key in a weights map is not a figure printed to a reader."
@@ -573,17 +573,28 @@
       "group": "format",
       "title": "Weapon damage bonus",
       "corpus": "catalog",
-      "unmarked": 0,
+      "unmarked": 3,
       "marked": 0,
-      "total": 0,
-      "foundIn": [],
-      "examples": [],
+      "total": 3,
+      "foundIn": [
+        {
+          "file": "data/items/PRIMARY.json",
+          "unmarked": 3,
+          "marked": 0
+        }
+      ],
+      "examples": [
+        "Cherista's Fangs — bonus 13",
+        "Cursed Blade — bonus 17",
+        "Rod of Understanding — bonus 12"
+      ],
       "markRule": "Not applicable — there is nothing to mark.",
       "classic": "Classic printed a Dmg Bonus line on weapons, derived from character level and weapon delay rather than stored on the item.",
-      "legends": "The live client shows a Dmg Bon line — 13 on Whitened Treant Fists, 50 on Earthshaker — so the concept exists. No source in this project carries it per item; one third-party dataset has it on a single item.",
+      "legends": "The live client shows a Dmg Bon line — 13 on Whitened Treant Fists, 50 on Earthshaker — so the concept exists. Two sources print one in their stats-block text: four pages of the jmoyers dataset and four of the 2 September live-wiki supplement. Neither carries it as a field of its own, and the vendored August wiki scrape prints it nowhere.",
       "settle": "Two client tooltips for the same weapon at different character levels would show whether it is stored or derived. Until then it cannot be computed, so it is not printed.",
       "findings": [
-        "0 items carry a damage bonus. The field is emitted only where a source actually printed one.",
+        "3 items carry a damage bonus. The field is emitted only where a source actually printed one.",
+        "Fewer items carry one than sources print one, and that is the merge policy rather than a loss: a weapon block is taken whole from the first source supplying damage or delay, so a bonus printed by a later source for an item an earlier one already described is not grafted on.",
         "A dry streak is a ceiling, not a zero. This is the same rule: an absent bonus is shown as absent, never as 0, and never reconstructed from a classic formula that may not be this game's formula."
       ]
     },
@@ -693,8 +704,8 @@
       "settle": "A client capture of any one of these items replaces its whole stat block with a measured one.",
       "findings": [
         "126 rows, and 0 of them are printed bare. This is the column the scanner exists to drive to zero, and on this signature it already is.",
-        "187 shipped items carry no era from any source at all.",
-        "Stat provenance across the whole shipped catalog: tier-2 2045, unattributed 1487, tier-5 126, tier-M 5."
+        "188 shipped items carry no era from any source at all.",
+        "Stat provenance across the whole shipped catalog: tier-2 2109, unattributed 1643, tier-5 126, tier-M 5."
       ]
     },
     {
@@ -702,13 +713,18 @@
       "group": "format",
       "title": "Raw wiki markup in effect names",
       "corpus": "catalog",
-      "unmarked": 48,
+      "unmarked": 67,
       "marked": 0,
-      "total": 48,
+      "total": 67,
       "foundIn": [
         {
           "file": "data/items/PRIMARY.json",
-          "unmarked": 34,
+          "unmarked": 36,
+          "marked": 0
+        },
+        {
+          "file": "data/items/AMMO.json",
+          "unmarked": 16,
           "marked": 0
         },
         {
@@ -722,33 +738,33 @@
           "marked": 0
         },
         {
-          "file": "data/items/BACK.json",
-          "unmarked": 2,
+          "file": "data/items/FINGERS.json",
+          "unmarked": 3,
           "marked": 0
         },
         {
-          "file": "data/items/FINGERS.json",
+          "file": "data/items/BACK.json",
           "unmarked": 2,
           "marked": 0
         }
       ],
       "examples": [
-        "Aegis of Life — <span class='itemeff'>Superior Healing</span>",
-        "Mystic Cloak — <span class='itemeff'>Steelskin</span>",
-        "Guise of the Deceiver — <span class='itemeff'>Illusion: Dark Elf</span>",
-        "Mempo of Likato — <span class='itemeff'>Ultravision</span>",
-        "Moss Mask — <span class='itemeff'>Enduring Breath</span>",
-        "Ring of Shadows — <span class='itemeff'>Gather Shadows</span>",
-        "Ring of the Dead — <span class='itemeff'>Bind Affinity</span>",
-        "Ball of Golem Clay — <span class='itemeff'>Illusion: Earth Elemental</span>"
+        "Black Drum — <span class='itemeff'>Summon Drogmor</span>",
+        "Giant Black Drum — <span class='itemeff'>Summon Drogmor</span>",
+        "Giant Green Drum — <span class='itemeff'>Summon Drogmor</span>",
+        "Giant Red Drum — <span class='itemeff'>Summon Drogmor</span>",
+        "Giant White Drum — <span class='itemeff'>Summon Drogmor</span>",
+        "Green Drum — <span class='itemeff'>Summon Drogmor</span>",
+        "Large Black Drum — <span class='itemeff'>Summon Drogmor</span>",
+        "Large Green Drum — <span class='itemeff'>Summon Drogmor</span>"
       ],
       "markRule": "Nothing counts as marked. This is transcription residue, and residue is never intentional.",
       "classic": "Not a classic convention — a scraping one. The wiki wraps effect names in <span class=\"itemeff\">, and the parser kept the wrapper on one code path and stripped it on another.",
       "legends": "Not a question about Legends at all. The item window renders effect names as text, so React escapes the tag and the reader is shown the angle brackets.",
       "settle": "Nothing. This one is not a question, it is a defect, and it belongs on this page because the scanner found it while looking for something else and hiding it would be the fault this page is about.",
       "findings": [
-        "48 effect entries across the catalog carry an unstripped HTML tag.",
-        "49 items carry the same effect twice — once wrapped, once clean — so those rows print a duplicate line as well as a broken one."
+        "67 effect entries across the catalog carry an unstripped HTML tag.",
+        "50 items carry the same effect twice — once wrapped, once clean — so those rows print a duplicate line as well as a broken one."
       ]
     },
     {

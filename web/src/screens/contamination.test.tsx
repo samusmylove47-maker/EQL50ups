@@ -174,13 +174,25 @@ describe.skipIf(!HAVE_SCAN)('the scan agrees with the catalog it claims to descr
     expect(sig.marked).toBe(tier5.length);
   });
 
-  it('damage bonus: absent from the catalog, and reported as absent rather than as zero hits found', () => {
-    expect(items.filter((i) => i.wp?.bonus != null)).toHaveLength(0);
+  it('damage bonus: counted off the catalog, and explained whether or not any are found', () => {
+    /*
+     * This asserted `toHaveLength(0)` until 2 September 2026, when the live-wiki
+     * supplement brought in three weapons whose pages actually print a DMG Bonus
+     * line. The assertion was true when written and it was still the wrong
+     * assertion: it pinned a *count* that the catalog was free to change, so the
+     * first genuine one to arrive read as a regression.
+     *
+     * What must hold is not that the number is zero. It is that the scanner's
+     * number is the catalog's number — the scan describes the payload it claims
+     * to describe — and that the standard's rule 4 is obeyed either way: an
+     * absent bonus is stated as absent, never printed as a 0.
+     */
+    const carried = items.filter((i) => i.wp?.bonus != null);
     const sig = sigOf(report, 'dmg-bonus');
-    expect(sig.total).toBe(0);
-    // The absence has to be *said*, per the standard's rule 4. A row with a
-    // zero and no explanation is the failure this whole page is about.
+    expect(sig.total).toBe(carried.length);
     expect(sig.findings?.join(' ')).toMatch(/ceiling, not a zero/i);
+    // Nothing here is markable, so a hit must never be filed as marked.
+    expect(sig.marked).toBe(0);
   });
 
   it('flags: the legacy vocabulary is counted per flag, not per item', () => {

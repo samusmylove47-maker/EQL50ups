@@ -257,6 +257,33 @@ const EQL_CONFIRMED_NAMES = [
 ];
 
 /**
+ * A seventh piece of that same set, which the player did **not** name.
+ *
+ * `Shadow Rage Tunic` reached this catalog on 2 September 2026 from the live
+ * wiki (`research/data/eqlwiki-supplement-2026-09-02.json`, page 60238), a month
+ * after the vendored scrape that supplied the other six. It is kept apart from
+ * the list above for one reason: the six are Tier M — a person who plays this
+ * game named them — and this one is not. Filing it under `player-confirmed`
+ * would put a claim in the ship-reason table that nobody made.
+ *
+ * What is actually known about it, and it is more than nothing:
+ *   - the page states `Class: BER`. Berserker is not a class in the era of
+ *     original EverQuest this wiki is otherwise contaminated by, so a
+ *     BER-restricted page is poor evidence of an original-EQ item of the
+ *     same name — which is the specific confusion the rest of this set exists
+ *     to guard against;
+ *   - its `dropsfrom` names the Plane of Fear and the Plane of Hate, which is
+ *     where the player placed the set;
+ *   - it is listed on the wiki's own `VerifiedPages` registry.
+ *
+ * That is corroboration, not observation. So it ships — a Berserker looking for
+ * the chest piece of a set they are wearing should find it — and it is held to
+ * exactly the standing of its siblings below: era cleared, stats withheld,
+ * marked. Restoring its numbers needs a client capture, not a better argument.
+ */
+const EQL_SET_PIECE_NAMES = ['Shadow Rage Tunic'];
+
+/**
  * The stat blocks the wiki carries for three Shadow Rage pieces.
  *
  * Parked, not deleted, and deliberately unused. They came from the same scrape
@@ -297,6 +324,29 @@ const TIER0_CORRECTIONS = [
     clear: ['era', 'st', 'sv', 'wp', 'fx'],
     source: PLAYER_REPORT_2026_08_17 + ' ' + PLAYER_REPORT_2026_08_17_ERA,
     was: 'wiki stats, shipped as scoreable data',
+  })),
+  // The fourth such page, and the newest. `Shadow Rage Tunic` arrived with the
+  // live-wiki supplement carrying `AC: 23`, three attributes and a `Classic`
+  // era. Held to the same standing as the three above rather than to the era
+  // the wiki states, because the player's instruction covers the set and not
+  // the pieces of it we happened to hold on any given day: no out-of-era stat
+  // block for Shadow Rage until verified numbers are supplied. See
+  // `EQL_SET_PIECE_NAMES` for why this piece is believed to be the EQL item.
+  ...EQL_SET_PIECE_NAMES.map((n) => ({
+    n,
+    set: {
+      statsUnknown: true,
+      eraUnknown: true,
+      evidence:
+        'Believed to be the chest piece of the player-confirmed Shadow Rage set: the wiki page '
+        + 'restricts it to BER and names the Planes of Fear and Hate as its source, both of which '
+        + 'agree with the player report for the set. That is corroboration and not observation, so '
+        + 'the stat block is withheld rather than shown. ' + PLAYER_REPORT_2026_08_17_ERA,
+    },
+    clear: ['era', 'st', 'sv', 'wp', 'fx'],
+    source: 'eqlwiki page 60238, read 2026-09-02; standing set by '
+      + PLAYER_REPORT_2026_08_17_ERA,
+    was: 'wiki stats and a Classic era, shipped as scoreable data',
   })),
 ];
 
@@ -752,7 +802,22 @@ const EFFECT_LINE_RE = /^\s*(?:Effect|Focus Effect|Worn Effect|Combat Effect)\s*
 function parseStatsBlock(text) {
   const out = { stats: {}, saves: {}, flags: [], effects: [] };
   if (!text) return out;
-  const block = String(text).replace(/\[\[([^\]|]*\|)?([^\]]*)\]\]/g, '$2'); // de-wikilink
+  /*
+   * De-wikilink, then turn <br> into a real line break.
+   *
+   * The stats block is line-oriented — every scalar below is matched with an
+   * anchored `^…$` — and the wiki ends each row with an explicit <br> as well
+   * as a newline. Leaving it in place meant the captured value carried the
+   * markup, and the field was then thrown away as unrecognised: the build
+   * report listed AMMO<BR>, CHEST<BR>, FINGER<BR> among its unknown slot
+   * tokens, ALL<br> and BRD<br> among class tokens, and ALLBR / NONEBR among
+   * race tokens. A newline rather than an empty string, because deleting it
+   * would join two rows and let one row's trailing text leak into the next
+   * row's scan.
+   */
+  const block = String(text)
+    .replace(/\[\[([^\]|]*\|)?([^\]]*)\]\]/g, '$2')
+    .replace(/<\s*br\s*\/?\s*>/gi, '\n');
 
   // --- effects first, then strip those lines so their parentheticals can't
   //     pollute the numeric stat scan.
@@ -847,6 +912,9 @@ const FILES = {
   nathanbates: 'nathanbates-items.json',
   eqbuddy: 'eqbuddy-ItemCatalog-2026.json',
   focusEffects: 'nathanbates-focus_effects.json',
+  // Live-wiki supplement; see pipeline/wiki-supplement.mjs. Optional: a clone
+  // without it builds exactly the catalogue it built before.
+  wikiSupplement: 'eqlwiki-supplement-2026-09-02.json',
 };
 
 const rawJ = readJSON(FILES.jmoyers);
@@ -854,15 +922,17 @@ const rawW = readJSON(FILES.eqlwiki);
 const rawN = readJSON(FILES.nathanbates);
 const rawE = readJSON(FILES.eqbuddy);
 const rawF = readJSON(FILES.focusEffects);
+const rawS = existsSync(join(DATA, FILES.wikiSupplement)) ? readJSON(FILES.wikiSupplement) : null;
 
 const J_ITEMS = rawJ.items ?? rawJ;                       // dict keyed by lowercased name
 const W_ITEMS = rawW.items ?? rawW;                       // array
 const N_ITEMS = Array.isArray(rawN) ? rawN : (rawN.items ?? []);
 const E_ITEMS = rawE.Items ?? rawE.items ?? [];
 const F_ITEMS = Array.isArray(rawF) ? rawF : (rawF.items ?? rawF.focus_effects ?? []);
+const S_ITEMS = rawS?.items ?? [];
 
 /** name-key -> source record, for each source. */
-const byJ = new Map(), byW = new Map(), byN = new Map(), byE = new Map();
+const byJ = new Map(), byW = new Map(), byN = new Map(), byE = new Map(), byS = new Map();
 const dupNames = new Counter();          // collisions where the two records differ
 const dupIdentical = new Counter();      // collisions that are byte-identical (harmless)
 
@@ -901,10 +971,17 @@ indexBy(byJ, Object.values(J_ITEMS), (r) => r.page ?? r.name, 'jmoyers');
 indexBy(byW, W_ITEMS, (r) => r.name, 'eqlwiki');
 indexBy(byN, N_ITEMS, (r) => r.name, 'nathanbates');
 indexBy(byE, E_ITEMS, (r) => r.Name, 'eqbuddy');
+/*
+ * The live-wiki supplement is indexed like any other source and consulted LAST
+ * in every `pick` list below, so it can only fill a gap the other four left and
+ * can never overrule them. It carries raw statsblock wikitext rather than parsed
+ * fields precisely so that `parseStatsBlock` stays the only parser.
+ */
+indexBy(byS, S_ITEMS, (r) => r.name, 'eqlwiki-live');
 
 /** loose-key -> [name-keys], used only when the loose key is unambiguous. */
 const looseIndex = new Map();
-for (const k of new Set([...byW.keys(), ...byJ.keys(), ...byN.keys(), ...byE.keys()])) {
+for (const k of new Set([...byW.keys(), ...byJ.keys(), ...byN.keys(), ...byE.keys(), ...byS.keys()])) {
   const lk = looseKey(k);
   if (!looseIndex.has(lk)) looseIndex.set(lk, new Set());
   looseIndex.get(lk).add(k);
@@ -1091,7 +1168,7 @@ const idStats = { exact: 0, loose: 0, unmatched: [] };
  * would report them as "unmatched id" while simultaneously shipping the item.
  */
 const KNOWN_ITEM_KEYS = new Set(TIER0_KNOWN_ITEMS.map((s) => nameKey(s.n)));
-const known = (k) => byW.has(k) || byJ.has(k) || byN.has(k) || byE.has(k) || KNOWN_ITEM_KEYS.has(k);
+const known = (k) => byW.has(k) || byJ.has(k) || byN.has(k) || byE.has(k) || byS.has(k) || KNOWN_ITEM_KEYS.has(k);
 const pendingLoose = [];
 for (const [name, id] of TIER0_IDS) {
   const k = nameKey(name);
@@ -1133,7 +1210,7 @@ const report = {
   notes: [],
 };
 
-const allKeys = [...new Set([...byW.keys(), ...byJ.keys(), ...byN.keys(), ...byE.keys()])].sort();
+const allKeys = [...new Set([...byW.keys(), ...byJ.keys(), ...byN.keys(), ...byE.keys(), ...byS.keys()])].sort();
 
 /** Pick the first source that yields a non-empty value; records provenance. */
 function pick(field, candidates) {
@@ -1194,10 +1271,14 @@ for (const key of allKeys) {
   const j = byJ.get(key);
   const n = byN.get(key);
   const e = byE.get(key);
+  const sup = byS.get(key);
   const js = j?.stats ?? {};
   const blk = j?.statsBlock ? parseStatsBlock(j.statsBlock) : null;
+  // Parsed by the same function as `blk`, kept apart from it so provenance says
+  // which scrape a field came from rather than only that it came from a block.
+  const sblk = sup?.statsBlock ? parseStatsBlock(sup.statsBlock) : null;
 
-  const name = w?.name ?? j?.page ?? j?.name ?? n?.name ?? e?.Name;
+  const name = w?.name ?? j?.page ?? j?.name ?? n?.name ?? e?.Name ?? sup?.name;
   if (!name || !String(name).trim()) { report.dropped.push({ key, reason: 'no name in any source' }); continue; }
 
   // ---- slots
@@ -1207,6 +1288,7 @@ for (const key of allKeys) {
     ['statsBlock', () => normSlots(blk?.slotRaw, droppedSlotTokens)],
     ['nathanbates', () => normSlots(n?.slot_raw ?? n?.slots, droppedSlotTokens)],
     ['eqbuddy', () => normSlots(e?.Slots, droppedSlotTokens)],
+    ['wikiLive', () => normSlots(sblk?.slotRaw, droppedSlotTokens)],
   ]);
   const sl = slots ?? [];
 
@@ -1217,6 +1299,7 @@ for (const key of allKeys) {
     ['eqbuddy', () => normClasses(e?.Classes, droppedClassTokens)],
     ['nathanbates', () => normClasses(n?.classes_raw, droppedClassTokens)],
     ['jmoyers', () => normClasses(js.classes, droppedClassTokens)],
+    ['wikiLive', () => normClasses(sblk?.classRaw, droppedClassTokens)],
   ]);
   // eqlwiki's class parser occasionally drops BER/BST from an explicit list that
   // the raw wiki text does carry (measured: 10 items, and it never contradicts
@@ -1240,6 +1323,7 @@ for (const key of allKeys) {
     ['statsBlock', () => normRaces(blk?.raceRaw, droppedRaceTokens)],
     ['nathanbates', () => normRaces(n?.races_raw, droppedRaceTokens)],
     ['jmoyers', () => normRaces(js.races, droppedRaceTokens)],
+    ['wikiLive', () => normRaces(sblk?.raceRaw, droppedRaceTokens)],
   ]);
 
   // ---- stats: take the best whole object, then gap-fill keys it lacks entirely.
@@ -1288,6 +1372,7 @@ for (const key of allKeys) {
       }
       return o;
     }],
+    ['wikiLive', () => (sblk ? { ...sblk.stats } : null)],
   ];
   const [stBase, stSrc] = pick('st', statCandidates);
   const st = { ...(stBase ?? {}) };
@@ -1331,6 +1416,7 @@ for (const key of allKeys) {
       }
       return o;
     }],
+    ['wikiLive', () => (sblk ? { ...sblk.saves } : null)],
   ];
   const [svBase, svSrc] = pick('sv', saveCandidates);
   const sv = { ...(svBase ?? {}) };
@@ -1372,6 +1458,16 @@ for (const key of allKeys) {
       if (blk.skill) o.skill = blk.skill;
       if (blk.dmgBonus != null) o.bonus = blk.dmgBonus;
       if (blk.range != null) o.range = blk.range;
+      return o;
+    }],
+    ['wikiLive', () => {
+      if (!sblk || (sblk.dmg == null && sblk.atkDelay == null)) return null;
+      const o = {};
+      if (sblk.dmg != null) o.dmg = sblk.dmg;
+      if (sblk.atkDelay != null) o.dly = sblk.atkDelay;
+      if (sblk.skill) o.skill = sblk.skill;
+      if (sblk.dmgBonus != null) o.bonus = sblk.dmgBonus;
+      if (sblk.range != null) o.range = sblk.range;
       return o;
     }],
     ['nathanbates', () => {
@@ -1454,6 +1550,7 @@ for (const key of allKeys) {
   for (const [kind, ef] of Object.entries(w?.effects ?? {})) pushFx(kind, ef?.name, ef?.detail, int(ef?.level));
   for (const ef of js.effects ?? []) pushFx(ef.kind, ef.name, ef.detail, int(ef.reqLevel));
   if (blk) for (const ef of blk.effects) pushFx(ef.k, ef.n, ef.d);
+  if (sblk) for (const ef of sblk.effects) pushFx(ef.k, ef.n, ef.d);
   if (n?.focus_effect) pushFx('focus', n.focus_effect, null);
   fx.sort((a, b) => a.k.localeCompare(b.k) || a.n.localeCompare(b.n));
   for (const f of fx) report.effectKinds.add(f.k);
@@ -1465,6 +1562,7 @@ for (const key of allKeys) {
     ...(js.extras ?? []),
     ...(n?.flags ?? []),
     ...(blk?.flags ?? []),
+    ...(sblk?.flags ?? []),
   ];
   const fl = normFlags(flagPool, droppedFlagTokens);
 
@@ -1474,12 +1572,14 @@ for (const key of allKeys) {
     ['jmoyers', () => num(js.weight)],
     ['statsBlock', () => blk?.weight ?? null],
     ['nathanbates', () => num(n?.weight)],
+    ['wikiLive', () => sblk?.weight ?? null],
   ]);
   const [sz] = pick('sz', [
     ['eqlwiki', () => normSize(w?.size)],
     ['jmoyers', () => normSize(js.size)],
     ['statsBlock', () => blk?.size ?? null],
     ['nathanbates', () => normSize(n?.size)],
+    ['wikiLive', () => sblk?.size ?? null],
   ]);
   const [ic] = pick('ic', [['jmoyers', () => int(j?.iconId)]]);
 
@@ -1492,6 +1592,9 @@ for (const key of allKeys) {
       .sort((a, b) => ERA_RANK.get(a) - ERA_RANK.get(b))[0]],
     ['jmoyers.eraTag', j?.eraTag],
     ['nathanbates.era', n?.era],
+    // The live page's own {{X Era}} template. Last, so it only speaks where
+    // every vendored source was silent — which for 2,230 records it was.
+    ['eqlwiki-live.eraTemplate', sup?.era],
   ];
   for (const [src, raw] of eraCandidates) {
     if (raw == null) continue;
@@ -1688,7 +1791,9 @@ records.sort((a, b) => a.key.localeCompare(b.key));
  *   1. its era is pre-Kunark — rank at or before CURRENT_ERA;
  *   2. it appears in the live client inventory export, which is Tier 0 proof it
  *      exists in this game whatever the wiki claims about its era;
- *   3. the player has named it directly (EQL_CONFIRMED_NAMES).
+ *   3. the player has named it directly (EQL_CONFIRMED_NAMES);
+ *   4. it is a piece of a set from (3) that the wiki attributes to that set,
+ *      and whose era this build has just cleared (EQL_SET_PIECE_NAMES).
  *
  * Note what is *not* on that list: an item with no era at all. Era-less is
  * unconfirmed, not presumed classic. Roughly 2,400 records have no era in any
@@ -1699,9 +1804,15 @@ records.sort((a, b) => a.key.localeCompare(b.key));
  * any of it can be restored by name once a Tier 0 or Tier 1 source places it.
  */
 const EQL_CONFIRMED_KEYS = new Set(EQL_CONFIRMED_NAMES.map((n) => nameKey(n)));
+const EQL_SET_PIECE_KEYS = new Set(EQL_SET_PIECE_NAMES.map((n) => nameKey(n)));
 
 function shipDecision(rec) {
   if (EQL_CONFIRMED_KEYS.has(rec.key)) return { ship: true, why: 'player-confirmed' };
+  // Reason 4, and deliberately worded apart from reason 3: a piece of a set the
+  // player confirmed, attributed to that set by the wiki rather than by them.
+  // Its era has just been cleared by TIER0_CORRECTIONS, so without this it would
+  // fall to "no era in any source" and the set would ship with a hole in it.
+  if (EQL_SET_PIECE_KEYS.has(rec.key)) return { ship: true, why: 'piece of a confirmed set' };
   // The wiki's own "this page is not in Legends" flag. It outranks the live
   // export only because nothing flagged this way appears in the export anyway;
   // if that ever changes, the player wins and this line needs revisiting.
@@ -2663,10 +2774,31 @@ const meta = {
       suspectCount: skillSuspects.length,
       suspects: skillSuspects,
     },
-    dmgBonus: {
-      confidence: 'absent',
-      note: 'The client shows a Dmg Bon line (13 on Whitened Treant Fists, 50 on Earthshaker). No source carries it per item; jmoyers has it on 1 item only. It is probably derived from character level and weapon type. `wp.bonus` is emitted only where a source actually printed it.',
-    },
+    /*
+     * Counted, not typed. This note asserted "no source carries it per item;
+     * jmoyers has it on 1 item only" until 2 September 2026, by which point
+     * both halves were wrong: jmoyers carries a `dmgBonus` field on 0 of its
+     * 11,375 records, and four of its stats blocks print a `Dmg Bon` line the
+     * old figure did not count. The live wiki prints one on four pages too.
+     * A hand-typed census of a field is exactly the defect this file keeps
+     * finding in itself, so the number is now read off the payload it describes.
+     */
+    dmgBonus: (() => {
+      const withBonus = records.filter((r) => r.wp?.bonus != null);
+      return {
+        confidence: withBonus.length ? 'sparse' : 'absent',
+        note: `The client shows a Dmg Bon line (13 on Whitened Treant Fists, 50 on Earthshaker), so `
+          + `the concept exists. ${withBonus.length} of ${records.length} shipped items carry one`
+          + `${withBonus.length ? `: ${withBonus.map((r) => r.n).sort().join(', ')}` : ''}. `
+          + `A weapon block is taken whole from the first source that supplies damage or delay, `
+          + `rather than assembled field by field across sources, so a bonus printed by a later `
+          + `source for an item an earlier one already described does not reach the payload. `
+          + `Whether this game stores the bonus per item or derives it from level and weapon type `
+          + `is still unsettled; \`wp.bonus\` is emitted only where a source actually printed one, `
+          + `and is never reconstructed from a classic formula that may not be this game's.`,
+        items: withBonus.map((r) => ({ n: r.n, bonus: r.wp.bonus, dmg: r.wp.dmg ?? null, dly: r.wp.dly ?? null })),
+      };
+    })(),
     itemIds: {
       confidence: 'high-but-sparse',
       note: `Only ${withId} of ${records.length} items have a numeric id; they come from a live client export, not from any wiki source.`,

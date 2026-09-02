@@ -351,10 +351,29 @@ function Purge({ meta }: { meta: SourceMeta | null }) {
         </div>
       </div>
 
-      {purge && shipped !== null && shipped !== purge.shipped ? (
+      {/*
+        * Two figures that are *supposed* to differ, and one that is not.
+        *
+        * `purge.shipped` counts what survived the era purge. The catalog is
+        * larger, because records with Tier M evidence and no wiki page were
+        * never in the scrape and so were never candidates for the purge; the
+        * pipeline publishes that count as `admittedOutsideScrape` precisely so
+        * this page can reconcile them. It did not read it, and so printed
+        * "the payload disagrees with itself" on every build that admitted any
+        * — which was every build. The warning below is now reachable only when
+        * the three numbers genuinely fail to add up.
+        */}
+      {purge && shipped !== null && shipped !== purge.shipped + purge.admittedOutsideScrape ? (
         <p className="src-absent">
           This build ships {count(shipped)} items, which is not the {count(purge.shipped)} the purge
-          block records. The payload disagrees with itself; rebuild before trusting either.
+          block records plus the {count(purge.admittedOutsideScrape)} admitted outside the scrape.
+          The payload disagrees with itself; rebuild before trusting either.
+        </p>
+      ) : purge && purge.admittedOutsideScrape > 0 ? (
+        <p className="src-note">
+          The catalog holds {count(shipped)} items, which is {count(purge.shipped)} survivors of the
+          purge plus {count(purge.admittedOutsideScrape)} the purge never saw: records no wiki
+          scrape carries, admitted on Tier M evidence alone. The two figures differ on purpose.
         </p>
       ) : null}
 

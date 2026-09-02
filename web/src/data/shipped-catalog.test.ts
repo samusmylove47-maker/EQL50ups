@@ -115,17 +115,30 @@ describe.skipIf(!published)('shipped catalog', () => {
   describe('the Shadow Rage set, corrected on Tier 0 authority', () => {
     const shadowRage = index.filter((entry) => /^Shadow Rage /.test(entry.n));
 
-    it('ships all six known pieces, one per armour slot', () => {
+    /*
+     * Six pieces the player named, and a seventh the wiki did.
+     *
+     * `Shadow Rage Tunic` arrived on 2 September 2026 with the live-wiki
+     * supplement, a month after the scrape that supplied the other six. The
+     * player never named it, so it is not Tier M and the pipeline does not file
+     * it as `player-confirmed`; its own ship reason is `piece of a confirmed
+     * set`. It is listed here because the standing the rest of this describe
+     * block asserts — no era, no stats, marked — applies to it identically, and
+     * that is the point: the set is held to one rule regardless of which month
+     * a given piece happened to arrive in.
+     */
+    it('ships all seven known pieces, one per armour slot', () => {
       expect(shadowRage.map((entry) => entry.n).sort()).toEqual([
         'Shadow Rage Boots',
         'Shadow Rage Gloves',
         'Shadow Rage Helm',
         'Shadow Rage Leggings',
         'Shadow Rage Sleeves',
+        'Shadow Rage Tunic',
         'Shadow Rage Wristguard',
       ]);
       expect(shadowRage.flatMap((entry) => entry.sl).sort()).toEqual([
-        'ARMS', 'FEET', 'HANDS', 'HEAD', 'LEGS', 'WRIST',
+        'ARMS', 'CHEST', 'FEET', 'HANDS', 'HEAD', 'LEGS', 'WRIST',
       ]);
     });
 
@@ -139,9 +152,12 @@ describe.skipIf(!published)('shipped catalog', () => {
      * original-EverQuest patch, and none of those five sets are in this game.
      *
      * What the player actually said is that Shadow Rage comes from the Planes of
-     * Fear and Hate — two planes, six pieces, no mapping between them. So the
+     * Fear and Hate — two planes, seven pieces, no mapping between them. So the
      * set ships on player authority with its era left unknown, because that is
-     * the true state of the evidence.
+     * the true state of the evidence. The Tunic's wiki page states `Classic`
+     * outright and is overridden to match its siblings: an era for one piece of
+     * a set the player placed elsewhere is a contradiction to disclose, not a
+     * field to accept because it happens to be populated.
      */
     it('claims no era, and says so rather than guessing one', () => {
       for (const piece of shadowRage) {
@@ -152,12 +168,20 @@ describe.skipIf(!published)('shipped catalog', () => {
     });
 
     /*
-     * Every piece ships unstatted — including the three the wiki does carry
-     * numbers for. Those numbers come from the same scrape that supplied ~7,700
-     * items from expansions this game does not have, so nothing shows they
-     * describe the Legends item rather than an original-EverQuest one of the
-     * same name. Withholding a number we cannot source beats showing one that
-     * would rank, auto-fill and total as though it were measured.
+     * Every piece ships unstatted — including the four the wiki does carry
+     * numbers for. Three of those numbers come from the same scrape that
+     * supplied ~7,700 items from expansions this game does not have, so nothing
+     * shows they describe the Legends item rather than an original-EverQuest one
+     * of the same name. Withholding a number we cannot source beats showing one
+     * that would rank, auto-fill and total as though it were measured.
+     *
+     * The fourth, the Tunic, is the interesting one, because the case for
+     * trusting its block is genuinely better: its page restricts the item to
+     * BER, and Berserker is not a class in the era of original EverQuest this
+     * wiki is contaminated by. That is a good argument and it is still an
+     * argument. The player's instruction was to withhold out-of-era stat blocks
+     * for this set until they supply verified numbers, and a good argument is
+     * not the verified numbers.
      */
     it('ships no stats for any piece, sourced or otherwise', () => {
       for (const piece of shadowRage) {

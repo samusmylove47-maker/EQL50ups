@@ -184,17 +184,38 @@ describe.skipIf(!existsSync(META))('the page renders the shipped provenance meta
 
   it('prints the era purge with its per-reason breakdown', async () => {
     const text = await render(<Sources />);
-    expect(text).toContain('11,252');
-    expect(text).toContain('3,653');
-    expect(text).toContain('7,599');
+    expect(text).toContain('11,457');
+    expect(text).toContain('3,873');
+    expect(text).toContain('7,584');
     // The three biggest quarantine reasons, by name and by number.
     expect(text).toContain('era:Velious');
     expect(text).toContain('2,828');
     expect(text).toContain('no era in any source');
-    expect(text).toContain('2,230');
+    expect(text).toContain('2,213');
     expect(text).toContain('era:Kunark');
-    expect(text).toContain('1,438');
+    expect(text).toContain('1,440');
     expect(text).toContain('pipeline/quarantine.json');
+  });
+
+  /*
+   * The purge total and the catalog total are different numbers on purpose, and
+   * this page spent every build telling readers otherwise.
+   *
+   * `purge.shipped` counts survivors of the era purge; the catalog also holds
+   * records that were never in the wiki scrape and so were never candidates for
+   * it, published as `admittedOutsideScrape`. `Sources.tsx` compared `shipped`
+   * against the catalog size without that term, so the mismatch was permanent
+   * and the page printed "the payload disagrees with itself; rebuild before
+   * trusting either" — on a payload that reconciled exactly.
+   *
+   * Asserted on the RENDERED text rather than on the meta figures. A guard over
+   * the data would have passed the whole time this was broken: the data was
+   * never wrong. Only the sentence was.
+   */
+  it('reconciles the catalog against the purge instead of crying wolf', async () => {
+    const text = await render(<Sources />);
+    expect(text).not.toContain('disagrees with itself');
+    expect(text).toMatch(/admitted on Tier M evidence alone|the purge never saw/);
   });
 
   it('renders the standing vocabulary and its counts from meta', async () => {
