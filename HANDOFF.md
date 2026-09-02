@@ -7313,3 +7313,55 @@ verified **PARTIAL** rather than HOLDS, so each needs its own reproduction befor
 Measured-drops header double-counting a mob across payload spellings, F07 is the `nothing` bucket
 reporting "nothing scored" for positions whose only candidates were taken elsewhere. F07 next: it
 prints a false sentence, where F04 prints a number that is merely too high.
+
+## `F07` CLOSED — "Nothing scored for X" is no longer printed about positions where something scored
+
+`take()`'s two pre-accept skips — a Lore copy already handed out, an item worn at another position —
+run *before* the pricing callback that sets `consideredAny`. So a position whose entire positive pool
+was skipped that way was indistinguishable from one whose pool was empty, and landed in `nothing`:
+rendered as "Nothing scored for X", counted as "with nothing to offer". Both false. And the sentence
+immediately before it had just told the reader that "a Lore item is offered for one position only" —
+the paragraph explained the cause and then denied the effect.
+
+`take()` now returns `{ candidate, skippedTaken }`, and only the `!consideredAny && skippedTaken`
+case is rerouted, to a new `takenElsewhere` bucket. **No ranking behaviour changes** — the same item
+goes to the same position in the same order. The KPI gains `· N taken elsewhere` when non-zero; the
+footnote gains "Everything that scored for X is already spoken for elsewhere in this set."
+
+**Reproduced first, on our own fixture:** 8 positions across 35 configurations (5 presets x 7 eras) —
+Any Slot 1/2 losing the Ashenbone Axe under era=Hate, Chest losing the Lambent Breastplate under
+Temple on three presets, Hands losing the Golden Efreeti Gauntlets under Sky. **Every one is the Lore
+arm**; the worn-elsewhere arm never fired, which matches the verifier's own "mechanically live but
+unmeasured". So the sentence names *neither* cause — "already spoken for elsewhere in this set" is
+true of both, and naming Lore would assert the arm I could not produce. The verifier reports 28 of
+400 and I measured 8 of 35; different sweeps, so mine neither confirms nor refutes theirs.
+
+**The thing I want on the record, because it nearly shipped.** I had the bucket right and the report
+guarded, and I damaged the *prose* separately as a matter of routine. With `takenElsewhere` correctly
+populated and the footnote reverted to `Nothing scored for ${report.takenElsewhere.join(', ')}` — the
+exact false sentence this finding is about, now printed about the new bucket — **the whole suite
+passed: 1,146 of 1,146.** A guard on the report is not a guard on the page. The report is not what a
+reader reads. The guard is now a rendered one, and the two damages separate cleanly: collapsing the
+routing fails 2, changing the sentence alone fails 1.
+
+**And the rendered guard took two attempts, the first wrong in a way worth keeping.** It seeded one
+Lore ear stud and expected the other ear to come up empty. It did not: the two Any Slot wildcards are
+candidates for *every* position and handed it a fallback row — 23 of 23 positions had rows and no
+bucket fired at all. I found that by printing the KPI and the footnote rather than by staring at the
+assertion. Narrowing the set to an era only the seeded item carries isolates the contest.
+
+The shipped-payload accounting test now sums five buckets instead of four, with a second case
+asserting it still reaches 23 in the state where the new bucket is non-empty.
+
+Gate: `tsc` clean · vitest **1,147 passed / 76 files** · playwright **151 passed** · `npm run build`
+ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PASSED.
+
+**R209 routine, run properly this time rather than asserted.** One branch, `main` absent from local
+and remote. The deploy for `2dea2bc` was polled to completion — the live bundle moved from
+`index-BOYtZI2y.js` to `index-BtO7ujd5.js`, whose sha256 `ab5a8994…` is **byte-identical** to a local
+`VITE_BASE=/EQL50ups/` build of HEAD. Live equals HEAD by content hash, measured with `curl`, not
+inferred from a green suite.
+
+**Remaining from my own list: F04 alone** — the Measured-drops header counting one mob twice across
+two payload spellings. It is the last of the eight I verified, and the only one where the fix may
+have to go upstream into the pipeline rather than the screen.

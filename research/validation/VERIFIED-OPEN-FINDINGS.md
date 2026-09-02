@@ -188,6 +188,8 @@ At default filters — the state a reader lands in — `nothing` is empty on all
 
 **Smallest fix.** Give take() a third out-parameter recording that it skipped a positive-scoring candidate because of `claimed`/`wornAt` (a boolean set in the two `continue` branches at Upgrades.tsx:618-619), and at 700-702 route those positions to a distinct label — e.g. a `takenElsewhere: string[]` on UpgradeReport rendered as "Everything that scored for X was taken elsewhere" — instead of pushing them into `nothing`.
 
+> **Closed**, as described: `take()` returns `{ candidate, skippedTaken }`, and only the `!consideredAny && skippedTaken` case is rerouted to a new `takenElsewhere` bucket. Your reading that the Lore arm is the live one held — my own sweep of 35 configurations of this fixture fires 8 times, all Lore, no worn-elsewhere case — so the rendered sentence names neither arm specifically. One thing worth carrying forward: guarding the report bucket was **not** sufficient. With the bucket correct and the footnote reverted to "Nothing scored for …" about the new bucket, all 1,146 tests passed. The guard had to be a rendered one. See the CLOSED note under F07 in `AUDIT-UPGRADES-SURFACE.md`.
+
 Does NOT touch ranking behaviour: no score, no ordering, no Lore hand-out order changes; the same item still goes to the same position. Does NOT touch any persisted or published shape: web/public/data/ is untouched, and GearSet/localStorage/the share codec carry no report bucket.
 
 It does change the in-memory `UpgradeReport` interface (Upgrades.tsx:205-217) and the two render strings, so upgrades-avenrae.test.ts's "accounts for all 23 positions exactly once" sum (rows + withheld + settled + nothing === 23) must gain the new bucket or it will fail.

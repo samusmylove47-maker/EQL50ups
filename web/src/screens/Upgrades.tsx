@@ -212,6 +212,19 @@ export interface UpgradeReport {
   settled: number;
   /** Positions where nothing scored at all, by label. */
   nothing: string[];
+  /**
+   * Positions where something scored and every bit of it went to another
+   * position, by label.
+   *
+   * Split out of `nothing`, which the screen renders as "nothing scored for X"
+   * and counts as "with nothing to offer". For these positions both statements
+   * are false: a candidate scored, and the reason it is not offered here is
+   * that a single Lore copy went to a slot that gained more from it, or the
+   * item is already worn somewhere else in this set. Both of those are rules
+   * the footnote states — but stating a rule in general and then contradicting
+   * it in particular is worse than either alone.
+   */
+  takenElsewhere: string[];
   filters: SetFilters;
   basis: CompareBasis;
   /** Sum of the listed gains. See the note in the KPI: not additive. */
@@ -351,6 +364,19 @@ export function isLore(item: Item): boolean {
 function ratioAt(item: Item | undefined, upgrade: UpgradeState): number | null {
   if (!item?.wp) return null;
   return resolveItem(item, upgrade).weapon?.ratio ?? null;
+}
+
+/** What `take` found, and why it may have found nothing. */
+interface TakeResult {
+  candidate: UpgradeCandidate | null;
+  /**
+   * A positive-scoring candidate was passed over because another position has
+   * it — a Lore copy already handed out, or an item worn elsewhere in the set.
+   * The distinction matters only when `candidate` is null and nothing was ever
+   * priced: that is the difference between "nothing scored here" and "what
+   * scored here went somewhere else".
+   */
+  skippedTaken: boolean;
 }
 
 /** One position's ranking, before anything has been allocated. */
@@ -497,6 +523,7 @@ export function* upgradeSteps(
   const rows: UpgradeRow[] = [];
   const withheld: WithheldRow[] = [];
   const nothing: SlotPosition[] = [];
+  const takenElsewhere: SlotPosition[] = [];
   let settled = 0;
   let done = 0;
   const total = views.length;
@@ -657,15 +684,27 @@ export function* upgradeSteps(
   const take = (
     entry: SlotRanking,
     net: (candidate: UpgradeCandidate) => number | null = () => 0,
-  ): UpgradeCandidate | null => {
+  ): TakeResult => {
     let best: UpgradeCandidate | null = null;
     let bestNet = -Infinity;
+    let skippedTaken = false;
     for (const scored of entry.ranked) {
       if (scored.score <= 0) break; // the list is ordered; nothing below helps
       const key = scored.item.n.toLowerCase();
       const owner = wornAt.get(key);
-      if (owner !== undefined && owner !== entry.position.id) continue;
-      if (claimed.has(key)) continue;
+      // These two skips happen BEFORE `net` runs, so they never set
+      // `consideredAny` — which is why a position whose whole pool was skipped
+      // this way ended up in `nothing`, a bucket the screen renders as "nothing
+      // scored". Something did score; it went to another position. Recorded
+      // here because this loop is the only place that knows.
+      if (owner !== undefined && owner !== entry.position.id) {
+        skippedTaken = true;
+        continue;
+      }
+      if (claimed.has(key)) {
+        skippedTaken = true;
+        continue;
+      }
       const candidate = { item: scored.item, upgrade: entry.candidateUpgrade, ep: scored.score };
       const value = net(candidate);
       if (value === null) continue;
@@ -677,7 +716,7 @@ export function* upgradeSteps(
       }
     }
     if (best && isLore(best.item)) claimed.add(best.item.n.toLowerCase());
-    return best;
+    return { candidate: best, skippedTaken };
   };
 
   // Best-off slots choose first, and a position that cannot state a gain at all
@@ -705,7 +744,7 @@ export function* upgradeSteps(
     let consideredAny = false;
     /** A two-hander was rejected because its offhand could not be priced. */
     let blockedOnOffhand = false;
-    const best = take(entry, (candidate) => {
+    const { candidate: best, skippedTaken } = take(entry, (candidate) => {
       consideredAny = true;
       const netting = twoHandedCost(entry, candidate, byPosition, weights);
       if (netting === 'unpriceable') {
@@ -764,6 +803,13 @@ export function* upgradeSteps(
           evidence: entry.view.item?.evidence,
         });
       } else if (consideredAny) settled += 1;
+      /*
+       * Nothing was ever priced here — but something scored, and every bit of
+       * it belongs to another position. Saying "nothing scored" would be a
+       * direct contradiction of what happened, in a footnote whose previous
+       * sentence has just explained the very rule that took it away.
+       */
+      else if (skippedTaken) takenElsewhere.push(entry.position);
       else nothing.push(entry.position);
       continue;
     }
@@ -844,12 +890,14 @@ export function* upgradeSteps(
     (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0);
   withheld.sort((a, b) => byDoll(a.position, b.position));
   nothing.sort(byDoll);
+  takenElsewhere.sort(byDoll);
 
   return {
     rows,
     withheld,
     settled,
     nothing: nothing.map((position) => position.label),
+    takenElsewhere: takenElsewhere.map((position) => position.label),
     filters,
     basis,
     totalGain: rows.reduce((sum, row) => sum + row.gain, 0),
@@ -1999,6 +2047,12 @@ export function Upgrades({ id }: { id: string }) {
               <span className="hint">
                 {num(report.settled)} already best · {num(report.withheld.length)} not comparable ·{' '}
                 {num(report.nothing.length)} with nothing to offer
+                {/* Only when it happened. These four plus the row count are the
+                    23 positions, so a zero contributes nothing to that sum and
+                    a permanent "0 taken elsewhere" is noise on a hint line. */}
+                {report.takenElsewhere.length
+                  ? ` · ${num(report.takenElsewhere.length)} taken elsewhere`
+                  : ''}
               </span>
             </div>
             <div className="upg-kpi">
@@ -2185,6 +2239,16 @@ export function Upgrades({ id }: { id: string }) {
             {report.withheld.length ? ' — see Not compared above' : ''}.
             {report.nothing.length
               ? ` Nothing scored for ${report.nothing.length === views.length ? 'any position' : report.nothing.join(', ')}.`
+              : ''}
+            {/*
+              Named separately from "Nothing scored", and immediately after the
+              sentence stating the two rules that cause it. These positions had
+              a candidate; it went to a slot that gains more from it, or it is
+              already worn in this set. Folding them into "nothing scored" made
+              this paragraph contradict its own previous sentence.
+            */}
+            {report.takenElsewhere.length
+              ? ` Everything that scored for ${report.takenElsewhere.join(', ')} is already spoken for elsewhere in this set.`
               : ''}
           </p>
         </>

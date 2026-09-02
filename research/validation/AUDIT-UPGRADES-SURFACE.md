@@ -90,6 +90,7 @@ finding is gone; anything absent from this table is untouched as far as this fil
 | `F28` — "Usable by this loadout" over a race gate that never ran | **closed** | guarded in `race-unjudged.test.ts` + `itemwindow.test.tsx` |
 | `F31` — the level gate had nothing to read until the shards landed | **closed** | guarded in `verify.mjs` + `index-gate-parity.test.ts` |
 | `F12` — the Primary row took the first two-hander that cleared the floor, not the best | **closed** | guarded in `upgrades.test.ts` |
+| `F07` — "Nothing scored for X" about positions where something scored | **closed** | guarded in `upgrades-avenrae.test.ts` + `upgrades-screen.test.tsx` |
 
 **`F09` is the one to read twice.** A refuter marked its mechanism REFUTED. It was real, and it
 was fixed — 956 items had never been labelled Crafted and one of five source filters matched
@@ -442,6 +443,60 @@ SCOPE — WIDER than stated. Their per-render count is right (1 of 23 positions,
 Both skip paths are represented: a Lore ring handed to the sibling finger, and an earring already worn in Ear 1.
 
 **Player impact.** The footer names the slot in "Nothing scored for Ear 2" and the KPI counts it under "with nothing to offer", when in fact a 27.0 EP candidate exists and was withheld for an allocation reason the footer states one sentence earlier. A player reading "nothing scored" concludes the catalog has no answer for that slot rather than that they need a second copy or a non-Lore alternative.
+
+
+**CLOSED.** A fourth bucket, `takenElsewhere`, and the two sentences that render it.
+
+*The fix.* `take()` returns `{ candidate, skippedTaken }`. Both of its pre-accept `continue`s — a
+Lore copy already claimed, or an item worn at another position — now record that they passed over a
+positive-scoring candidate. Those skips happen *before* the pricing callback that sets
+`consideredAny`, which is exactly why such a position was indistinguishable from one with an empty
+pool and landed in `nothing`. Routing: `consideredAny` still means `settled`, and only the
+`!consideredAny && skippedTaken` case is rerouted, so no other bucket's meaning moves. Ranking is
+untouched — the same item still goes to the same position, in the same order.
+
+*Reproduced first, on the repository's own fixture.* Across 35 configurations (5 presets x 7 eras)
+of the imported Avenrae set, **8 positions** land this way:
+
+    melee-dps era=Hate    Any Slot 1 / Any Slot 2   Ashenbone Axe 7.400   lore=true
+    balanced  era=Hate    Any Slot 1 / Any Slot 2   Ashenbone Axe 4.500   lore=true
+    tank      era=Temple  Chest      Lambent Breastplate 58.500           lore=true
+    healer    era=Temple  Chest      Lambent Breastplate 11.750           lore=true
+    caster    era=Temple  Chest      Lambent Breastplate  9.000           lore=true
+    caster    era=Sky     Hands      Golden Efreeti Gauntlets 12.400      lore=true
+
+Every one is the Lore arm; the worn-elsewhere arm did not fire in that sweep, which matches this
+record's own "mechanically live but unmeasured" reading. The sentence therefore names **neither**
+cause specifically — "already spoken for elsewhere in this set" is true of both, and claiming Lore
+specifically would be asserting the arm I could not produce. (This record reports 28 of 400; mine is
+8 of 35, a different sweep, so it neither confirms nor refutes that figure.)
+
+*Two surfaces.* The KPI hint gains `· N taken elsewhere`, shown only when non-zero — the four buckets
+plus the row count are the 23 positions, so a zero contributes nothing to that sum and a permanent
+"0 taken elsewhere" is noise. The footnote gains "Everything that scored for X is already spoken for
+elsewhere in this set", placed immediately after the sentence that states the two rules causing it —
+the paragraph used to explain the cause and then deny the effect.
+
+*The part that would have shipped wrong.* The bucket guard alone was not enough, and I only know
+that because I damaged the prose separately. With `takenElsewhere` correctly populated and the
+footnote reverted to `Nothing scored for ${report.takenElsewhere.join(', ')}` — the exact false
+sentence this finding is about, now printed about the new bucket — **the whole suite passed: 1,146
+of 1,146.** The report is not the deliverable; the sentence is. So the guard is a rendered one.
+
+*Building that rendered guard took two attempts, and the first was wrong in an instructive way.* It
+seeded a single Lore ear stud and expected the second ear to be left empty-handed. It was not: the
+two "Any Slot" wildcards are candidates for every position and handed it a fallback row, so all 23
+positions had rows and no bucket fired. Narrowing the set to an era only the seeded item carries
+isolates the contest properly.
+
+*A/B, whole suite, asserted anchors:*
+
+    routing collapsed (the defect)   : 2 failed | 1145 passed (1147)
+    footnote prose alone             : 1 failed | 1146 passed (1147)
+
+Restored and verified byte-identical by `sha256sum -c` after each. The shipped-payload accounting
+test now sums five buckets rather than four, and a second case asserts the sum still reaches 23 in
+the era=Hate state where the new bucket is non-empty.
 
 **Verdict** — mechanism **CONFIRMED**, severity **AGREE**, scope **WIDER**.
 

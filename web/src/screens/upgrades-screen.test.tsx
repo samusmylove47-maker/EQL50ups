@@ -602,6 +602,63 @@ describe('every ranked row says where its EP came from', () => {
     expect(text()).toContain('Kunark era');
   });
 
+  /*
+   * "Nothing scored for Ear 2" — printed about a position where something did.
+   *
+   * A Lore item goes to exactly one position. `take()` skips a claimed
+   * candidate BEFORE the pricing callback that sets `consideredAny`, so a
+   * position whose whole positive pool was skipped that way looked identical to
+   * one with an empty pool and landed in the `nothing` bucket — rendered as
+   * "Nothing scored for X" and counted as "with nothing to offer". Both are
+   * false: it scored, and the sentence immediately before it had just explained
+   * the rule that took it away.
+   *
+   * Rendered rather than asserted on the report, and that distinction is not
+   * decorative: with the report bucket guarded but the prose left alone, the
+   * whole suite passed while the footnote printed the original false sentence
+   * about the new bucket. The sentence is the deliverable.
+   *
+   * The era filter is what isolates the contest. A first attempt seeded only
+   * the Lore item and expected the second ear to be empty-handed; it was not,
+   * because the two "Any Slot" wildcards are candidates for every position and
+   * gave it a fallback row. Narrowing to an era only this item carries leaves
+   * it as the entire pool for both ears and both Any Slots.
+   */
+  const LORE_STUD: Item = {
+    id: null,
+    n: '[Fixture] Lore Stud',
+    sl: ['EAR'],
+    cl: ['ALL'],
+    ra: ['ALL'],
+    st: { AC: 30, STA: 10 },
+    sv: {},
+    fl: ['FIXTURE', 'LORE'],
+    av: true,
+    // No other fixture item is of this era, so the filter below leaves this
+    // item and nothing else.
+    era: 'Hate',
+  };
+
+  it('says the candidate went elsewhere, not that nothing scored', async () => {
+    seedCatalog([LORE_STUD]);
+    const setId = build();
+    useApp.getState().configureSet(setId, {
+      filters: { era: 'Hate', source: 'any', hideNoDrop: false },
+    });
+    await render(`#/set/${setId}/upgrades`);
+
+    // The premise: exactly one position gets the single Lore copy.
+    const holders = rows().filter((r) => (r.textContent ?? '').includes(LORE_STUD.n));
+    expect(holders, 'one position takes the single Lore copy').toHaveLength(1);
+
+    // The positions that wanted it and lost are named as such...
+    expect(text()).toContain('is already spoken for elsewhere in this set');
+    expect(text()).toContain('taken elsewhere');
+    // ...and are NOT in the sentence that says nothing scored for them.
+    const nothingSentence = /Nothing scored for ([^.]*)\./.exec(text())?.[1] ?? '';
+    expect(nothingSentence).not.toMatch(/Ear|Any Slot/);
+  });
+
   it('leaves the existence mark alone — the two facts stay separate', async () => {
     const setId = build();
     await render(`#/set/${setId}/upgrades`);

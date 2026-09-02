@@ -167,7 +167,60 @@ describe.skipIf(!published)('Avenrae’s upgrades, against the shipped catalog',
 
   it('accounts for all 23 positions exactly once', () => {
     expect(
-      report.rows.length + report.withheld.length + report.settled + report.nothing.length,
+      report.rows.length + report.withheld.length + report.settled
+        + report.nothing.length + report.takenElsewhere.length,
+    ).toBe(23);
+  });
+
+  /*
+   * "Nothing scored for Any Slot 1, Any Slot 2" — printed about two positions
+   * where something did score.
+   *
+   * `take()` skips a candidate that another position already holds, and both
+   * of its skips happen BEFORE the pricing callback that sets `consideredAny`.
+   * So a position whose entire positive pool was skipped that way looked
+   * identical to one whose pool was empty, and landed in `nothing` — which the
+   * footnote renders as "Nothing scored for X" and the KPI counts as "with
+   * nothing to offer". Both are false for those positions.
+   *
+   * What makes it worse than clumsy is the sentence directly before it, which
+   * had just told the reader that "a Lore item is offered for one position
+   * only" — the very rule that took the candidate away. The paragraph explained
+   * the cause and then denied the effect.
+   *
+   * Measured over this fixture across 5 presets x 7 eras: 8 positions land this
+   * way, every one of them a Lore item claimed by a slot that gained more from
+   * it. The worn-elsewhere arm of the same skip is mechanically live and did
+   * not fire in that sweep, so the sentence names neither cause specifically.
+   */
+  const hate = computeUpgrades(state, slotViews(importedSet, state), CONTEXT, importedSet.weights, {
+    filters: { ...DEFAULT_SET_FILTERS, era: 'Hate' },
+    basis: { kind: 'worn' },
+    withheldSlots: withheldMap(imported),
+  });
+
+  it('says a position lost its candidate, rather than that nothing scored', () => {
+    // The premise: these two positions produce no row under this filter.
+    expect(hate.rows.map((r) => r.position.label)).not.toContain('Any Slot 1');
+    expect(hate.rows.map((r) => r.position.label)).not.toContain('Any Slot 2');
+
+    // Something DID score for them — the same item is on the page, elsewhere.
+    const axe = hate.rows.find((r) => r.candidate.item.n === 'Ashenbone Axe');
+    expect(axe, 'the Ashenbone Axe is ranked for some other position').toBeTruthy();
+    expect(isLore(axe!.candidate.item), 'and it is Lore, which is why only one slot gets it')
+      .toBe(true);
+
+    // So they are not "nothing scored".
+    expect(hate.nothing).not.toContain('Any Slot 1');
+    expect(hate.nothing).not.toContain('Any Slot 2');
+    expect(hate.takenElsewhere).toContain('Any Slot 1');
+    expect(hate.takenElsewhere).toContain('Any Slot 2');
+  });
+
+  it('still accounts for all 23 positions once the new bucket exists', () => {
+    expect(
+      hate.rows.length + hate.withheld.length + hate.settled
+        + hate.nothing.length + hate.takenElsewhere.length,
     ).toBe(23);
   });
 
