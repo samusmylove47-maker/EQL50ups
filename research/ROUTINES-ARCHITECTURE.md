@@ -1,8 +1,12 @@
 # Scheduled Routines — architecture, verbatim prompts, and what we learned
 
-Written 2026-09-02 at the owner's instruction, immediately **before** deleting the two
+Written 2026-09-02 at the owner's instruction, immediately **before** removing the two
 EQL Source hourly Routines. Deleting a Routine destroys its stored prompt, so this file
 exists so they can be rebuilt exactly rather than reinvented from memory.
+
+In the event only one of the two could be removed from here. The clock is gone; the
+observation sweep is still armed and this session has no way to stop it — §6.1 is that
+finding, and it is the most reusable thing in this file.
 
 > *"I do need for these timers to be removed or disabled for now. Remember their
 > architecture though, because I will want reliable timers made again in the future."*
