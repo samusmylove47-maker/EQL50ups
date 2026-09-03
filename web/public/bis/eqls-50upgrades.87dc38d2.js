@@ -158,26 +158,35 @@ var EQLS50Upgrades = (function(exports) {
 	function isUnrestricted(list) {
 		return list.length === 0 || list.includes("ALL");
 	}
-	/**
-	* `ALL_EXCEPT` marks a list whose remaining entries are exclusions rather than
-	* inclusions, mirroring the wiki's "ALL except X" phrasing.
-	*/
+	function readRestriction(list) {
+		if (isUnrestricted(list)) return { kind: "unrestricted" };
+		if (list.includes("NONE")) return { kind: "none" };
+		if (list.includes("ALL_EXCEPT")) return {
+			kind: "except",
+			codes: list.filter((v) => v !== "ALL_EXCEPT")
+		};
+		return {
+			kind: "only",
+			codes: [...list]
+		};
+	}
 	function matchesList(list, candidates) {
-		if (isUnrestricted(list)) return true;
-		if (list.includes("NONE")) return false;
-		if (list.includes("ALL_EXCEPT")) {
-			const excluded = list.filter((v) => v !== "ALL_EXCEPT");
-			return candidates.some((c) => !excluded.includes(c));
+		const reading = readRestriction(list);
+		switch (reading.kind) {
+			case "unrestricted": return true;
+			case "none": return false;
+			case "except": return candidates.some((c) => !reading.codes.includes(c));
+			case "only": return candidates.some((c) => reading.codes.includes(c));
 		}
-		return candidates.some((c) => list.includes(c));
 	}
 	/** An item is usable when any one of the loadout's classes qualifies. */
 	function canUseClass(item, ctx) {
 		return matchesList(item.classes, ctx.classes);
 	}
 	function canUseRace(item, ctx) {
-		if (isUnrestricted(item.races)) return true;
-		if (item.races.includes("NONE")) return false;
+		const reading = readRestriction(item.races);
+		if (reading.kind === "unrestricted") return true;
+		if (reading.kind === "none") return false;
 		if (!ctx.race) return true;
 		return matchesList(item.races, [ctx.race]);
 	}

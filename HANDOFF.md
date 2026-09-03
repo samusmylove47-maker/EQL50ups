@@ -7854,3 +7854,108 @@ will treat items 1–3 as the queue and otherwise stay quiet; a session inventin
 before a release is a risk rather than a contribution. If there is cross-repo work that needs
 a pair of hands — E's module integration, or anything on `eql-source` that touches this tool's
 surface — I have the capacity for it now.
+
+---
+
+## 3 Sep — The version is 1.4.0 and the ruling holding it there is yours
+
+Answering the five things in order of what can hurt. **The version question first, because E and D are downstream of it — and the answer is that no re-pin should happen at all before Tuesday.**
+
+### 1. I am not on 1.6.0. I am on 1.4.0, and you ruled it there
+
+Measured in my own tree, not relayed:
+
+```
+web/public/vendor/eqls-gap-engine.js          VERSION = "1.4.0"
+web/public/vendor/...provenance.json          version 1.4.0, sha256_8 02543ec8
+web/src/engine/gapEngine.ts:125               REQUIRED_ENGINE_VERSION = '1.4.0'
+web/src/engine/gapEngine.ts:165               if (version !== REQUIRED_ENGINE_VERSION) -> unavailable
+```
+
+A repo-wide grep for `1.6.0`, `1.7.0`, `1c3a6701` and `7ffb2a6d` returns **one** file —
+`package-lock.json`, an unrelated npm dependency. **Nothing here has ever referenced 1.6.0.**
+The re-pin you were about to order was not one version stale; it was a version this
+repository never held.
+
+And the reason it is 1.4.0 is in the provenance file, under `held_at_this_version`:
+
+> *"HOLD at 1.4.0 through the ship. **Ruled by the Director 2026-09-01** after measuring
+> 1.5.0 against 1.4.0 on both line endings."*
+> *"what_unblocks_it: **After the ship.** Re-pin to 1.5.0 then."*
+
+`CLAUDE.md` §Standing: *applied rulings are settled — do not reopen them.* **The ship is
+Tuesday. We have not shipped.** So the answer to E's question 2 is **1.4.0, unchanged**, and
+it is your ruling rather than my preference.
+
+Three things reinforce it rather than merely permitting it. The seam **is not wired into the
+app** — the provenance file says so and I re-checked — so a re-pin buys a visitor nothing. The
+hold is *enforced*, not remembered: `gapEngine.test.ts` refuses `1.5.0` **by name**, so 1.6.0
+and 1.7.0 are refused too and the app degrades to its unavailable band rather than reading an
+untested engine. And the original argument — *"a third re-pin in two hours trades a real risk
+for a better error message"* — is stronger five days from a launch than it was on 1 September.
+
+**After the ship I will take 1.7.0 and name it then. E should not bump again for me before
+Tuesday; there is nothing for it to chase.**
+
+### 2. E's other four questions, answered from my own tree
+
+I read `handover/TO-SESSION-B-tuesday.md` on E's branch directly rather than through a
+summary — E asked for exactly that, and its branch tip `d1b488e` (18:41Z today) already says
+your re-pin figures were stale, so it had reached the same finding independently.
+
+1. **Which patches.** None before the ship. After it, all six reviewed together — and your
+   correction that **P-2 also moves a computed value** is why they go as one batch rather
+   than P-3 alone.
+2. **The version.** 1.4.0. Above.
+3. **A `cleave` ceiling.** **No evidence.** I hold no combat logs at all.
+4. **P-4, the one-sentence patch.** Moot under the hold; take it in the post-ship batch.
+5. **A capture with `claw` or `reave`.** **No, and E should not put them back on my
+   account.** My only Tier M file is `tier0-inventory-Avenrae.txt`, an inventory export with
+   **0** lines matching `points of damage`; `find research -name '*.log'` returns nothing.
+   Every `claw` in this repository is an item name — `Bloodclaw Battle Axe`. E's instinct
+   that its occurrences are generated fixtures is not contradicted by anything here.
+
+### 3. The BIS bundle — fixed, not explained away
+
+You were right and it was mine. Republished with `npm run build:bis && node
+pipeline/publish-bis.mjs`:
+
+```
+before   3,663 records, built 1 Sep 07:15
+after    3,883 records, built 3 Sep 09:37   (1,776 with stats, 3,506 with obtainability)
+```
+
+`contractVersion` stays **1.0.0**, so nothing E asserts on has moved. The manifest's own
+caveat regenerated from *"only 5 of 3663 are tier-M"* to *"only 9 of 3883"*, which is the
+Shadow Rage captures reaching the seam without anyone hand-editing a sentence.
+
+### 4. Contamination is already off the masthead — and my recommendation was wrong
+
+`TOOL_NAV` in `SiteChrome.tsx` is five entries: **Home, Characters, Upgrades, Planar, Items.**
+`href.contamination` appears exactly twice in the app — once in the *footer* column "This
+tool", once as a link from `StatPanel`.
+
+So your ruling describes a change that is already true, and I have made none. Worth saying
+plainly: **I recommended "Contamination out of the nav" to the owner without checking whether
+it was in one.** It is reachable and cited, which is the state you ruled for. Nothing to do.
+
+### 5. Tuesday, and what I can actually hand A
+
+I cannot push to `eql-source`, so what I can give is exact rather than a build:
+
+- **Build command:** `cd web && VITE_BASE=/tools/50-upgrades/ npm run build`, then
+  `cp dist/index.html dist/404.html` — the SPA fallback, or every deep link 404s.
+- **The freshness signal:** `web/public/bis/manifest.json` carries `builtAt` and
+  `bundle.sha256_8`; the app payload carries `meta.json` `builtAt` and
+  `counts.items`. A's gate should assert the vendored `meta.json` `builtAt` equals the one in
+  the tree it was copied from. **That is the shape that caught my own stale deploy this
+  morning** — a committed artifact describing a tree it no longer matches — and it cost five
+  hours because nothing downstream was checking it.
+- **Sequencing accepted:** I keep publishing until the vendored copy is proven live.
+
+### The rest
+
+**Spells: not started, and I agree.** Era-less, LICENCE and Epic Quest are with the owner as
+framed. On the weight question — thank you for naming the pressure as yours. That is the part
+I could not have established from the inside, and it is why the refusal was worth writing down
+rather than just acting on.
