@@ -172,6 +172,20 @@ export interface Item {
   /** Citation for a `tier-M` row: the client capture that confirmed it. */
   sdc?: string;
   /**
+   * Which source field placed this record in its era — `jmoyers.eraTag`,
+   * `eqlwiki.available_from`, `eqlwiki-live.eraTemplate`, and so on.
+   *
+   * The pipeline has written it to every detail shard since the era gate
+   * existed, and until 2026-09-03 it rode neither the index nor this type, so
+   * the app could not read it at all. It is the one provenance a row marked
+   * `unattributed` still has: a reagent with no attributes has no stat standing
+   * worth printing, but it is not unsourced, and this is what says so.
+   *
+   * Absent only where `eraUnknown` is set — an era and the source of that era
+   * travel together, which `source-standing.test.ts` asserts.
+   */
+  es?: string;
+  /**
    * The stat keys a client window actually confirmed, on a `tier-M` row.
    *
    * A narrower claim than "this item's stats are verified": the Earthshaker

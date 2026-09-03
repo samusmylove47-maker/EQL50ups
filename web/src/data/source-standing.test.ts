@@ -147,6 +147,50 @@ describe.skipIf(!published)('every shipped item states where its numbers came fr
     expect(exists).not.toBe(verified);
   });
 
+  /*
+   * Era provenance rides the index, and until 2026-09-03 it did not.
+   *
+   * `es` names the field that placed a record in its era. It has been written to
+   * every detail shard since the era gate existed and was absent from
+   * `INDEX_FIELDS`, so the browser listed thousands of rows carrying an era and
+   * not one of them could say where that era came from — the same defect as `rl`
+   * and `ex` before it, and for the same reason: a provenance mark that lives
+   * only on a hover window is a mark most rows never get.
+   *
+   * It matters most exactly where the STAT standing has least to say. A reagent
+   * with no attributes is `unattributed` and correctly so, but it is not
+   * unsourced, and this is the field that shows it.
+   *
+   * The invariant is the sharp form, not a coverage percentage: an era and the
+   * source of that era travel together, both present or both absent.
+   */
+  it('gives every row with an era the field that placed it there', () => {
+    const withEra = items.filter((i) => i.era);
+    expect(withEra.length).toBeGreaterThan(0);
+    expect(withEra.filter((i) => !i.es).map((i) => i.n)).toEqual([]);
+
+    // And the converse: a row with no era source has no era to explain, and
+    // says so rather than leaving the reader to infer it.
+    const noSource = items.filter((i) => !i.es);
+    expect(noSource.filter((i) => i.eraUnknown !== true).map((i) => i.n)).toEqual([]);
+  });
+
+  /*
+   * The rows the relaunch conversation was about.
+   *
+   * `unattributed` is a statement about SCOREABLE numbers — attributes, saves,
+   * weapon values — and for a reagent or a potion there are none, so the mark is
+   * right. It is not a statement that the record is unsourced, and reading it as
+   * one is what made a coverage gain look like a sourcing regression.
+   */
+  it('lets the unattributed rows name their era source anyway', () => {
+    const un = items.filter((i) => i.sd === 'unattributed');
+    const sourced = un.filter((i) => i.es);
+    // The overwhelming majority; the remainder are era-less by construction.
+    expect(sourced.length).toBeGreaterThan(un.length * 0.9);
+    expect(un.filter((i) => !i.es && i.eraUnknown !== true)).toEqual([]);
+  });
+
   it('publishes the same counts in meta, so the payload documents itself', () => {
     expect(meta.counts.standing).toEqual(EXPECTED_STANDING);
     expect(meta.counts.existence).toEqual(EXPECTED_EXISTENCE);

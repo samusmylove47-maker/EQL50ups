@@ -330,6 +330,10 @@ export function normalizeItem(raw: unknown, fallbackName?: string): Item | null 
     item.sd = raw.sd as SourceStanding;
   }
   if (typeof raw.sdc === 'string' && raw.sdc.trim()) item.sdc = raw.sdc.trim();
+  // Era provenance, beside stat provenance. See `Item.es`: this is the only
+  // source an `unattributed` row carries, and it was unreadable by the app
+  // until the field was added to the index and to this normaliser together.
+  if (typeof raw.es === 'string' && raw.es.trim()) item.es = raw.es.trim();
   const verifiedFields = stringList(raw.vf);
   if (verifiedFields.length) item.vf = verifiedFields;
 

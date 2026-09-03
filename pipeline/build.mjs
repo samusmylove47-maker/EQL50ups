@@ -2549,6 +2549,21 @@ const INDEX_FIELDS = [
   // one that appears only after they open it and its shard arrives. Seven
   // records carry it.
   'wikiOutOfEra',
+  /*
+   * `es` names which field placed this record in its era — and it is the one
+   * attribution the 1,638 rows marked `unattributed` actually have.
+   *
+   * It has been written to every shard since the era gate existed and has never
+   * ridden the index, so the browser listed 3,883 rows carrying an era and not
+   * one of them could say where the era came from. That is the same defect as
+   * `rl` and `ex` before it: a provenance mark that exists only on a hover
+   * window is a mark most rows never get.
+   *
+   * It matters most exactly where the stat standing has least to say. A potion
+   * with no attributes is `unattributed` and correctly so — but it is not
+   * unsourced, and `es` is the field that shows it.
+   */
+  'es',
 ];
 const DETAIL_OMIT = new Set(['key']);
 
@@ -2910,7 +2925,24 @@ const meta = {
         { code: STANDING_TIER_M, tier: 'M', means: 'the stat block was read off a live client window and agrees with what ships, field for field; `vf` lists the fields actually checked and `sdc` cites the capture' },
         { code: STANDING_TIER_2, tier: '2', means: 'structured wiki data for an item whose era places it inside this game' },
         { code: STANDING_TIER_5, tier: '5', means: 'wiki numbers with no era that places them in this game — the item ships on Tier M existence evidence alone, so its stat block may describe an original-EverQuest item of the same name. Marked on sight.' },
-        { code: STANDING_UNATTRIBUTED, tier: null, means: 'the row prints no sourced stat values: it never had any, or they are withheld (statsUnknown). Nothing to attribute, stated rather than left blank.' },
+        /*
+         * "no sourced stat values" was false as printed, for 1,616 of the 1,638
+         * rows wearing this mark.
+         *
+         * `hasSourcedNumbers` gates on `st`, `sv` and `wp` — the scoreable
+         * fields — and ignores `wt`. But `ItemWindow` prints a Weight row, and
+         * scales it through the same model the Shadow Rage captures verified
+         * field by field. So a potion carrying nothing but `wt: 0.4` was
+         * printing a number on screen under a sentence saying it printed none.
+         *
+         * Corrected in the sentence rather than in the gate. Widening
+         * `hasSourcedNumbers` to count weight would take this bucket from 42.2%
+         * of the catalogue to 0.6% — a defensible reading, and one that lands on
+         * a published figure two days before a relaunch, so it belongs to the
+         * owner rather than to whoever noticed it. The open question is in
+         * HANDOFF.md under 3 Sep; this line now says only what is true.
+         */
+        { code: STANDING_UNATTRIBUTED, tier: null, means: 'the row prints no sourced attribute, save or weapon values — it never had any, or they are withheld (statsUnknown). Weight and flags may still be shown, and come from the same source the record does. Nothing scoreable to attribute, stated rather than left blank.' },
       ],
       tiersNotPresent: {
         '1': 'no patch note supplies an item stat in this repository',

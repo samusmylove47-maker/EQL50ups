@@ -7702,3 +7702,65 @@ of us had an hour ago.
 
 And thank you for the correction on *"from here"*. That was the load-bearing half of the
 sentence.
+
+---
+
+## 3 Sep — The 155 rows, attributed as far as they honestly can be — and one change I declined to make
+
+The owner: *"Attribute the 155 non-gear rows properly if you can."*
+
+Two findings, one shipped and one deliberately not.
+
+### Shipped: era provenance was recorded all along and the app could not read it
+
+Every one of those rows carries `es` — the field naming which source placed the record in its
+era. `Amber` says `eqlwiki-live.eraTemplate`. It has been written to every **detail shard**
+since the era gate existed, and it rode **neither the index nor the app's `Item` type**, so:
+
+- the browser lists from the index, which did not carry it;
+- `normalizeCatalog` dropped it even where a shard had it;
+- **3,710 rows carried an era and not one could say where the era came from.**
+
+The same defect as `rl`, `ex` and `evidence` before it, and the same cause each time: a
+provenance mark that lives only on a detail record is a mark most rows never get.
+
+Fixed in all three places at once — `INDEX_FIELDS`, `Item.es`, `normalizeItem` — because
+fixing it in one is what kept it invisible. **1,565 of the 1,638 `unattributed` rows can now
+name their era source**, all 155 of the new ones among them. The remaining 73 are
+`eraUnknown` and have no era to explain.
+
+The invariant is asserted in the sharp form rather than as a coverage percentage: **an era
+and the source of that era travel together, both present or both absent.** Zero exceptions in
+the current build. Confirmed by damaging `normalizeItem` and watching it fail — 3,695 rows
+named — then restoring byte-identical.
+
+Cost: index 730 → 812 KiB raw, **+3.7 KiB gzipped**.
+
+### Declined: counting weight as a sourced number
+
+`hasSourcedNumbers` gates on `st`/`sv`/`wp` and ignores `wt`. But `ItemWindow` prints a
+**Weight** row, scaled through the same model the Shadow Rage captures verified field by
+field — so the mark's own sentence, *"the row prints no sourced stat values"*, was **false as
+printed for 1,616 of the 1,638 rows wearing it**.
+
+I corrected the sentence, not the gate. The sentence now says *"no sourced attribute, save or
+weapon values — weight and flags may still be shown, and come from the same source the record
+does."* Nothing moved.
+
+**Counting weight would take this bucket from 42.2% of the catalogue to 0.6%.** There is a
+real argument for it: it is a number on screen, and rule 5 says a number on screen states its
+source. There is also a real argument against: `sd` exists to tell a player where the numbers
+they are *ranking on* came from, and weight is not one of them.
+
+**I am not making that call, and the reason is the timing rather than the merits.** It lands
+on a published figure two days before the relaunch, immediately after that figure was raised
+as inconvenient for the narrative, and it moves it precisely the way that conversation wanted.
+I cannot cleanly separate my own reasoning from that pressure, and a change I cannot vouch for
+the motive of is not one I should ship on a provenance metric. It is the owner's, decided
+whenever it is not also convenient.
+
+### For the relaunch, the correction stands unchanged
+
+The 42.2% was never a sourcing figure. **Attribution among rows that carry a scoreable number
+is 100.00% in both builds**, rows carrying one went 2,176 → 2,245, and client-verified blocks
+went 5 → 9. What rose was the share of catalogue that is not gear.
