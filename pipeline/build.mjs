@@ -1096,6 +1096,26 @@ const rawV = existsSync(join(DATA, FILES.wikiEraVerdicts)) ? readJSON(FILES.wiki
  * evidence would admit ~7,100 titles on the strength of nobody having said
  * anything about them, which is the inference-as-confirmation mistake this
  * pipeline has already made once.
+ *
+ * **This is a disclosure, not a gate, and it was a gate for one day.**
+ *
+ * On 3 September 2026 it was wired to quarantine the seven items our own era
+ * ladder would otherwise ship. The owner corrected it the same day:
+ *
+ *   *"Can confirm that Miragul is in the game, and people are pre-questing many
+ *    of the Epic Weapons that release in Kunark. The final turn-in steps aren't
+ *    in the game yet, so the Epic Weapons won't arrive until Kunark, but many of
+ *    the early steps exist and people are actively completing them."*
+ *
+ * `Tome of Miragul` was one of the seven. So `outOfEra: true` does not mean the
+ * item is unobtainable either — it means the wiki has filed the page under an
+ * expansion, and this server has been seeded with content from expansions it
+ * has not formally reached. A Tier M report outranks a wiki tag, and this one
+ * did.
+ *
+ * What the verdict is still good for is saying so on the item. A reader looking
+ * at `Tome of Miragul` is better served by "the wiki files this under Kunark"
+ * than by either hiding it or pretending the disagreement does not exist.
  */
 const WIKI_OUT_OF_ERA = new Set((rawV?.outOfEra ?? []).map((n) => nameKey(n)));
 
@@ -1847,6 +1867,14 @@ for (const key of allKeys) {
     ...(wt != null ? { wt } : {}),
     ...(sz ? { sz } : {}),
     ...(era ? { era } : {}),
+    /*
+     * The wiki files this page under an expansion this server has not formally
+     * reached. Recorded, never acted on: the owner confirmed on 2026-09-03 that
+     * `Tome of Miragul` is in the game and that early Epic Quest steps are being
+     * completed, so the tag marks a disagreement worth showing rather than a
+     * reason to withhold anything. See `WIKI_OUT_OF_ERA`.
+     */
+    ...(WIKI_OUT_OF_ERA.has(key) ? { wikiOutOfEra: true } : {}),
     av,
     ...(eraUnknown ? { eraUnknown: true } : {}),
     ...(sl.length ? { an: 1 } : {}),       // ANY-eligible: any worn item may go in an "Any Slot" position
@@ -2028,27 +2056,6 @@ function shipDecision(rec) {
   const rank = ERA_RANK.get(rec.era);
   if (rank == null) return { ship: false, why: `unrecognised era: ${rec.era}` };
   if (rank > CURRENT_ERA_RANK) return { ship: false, why: `era:${rec.era}` };
-  /*
-   * The wiki's own verdict, and its position in this list is the argument.
-   *
-   * Every Tier M test above runs first, so an item somebody has watched drop or
-   * holds in a client export ships regardless of what the wiki says about it —
-   * where the game and a source disagree, the source is corrected.
-   *
-   * It runs LAST rather than first, and that is deliberate. Placed above the era
-   * ladder it also caught 4,333 items the ladder was already excluding, and
-   * replaced their reason — "Scars of Velious", "Ruins of Kunark" — with a
-   * generic one. The withheld page is read by players looking for an item they
-   * cannot find, and "it is Velious content" answers them where "the wiki says
-   * no" does not. So the verdict is used for the thing only it can do: catching
-   * items our own era ladder would have SHIPPED.
-   *
-   * That is seven of them, all shipping on an era of `Classic` the wiki
-   * explicitly contradicts — `Tome of Miragul`, whose page begins
-   * `{{Kunark Era}}`, among them. None carries any Tier M evidence, so nothing
-   * here overrides anything anybody observed.
-   */
-  if (WIKI_OUT_OF_ERA.has(rec.key)) return { ship: false, why: 'wiki marks it out of era' };
   return { ship: true, why: `era:${rec.era}` };
 }
 
@@ -2536,6 +2543,12 @@ const INDEX_FIELDS = [
   // `verify.mjs` now asserts the rule itself rather than this field, so the
   // next gate field is covered without anyone remembering to come back here.
   'rl',
+  // Same rule again, for the same reason. `wikiOutOfEra` says the wiki files
+  // this item under an expansion the server has not formally reached — a
+  // disagreement the reader should see beside the item's name in a list, not
+  // one that appears only after they open it and its shard arrives. Seven
+  // records carry it.
+  'wikiOutOfEra',
 ];
 const DETAIL_OMIT = new Set(['key']);
 
@@ -2691,12 +2704,6 @@ writeFileSync(
  * an unexplained withholding is exactly what this screen exists to prevent.
  */
 const WITHHELD_COPY = {
-  "wiki-out-of-era": {
-    why: "wiki marks it out of era",
-    title: "The wiki says it is not in this game",
-    line:
-      "The EQL wiki's own era data marks this page as out of era for EverQuest Legends, and no first-hand sighting contradicts it. That verdict is about this game specifically, which is why it outranks our reading of which original-EverQuest expansion the item came from — this server started from classic and then added things, so the expansion an item came from does not settle whether it is here. If you are holding one, the export importer will say so and the item belongs in the catalog.",
-  },
   "era-unplaced": {
     why: "no era in any source",
     title: "Era unplaced",

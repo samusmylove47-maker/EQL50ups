@@ -104,20 +104,49 @@ const num = (v) => {
   return m ? Number(m[0]) : null;
 };
 
+/**
+ * The wiki spells one class two ways.
+ *
+ * `Shadow Knight` appears on 76 spell pages and `Shadowknight` on 15. They are
+ * the same class — the owner confirmed it on 2026-09-03 — and the split is the
+ * wiki's own inconsistency rather than anything this parser introduced. Left
+ * alone it shows a Shadow Knight fifteen spells short, which is the kind of
+ * silent undercount nobody notices until a player asks where a spell went.
+ *
+ * Folded here, at the point of reading, so no consumer has to remember. Every
+ * other class name is passed through untouched: this is a correction of one
+ * known collision, not a general normaliser guessing at names it has not seen.
+ */
+const CLASS_ALIASES = new Map([['shadowknight', 'Shadow Knight']]);
+const canonClass = (raw) => {
+  const name = String(raw).trim();
+  return CLASS_ALIASES.get(name.toLowerCase().replace(/\s+/g, '')) ?? name;
+};
+
 /** `* [[Ranger]] - Level 49` -> `{ cls: 'Ranger', level: 49 }`. */
 function classesOf(v) {
   if (!v) return [];
   const out = [];
   for (const m of v.matchAll(/\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]\s*-\s*Level\s*(\d+)/gi)) {
-    out.push({ cls: m[1].trim(), level: Number(m[2]) });
+    out.push({ cls: canonClass(m[1]), level: Number(m[2]) });
   }
   // Some pages omit the wiki link and write the class bare.
   if (!out.length) {
     for (const m of v.matchAll(/\*\s*([A-Za-z ]+?)\s*-\s*Level\s*(\d+)/g)) {
-      out.push({ cls: m[1].trim(), level: Number(m[2]) });
+      out.push({ cls: canonClass(m[1]), level: Number(m[2]) });
     }
   }
-  return out;
+  /*
+   * Folding two spellings can leave one class twice on a page that used both.
+   * Keep the lowest level per class — a spell you can cast at 49 is not also a
+   * spell you cannot cast until 60.
+   */
+  const byClass = new Map();
+  for (const e of out) {
+    const seen = byClass.get(e.cls);
+    if (!seen || e.level < seen.level) byClass.set(e.cls, e);
+  }
+  return [...byClass.values()];
 }
 
 /**

@@ -57,18 +57,20 @@ const get = (name: string): Item => {
  * whose numbers a client confirms, so `unattributed` fell 1,643 -> 1,638 and
  * `tier-5` rose 126 -> 127 as the Tunic took its wiki block without a capture.
  *
- * On 3 September the wiki's own out-of-era verdicts removed seven items this
- * build had been shipping on an era of `Classic` the wiki contradicts, so
- * `tier-2` fell 2,109 -> 2,103 and `unattributed` 1,638 -> 1,637.
+ * On 3 September the wiki's own out-of-era verdicts briefly removed seven
+ * items shipping on an era of `Classic` the wiki contradicts, taking `tier-2`
+ * to 2,103. The owner reversed it the same day — `Tome of Miragul` was one of
+ * the seven and is in the game — so the verdict became a disclosure rather
+ * than a gate and the counts returned to where they were.
  */
 const EXPECTED_STANDING = {
   'tier-M': 9,
-  'tier-2': 2103,
+  'tier-2': 2109,
   'tier-5': 127,
-  unattributed: 1637,
+  unattributed: 1638,
 } as const;
 /*
- * 3,876 — ten more than the 3,866 the purge ships, and the ten are the point.
+ * 3,883 — ten more than the 3,873 the purge ships, and the ten are the point.
  *
  * An item can be in the game and in no wiki scrape: EQL Source measured it
  * dropping, or its ID table names it, or this repository's own client export
@@ -82,7 +84,7 @@ const EXPECTED_STANDING = {
  * `unattributed` absorbs all ten, because a record with no stats has nothing to
  * attribute. `tier-2` and `tier-5` are untouched: nothing here prints a number.
  */
-const EXPECTED_TOTAL = 3876;
+const EXPECTED_TOTAL = 3883;
 /**
  * Four marks now, in strength order, and the two new ones come from EQL Source's
  * own published datasets rather than from this repository.
