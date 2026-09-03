@@ -185,8 +185,8 @@ describe.skipIf(!existsSync(META))('the page renders the shipped provenance meta
   it('prints the era purge with its per-reason breakdown', async () => {
     const text = await render(<Sources />);
     expect(text).toContain('11,457');
-    expect(text).toContain('3,873');
-    expect(text).toContain('7,584');
+    expect(text).toContain('3,866');
+    expect(text).toContain('7,591');
     // The three biggest quarantine reasons, by name and by number.
     expect(text).toContain('era:Velious');
     expect(text).toContain('2,828');

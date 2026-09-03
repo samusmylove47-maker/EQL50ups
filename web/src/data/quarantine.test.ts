@@ -76,7 +76,7 @@ describe('the shipped withheld list', () => {
   });
 
   it('has prose for every reason, and claims absence only where the standard does', () => {
-    expect(Object.keys(index.reasons).length).toBe(8);
+    expect(Object.keys(index.reasons).length).toBe(9);
     for (const [code, reason] of Object.entries(index.reasons)) {
       expect(reason.why, code).toBeTruthy();
       expect(reason.title, code).toBeTruthy();
@@ -98,6 +98,21 @@ describe('the shipped withheld list', () => {
     // The era rules do make that claim, because the standard does.
     expect(index.reasons['kunark']?.line).toMatch(/does not have/i);
     expect(index.reasons['velious']?.line).toMatch(/does not have/i);
+
+    /*
+     * The ninth reason, added 2026-09-03, is the wiki's own verdict — and it is
+     * held to the era-unplaced standard rather than the expansion one.
+     *
+     * It withholds an item on somebody else's say-so about this specific game,
+     * not on a structural fact about which expansion exists. So the copy must
+     * attribute the claim rather than assert it flatly, and must tell a player
+     * holding one that the item belongs in the catalog. This server started
+     * from classic and then added things; a verdict is evidence, not proof.
+     */
+    const wikiOut = index.reasons['wiki-out-of-era'];
+    expect(wikiOut?.why).toBe('wiki marks it out of era');
+    expect(wikiOut?.line).toMatch(/wiki'?s own era data|the EQL wiki/i);
+    expect(wikiOut?.line).toMatch(/if you are holding one/i);
   });
 });
 

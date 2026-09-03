@@ -1,8 +1,8 @@
 {
   "v": 1,
   "generator": "pipeline/contamination.mjs",
-  "scannedAt": "2026-09-02T22:05:40.505Z",
-  "builtAt": "2026-09-02T22:05:40.203Z",
+  "scannedAt": "2026-09-03T01:07:54.293Z",
+  "builtAt": "2026-09-03T01:07:53.771Z",
   "principle": {
     "hit": "A hit is a question, not a verdict.",
     "hitBody": "EverQuest Legends kept a great deal of classic EverQuest intact, and most of these patterns are probably current. What a hit means is: this figure carries a convention from a game whose numbers we know changed, and nobody has checked this one.",
@@ -12,8 +12,8 @@
     "ourselvesBody": "Every EQL reference is part Project 1999 text describing a game that stopped existing in 2001, and this one is no exception. Other projects publish EQL item data and every one of them inherits the same classic text. A scanner that only finds someone else's rot is an attack ad. The only version worth having is the one that runs here first and publishes the result whatever it says."
   },
   "corpus": {
-    "catalogItems": 3883,
-    "indexCount": 3883,
+    "catalogItems": 3876,
+    "indexCount": 3876,
     "catalogFiles": 21,
     "opened": [
       "data/items-index.json",
@@ -50,14 +50,14 @@
     "excluded": "Test files are excluded from the source corpus: a test is not a surface, and counting its fixtures would pad this report with hits nobody can see. pipeline/quarantine.json is excluded too — the 7,599 items it holds are the ones we refused to ship, and scanning them would measure the wiki rather than us."
   },
   "headline": {
-    "unmarkedOnChangedMechanics": 2378,
+    "unmarkedOnChangedMechanics": 2371,
     "markedOnChangedMechanics": 3,
-    "classicFormats": 1181,
-    "classicFormatsUnmarked": 1048,
+    "classicFormats": 1177,
+    "classicFormatsUnmarked": 1044,
     "filesScanned": 110,
-    "statBlocksShipped": 2245,
+    "statBlocksShipped": 2239,
     "statBlocksCheckedAgainstTheGame": 9,
-    "note": "2347 of those 2378 — 99% — are the one signature \"flag-vocab\", which is a single unanswered question multiplied across the catalog rather than 2347 separate problems. The table below is the honest shape of this number."
+    "note": "2341 of those 2371 — 99% — are the one signature \"flag-vocab\", which is a single unanswered question multiplied across the catalog rather than 2341 separate problems. The table below is the honest shape of this number."
   },
   "groups": [
     {
@@ -195,9 +195,9 @@
       "group": "changed",
       "title": "Classic flag wording the client disagrees with",
       "corpus": "catalog",
-      "unmarked": 2347,
+      "unmarked": 2341,
       "marked": 0,
-      "total": 2347,
+      "total": 2341,
       "foundIn": [
         {
           "file": "data/items/OTHER.json",
@@ -206,7 +206,7 @@
         },
         {
           "file": "data/items/PRIMARY.json",
-          "unmarked": 478,
+          "unmarked": 473,
           "marked": 0
         },
         {
@@ -216,7 +216,7 @@
         },
         {
           "file": "data/items/CHEST.json",
-          "unmarked": 122,
+          "unmarked": 121,
           "marked": 0
         },
         {
@@ -310,7 +310,7 @@
       "legends": "The live client renders \"Lore Equipped / No Trade / Placeable\" for Earthshaker, where this catalog holds LORE / MAGIC. Both of the two items ever sampled against a client window came back contradicted. meta.dataReliability.flags rates the whole vocabulary low confidence and sets doNotUseAsAuthoritativeFilter — and MAGIC appears on zero modern-convention wiki pages and in zero client screenshots, so it may be a classic concept Legends no longer surfaces.",
       "settle": "One screenshot of an item tooltip whose wiki page uses the modern convention. The Castle Mistmoore revamp lands new item pages tomorrow: those pages will be authored under the current convention, which is exactly the sample this question has been waiting for.",
       "findings": [
-        "Flag frequencies in the shipped catalog: LORE 1476, MAGIC 1402, NO_DROP 945, QUEST 387, NO_TRADE 139, ATTUNEABLE 105, LORE_EQUIPPED 97, EXPENDABLE 92, TEMPORARY 85, PLACEABLE 40, NO_RENT 6.",
+        "Flag frequencies in the shipped catalog: LORE 1473, MAGIC 1397, NO_DROP 944, QUEST 387, NO_TRADE 139, ATTUNEABLE 105, LORE_EQUIPPED 97, EXPENDABLE 92, TEMPORARY 85, PLACEABLE 40, NO_RENT 6.",
         "NO_DROP and NO_TRADE co-occur on 10 shipped items. meta.dataReliability reports zero co-occurrence across the 7,813 wiki pages carrying a flag line, so either those items were merged from two sources of different vintage, or the two spellings are two restrictions after all. Whichever it is, the merge is ours and the contradiction is ours.",
         "38 items carry a legacy-only flag and a modern-only flag at once, so the clean partition meta.dataReliability found across wiki pages does not hold across every shipped item."
       ]
@@ -320,18 +320,17 @@
       "group": "changed",
       "title": "Monk fist weapons skilled as blunt",
       "corpus": "catalog",
-      "unmarked": 4,
+      "unmarked": 3,
       "marked": 1,
-      "total": 5,
+      "total": 4,
       "foundIn": [
         {
           "file": "data/items/PRIMARY.json",
-          "unmarked": 4,
+          "unmarked": 3,
           "marked": 1
         }
       ],
       "examples": [
-        "Bloodclaw Mace — wiki says 1H Blunt",
         "Brass Knuckles — wiki says 1H Blunt",
         "Whitened Treant Fists — wiki says 1H Blunt (Tier M eyebrow scopes it)",
         "Wu's Fist of Mastery — wiki says 1H Blunt",
@@ -342,8 +341,7 @@
       "legends": "The client shows Hand to Hand for Whitened Treant Fists, where all four independent scrapes and the wiki page category say 1H Blunt. Only 11 items in the whole catalog carry Hand to Hand and all are low damage; the high-end Monk fist gear is uniformly skilled 1H Blunt, which is not a shape a real weapon table has.",
       "settle": "Four client tooltips — one per suspect. Each is a single screenshot and each ends one row of this table permanently.",
       "findings": [
-        "Applying the published suspectRule to the shipped catalog selects 5 items: Bloodclaw Mace, Brass Knuckles, Whitened Treant Fists, Wu's Fist of Mastery, Wu's Tranquil Fist.",
-        "meta.dataReliability.weaponSkill.suspectCount publishes 4. The difference is the rule, not the catalog: \"claw\" matches Bloodclaw Mace, which is a mace. The published rule over-selects by one and the published count was pruned by hand somewhere the rule does not record.",
+        "Applying the published suspectRule to the shipped catalog selects 4 items: Brass Knuckles, Whitened Treant Fists, Wu's Fist of Mastery, Wu's Tranquil Fist.",
         "No weapon has been moved between skills in this build. The wiki spelling ships as the wiki spells it, which is the correct behaviour for a source we suspect but cannot yet correct."
       ]
     },
@@ -352,18 +350,18 @@
       "group": "format",
       "title": "Resists abbreviated SV MAGIC +N",
       "corpus": "catalog",
-      "unmarked": 777,
+      "unmarked": 773,
       "marked": 6,
-      "total": 783,
+      "total": 779,
       "foundIn": [
         {
           "file": "data/items/PRIMARY.json",
-          "unmarked": 87,
+          "unmarked": 84,
           "marked": 0
         },
         {
           "file": "data/items/CHEST.json",
-          "unmarked": 67,
+          "unmarked": 66,
           "marked": 0
         },
         {
@@ -462,7 +460,7 @@
       "legends": "Partly settled, and in our favour. The live client's own Stats window prints \"SV Void 126/1000\" (research/validation/UI-REFERENCE.md §B1), so the abbreviation is current in Legends and Void is a real sixth resist that classic never had. What is still unchecked is whether item tooltips use the same abbreviation, and whether these particular numbers are Legends numbers — the presence of the convention marks a block transcribed from a classic-era record, which is worth knowing even when every figure in it is right.",
       "settle": "Compare one shipped resist block against the item in game.",
       "findings": [
-        "783 resist figures ship across 503 items.",
+        "779 resist figures ship across 500 items.",
         "Exactly one has ever been checked: Cloak of Flames SV Fire, and it is the sample that corrected this project's exaltation rounding rule from rounding to truncation.",
         "The sixth resist is the evidence that this vocabulary is live rather than inherited: an import from a 2001 game could not have produced a Void column.",
         "The abbreviation is also this app's internal stat-key namespace — SV_MAGIC, SV_FIRE and the rest appear in 3 source files (web/src/data/fixture.ts, web/src/engine/ep.ts, web/src/selectors/gear.ts). Those are not counted above: a key in a weights map is not a figure printed to a reader."
@@ -705,7 +703,7 @@
       "findings": [
         "127 rows, and 0 of them are printed bare. This is the column the scanner exists to drive to zero, and on this signature it already is.",
         "188 shipped items carry no era from any source at all.",
-        "Stat provenance across the whole shipped catalog: tier-2 2109, unattributed 1638, tier-5 127, tier-M 9."
+        "Stat provenance across the whole shipped catalog: tier-2 2103, unattributed 1637, tier-5 127, tier-M 9."
       ]
     },
     {

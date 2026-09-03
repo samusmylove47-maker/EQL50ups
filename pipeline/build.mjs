@@ -1061,6 +1061,9 @@ const FILES = {
   // Live-wiki supplement; see pipeline/wiki-supplement.mjs. Optional: a clone
   // without it builds exactly the catalogue it built before.
   wikiSupplement: 'eqlwiki-supplement-2026-09-02.json',
+  // The wiki's own out-of-era verdicts; see pipeline/wiki-era-verdicts.mjs.
+  // Optional in the same way: absent, the purge behaves exactly as before.
+  wikiEraVerdicts: 'eqlwiki-era-verdicts-2026-09-03.json',
 };
 
 const rawJ = readJSON(FILES.jmoyers);
@@ -1069,6 +1072,32 @@ const rawN = readJSON(FILES.nathanbates);
 const rawE = readJSON(FILES.eqbuddy);
 const rawF = readJSON(FILES.focusEffects);
 const rawS = existsSync(join(DATA, FILES.wikiSupplement)) ? readJSON(FILES.wikiSupplement) : null;
+const rawV = existsSync(join(DATA, FILES.wikiEraVerdicts)) ? readJSON(FILES.wikiEraVerdicts) : null;
+
+/**
+ * Titles the wiki POSITIVELY marks as out of era for EverQuest Legends.
+ *
+ * Read from `action=eqlmetadata`, the wiki's own extension, at the
+ * `eraRevision` recorded in the vendored file. This is the wiki making a
+ * statement about *this game*, which is a stronger thing than the era text
+ * fields this pipeline otherwise transcribes — those describe original
+ * EverQuest content, and the owner's correction of 2026-09-02 is precisely
+ * that the two are not the same question:
+ *
+ *   "EQ Legends is built in the classic era, but they have brought certain
+ *    things from future expansions into classic, so this cannot be a rule,
+ *    rather a starting point. Start with EQ classic era, then verify."
+ *
+ * Only the `true` verdicts are vendored, and only they are used. `outOfEra`
+ * comes back `false` for any page the wiki has not tagged at all — measured on
+ * `10 Dose Ant's Potion`, a crafted item with no era template, no drop zone and
+ * no era signal, which the API still calls `false`. So a `false` is the absence
+ * of a mark and never evidence that an item is in the game. Treating it as
+ * evidence would admit ~7,100 titles on the strength of nobody having said
+ * anything about them, which is the inference-as-confirmation mistake this
+ * pipeline has already made once.
+ */
+const WIKI_OUT_OF_ERA = new Set((rawV?.outOfEra ?? []).map((n) => nameKey(n)));
 
 const J_ITEMS = rawJ.items ?? rawJ;                       // dict keyed by lowercased name
 const W_ITEMS = rawW.items ?? rawW;                       // array
@@ -1998,8 +2027,29 @@ function shipDecision(rec) {
   if (rec.era == null) return { ship: false, why: 'no era in any source' };
   const rank = ERA_RANK.get(rec.era);
   if (rank == null) return { ship: false, why: `unrecognised era: ${rec.era}` };
-  if (rank <= CURRENT_ERA_RANK) return { ship: true, why: `era:${rec.era}` };
-  return { ship: false, why: `era:${rec.era}` };
+  if (rank > CURRENT_ERA_RANK) return { ship: false, why: `era:${rec.era}` };
+  /*
+   * The wiki's own verdict, and its position in this list is the argument.
+   *
+   * Every Tier M test above runs first, so an item somebody has watched drop or
+   * holds in a client export ships regardless of what the wiki says about it —
+   * where the game and a source disagree, the source is corrected.
+   *
+   * It runs LAST rather than first, and that is deliberate. Placed above the era
+   * ladder it also caught 4,333 items the ladder was already excluding, and
+   * replaced their reason — "Scars of Velious", "Ruins of Kunark" — with a
+   * generic one. The withheld page is read by players looking for an item they
+   * cannot find, and "it is Velious content" answers them where "the wiki says
+   * no" does not. So the verdict is used for the thing only it can do: catching
+   * items our own era ladder would have SHIPPED.
+   *
+   * That is seven of them, all shipping on an era of `Classic` the wiki
+   * explicitly contradicts — `Tome of Miragul`, whose page begins
+   * `{{Kunark Era}}`, among them. None carries any Tier M evidence, so nothing
+   * here overrides anything anybody observed.
+   */
+  if (WIKI_OUT_OF_ERA.has(rec.key)) return { ship: false, why: 'wiki marks it out of era' };
+  return { ship: true, why: `era:${rec.era}` };
 }
 
 const quarantined = [];
@@ -2641,6 +2691,12 @@ writeFileSync(
  * an unexplained withholding is exactly what this screen exists to prevent.
  */
 const WITHHELD_COPY = {
+  "wiki-out-of-era": {
+    why: "wiki marks it out of era",
+    title: "The wiki says it is not in this game",
+    line:
+      "The EQL wiki's own era data marks this page as out of era for EverQuest Legends, and no first-hand sighting contradicts it. That verdict is about this game specifically, which is why it outranks our reading of which original-EverQuest expansion the item came from — this server started from classic and then added things, so the expansion an item came from does not settle whether it is here. If you are holding one, the export importer will say so and the item belongs in the catalog.",
+  },
   "era-unplaced": {
     why: "no era in any source",
     title: "Era unplaced",

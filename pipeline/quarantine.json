@@ -3,10 +3,10 @@
  "rule": "ships iff pre-Kunark era, or Tier M evidence places it in the game",
  "counts": {
   "before": 11457,
-  "shipped": 3873,
-  "quarantined": 7584,
+  "shipped": 3866,
+  "quarantined": 7591,
   "shipReasons": {
-   "era:Classic": 2852,
+   "era:Classic": 2845,
    "era:Sky": 324,
    "in-live-inventory": 284,
    "measured dropping in game": 175,
@@ -26,7 +26,8 @@
    "era:Chardok Revamp": 145,
    "era:FearHateRevamp": 53,
    "wiki flags non_legends": 26,
-   "era:Luclin": 12
+   "era:Luclin": 12,
+   "wiki marks it out of era": 7
   }
  },
  "items": [
@@ -9691,6 +9692,27 @@
    "why": "era:Velious"
   },
   {
+   "key": "bloodclaw battle axe",
+   "n": "Bloodclaw Battle Axe",
+   "era": "Classic",
+   "sl": [
+    "PRIMARY",
+    "SECONDARY"
+   ],
+   "cl": [
+    "WAR",
+    "BRD",
+    "PAL",
+    "RNG",
+    "ROG",
+    "SHD"
+   ],
+   "ra": [
+    "ALL"
+   ],
+   "why": "wiki marks it out of era"
+  },
+  {
    "key": "bloodclaw dagger",
    "n": "Bloodclaw Dagger",
    "era": "Velious",
@@ -9731,6 +9753,31 @@
     "ALL"
    ],
    "why": "era:Velious"
+  },
+  {
+   "key": "bloodclaw mace",
+   "n": "Bloodclaw Mace",
+   "era": "Classic",
+   "sl": [
+    "PRIMARY",
+    "SECONDARY"
+   ],
+   "cl": [
+    "WAR",
+    "BRD",
+    "CLR",
+    "DRU",
+    "MNK",
+    "PAL",
+    "RNG",
+    "ROG",
+    "SHD",
+    "SHM"
+   ],
+   "ra": [
+    "ALL"
+   ],
+   "why": "wiki marks it out of era"
   },
   {
    "key": "bloodclaw rapier",
@@ -10041,6 +10088,21 @@
     "NONE"
    ],
    "why": "era:Velious"
+  },
+  {
+   "key": "blue crystal staff",
+   "n": "Blue Crystal Staff",
+   "era": "Classic",
+   "sl": [
+    "PRIMARY"
+   ],
+   "cl": [
+    "WIZ"
+   ],
+   "ra": [
+    "ALL"
+   ],
+   "why": "wiki marks it out of era"
   },
   {
    "key": "blue diamond electrum earring",
@@ -34888,6 +34950,27 @@
    "why": "era:Velious"
   },
   {
+   "key": "fanged skull stiletto",
+   "n": "Fanged Skull Stiletto",
+   "era": "Classic",
+   "sl": [
+    "PRIMARY",
+    "SECONDARY"
+   ],
+   "cl": [
+    "ALL_EXCEPT",
+    "CLR",
+    "DRU",
+    "MNK",
+    "PAL",
+    "SHM"
+   ],
+   "ra": [
+    "ALL"
+   ],
+   "why": "wiki marks it out of era"
+  },
+  {
    "key": "fangorth",
    "n": "Fangorth",
    "era": null,
@@ -39728,6 +39811,19 @@
     "ALL"
    ],
    "why": "era:Velious"
+  },
+  {
+   "key": "frosty cave trout",
+   "n": "Frosty Cave Trout",
+   "era": "Classic",
+   "sl": [],
+   "cl": [
+    "ALL"
+   ],
+   "ra": [
+    "ALL"
+   ],
+   "why": "wiki marks it out of era"
   },
   {
    "key": "frosty key",
@@ -107490,6 +107586,25 @@
    "why": "era:Epic Quests"
   },
   {
+   "key": "tome of miragul",
+   "n": "Tome of Miragul",
+   "era": "Classic",
+   "sl": [
+    "PRIMARY",
+    "SECONDARY"
+   ],
+   "cl": [
+    "ENC",
+    "MAG",
+    "NEC"
+   ],
+   "ra": [
+    "ALL_EXCEPT",
+    "IKS"
+   ],
+   "why": "wiki marks it out of era"
+  },
+  {
    "key": "tome of tash",
    "n": "Tome of Tash",
    "era": null,
@@ -115974,6 +116089,23 @@
     "ALL"
    ],
    "why": "era:Kunark"
+  },
+  {
+   "key": "withered leather tunic",
+   "n": "Withered Leather Tunic",
+   "era": "Classic",
+   "sl": [
+    "CHEST"
+   ],
+   "cl": [
+    "CLR",
+    "DRU",
+    "SHM"
+   ],
+   "ra": [
+    "ALL"
+   ],
+   "why": "wiki marks it out of era"
   },
   {
    "key": "withered manisi leaf",
