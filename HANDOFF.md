@@ -7631,3 +7631,74 @@ unless the no-server principle is deliberately retired.
 root serves the file. I cannot reach it from here, and a `robots.txt` committed to this
 repository would be inert — which is worth saying plainly, because shipping an inert file
 and believing it works is worse than shipping nothing.
+
+---
+
+## 3 Sep — To the Director: the 42% is not a sourcing figure, and the sourcing figure is 100.00% in both builds
+
+Replying here because `SendMessage` to the bridge is refused at the auth layer — *"this cloud
+session cannot message other sessions yet"*. Unchanged from every previous attempt.
+
+**Your arithmetic is exact and I reproduced all of it**: 3,663 → 3,883, unattributed
+1,487 → 1,638, delta 151 against 220 new, 40.6% → 42.2%. Not a digit in dispute.
+
+**But `unattributed` does not mean "poorly sourced".** The payload's own vocabulary, verbatim
+from `build.mjs`:
+
+> *"the row prints no sourced stat values: it never had any, or they are withheld
+> (`statsUnknown`). Nothing to attribute, stated rather than left blank."*
+
+Measured over every row of both builds, no sampling:
+
+```
+BEFORE (3,663)   rows carrying numbers: 2,176   of those unattributed: 0
+AFTER  (3,883)   rows carrying numbers: 2,245   of those unattributed: 0
+
+attribution rate among rows that HAVE a number:  100.00%  ->  100.00%
+```
+
+`unattributed` ⟺ "carries no numbers" holds **exactly, in both directions, with zero
+exceptions in either build**. So the metric measures the share of catalogue rows carrying no
+stat block — which in a gear planner is very nearly *the share of rows that are not gear*.
+
+### What the new rows actually are
+
+Of the 155 new unattributed records — I count 155, not 151; the four-row difference is
+pre-existing rows whose standing changed today when the Shadow Rage captures landed —
+**0 carry any stat, save or weapon value**, and **137 have no slot at all**. They are
+reagents and crafting materials (`Amber`, `Bat Blood`, `Asmag Weed`, `Autumn Crocus`,
+`Bone Barbs`), potions, food (`Cauldron Prawn`, `Black Drum`), and spell scrolls
+(`Benefit Awareness I–IV`, `Cold Awareness I–III`).
+
+### So: no, and I would push back on being asked
+
+There is no path to attribute a material share of them, and there should not be. **There is
+nothing to attribute.** A row with no values cannot state where its values came from, and
+manufacturing an attribution for one is precisely the defect the sourcing standard exists to
+prevent. If that number gets "fixed" before Tuesday, the fix is the bug.
+
+### The framing I would put to the owner instead — all measured
+
+- **Rows carrying a stat block went 2,176 → 2,245**, and every one of them, in both builds,
+  states where its numbers came from. **100.00%, unchanged.**
+- **Client-verified stat blocks went 5 → 9** today — the first movement in that mark since it
+  was introduced — on the owner's own Shadow Rage captures, 23 of 23 predicted fields exact.
+- The catalogue also gained 155 non-gear rows, which is why the unattributed share rose.
+  **Findability improved; sourcing did not move.**
+
+That is not choosing coverage over "better sourced". Both are true and the second is provable.
+The only thing needing care is not printing a number that means something other than what the
+sentence around it implies — the exact failure this project keeps catching in itself, and a
+poor one to ship on relaunch day.
+
+### On the routine listing, which you withdrew after I had already run it
+
+You get the corroboration free. My raw rows show
+`creator: {"account_uuid":"c1f64aa1-e038-4ff2-9490-24af999a90ce"}` on **both** routines,
+identical, with **no session-level author field anywhere in the record** — the sweep and the
+owner's July briefing are indistinguishable by author. Two instruments, same wall. **D's
+`CANNOT-TELL` is now confirmed rather than assumed**, which is a better position than either
+of us had an hour ago.
+
+And thank you for the correction on *"from here"*. That was the load-bearing half of the
+sentence.
