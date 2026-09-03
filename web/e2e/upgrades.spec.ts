@@ -245,3 +245,92 @@ test('never claims more items are unmeasured than the settled page shows', async
   // And the sentence must really be reachable, or this passes vacuously.
   expect(NOBODY.test(await page.evaluate(() => document.body.innerText))).toBe(true);
 });
+
+/*
+ * The zone rows must not print one column over the next.
+ *
+ * Found by photographing this screen for the site's tool page, not by a test.
+ * `.upg-zoneseen` carried `white-space: nowrap` inside a 140px grid track, and
+ * its longest form — `16 sightings · 6 unplaced` — is wider than that. The text
+ * left its cell rather than wrapping and overprinted the column beside it, so
+ * the flagship screen read `6 unplacedPARTIAL SURVEY`.
+ *
+ * TWO THINGS THIS TEST HAD TO GET RIGHT, AND GOT WRONG FIRST.
+ *
+ * It is asserted **geometrically**, not by reading text. A string check passes
+ * on any wording that still collides, which is how every existing guard on this
+ * screen missed it: they all read content, and none could see two boxes
+ * occupying the same pixels.
+ *
+ * And the fixture must actually produce the long form. The first version used a
+ * bare character and passed with the bug deliberately reinstated — the rows it
+ * rendered were short enough to fit either way, so it asserted nothing. The
+ * `unplaced` clause only appears when a sighting spans more than one zone, so
+ * the test now refuses to pass unless it found one.
+ */
+test('no zone row prints one column over the next', async ({ page }) => {
+  await createCharacter(page, { name: 'Ashvane', classes: [15, 0, 7], level: '50' });
+  await page.getByRole('button', { name: /Auto-fill/i }).click();
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            Object.keys(
+              JSON.parse(localStorage.getItem('eqlups.state.v1') ?? '{}').sets?.[0]?.slots ?? {},
+            ).length,
+        ),
+      { timeout: 60_000 },
+    )
+    .toBeGreaterThan(15);
+
+  // Clear positions so the ranking has candidates, which is what puts measured
+  // drop zones on the page at all.
+  await page.evaluate(() => {
+    const key = 'eqlups.state.v1';
+    const lib = JSON.parse(localStorage.getItem(key) ?? '{}');
+    for (const set of lib.sets ?? []) {
+      for (const p of ['HEAD', 'CHEST', 'LEGS', 'FEET', 'HANDS', 'ARMS', 'WRIST_1', 'NECK', 'BACK']) {
+        delete set.slots[p];
+      }
+    }
+    localStorage.setItem(key, JSON.stringify(lib));
+  });
+  await page.goto('/#/upgrades');
+  await page.reload();
+  await settle(page);
+
+  const zones = page.locator('.upg-zone');
+  await expect(zones.first()).toBeVisible({ timeout: 20_000 });
+
+  /*
+   * The guard on the guard. Without this the whole test passes on a page whose
+   * rows are too short to collide — which it did, against the bug reinstated on
+   * purpose.
+   */
+  await expect(page.locator('.upg-zoneunplaced').first()).toBeVisible();
+
+  /*
+   * Measured as CONTENT OVERFLOWING ITS OWN BOX, not as two boxes intersecting.
+   *
+   * The second version of this test compared `getBoundingClientRect()` between
+   * neighbouring cells and passed with the bug reinstated, because the grid cell
+   * never moves: it stays 140px wide and it is the *text* that paints outside
+   * it. Element boxes cannot overlap in a grid row, so there was nothing there
+   * to find. `scrollWidth > clientWidth` is the thing that is actually true when
+   * a `nowrap` run is too wide for its track.
+   */
+  const overflowing = await zones.evaluateAll((rows) =>
+    rows.flatMap((row) =>
+      [...row.children]
+        .filter((c) => (c as HTMLElement).scrollWidth > (c as HTMLElement).clientWidth + 1)
+        .map(
+          (c) =>
+            `"${(c as HTMLElement).innerText.trim()}" needs ${(c as HTMLElement).scrollWidth}px ` +
+            `in a ${(c as HTMLElement).clientWidth}px cell`,
+        ),
+    ),
+  );
+
+  expect(overflowing).toEqual([]);
+});

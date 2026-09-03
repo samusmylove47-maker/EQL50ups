@@ -561,7 +561,8 @@
 
 .upg-zone {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 140px) minmax(0, 140px) minmax(0, 1fr);
+  /* Third track widened 140 -> 190px: see `.upg-zoneseen` below. */
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 140px) minmax(0, 190px) minmax(0, 1fr);
   align-items: baseline;
   gap: var(--s1) var(--s3);
   padding: var(--s1) 0;
@@ -582,7 +583,30 @@
   font-size: var(--fs-small);
   font-variant-numeric: tabular-nums;
   color: var(--text-faint);
+}
+
+/* `7 of 11 listed` is short and reads better held on one line. */
+.upg-zonecount {
   white-space: nowrap;
+}
+
+/*
+ * `.upg-zoneseen` must NOT be `nowrap`, and this cost a screenshot.
+ *
+ * It shares a 140px grid track with nothing to spare, and its longest form —
+ * `16 sightings · 6 unplaced` — is wider than that in mono at `--fs-small`.
+ * With `nowrap` the text left its cell rather than wrapping inside it and
+ * printed over the survey column beside it: `6 unplacedPARTIAL SURVEY`, on the
+ * flagship screen, found while photographing it for the site's tool page.
+ *
+ * The track is widened as well, so the common case still holds one line. The
+ * dropped `nowrap` is what makes the collision impossible rather than merely
+ * unlikely at this one viewport — a narrower column wraps now instead of
+ * overflowing.
+ */
+.upg-zoneseen {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .upg-zonecount b {

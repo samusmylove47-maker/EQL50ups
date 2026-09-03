@@ -26,12 +26,20 @@
  *     of the planner gives. The five presets are still there for a visitor with
  *     no saved set.
  *
- *  2. **It never ranks a piece nobody has measured.** Six Shadow Rage pieces are
- *     in this catalog because a live client holds them and the owner named the
- *     set; not one of them carries a stat block this project is willing to
- *     publish. They are listed, by name, under every slot they belong to, and
- *     they carry no score. The tool this replaces ranks three of them from a
- *     classic-era block.
+ *  2. **It never ranks a piece nobody has measured.** The rule, not a headcount:
+ *     a piece with no stat block this project is willing to publish is listed
+ *     by name under every slot it belongs to and carries no score, because a
+ *     zero beside measured numbers is a fabrication. The tool this replaces
+ *     ranks such pieces from a classic-era block.
+ *
+ *     Shadow Rage was the standing example and no longer is. It sat here on a
+ *     live client and the owner's word until 2026-09-03, when the owner supplied
+ *     client item windows for four of its seven pieces and read back a fifth;
+ *     the wiki's +0 blocks reproduce all 23 printed fields of the captured items
+ *     through this tool's own upgrade model, so those numbers now ship. Gloves
+ *     and Boots remain unphotographed and remain unscored. The screen's copy is
+ *     driven by `unmeasuredCount` rather than by this paragraph, which is why
+ *     the count going to zero no longer leaves a sentence asserting otherwise.
  *
  *  3. **It gates on race and level, not only class.** Rune Etched is Barbarian,
  *     Troll and Ogre only. A Shaman of any other race is offered it by the tool
@@ -491,13 +499,39 @@ export function PlanarGear() {
         </p>
       </header>
 
-      <Note tone="sig" lead="Nothing here is ranked that nobody has measured.">
-        Six Shadow Rage pieces are in this catalog because a live client holds them and the owner
-        named the set. No source publishes their numbers, so this tool offers them by name under
-        every slot they belong to and gives them <em>no score at all</em>. The tool this replaces
-        ranks three of them from a classic-era stat block. That makes our answer for a Berserker
-        look thinner than theirs, and it is the honest one: an absent stat is unknown, not zero.
-      </Note>
+      {/*
+        * This note used to say the Shadow Rage set is offered by name and given
+        * "no score at all", against a figure below that is COMPUTED. On
+        * 2026-09-03 the owner supplied client captures for four of its pieces
+        * and read back a fifth, so the count fell to zero and the paragraph
+        * above it went on asserting the opposite — a sentence and a number
+        * disagreeing on the same screen, which is the defect this repository
+        * keeps catching in itself.
+        *
+        * Both branches are now driven by `unmeasuredCount`. The claim only ever
+        * mattered while it was true, and it is worth keeping for the day a new
+        * unmeasured piece arrives.
+        */}
+      {unmeasuredCount > 0 ? (
+        <Note tone="sig" lead="Nothing here is ranked that nobody has measured.">
+          {count(unmeasuredCount)} planar {unmeasuredCount === 1 ? 'piece is' : 'pieces are'} in
+          this catalog on existence evidence alone. No source publishes their numbers, so this tool
+          offers them by name under every slot they belong to and gives them{' '}
+          <em>no score at all</em>. An absent stat is unknown, not zero — so our answer can look
+          thinner than a tool that ranks them from a classic-era stat block, and it is the honest
+          one.
+        </Note>
+      ) : (
+        <Note tone="sig" lead="Every piece on this page carries numbers somebody checked.">
+          The Shadow Rage set was the exception for a fortnight: held here on a live client and the
+          owner&apos;s word, offered by name and refused a rank, because no source published its
+          numbers. On 3 September the owner supplied client item windows for four of its pieces and
+          read back a fifth. Pushing the wiki&apos;s +0 blocks through this tool&apos;s own upgrade
+          model reproduces all 23 printed fields of the captured items exactly, so the numbers are
+          no longer withheld. Two pieces — Gloves and Boots — are still unphotographed, and they
+          are not on this page rather than being guessed at.
+        </Note>
+      )}
 
       <div className="pl-callouts">
         <Callout figure={count(pieces.length)} label="pieces resolved out of this catalog" tone="plain">
@@ -511,7 +545,10 @@ export function PlanarGear() {
           tone={unmeasuredCount ? 'bad' : 'good'}
         >
           A piece with no published stats would score zero against any weights, and a zero sitting
-          in a ranking beside measured numbers is a fabrication. These are listed and left unscored.
+          in a ranking beside measured numbers is a fabrication.{' '}
+          {unmeasuredCount > 0
+            ? 'These are listed and left unscored.'
+            : 'Nothing on this page is in that position today.'}
         </Callout>
         <Callout figure={`${covered} of 23`} label="worn positions these sets can fill" tone="plain">
           The planar sets carry no rings and no earrings, and nothing for eleven other positions
