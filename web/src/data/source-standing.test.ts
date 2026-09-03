@@ -277,7 +277,7 @@ describe.skipIf(!published)('the standing follows from evidence, never from a gu
     expect(withheld.length).toBe(12);
     for (const item of withheld) {
       expect(item.sd, `${item.n}`).toBe('unattributed');
-      expect(sourceStanding(item).label).toBe('Unattributed · stats withheld');
+      expect(sourceStanding(item).label).toBe('Stats withheld · known item, numbers not published');
       // Confirmed to exist, and with no sourced numbers. Both halves are said,
       // separately, and neither is left to be inferred from the other.
       expect(item.evidence ?? '', `${item.n} evidence`).not.toBe('');
@@ -437,15 +437,15 @@ describe('the normaliser carries provenance and refuses to invent it', () => {
 
   it('reads an absent standing as unattributed, never as silence', () => {
     const item = normalizeItem({ n: 'Rusty Dagger', st: { AC: 1 } });
-    expect(sourceStanding(item!).label).toBe('Unattributed · no sourced stats');
+    expect(sourceStanding(item!).label).toBe('No scoreable stats · nothing to attribute');
     // Including in the short form a table cell would use: a word, not a dash.
-    expect(sourceStanding(item!).short).toBe('Unattributed');
+    expect(sourceStanding(item!).short).toBe('No stats');
   });
 
   it('offers a short form for surfaces with no room for the eyebrow', () => {
     const shorts = (['tier-M', 'tier-2', 'tier-5', 'unattributed'] as const).map(
       (sd) => sourceStanding({ ...({} as Item), n: 'x', sd }).short,
     );
-    expect(shorts).toEqual(['Tier M', 'Tier 2', 'Tier 5', 'Unattributed']);
+    expect(shorts).toEqual(['Tier M', 'Tier 2', 'Tier 5', 'No stats']);
   });
 });

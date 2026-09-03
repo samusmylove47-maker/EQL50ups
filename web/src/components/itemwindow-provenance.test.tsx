@@ -156,7 +156,7 @@ describe('the accent band and eyebrow reach every row, not nine of them', () => 
   it('says withheld stats are withheld, and still vouches for the item', () => {
     const node = render(<ItemWindow item={SHADOW_RAGE_HELM} upgrade={tier(0)} />);
     const text = textOf(node);
-    expect(text).toContain('Unattributed · stats withheld');
+    expect(text).toContain('Stats withheld · known item, numbers not published');
     expect(text).toContain('Tier M · held in a live inventory');
     expect(text).toContain('Not known.');
     expect(standingAttr(node)).toBe('unattributed');
@@ -165,7 +165,7 @@ describe('the accent band and eyebrow reach every row, not nine of them', () => 
   it('states a standing even for a row the payload left blank', () => {
     const { sd: _drop, ex: _also, ...bare } = RUBICITE_BRACER;
     const node = render(<ItemWindow item={bare as Item} upgrade={tier(0)} />);
-    expect(textOf(node)).toContain('Unattributed · no sourced stats');
+    expect(textOf(node)).toContain('No scoreable stats · nothing to attribute');
     expect(standingAttr(node)).toBe('unattributed');
   });
 });

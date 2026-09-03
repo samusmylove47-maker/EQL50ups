@@ -183,14 +183,35 @@ const STANDING_LABELS: Record<SourceStanding, string> = {
   // Not "Kunark" and not "unknown era": the reader needs to know the *numbers*
   // are the thing that cannot be placed, because they are what is on screen.
   'tier-5': 'Tier 5 · wiki stats, era unplaced',
-  unattributed: 'Unattributed · no sourced stats',
+  /*
+   * NOT "Unattributed", and the word is the whole defect.
+   *
+   * The wire value stays `unattributed` — `bis-contract.ts` names it as a
+   * confidence input E reads, so changing it is a contract break — but no
+   * reader ever sees the wire value. They see this, and "Unattributed" means
+   * "unsourced" to anyone outside this pipeline.
+   *
+   * It misled a reader for real, which is why this changed. On 3 September the
+   * Director put "42% of the catalogue carries no source standing" in front of
+   * the owner as a sourcing failure, four days from a launch. The field was
+   * right and the reading was wrong, and the word is why: the bucket holds rows
+   * that print no SCOREABLE numbers — reagents, potions, spell scrolls, food —
+   * and every row that does print one states its source, in this build and the
+   * one before it, 100.00% both times.
+   *
+   * The test the new wording has to pass: a reader who sees only this label
+   * must not be able to conclude the catalogue is 42% unsourced.
+   */
+  unattributed: 'No scoreable stats · nothing to attribute',
 };
 
 const STANDING_SHORT: Record<SourceStanding, string> = {
   'tier-M': 'Tier M',
   'tier-2': 'Tier 2',
   'tier-5': 'Tier 5',
-  unattributed: 'Unattributed',
+  // Still a word rather than a dash — a dash is the silence this field exists
+  // to end — but a word that says what is absent rather than what failed.
+  unattributed: 'No stats',
 };
 
 /**
@@ -207,7 +228,7 @@ export function sourceStanding(item: Item): StandingMark {
     // sharper than "we have none", and the browser's own `NO STAT DATA` tag is
     // the same fact. Say the sharper thing where it is true.
     label: standing === 'unattributed' && item.statsUnknown
-      ? 'Unattributed · stats withheld'
+      ? 'Stats withheld · known item, numbers not published'
       : STANDING_LABELS[standing],
     short: STANDING_SHORT[standing],
   };

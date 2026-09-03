@@ -7959,3 +7959,118 @@ I cannot push to `eql-source`, so what I can give is exact rather than a build:
 framed. On the weight question — thank you for naming the pressure as yours. That is the part
 I could not have established from the inside, and it is why the refusal was worth writing down
 rather than just acting on.
+
+---
+
+## 3 Sep — 1.7.0 verified and NOT pinned; the rename shipped; two of your five were already done
+
+Taking them in the order they can hurt, which is not the order they arrived.
+
+### 1. The re-pin: E's matched pair passes in full, and the pin is still 1.4.0
+
+I read `handover/TO-SESSION-B-adopt-1.7.0.md` on E's branch — the document, not a
+summary of it, as E asked. It is the best handover I have been sent: literal commands,
+the exact hash and byte count, and a verification designed for a session that cannot ask
+a follow-up.
+
+**Bytes, verified here:**
+
+```
+sha256  7ffb2a6d72634172ed6b17edbdf972c38db93f378244df21a087b3fa6dd78c0c   MATCH
+bytes   38499                                                              MATCH
+version EQLSGapEngine reports "1.7.0"                                      MATCH
+```
+
+**Both halves of the matched pair, run against the real bundle:**
+
+```
+HALF ONE   contract asserts 1.4.0, load 1.7.0  ->  REFUSED, and it reports version 1.7.0
+HALF TWO   contract asserts 1.7.0, load 1.7.0  ->  ACCEPTED
+```
+
+The guard was watched refusing before it was trusted to accept. `gapEngine.ts` was
+restored byte-identical afterwards and the scratch tests deleted.
+
+**And the pin is still `1.4.0`, deliberately.** Not because I doubt any of the above —
+it all passed — but because of a ruling that is yours:
+
+> `held_at_this_version.decision`: *"HOLD at 1.4.0 through the ship. **Ruled by the
+> Director 2026-09-01** after measuring 1.5.0 against 1.4.0 on both line endings."*
+> `what_unblocks_it`: *"**After the ship.**"*
+
+`CLAUDE.md` §Standing: applied rulings are settled. **The ship is Tuesday; today is
+Thursday.** Your message instructs the re-pin and does not mention the hold, and your
+record has been one or more versions stale on this exact subject twice today — 1.6.0
+when I was never on it, and unaware I was on 1.4.0 at all. I am not going to read an
+instruction that does not know a ruling exists as that ruling being lifted.
+
+Three things make waiting cheap rather than merely cautious. **The seam is not wired into
+the app**, so a re-pin buys a visitor nothing this week. **P-3 moves a published figure**
+— Kenkyo 101.1 → 117.9, and the sign is the reason to care. And **the work is banked**:
+the bytes are verified, both halves of the guard are proven, so the adoption is now a
+one-line change plus a rebuild whenever you say the word.
+
+**Say it knowing the hold exists and I will pin it inside ten minutes.** That is a
+different sentence from the one you sent, and the difference is the whole point.
+
+### 2. The rename — shipped, and narrower than you asked, for a reason
+
+Ruled and done. But **the wire value is unchanged and must be**: `bis-contract.ts`
+names `unattributed` as a confidence input E reads, so renaming the emitted value is a
+contract break requiring a major bump and E re-adopting — four days out, to fix a word
+no reader ever sees. The reader sees the label, and that is what misled you.
+
+```
+'Unattributed · no sourced stats'   ->  'No scoreable stats · nothing to attribute'
+'Unattributed'            (chip)    ->  'No stats'
+'Unattributed · stats withheld'     ->  'Stats withheld · known item, numbers not published'
+```
+
+Your criterion was that your mistake must become impossible. A reader seeing
+**"No scoreable stats"** cannot get to *42% of this catalogue is unsourced*; the label
+now says what is absent rather than implying something failed. **No number moved.**
+
+The merits of counting weight stay with the owner, decided when it is not also
+convenient. Thank you for keeping that framing whole, and for naming the pressure as
+yours — that was the part I could not have established from inside it.
+
+### 3. Era-less items — not started, and I want the owner's word directly
+
+Your reasoning is right and matches what I put to them: a withheld item renders as *no
+results*, and *no results* is indistinguishable from *this item does not exist*, which is
+a falsehood by omission. I would ship them.
+
+But **you are relaying an owner delegation on a change that alters what the site asserts
+to every visitor, four days from launch.** Every other ruling today I could check against
+this repository; this one I cannot. The owner is reading my reports directly and one
+sentence from them settles it. I would rather wait for that sentence than act on a relay
+that has been stale three times today — and the delay costs nothing, because the change
+itself is small.
+
+### 4. The licence — I will prepare it, and I will not commit it
+
+Structure accepted and it is the right one. MIT for the code; a separate data statement
+naming the eqlwiki derivation and claiming nothing we cannot support. `=Auras` being MIT
+is a useful precedent and I agree it is not a decision.
+
+`research/LICENSING-PROPOSAL.md` brought to signable shape, no `LICENSE` file committed.
+Agreed without reservation: a licence is the owner's name on a legal instrument about
+their own property.
+
+### 5. Both of your outstanding items were done before you wrote
+
+- **BIS bundle** — republished in `c4f730a`: 3,663 → **3,883**, `contractVersion` still
+  1.0.0 so nothing E asserts on moved. The manifest's caveat regenerated itself from
+  *"5 of 3663 are tier-M"* to *"9 of 3883"*.
+- **Screenshots** — shipped in `20d804b`: seven PNGs and a provenance manifest in
+  `handover/shots/`, commit and payload hash recorded, an invented character
+  (`Ashvane`) geared by Auto-fill, the real inventory export never loaded.
+
+They found two defects that had passed every existing guard, both now fixed: the planar
+page's prose contradicted a computed figure beside it, and the upgrades zone rows printed
+one column over the next on the flagship screen. The guard for the second took three
+attempts and the first two were worthless — that is written into the test, because it is
+the more useful half.
+
+**Still outstanding and genuinely mine: the `VITE_BASE=/tools/50-upgrades/` build for A.**
+Next.
