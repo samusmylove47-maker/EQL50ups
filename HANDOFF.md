@@ -7764,3 +7764,93 @@ whenever it is not also convenient.
 The 42.2% was never a sourcing figure. **Attribution among rows that carry a scoreable number
 is 100.00% in both builds**, rows carrying one went 2,176 → 2,245, and client-verified blocks
 went 5 → 9. What rose was the share of catalogue that is not gear.
+
+---
+
+## 3 Sep — Status of `=Upgrades`, and I am clear for a new assignment
+
+Owner's timetable, stated today: **public release Tuesday 8 Sep**, a working build wanted as
+soon as possible so beta testers can be promoting it on launch day. Four days.
+
+### Where the tool is
+
+**Live, green, and current** — `b191bc4`, CI success at 09:39Z, deploy confirmed by polling
+the live payload rather than by trusting the suite.
+
+Twelve screens ship: Landing, Characters, New character, Character detail, Set editor
+(gear / exaltations / weights), Upgrades, Item browser, Compare, Planar, Shared set, Sources,
+Contamination. The core loop is closed end to end — **create a trio, import a real
+`/outputfile inventory` export, rank every slot, tune weights, share by link** — with no
+account and no server.
+
+| | |
+|---|---|
+| Catalogue | **3,883** items across 23 slot positions |
+| Rows carrying a scoreable stat block | **2,245**, and every one states its source |
+| Client-verified stat blocks | **9** — was 5 until the owner's Shadow Rage captures today |
+| Unit tests | **1,183** across 79 files |
+| Browser tests | **151** across 21 specs |
+| Pipeline | 68 `verify.mjs` checks, `catalogue-audit` passing |
+
+### The incident worth recording, because it cost five hours
+
+**CI was red from 04:37 to 09:39 and the live site served a stale payload throughout.** Mine.
+`contamination.json` records the source-line count of the tree it scanned; I ran `build.mjs`,
+then kept editing source, then committed — so the shipped self-audit described a tree 18
+lines smaller than the one beside it. The gate caught it exactly as designed and refused to
+deploy.
+
+Two things follow. The habit that failed is **"build last, commit once"** — every earlier
+commit today ran `build.mjs` as the final step before `git add`; this one ran it in the
+middle. And I had been telling the owner that CI does not run the pipeline, which is **wrong**
+and now corrected in the record: `deploy.yml` runs `verify.mjs` and `catalogue-audit.mjs` at
+lines 69 and 76. What CI does not do is *regenerate* the payload, which is why a stale one
+fails rather than being silently fixed.
+
+For the remaining four days I am verifying every push against the live etag, not the local
+suite. That is the standing rule and it would have caught this in minutes.
+
+### What is not built
+
+- **Spells.** 2,011 scraped with recast times, vendored, **read by nothing**. Not in the
+  payload, not in the app. The largest visible gap and not closeable by Tuesday.
+- **Spell ranks 0–10.** Owner confirmed the mechanic exists; the model is transcribed from
+  `amerzel/eql-info` (MIT) and is unverified by us. It is server-pushed, so client files
+  cannot settle it — only ranked tooltips can.
+- **~2,213 era-less items** still withheld. This is the "I searched and found nothing"
+  complaint, and it is an owner decision, not a bug.
+- **867 Epic Quest items** withheld, which the owner corrected today are partly obtainable —
+  early steps are being completed, final turn-ins are not in yet. Unactioned.
+- **No `LICENSE`**, no robots.txt position. Both with the sessions.
+
+### What I recommended trimming
+
+**Contamination out of the nav.** It is a self-audit that tells a first-time visitor the data
+is contaminated, in detail, before they have formed any trust in it. Good engineering, wrong
+first impression for a launch. Keep the page, keep it linked from Sources, take it off the
+masthead. Nothing else — Planar and Compare are both differentiators against sixtyupgrades.
+
+### Plan for Friday to Monday, in priority order
+
+1. **Era-less items**, if the owner rules for it — ship the ~438 wearable ones marked
+   `eraUnknown`. Biggest player-visible win available before launch and a small pipeline
+   change. Blocked on the owner, not on me.
+2. **Contamination out of the nav**, if the recommendation is accepted.
+3. **`LICENSE`**, if the sessions reach consensus.
+4. **Epic Quest re-examination** — the owner's correction today makes 867 withheld items
+   worth a second look, but it needs a way to tell an obtainable early-step item from an
+   unobtainable final turn-in, and I do not have one yet.
+5. Spells only if there is room, which I doubt and would not promise.
+
+### Ledger
+
+**Clear.** Every finding I was assigned is closed: the eight verified defects, the
+player-reported two-handed bug, the missing-items research, the supplement, the Shadow Rage
+captures, the spell corpus, and today's provenance work. Everything remaining on the list
+above is either awaiting a decision that is not mine or an improvement nobody has asked for.
+
+**So I am available for a new assignment.** If the answer is "hold and support the launch", I
+will treat items 1–3 as the queue and otherwise stay quiet; a session inventing work four days
+before a release is a risk rather than a contribution. If there is cross-repo work that needs
+a pair of hands — E's module integration, or anything on `eql-source` that touches this tool's
+surface — I have the capacity for it now.
