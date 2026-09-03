@@ -7517,3 +7517,117 @@ ok · `build.mjs` 0 · `verify.mjs` PASSED Tier 0 100.0% · `catalogue-audit` PA
 hand — the doll now reports it instead of refusing it. That is deliberate for this change (a refusal
 is a bigger behavioural decision than a disclosure, and a set already carrying the pair must still
 open), but it is the obvious next step if the owner wants the hard lockout in the editor too.
+
+---
+
+## 3 Sep — To the Director, for consensus: blocking crawlers protects nothing we care about, and the decision is site-wide rather than mine
+
+The owner asked me a narrow question and I want the sessions to see the wide version of it,
+because the answer touches every tool on the site and not just `=Upgrades`.
+
+**The question, verbatim:**
+
+> *"Is it possible to block bots and AI only from specific sections of the website? For
+> example, if we don't want others taking what we've invested literally hundreds of hours
+> into researching, designing, building... can we block the 50upgrades section only?"*
+
+### The narrow answer is yes, and it is irrelevant
+
+`robots.txt` takes path prefixes, so scoping to one section is ordinary:
+
+```
+User-agent: ClaudeBot
+Disallow: /50upgrades/
+```
+
+Three things make it not do the job it is being asked to do, and the third is decisive.
+
+**1. It must sit at the origin root.** On eqlsource.com we control that. On the current
+Pages deploy we do not: there is no `samusmylove47-maker.github.io` repository — checked —
+so a file at `/EQL50ups/robots.txt` would never be read by anything.
+
+**2. It is a request, not a fence.** Polite crawlers obey; scrapers do not. No enforcement
+exists anywhere in the mechanism.
+
+**3. The payload is already public by construction.** Measured against the live deploy just
+now, not reasoned about:
+
+```
+/EQL50ups/data/items-index.json  ->  http 200   730,790 bytes
+/EQL50ups/data/meta.json         ->  http 200    22,212 bytes
+```
+
+That is the entire catalogue, over `curl`, with no browser and no crawler in the path. It
+**has** to be public — the app is static, so every visitor's browser fetches exactly those
+files. `robots.txt` asks a crawler not to index a page; it does not gate file access. A
+`Disallow` on `/50upgrades/` would leave both those URLs answering 200 to anyone who asks.
+
+So the block would not protect the hundreds of hours. It would mostly cost search
+visibility on the one section we most want found — precisely as E's module starts routing
+Auras users into it.
+
+### Why this is a cross-session decision and not mine to take
+
+- `robots.txt` is **one file per origin**. There is no version of this that applies to
+  `=Upgrades` without applying to Sky Ledger, to the Auras landing, and to the overlay when
+  it ships. Whatever we choose, we choose together.
+- The same reasoning applies to every payload any of us ships. Sky Ledger's data is as
+  fetchable as mine. If the concern is real it is a site-wide architecture question, not a
+  per-section toggle.
+- E's module is a **traffic-in** mechanism. A discoverability decision taken in my section
+  lands on E's funnel.
+
+### What is actually ours, which is the part that matters for any protection worth having
+
+Worth separating honestly, because it changes what is defensible:
+
+| | standing |
+|---|---|
+| Item stat blocks | derived from eqlwiki, which publishes **no content licence at all** — our own `meta.json` records that, checked 2026-08-18 — plus four upstream repos on mixed terms. A weak claim, and one we would be asserting over data we scraped. |
+| The Tier M client captures | **ours** — original observation, nobody else has them |
+| The +N upgrade model | **ours** — derived independently here and validated to 23 of 23 fields on the Shadow Rage captures |
+| The EP ranking methodology | **ours** |
+| The contamination analysis, the sourcing standard, the design, the code | **ours** |
+
+The hundreds of hours are in the second column. **None of it is protected by hiding a JSON
+file**, and all of it is protected — to the extent anything is — by a licence, which this
+repository does not currently have. There is no `LICENSE` file.
+
+### The symmetry, which I think the sessions should weigh explicitly
+
+This project is built from scraped wiki data. Three sites now refuse us by name —
+`gnollguard.com`, `eqlegends.tools`, and `eqprogression.com`, which our own
+`SOURCING-STANDARD.md` cites as a Tier 3 source. I have honoured all three and fetched
+nothing beyond their `robots.txt`.
+
+Asking the same of others is a perfectly coherent position. It is worth being clear-eyed
+that it works on the polite ones only, and that we are the polite ones.
+
+### The options, with what each actually buys
+
+1. **Licence + `Content-Signal: ai-train=no`.** Cheapest, and the only one that touches the
+   column that is actually ours. Turns copying from free-and-invisible into attributable,
+   and states an express reservation of rights. No discoverability cost.
+2. **Path-scoped `Disallow` on named AI bots.** Costs some indexing, buys a signal rather
+   than a protection. Coherent only alongside (1).
+3. **Cloudflare in front of the domain.** Real edge enforcement, unlike `robots.txt`.
+   Ops cost, no architectural change.
+4. **A backend with auth and rate limits.** The only genuine technical protection, and it
+   ends *"No account, no server: sets live in the browser and travel as links"* — which is
+   a stated design principle of this tool, not an implementation detail.
+
+### What I am not doing
+
+I have written nothing. No `robots.txt`, no `LICENSE`, no change to the deploy. The owner
+wants consensus and I agree with him that this is the right shape of decision for it: it is
+reversible in the technical sense and not in the reputational one, and it lands on tools I
+do not own.
+
+**What I would put to the sessions:** (1) unconditionally, (2) only if we want the signal
+and accept the indexing cost, (3) if the domain is already fronted, (4) never for this tool
+unless the no-server principle is deliberately retired.
+
+**What I need in return, if the answer is yes to anything:** whoever owns eqlsource.com's
+root serves the file. I cannot reach it from here, and a `robots.txt` committed to this
+repository would be inert — which is worth saying plainly, because shipping an inert file
+and believing it works is worse than shipping nothing.
