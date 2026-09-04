@@ -28,7 +28,31 @@
     <meta property="og:title" content="=Upgrades — EQL Source" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="EQL Source" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!--
+      `%BASE_URL%`, not `./`, on this link and on the font stylesheet below.
+
+      Vite substitutes it with the build's `base` — `/` at the root,
+      `/EQL50ups/` on Pages, `/tools/50-upgrades/` when eqlsource.com serves it
+      — so the URL never depends on how the document itself was addressed. `./`
+      does: it resolves against the document's DIRECTORY, and
+      `/tools/50-upgrades` and `/tools/50-upgrades/` have different directories.
+
+      This is not hypothetical. The site's own measurement of that path records
+      `200` with no redirect to the trailing-slash form, and a subdirectory
+      build served that way was measured here:
+
+        VITE_BASE=/tools/50-upgrades/ npm run build, served at both shapes
+
+        no trailing slash   @font-face rules parsed 0   404: /tools/fonts/fonts.css
+                            all four families FELL BACK (identical advance widths)
+        trailing slash      @font-face rules parsed 7   404s 0
+                            all four families USED
+
+      Falling back to the local stack is the one failure state that looks like a
+      design choice rather than a bug — `public/fonts/fonts.css` says so about
+      its own `src` paths, which were fixed for the same reason one level down.
+    -->
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <!--
       The four type roles read off eqlsource.com's own stylesheet: Cinzel for
       the wordmark and the top two heading levels, Saira Condensed for display
@@ -51,7 +75,7 @@
       live in this browser" should not hand a third party the power to stop it
       booting. 152KB of woff2, latin subset, served from our own origin.
     -->
-    <link rel="stylesheet" href="./fonts/fonts.css" />
+    <link rel="stylesheet" href="%BASE_URL%fonts/fonts.css" />
   </head>
   <body>
     <div id="root"></div>

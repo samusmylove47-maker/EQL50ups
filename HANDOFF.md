@@ -8074,3 +8074,145 @@ the more useful half.
 
 **Still outstanding and genuinely mine: the `VITE_BASE=/tools/50-upgrades/` build for A.**
 Next.
+
+---
+
+## 4 Sep — The handoff build is done and it found a real defect; four things are blocked and three of them are not mine to move
+
+Four days to the 8 Sep release. Taking the one piece of work first, because it changes
+what A has to do.
+
+### 1. `VITE_BASE=/tools/50-upgrades/` — built, served both ways, and it broke
+
+This was the item I ended yesterday's note on. It is done, and doing it properly rather
+than just running the command found something.
+
+`index.html` carried two hand-written links:
+
+```
+<link rel="icon" href="./favicon.svg" />
+<link rel="stylesheet" href="./fonts/fonts.css" />
+```
+
+Vite rewrites the URLs it generates itself — the emitted JS and CSS came out as
+`/tools/50-upgrades/assets/…`, correctly based. It does not touch a `href` written by
+hand, and `./` resolves against the document's **directory**. `/tools/50-upgrades` and
+`/tools/50-upgrades/` do not have the same directory.
+
+That is not a hypothetical shape. `curl` against the site records that path returning
+**200 with no redirect** to the slash form, so the no-slash shape is the one it would be
+served at. I built at that base and served the output both ways from a local static
+server that differs in nothing else:
+
+```
+                     @font-face rules parsed     404s
+no trailing slash              0                 /tools/fonts/fonts.css, /tools/favicon.svg
+trailing slash                 7                 none
+```
+
+At the no-slash shape all four faces — Cinzel, IBM Plex Mono, Public Sans, Saira
+Condensed — measured **the same advance width as a deliberately nonexistent family**.
+Every one of them had fallen back to the local stack. `public/fonts/fonts.css` already
+carries a comment calling that "the one failure state that looks like a design choice
+rather than a bug", written when the same class of defect was fixed one level down in
+its own `src` paths. It was still live one level up.
+
+**Fixed** by using Vite's own substitution, which is correct at every base and does not
+depend on how the document was addressed:
+
+```
+href="%BASE_URL%favicon.svg"        href="%BASE_URL%fonts/fonts.css"
+```
+
+Re-measured after the fix: **7 rules parsed, 0 404s, all four families in use, at both
+shapes.** The app's data fetches were never at risk — `catalog.ts`, `quarantine.ts`,
+`sourcesData.ts` and `contaminationData.ts` all read `import.meta.env.BASE_URL` already.
+It was only the two links no build step owned.
+
+**One thing worth your time more than the fix.** My first probe used
+`document.fonts.check()` and reported all four families available at *both* shapes,
+including the one where the stylesheet declaring them had 404'd. That is what `check()`
+does: it answers "is every **matching** face loaded", and a family with no matching face
+has nothing to wait for, so it returns true. I had written a guard that could not fail,
+about fonts, on the day after writing two collision guards that could not fail, about
+layout. The replacement measures the font set's size and compares rendered advance
+widths, and it disagrees with `check()` in exactly the case that matters. Both the
+method and the miss are in the test.
+
+`src/index-base-url.test.ts` now pins it: no hand-written subresource in the head may be
+document-relative, every local one must start at `%BASE_URL%`, and the fonts must stay
+off `fonts.googleapis.com`. Watched refusing before it was trusted — reinstating
+`./fonts/fonts.css` fails 3 of its 4 assertions with the URL named in the message.
+`index.html` restored byte-identical, sha256 `2dc8ce262b56d655`.
+
+**What A needs, and it is now four lines:**
+
+```
+cd web && VITE_BASE=/tools/50-upgrades/ npm run build
+cp dist/index.html dist/404.html          # SPA fallback, or every deep link 404s
+# serve dist/ as a DIRECTORY at /tools/50-upgrades/ — data/, fonts/, assets/, bis/
+# vendored meta.json builtAt must equal the one in the tree it was copied from
+```
+
+The last line is the freshness gate I described yesterday. It is the shape that caught
+my own five-hour stale deploy, and it costs A one assertion.
+
+### 2. Where the tool stands, measured rather than recalled
+
+```
+CI          run 190 on 2e6aaaf — conclusion success
+live        meta.json builtAt 2026-09-03T19:29:08.011Z == HEAD's commit time
+            live items-index.json: 3,883                    (curl, not the suite)
+gate at 2e6aaaf   verify 68 checks / 0 failures · catalogue-audit passed
+                  tsc clean · 1,183 vitest · 153 Playwright · build clean
+catalogue   3,883 items · 2,245 carry a scoreable stat block and every one states
+            its source · tier-M 9, tier-2 2,109, tier-5 127
+```
+
+The core loop closes end to end: create a trio, import a real `/outputfile` export, rank
+23 slots, tune weights, compare two builds, share by link. Twelve screens. Seven product
+screenshots with a provenance manifest are in `handover/shots/` for whoever writes the
+launch page.
+
+### 3. The four things I cannot move, and who each one waits on
+
+**You.** The 1.7.0 pin. Bytes verified, both halves of E's matched pair proven, adoption
+is one line and a rebuild. It is held by *your* 1 Sep ruling — "HOLD at 1.4.0 through the
+ship" — and I will not read an instruction that does not mention that ruling as the
+ruling being lifted. Say it knowing the hold exists and it is pinned inside ten minutes.
+
+**The owner, directly.** The era-less items. Re-measured today from `quarantine.json`
+rather than recited: **2,213 rows carry no era in any source, and 438 of those carry a
+real equipment slot.** Those 438 are the ones a player searches for and gets *no results*
+from, which is indistinguishable from *this item does not exist*. I would ship them. I
+will not act on a relayed delegation for a change that alters what the site asserts to
+every visitor four days out — one sentence from the owner settles it, and the change
+itself is an afternoon.
+
+**The owner, and not while it is also convenient.** Whether Weight counts as a sourced
+number. It moves the headline figure from 42.2% to 0.6% and I declined it on those
+grounds; you ruled rename-instead and the rename shipped.
+
+**Nobody, yet.** The 867 Epic Quest items. Separating an obtainable early-step piece from
+an unobtainable final turn-in needs a signal I do not have in this repository. If the new
+goals include a data pass, this is the one that would pay.
+
+### 4. Ledger, and the transition
+
+With the handoff build done, **my ledger for the current needs is clear.** Nothing on the
+list above is waiting on my hands; three are waiting on a sentence and one on data that
+does not exist here.
+
+So I am available for the new goals. Two things to weigh when you assign:
+
+- I am four days from a release on this tool, and a session inventing work in that window
+  is a risk rather than a contribution. Anything that touches what a visitor sees, I would
+  rather do after Tuesday.
+- What this session is actually good for right now is the thing it has been doing badly
+  and then correcting: **measuring the claim instead of the proxy for it.** Three guards
+  this week passed while the defect was live — two on layout, one on fonts — and each was
+  caught by measuring the rendered result rather than the state that was supposed to
+  produce it. If the new goals include auditing what the site *asserts* versus what it
+  *shows*, that is the work I would put myself on.
+
+Gate for this entry is in the commit message, run in CI's own order.
