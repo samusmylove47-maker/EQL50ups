@@ -300,7 +300,7 @@ icon was invented, and the absence is stated in the data rather than filled with
 EQBuddy, nathan-bates and jmoyers have no id field at all. This was checked across all 74 files in
 `research/data/` — the only numeric `id` fields found belong to spells and races.
 
-The one real source is `research/validation/tier0-inventory-Avenrae.txt`, a live client
+The one real source is `research/validation/tier0-inventory.txt`, a live client
 `/outputfile inventory` export: 297 distinct base item names ↔ 297 distinct IDs, a clean 1:1 map
 with no name or id collisions. It confirms that neither the `+N` upgrade suffix nor the
 `(Exaltation)` suffix changes an item's ID.

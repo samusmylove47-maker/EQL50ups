@@ -137,7 +137,15 @@ export function Landing() {
           <div className="hero-art-head">
             <span className="portrait sm">A</span>
             <span>
-              <b>Avenrae</b>
+              {/*
+                An invented character, and it has to stay invented. This card
+                printed the owner's own character name — the site reserves its
+                real character names to `credits.html`, once, and this was the
+                site's voice using one a second time. `Ashvane` belongs to
+                nobody; it is the same name the product screenshots are taken
+                with, so the demo art and the shots now agree.
+              */}
+              <b>Ashvane</b>
               <i>50 BRD/WAR/BER</i>
             </span>
           </div>

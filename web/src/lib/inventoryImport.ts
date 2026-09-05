@@ -2,7 +2,7 @@
  * Reading the game's own `/outputfile inventory` export.
  *
  * EverQuest Legends' client writes a tab-separated dump of everything the
- * character is carrying. `research/validation/tier0-inventory-Avenrae.txt` is a
+ * character is carrying. `research/validation/tier0-inventory.txt` is a
  * genuine one, and `research/validation/TIER0-VALIDATION.md` is where its
  * grammar was confirmed against the running client. This module turns that text
  * into a gear set.

@@ -144,7 +144,7 @@ All of the following from
   scrape on Tier M evidence = 3,663, under **10** ship-reason codes.
 - **Existence evidence:** `measured-drop` 277, `live-export` 197, `eqlsource-id` 95.
 - **Client-mined IDs:** `meta.provenance.itemIds` — 297 observed in the owner's export
-  (`research/validation/tier0-inventory-Avenrae.txt`, 2026-08-16), 257 in EQL Source's published
+  (`research/validation/tier0-inventory.txt`, 2026-08-16), 257 in EQL Source's published
   table, **299** applied to catalogue records. *No wiki scrape carries a numeric game item ID.*
 - **Code:** non-test `.ts`/`.tsx`/`.css` under `web/src` → 84 files, 31,586 lines;
   `wc -l pipeline/*.mjs` → 6,453.

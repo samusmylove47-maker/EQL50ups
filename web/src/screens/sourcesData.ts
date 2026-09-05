@@ -320,7 +320,7 @@ export const TIERS: readonly TierCard[] = [
       'character, parsed rather than remembered. It outranks every read source for what it directly ' +
       'measures, and generalises to nothing beyond its stated conditions.',
     here:
-      'A live /outputfile inventory export (research/validation/tier0-inventory-Avenrae.txt, ' +
+      'A live /outputfile inventory export (research/validation/tier0-inventory.txt, ' +
       '2026-08-16), the client screenshots recorded in research/validation/TIER0-VALIDATION.md, and ' +
       "the owner's own reports. Where the game and a source disagree, the source is corrected.",
   },

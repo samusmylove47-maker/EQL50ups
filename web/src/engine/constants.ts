@@ -320,7 +320,7 @@ export const ERA_ORDER = [
  */
 
 /**
- * Seen in `research/validation/tier0-inventory-Avenrae.txt`, a live
+ * Seen in `research/validation/tier0-inventory.txt`, a live
  * `/outputfile inventory` export: the character possesses these in the running
  * game. `Hamed's Ring of Tears` is worn on a finger; `Tobrin's Mystical
  * Eyepatch` and `Selo`s Drums of the March` are socketed into worn gear;

@@ -1,7 +1,7 @@
 /**
  * The upgrade ranking against the real catalog and a real character.
  *
- * `research/validation/tier0-inventory-Avenrae.txt` is an `/outputfile
+ * `research/validation/tier0-inventory.txt` is an `/outputfile
  * inventory` export from a level 50 BRD/WAR/BER. Nothing in this file is
  * invented: the gear set is what the app's own importer makes of that export,
  * the catalog is what the pipeline published, and the ranking is the one the
@@ -25,7 +25,7 @@ import { DEFAULT_SET_FILTERS } from '../lib/setFilters';
 import { rankSlotItems, scoreContextFrom, slotViews, totalsFor } from '../selectors/gear';
 import { computeUpgrades, isLore } from './Upgrades';
 
-const INVENTORY = '../research/validation/tier0-inventory-Avenrae.txt';
+const INVENTORY = '../research/validation/tier0-inventory.txt';
 const INDEX = 'public/data/items-index.json';
 const published = existsSync(INDEX) && existsSync(INVENTORY);
 

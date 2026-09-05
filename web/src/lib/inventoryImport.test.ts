@@ -4,7 +4,7 @@
  * Two halves. The first drives synthetic exports through every branch of the
  * grammar — doubled positions, sub-slots, containers, junk — because those are
  * the cases a real file happens not to contain. The second runs the genuine
- * client export in `research/validation/tier0-inventory-Avenrae.txt` against
+ * client export in `research/validation/tier0-inventory.txt` against
  * the genuine shipped catalog, and asserts the exact numbers it produces: that
  * file is the only Tier 0 evidence there is, and an importer that drifts away
  * from it has stopped importing the game's own format.
@@ -636,7 +636,7 @@ describe('readInventory — never throws, whatever it is fed', () => {
 
 /* ------------------------------------------------------ the real client file */
 
-const INVENTORY = '../research/validation/tier0-inventory-Avenrae.txt';
+const INVENTORY = '../research/validation/tier0-inventory.txt';
 const INDEX = 'public/data/items-index.json';
 const available = existsSync(INVENTORY) && existsSync(INDEX);
 

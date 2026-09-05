@@ -125,7 +125,7 @@ describe.skipIf(!published)('an item the game has and no catalog describes', () 
       expect(evidence.length, `${item.n} evidence`).toBeGreaterThan(40);
       // The claim is checkable: it names the file the proof is in.
       expect(
-        /sightings\.v1\.json|items\.v1\.json|tier0-inventory-Avenrae\.txt/.test(evidence),
+        /sightings\.v1\.json|items\.v1\.json|tier0-inventory.txt/.test(evidence),
         `${item.n} evidence names no source file: ${evidence}`,
       ).toBe(true);
       // Tier M existence, stated separately from any claim about numbers.

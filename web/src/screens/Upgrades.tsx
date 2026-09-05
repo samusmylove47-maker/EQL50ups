@@ -181,7 +181,7 @@ export interface WithheldRow {
    *    away: `withheldMap` writes `out[positionId] = entry.exportName` while
    *    `UnstattedEntry` carries a `tier` field beside it, and `toSlotMap` on
    *    the equippable path keeps it via `clampTier(entry.tier)`. Measured on
-   *    the repository's own export, `tier0-inventory-Avenrae.txt`:
+   *    the repository's own export, `tier0-inventory.txt`:
    *    `unstatted HEAD "Shadow Rage Helm" tier=5`, `withheldMap -> {"HEAD":
    *    "Shadow Rage Helm"}`, and the card then said `+0` about a `+5` helm.
    *  - A position withheld with **nothing worn in it** — `offhand-occupied` on

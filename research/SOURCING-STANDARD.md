@@ -29,7 +29,7 @@ Transcribed from the live page on 2026-08-17.
 ## What this means for this repository
 
 **Tier M is the player's own client output.** For this project that is:
-`research/validation/tier0-inventory-Avenrae.txt` (a `/outputfile inventory` export),
+`research/validation/tier0-inventory.txt` (a `/outputfile inventory` export),
 the client screenshots recorded in `TIER0-VALIDATION.md`, and the owner's direct reports
 in `TIER0-PLAYER-REPORTS.md`. These outrank every scraped field, and they are why the
 upgrade maths was corrected twice against the game after a third-party model disagreed.

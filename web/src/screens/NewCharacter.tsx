@@ -97,7 +97,11 @@ export function NewCharacter() {
                 autoFocus
                 maxLength={64}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Avenrae"
+                // Invented, like the landing card. A placeholder is a sample
+                // input and the site's rule exempts those, so this one was not
+                // required to change — but leaving it would have meant the app
+                // used two different sample names and kept the real one.
+                placeholder="Ashvane"
               />
             </label>
             <label className="field" style={{ width: 110 }}>

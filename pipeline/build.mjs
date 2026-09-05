@@ -461,7 +461,7 @@ const TIER0_KNOWN_ITEMS = [
     sv: { DISEASE: 12 },
     evidence:
       'Confirmed to exist: worn in the Head position of the live client inventory export ' +
-      '(research/validation/tier0-inventory-Avenrae.txt, item #55601). No wiki catalog has a ' +
+      '(research/validation/tier0-inventory.txt, item #55601). No wiki catalog has a ' +
       'page for it. The stat block below is DERIVED, not read: it is the unique +0 that the ' +
       'documented +N model maps onto the client item window captured at +5 on 2026-09-02. ' +
       'See research/validation/TIER0-VALIDATION.md §10. ' + PLAYER_REPORT_2026_08_17,
@@ -473,7 +473,7 @@ const TIER0_KNOWN_ITEMS = [
     cl: ['BER'],
     evidence:
       'Confirmed to exist: held in the live client inventory export ' +
-      '(research/validation/tier0-inventory-Avenrae.txt, item #55605). No wiki catalog has a ' +
+      '(research/validation/tier0-inventory.txt, item #55605). No wiki catalog has a ' +
       'page for it, so no stats are known. ' + PLAYER_REPORT_2026_08_17,
   },
   {
@@ -483,7 +483,7 @@ const TIER0_KNOWN_ITEMS = [
     cl: ['BER'],
     evidence:
       'Confirmed to exist: held in the live client inventory export ' +
-      '(research/validation/tier0-inventory-Avenrae.txt, item #55607). No wiki catalog has a ' +
+      '(research/validation/tier0-inventory.txt, item #55607). No wiki catalog has a ' +
       'page for it, so no stats are known. ' + PLAYER_REPORT_2026_08_17,
   },
 ];
@@ -521,7 +521,7 @@ const TIER0_KNOWN_ITEMS = [
  * EXISTENCE, fact one. Values of `ex`:
  *
  *   `live-export`    the name resolves to a line in
- *                    `research/validation/tier0-inventory-Avenrae.txt`. The
+ *                    `research/validation/tier0-inventory.txt`. The
  *                    character possesses it in the running game.
  *   `player-report`  the owner named it directly (`EQL_CONFIRMED_NAMES`).
  *   absent           no Tier M evidence. The item ships on its era, which is a
@@ -1186,7 +1186,7 @@ for (const k of new Set([...byW.keys(), ...byJ.keys(), ...byN.keys(), ...byE.key
 // This is the ONLY source of numeric item IDs anywhere in the corpus; the four
 // wiki scrapes carry page slugs, not game IDs.
 function loadTier0Ids() {
-  const path = join(VALIDATION, 'tier0-inventory-Avenrae.txt');
+  const path = join(VALIDATION, 'tier0-inventory.txt');
   const ids = new Map();     // base display name -> numeric id
   if (!existsSync(path)) return ids;
   for (const line of readFileSync(path, 'utf8').split(/\r?\n/)) {
@@ -2134,7 +2134,7 @@ for (const rec of records) {
  *   - it appears in `data/items.v1.json` — the name-to-game-ID table read out of
  *     `/outputfile inventory` dumps; or
  *   - it appears in this repository's own client export,
- *     `research/validation/tier0-inventory-Avenrae.txt`, and resolved to no
+ *     `research/validation/tier0-inventory.txt`, and resolved to no
  *     catalog record. That case was already known and already reported — the
  *     README calls it out as "eight items in a sampled inventory exist in no
  *     wiki catalog at all" — and it was reported and then dropped. It is the
@@ -2196,7 +2196,7 @@ const existenceAliases = [];
     c.id = id;
     c.localExport = true;
     c.why.unshift(
-      'held in a live client inventory export (research/validation/tier0-inventory-Avenrae.txt) ' +
+      'held in a live client inventory export (research/validation/tier0-inventory.txt) ' +
       `as item #${id}`,
     );
   }
@@ -2910,7 +2910,7 @@ const meta = {
       question: 'Is this item in the game?',
       vocabulary: [
         { code: EXISTENCE_SIGHTED, tier: 'M', means: 'a mob was measured dropping it, in EQL Source\'s parsed combat logs (data/sightings.v1.json). The strongest existence evidence here: the game produced the item.' },
-        { code: EXISTENCE_EXPORT, tier: 'M', means: 'resolves to a line in research/validation/tier0-inventory-Avenrae.txt, a live /outputfile inventory export' },
+        { code: EXISTENCE_EXPORT, tier: 'M', means: 'resolves to a line in research/validation/tier0-inventory.txt, a live /outputfile inventory export' },
         { code: EXISTENCE_EQLS_ID, tier: 'M', means: 'named in EQL Source\'s published item-name-to-game-ID table (data/items.v1.json), built from /outputfile inventory dumps' },
         { code: EXISTENCE_REPORT, tier: 'M', means: 'named directly by the player who plays the game' },
       ],
@@ -3200,7 +3200,7 @@ const meta = {
       key: k, file: `research/data/${f}`, bytes: statSync(join(DATA, f)).size, sha256_16: sha256(f),
     })),
     itemIds: {
-      source: 'research/validation/tier0-inventory-Avenrae.txt (live client /outputfile inventory, 2026-08-16)',
+      source: 'research/validation/tier0-inventory.txt (live client /outputfile inventory, 2026-08-16)',
       /*
        * Derived, not typed. This sentence used to hard-code "298" beside a
        * computed `observed: 297` and a computed `applied: 289` — three numbers

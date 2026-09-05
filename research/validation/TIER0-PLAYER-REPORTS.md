@@ -36,7 +36,7 @@ armour slot, and named in the same style. The wiki simply never scraped it as a 
 of the pieces on unrelated pages and no era on two of them.
 
 The player also **holds five of the six pieces in a live client export**
-(`tier0-inventory-Avenrae.txt`): the Helm is worn on the head, and the Gloves, Sleeves, Wristguard
+(`tier0-inventory.txt`): the Helm is worn on the head, and the Gloves, Sleeves, Wristguard
 and Boots are in bank slot 15.
 
 ### What changed

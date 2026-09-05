@@ -208,7 +208,7 @@ describe.skipIf(!published)('shipped catalog', () => {
         expect(Object.keys(piece.sv), piece.n).toEqual([]);
         expect(piece.wp, piece.n).toBeFalsy();
         // Each one says what proves it exists, in words a reader can check.
-        expect(piece.evidence ?? '', piece.n).toMatch(/tier0-inventory-Avenrae\.txt|player report/i);
+        expect(piece.evidence ?? '', piece.n).toMatch(/tier0-inventory.txt|player report/i);
       }
     });
 

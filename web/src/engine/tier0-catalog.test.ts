@@ -1,7 +1,7 @@
 /**
  * The shipped catalog measured against the live client.
  *
- * `research/validation/tier0-inventory-Avenrae.txt` is an `/outputfile
+ * `research/validation/tier0-inventory.txt` is an `/outputfile
  * inventory` export from a level 50 BRD/WAR/BER. Every worn position in it is
  * a thing the game itself allowed that character to equip, which makes it the
  * strongest available test of what the catalog must contain and what the picker
@@ -26,7 +26,7 @@ import { rankSlotItems, unstattedForSlot } from '../selectors/gear';
 import { tier } from './upgrade';
 import { SLOT_TYPES } from './constants';
 
-const INVENTORY = '../research/validation/tier0-inventory-Avenrae.txt';
+const INVENTORY = '../research/validation/tier0-inventory.txt';
 const INDEX = 'public/data/items-index.json';
 const published = existsSync(INDEX) && existsSync(INVENTORY);
 
@@ -182,7 +182,7 @@ describe.skipIf(!published)('Tier 0 inventory vs the picker', () => {
     expect(helm?.st).toEqual({ AC: 14, STR: 7, AGI: 5 });
     expect(helm?.sv).toEqual({ DISEASE: 12 });
     expect(helm?.wp).toBeUndefined();
-    expect(helm?.evidence ?? '').toContain('tier0-inventory-Avenrae.txt');
+    expect(helm?.evidence ?? '').toContain('tier0-inventory.txt');
     expect(helm?.evidence ?? '').toContain('DERIVED');
   });
 

@@ -68,10 +68,26 @@ const NAME = 'Ashvane';
 
 test.beforeAll(() => mkdirSync(OUT, { recursive: true }));
 
-/** Give fonts and the catalogue fetch time to settle before the shutter. */
+/**
+ * Give fonts and the catalogue fetch time to settle before the shutter — and
+ * refuse to photograph a screen printing the owner's own character name.
+ *
+ * This file already claimed the shots were clean, and the claim was true about
+ * the thing it checked: the spec never loads the real inventory export, so
+ * grepping the spec finds nothing. **The name was on the screen anyway**, in
+ * the landing page's demo card and in a source citation on the Sources page —
+ * static copy, a different layer than the one under test. Two of the seven
+ * shots were unusable and nobody looking at the spec could have known.
+ *
+ * So the check is now made against the rendered text, which is what a
+ * screenshot actually captures. Every capture is preceded by `settle`, so one
+ * assertion here covers all seven frames.
+ */
 async function settle(page: import('@playwright/test').Page): Promise<void> {
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(600);
+  const text = await page.evaluate(() => document.body.innerText);
+  expect(text, 'this frame prints the owner’s character name').not.toContain('Avenrae');
 }
 
 test('captures the product for the site page', async ({ page }) => {

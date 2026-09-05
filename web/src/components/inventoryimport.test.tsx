@@ -24,7 +24,7 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-const INVENTORY = '../research/validation/tier0-inventory-Avenrae.txt';
+const INVENTORY = '../research/validation/tier0-inventory.txt';
 const INDEX = 'public/data/items-index.json';
 const available = existsSync(INVENTORY) && existsSync(INDEX);
 

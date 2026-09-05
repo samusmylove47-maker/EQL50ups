@@ -9,14 +9,13 @@ Taken from the running product against the shipped payload by
 
 | | |
 |---|---|
-| commit | `c4f730aff7de222edcab97919356b0b3edb84b5e` |
-| payload `items-index.json` sha256 (first 12) | `22edb1547457` |
-| catalogue built at | 2026-09-03T19:10:49.530Z |
+| payload `items-index.json` sha256 (first 12) | `917ff6713832` |
+| catalogue built at | 2026-09-05T02:54:40.762Z |
 | items in that payload | 3,883 |
 | viewport | 1440 × 950 |
-| taken | 2026-09-03T19:13:02Z |
+| taken | 2026-09-05T02:52:30Z |
 
-**If `items-index.json` no longer hashes to `22edb1547457`, these images are older
+**If `items-index.json` no longer hashes to `917ff6713832`, these images are older
 than the data the tool ships and the numbers in them are not the numbers a visitor
 sees.** That is the whole reason the hash is here rather than just a date.
 
@@ -24,23 +23,35 @@ sees.** That is the whole reason the hash is here rather than just a date.
 
 | file | size | sha256 (first 12) |
 |---|---|---|
-| `01-landing.png` | 124 KiB | `c1ed08d79b93` |
+| `01-landing.png` | 124 KiB | `4636178840de` |
 | `02-set-editor.png` | 174 KiB | `76e0b04c2cb9` |
 | `03-upgrades.png` | 153 KiB | `b3d785864f61` |
 | `04-planar.png` | 159 KiB | `2aee8ddb9e86` |
 | `05-items.png` | 153 KiB | `d207f82a90e8` |
-| `06-sources.png` | 136 KiB | `244ae9d23145` |
-| `07-compare.png` | 108 KiB | `2cefaf475abb` |
+| `06-sources.png` | 135 KiB | `5df7003f62b3` |
+| `07-compare.png` | 107 KiB | `2cefaf475abb` |
 
 ## What is in frame, and what is deliberately not
 
-**No player data, and it is a claim you can check rather than a promise.** The
-character is `Ashvane` — invented, belonging to nobody — created through the app's
-own form and geared with **Auto-fill** against the shipped catalogue. The real
-Tier 0 inventory export (`research/validation/tier0-inventory-Avenrae.txt`) is
-never loaded by this spec. Grep it for `Avenrae` and you will not find it. No real
-character name, no account, and nothing the owner has not already published
-appears in any frame.
+**No player data, and no character name that belongs to anybody.** The character
+is `Ashvane` — invented — created through the app's own form and geared with
+**Auto-fill** against the shipped catalogue. The Tier 0 inventory export
+(`research/validation/tier0-inventory.txt`) is never loaded by this spec.
+
+**That claim used to be narrower than it sounded, and the difference cost two
+frames.** The previous revision of this file said "grep the spec for the owner's
+character name and you will not find it", which was true and did not mean what it
+appeared to mean: the spec never loads the export, but the app **printed the name
+in static copy** — the landing page's demo card and a source citation on the
+Sources page — so it was in the pictures regardless of what the spec loaded. The
+name was checked in the layer under test and never in the layer being
+photographed.
+
+The check now runs against rendered text, in `settle()`, which every capture
+passes through: a frame whose `document.body.innerText` contains that name fails
+instead of being saved. When the fix landed, **exactly two of the seven files
+changed — `01-landing.png` and `06-sources.png`** — the two the finding named,
+which is the confirmation that the finding and the fix were about the same thing.
 
 **A Berserker trio on purpose.** BER/WAR/BRD at level 50. Berserker is one of the
 classes EQ Legends added on top of classic, so the shots show the game this tool
@@ -72,10 +83,16 @@ gearing.
    sourced*, this screen **is** that claim rather than a description of it.
 6. `05-items.png`, `01-landing.png` — supporting.
 
-## Two defects these shots found, both fixed before capture
+Frames 2, 3, 4 and 7 are byte-identical to the previous revision, so the figures
+quoted above are the same measurements, not re-derived ones.
+
+## Three defects these shots found, all fixed before capture
 
 Photographing a screen turns out to be a different test from asserting about it,
-and both of these had passed every existing guard.
+and every one of these had passed every existing guard.
+
+**The site's voice used the owner's own character name.** Above; found by Session
+A, reported by hand because the channel to this session was one-way that day.
 
 **The planar page contradicted itself.** Its prose said the Shadow Rage set is
 offered by name and given *"no score at all"*, sitting directly beside a
@@ -94,6 +111,6 @@ That guard took three attempts and the first two were worthless, which is
 recorded in the test because it is the more useful half of the lesson. The first
 compared element bounding boxes — but a grid cell never moves, so the boxes never
 intersect and only the glyphs overlap. The second had a fixture too short to
-produce the long string at all, so it passed against the bug deliberately
-reinstated. Only the third, measuring content against its own box on a row that
-actually carries the `unplaced` clause, fails when the bug is put back.
+produce the long string, so it passed against the bug deliberately reinstated.
+Only the third, measuring content against its own box on a row that actually
+carries the `unplaced` clause, fails when the bug is put back.

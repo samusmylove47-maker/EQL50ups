@@ -34,7 +34,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..');
-const EXPORT = join(HERE, 'tier0-inventory-Avenrae.txt');
+const EXPORT = join(HERE, 'tier0-inventory.txt');
 const ITEMS = join(REPO, 'web', 'public', 'data', 'items');
 
 // Mirrors EXALTATION_LADDER in web/src/engine/exaltation.ts (kind, unlockTier, exportSlot).

@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
 const OUT = join(ROOT, 'web', 'public', 'data');
-const TIER0 = join(ROOT, 'research', 'validation', 'tier0-inventory-Avenrae.txt');
+const TIER0 = join(ROOT, 'research', 'validation', 'tier0-inventory.txt');
 const VERBOSE = process.argv.includes('--verbose');
 
 // --- expected vocabularies (independent restatement of the contract) ---------
